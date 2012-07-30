@@ -48,6 +48,24 @@ function barrier(c::Comm)
     if ierr[1] != MPI_SUCCESS error("MPI_BARRIER: error $(ierr[1])") end
 end
 
+function bcast{T}(A::Union(Ptr{T},Array{T}), count::Integer, root::Integer,
+                  c::Comm)
+    ierr = Array(Int32, 1)
+
+    n = count * sizeof(T)
+
+    ccall(MPI_BCAST, Void,
+          (Ptr{T}, Ptr{Int32}, Ptr{Int32},  Ptr{Int32}, Ptr{Int32},
+          Ptr{Int32},),
+          A, &n, &MPI_BYTE, &root, &c.fcomm, ierr)
+
+    if ierr[1] != MPI_SUCCESS error("MPI_BCAST: error $(ierr[1])") end
+end
+
+function bcast{T}(A::Array{T}, root::Integer, c::Comm)
+    bcast(A, numel(A), root, c)
+end
+
 function finalize()
     ierr = Array(Int32, 1)
     ccall(MPI_FINALIZE, Void, (Ptr{Int32},), ierr)
