@@ -11,9 +11,28 @@ end
 convert(::Type{Comm},  x::Int32) = Comm(x)
 convert(::Type{Int32}, x::Comm) = Int32(x.fcomm)
 
-typealias MpiDense Union(Float32, Float64, Complex64, Complex128, Bool, Char,
+typealias MpiDatatype Union(Float32, Float64, Complex64, Complex128, Char,
                          Int8, Uint8, Int16, Uint16, Int32, Uint32, Int64,
-                         Uint64, Int128, Uint128)
+                         Uint64, Int128)
+
+_mpi_datatype_map = {
+  Float32 => MPI_REAL4,
+  Float64 => MPI_REAL8,
+  Complex64 => MPI_COMPLEX,
+  Complex128 => MPI_DOUBLE_COMPLEX,
+  Char => MPI_WCHAR,
+  Int8 => MPI_INT8_T,
+  Uint8 => MPI_UINT8_T,
+  Int16 => MPI_INT16_T,
+  Uint16 => MPI_UINT16_T,
+  Int32 => MPI_INT32_T,
+  Uint32 => MPI_UINT32_T,
+  Int64 => MPI_INT64_T,
+  Uint64 => MPI_UINT64_T,
+  Int128 => MPI_INTEGER16,
+# Unfortunately mpich2 doesn't support 8-bits ints
+#  Bool => MPI_LOGICAL1,
+}
 
 takebuf_array(s::IOStream) =
     ccall(:jl_takebuf_array, Vector{Uint8}, (Ptr{Void},), s.ios)
@@ -55,22 +74,20 @@ function barrier(c::Comm)
     if ierr[1] != MPI_SUCCESS error("MPI_BARRIER: error $(ierr[1])") end
 end
 
-function bcast!{T<:MpiDense}(A::Union(Ptr{T},Array{T}), count::Integer,
+function bcast!{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
                              root::Integer, c::Comm)
     ierr = Array(Int32, 1)
-
-    n = count * sizeof(T)
 
     ccall(MPI_BCAST, Void,
           (Ptr{T}, Ptr{Int32}, Ptr{Int32},  Ptr{Int32}, Ptr{Int32},
           Ptr{Int32},),
-          A, &n, &MPI_BYTE, &root, &c.fcomm, ierr)
+          A, &count, &_mpi_datatype_map[T], &root, &c.fcomm, ierr)
 
     if ierr[1] != MPI_SUCCESS error("MPI_BCAST: error $(ierr[1])") end
     A
 end
 
-function bcast!{T<:MpiDense}(A::Array{T}, root::Integer, c::Comm)
+function bcast!{T<:MpiDatatype}(A::Array{T}, root::Integer, c::Comm)
     bcast!(A, numel(A), root, c)
 end
 
