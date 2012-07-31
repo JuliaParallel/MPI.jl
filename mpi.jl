@@ -11,6 +11,13 @@ end
 convert(::Type{Comm},  x::Int32) = Comm(x)
 convert(::Type{Int32}, x::Comm) = Int32(x.fcomm)
 
+typealias MpiDense Union(Float32, Float64, Complex64, Complex128, Bool, Char,
+                         Int8, Uint8, Int16, Uint16, Int32, Uint32, Int64,
+                         Uint64, Int128, Uint128)
+
+takebuf_array(s::IOStream) =
+    ccall(:jl_takebuf_array, Vector{Uint8}, (Ptr{Void},), s.ios)
+
 function free(c::Comm)
     ierr = Array(Int32, 1)
     ccall(MPI_COMM_FREE, Void, (Ptr{Int32},Ptr{Int32},), &c.fcomm, ierr)
@@ -48,8 +55,8 @@ function barrier(c::Comm)
     if ierr[1] != MPI_SUCCESS error("MPI_BARRIER: error $(ierr[1])") end
 end
 
-function bcast{T}(A::Union(Ptr{T},Array{T}), count::Integer, root::Integer,
-                  c::Comm)
+function bcast!{T<:MpiDense}(A::Union(Ptr{T},Array{T}), count::Integer,
+                             root::Integer, c::Comm)
     ierr = Array(Int32, 1)
 
     n = count * sizeof(T)
@@ -60,10 +67,55 @@ function bcast{T}(A::Union(Ptr{T},Array{T}), count::Integer, root::Integer,
           A, &n, &MPI_BYTE, &root, &c.fcomm, ierr)
 
     if ierr[1] != MPI_SUCCESS error("MPI_BCAST: error $(ierr[1])") end
+    A
 end
 
-function bcast{T}(A::Array{T}, root::Integer, c::Comm)
-    bcast(A, numel(A), root, c)
+function bcast!{T<:MpiDense}(A::Array{T}, root::Integer, c::Comm)
+    bcast!(A, numel(A), root, c)
+end
+
+function bcast(A, root::Integer, c::Comm)
+    ierr = Array(Int32, 1)
+    len  = Array(Int32, 1)
+
+    if rank(c) == root
+        s = memio()
+        serialize(s, A)
+        buf = takebuf_array(s)
+        len[1] = numel(buf)
+    end
+
+    ccall(MPI_BCAST, Void,
+          (Ptr{Int32}, Ptr{Int32}, Ptr{Int32},  Ptr{Int32}, Ptr{Int32},
+          Ptr{Int32},),
+          len, &sizeof(Int32), &MPI_BYTE, &root, &c.fcomm, ierr)
+
+    if ierr[1] != MPI_SUCCESS error("MPI_BCAST: error $(ierr[1])") end
+
+    if rank(c) != root
+        buf = Array(Uint8, len[1])
+    end
+
+    ccall(MPI_BCAST, Void,
+          (Ptr{Uint8}, Ptr{Int32}, Ptr{Int32},  Ptr{Int32}, Ptr{Int32},
+          Ptr{Int32},),
+          buf, len, &MPI_BYTE, &root, &c.fcomm, ierr)
+
+    if ierr[1] != MPI_SUCCESS error("MPI_BCAST: error $(ierr[1])") end
+
+    if rank(c) != root
+        s = memio()
+        write(s, buf)
+        seek(s, 0)
+        Af = deserialize(s)
+        if isa(Af, Function)
+            Af()
+        else
+            Af
+        end
+    else
+        A
+    end
 end
 
 function finalize()
