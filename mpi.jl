@@ -13,7 +13,7 @@ convert(::Type{Int32}, x::Comm) = Int32(x.fcomm)
 
 typealias MpiDatatype Union(Float32, Float64, Complex64, Complex128, Char,
                          Int8, Uint8, Int16, Uint16, Int32, Uint32, Int64,
-                         Uint64, Int128)
+                         Uint64)
 
 _mpi_datatype_map = {
   Float32 => MPI_REAL4,
@@ -29,7 +29,8 @@ _mpi_datatype_map = {
   Uint32 => MPI_UINT32_T,
   Int64 => MPI_INT64_T,
   Uint64 => MPI_UINT64_T,
-  Int128 => MPI_INTEGER16,
+# The following doesn't not seem to work with my openmpi build
+#  Int128 => MPI_INTEGER16,
 # Unfortunately mpich2 doesn't support 8-bits ints
 #  Bool => MPI_LOGICAL1,
 }

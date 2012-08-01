@@ -24,7 +24,8 @@ C
       WRITE(*,FMT1) 'const MPI_UINT32_T  = int32(', MPI_UINT32_T , ')'
       WRITE(*,FMT1) 'const MPI_INT64_T   = int32(', MPI_INT64_T  , ')'
       WRITE(*,FMT1) 'const MPI_UINT64_T  = int32(', MPI_UINT64_T , ')'
-      WRITE(*,FMT1) 'const MPI_INTEGER16 = int32(', MPI_INTEGER16, ')'
+C     The following doesn't not seem to work with my openmpi build.
+C      WRITE(*,FMT1) 'const MPI_INTEGER16 = int32(', MPI_INTEGER16, ')'
 
       WRITE(*,FMT1) 'const MPI_REAL4     = int32(', MPI_REAL4    , ')'
       WRITE(*,FMT1) 'const MPI_REAL8     = int32(', MPI_REAL8    , ')'
