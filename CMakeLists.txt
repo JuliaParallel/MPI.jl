@@ -165,7 +165,7 @@ add_dependencies(mpi mpijl-build)
 
 file(WRITE ${CMAKE_BINARY_DIR}/juliampi.cmake "
 file(WRITE  \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST} \"#!/bin/sh\n\")
-file(APPEND \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST} \"exec julia -P \\\"load(\\\\\\\"\${MPIJL}\\\\\\\")\\\" \\$@\n\")
+file(APPEND \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST} \"exec julia -P \\\"require(\\\\\\\"\${MPIJL}\\\\\\\");\\\" \\$@\n\")
 file(COPY   \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST}
   DESTINATION \${CMAKE_BINARY_DIR}
   FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
