@@ -193,3 +193,18 @@ add_dependencies(mpi juliampi-build-sh)
 install(FILES ${CMAKE_BINARY_DIR}/mpi.jl DESTINATION .)
 install(PROGRAMS ${CMAKE_BINARY_DIR}/juliampi DESTINATION .)
 install(TARGETS mpi LIBRARY DESTINATION .)
+
+enable_testing()
+
+set(NPROCS 2 5)
+set(JULIAEXEC ${CMAKE_BINARY_DIR}/juliampi-build)
+
+file(GLOB JTESTS "${CMAKE_SOURCE_DIR}/test/test_*.jl")
+
+foreach(np ${NPROCS})
+  foreach(jtest ${JTESTS})
+    get_filename_component(tname ${JTESTS} NAME)
+    add_test(${tname}_np:${np} ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${np}
+      ${JULIAEXEC} "${CMAKE_SOURCE_DIR}/test/run_test.jl" ${jtest})
+  endforeach(jtest ${JTESTS})
+endforeach(np ${NPROCS})
