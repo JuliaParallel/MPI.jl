@@ -5,6 +5,8 @@ C     Include the following althoung not standard 77
 C
 C
       CHARACTER(LEN=*), PARAMETER  :: FMT1 = "(A, I32, A)"
+      CHARACTER(LEN=*), PARAMETER  :: FMT2 = "(A)"
+      INTEGER i
 
 
       WRITE(*,FMT1) 'const MPI_COMM_SELF  = int32(', MPI_COMM_SELF , ')'
@@ -37,6 +39,7 @@ C     openmpi.
 C     Unfortunately mpich2 doesn't support 8-bits ints
 C      WRITE(*,FMT1) 'const MPI_LOGICAL1  = int32(', MPI_LOGICAL1 , ')'
 
+      WRITE(*,FMT1) 'const MPI_OP_NULL  = int32(', MPI_OP_NULL , ')'
       WRITE(*,FMT1) 'const MPI_MAX     = int32(', MPI_MAX    , ')'
       WRITE(*,FMT1) 'const MPI_MIN     = int32(', MPI_MIN    , ')'
       WRITE(*,FMT1) 'const MPI_SUM     = int32(', MPI_SUM    , ')'
@@ -50,7 +53,20 @@ C      WRITE(*,FMT1) 'const MPI_LOGICAL1  = int32(', MPI_LOGICAL1 , ')'
       WRITE(*,FMT1) 'const MPI_MAXLOC  = int32(', MPI_MAXLOC , ')'
       WRITE(*,FMT1) 'const MPI_MINLOC  = int32(', MPI_MINLOC , ')'
       WRITE(*,FMT1) 'const MPI_REPLACE = int32(', MPI_REPLACE, ')'
-
 C
+      WRITE(*,FMT1) 'const MPI_ANY_SOURCE = int32(', MPI_ANY_SOURCE, ')'
+      WRITE(*,FMT1) 'const MPI_ANY_TAG    = int32(', MPI_ANY_TAG, ')'
+      WRITE(*,FMT1) 'const MPI_TAG_UB     = int32(', MPI_TAG_UB, ')'
+C
+      WRITE(*,FMT1) 'const MPI_STATUS_SIZE   = int32(', MPI_STATUS_SIZE,
+     +              ')'
+C
+      WRITE(*,FMT1) 'const MPI_SOURCE = int32(', MPI_SOURCE, ')'
+      WRITE(*,FMT1) 'const MPI_TAG    = int32(', MPI_TAG, ')'
+      WRITE(*,FMT1) 'const MPI_ERROR  = int32(', MPI_ERROR, ')'
+
+      WRITE(*,FMT1) 'const MPI_REQUEST_NULL  = int32(', MPI_REQUEST_NULL
+     +              , ')'
+
       STOP
       END
