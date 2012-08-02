@@ -11,6 +11,13 @@ end
 convert(::Type{Comm},  x::Int32) = Comm(x)
 convert(::Type{Int32}, x::Comm) = Int32(x.fcomm)
 
+type Operation
+    fop::Int32
+end
+
+convert(::Type{Operation},  x::Int32) = Operation(x)
+convert(::Type{Int32}, x::Operation) = Int32(x.fop)
+
 typealias MpiDatatype Union(Float32, Float64, Complex64, Complex128, Char,
                          Int8, Uint8, Int16, Uint16, Int32, Uint32, Int64,
                          Uint64)
@@ -136,6 +143,45 @@ function bcast(A, root::Integer, c::Comm)
     end
 end
 
+function reduce{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
+                                op::Operation, root::Integer, c::Comm)
+    ierr = Array(Int32, 1)
+
+    if MPI.rank(c) == root
+        B = Array(T, count)
+    else
+        B = Array(T, 0)
+    end
+
+    ccall(MPI_REDUCE, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Int32},  Ptr{Int32}, Ptr{Int32},
+          Ptr{Int32}, Ptr{Int32}, Ptr{Int32},),
+          A, B, &count, &_mpi_datatype_map[T], &op.fop, &root, &c.fcomm, ierr)
+
+    if ierr[1] != MPI_SUCCESS error("MPI_REDUCE: error $(ierr[1])") end
+
+    if MPI.rank(c) != root
+        B = Nothing
+    end
+    B
+end
+
+function reduce{T<:MpiDatatype}(A::Array{T}, op::Operation, root::Integer,
+                                c::Comm)
+    reduce(A, numel(A), op, root, c)
+end
+
+function reduce{T<:MpiDatatype}(A::T, op::Operation, root::Integer, c::Comm)
+    A1 = Array(T, 1)
+    A1[1] = A
+    B1 = reduce(A1, op, root, c)
+    if MPI.rank(c) == root
+        B1[1]
+    else
+        Nothing
+    end
+end
+
 function finalize()
     ierr = Array(Int32, 1)
     ccall(MPI_FINALIZE, Void, (Ptr{Int32},), ierr)
@@ -143,3 +189,18 @@ function finalize()
 end
 
 const COMM_WORLD = Comm(MPI_COMM_WORLD)
+
+const MAX     = Operation(MPI_MAX    )
+const MIN     = Operation(MPI_MIN    )
+const SUM     = Operation(MPI_SUM    )
+const PROD    = Operation(MPI_PROD   )
+const LAND    = Operation(MPI_LAND   )
+const BAND    = Operation(MPI_BAND   )
+const LOR     = Operation(MPI_LOR    )
+const BOR     = Operation(MPI_BOR    )
+const LXOR    = Operation(MPI_LXOR   )
+const BXOR    = Operation(MPI_BXOR   )
+##The following are not supported yet
+#const MAXLOC  = Operation(MPI_MAXLOC )
+#const MINLOC  = Operation(MPI_MINLOC )
+#const REPLACE = Operation(MPI_REPLACE)
