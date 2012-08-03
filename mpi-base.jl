@@ -22,9 +22,6 @@ const _mpi_datatype_map = {
 #  Bool => MPI_LOGICAL1,
 }
 
-takebuf_array(s::IOStream) =
-    ccall(:jl_takebuf_array, Vector{Uint8}, (Ptr{Void},), s.ios)
-
 for (elty, elfn, elnl) in ((:Comm,      :MPI_COMM_FREE,    :MPI_COMM_NULL),
                            (:Request,   :MPI_REQUEST_FREE, :MPI_REQUEST_NULL),
                            (:Operation, :MPI_OP_FREE,      :MPI_OP_NULL))
@@ -98,6 +95,27 @@ macro _mpi_error_check(ierr, fname)
       "---", $ierr))
 end
 
+takebuf_array(s::IOStream) =
+    ccall(:jl_takebuf_array, Vector{Uint8}, (Ptr{Void},), s.ios)
+
+function _mpi_serialize(x)
+    s = memio()
+    serialize(s, x)
+    takebuf_array(s)
+end
+
+function _mpi_deserialize(x)
+    s = memio()
+    write(s, x)
+    seek(s, 0)
+    y = deserialize(s)
+    if isa(y, Function)
+        y()
+    else
+        y
+    end
+end
+
 for (fn, ff) in ((:init,     :MPI_INIT),
                  (:finalize, :MPI_FINALIZE))
     @eval begin
@@ -151,9 +169,7 @@ function bcast(A, root::Integer, c::Comm)
     len  = Array(Int32, 1)
 
     if rank(c) == root
-        s = memio()
-        serialize(s, A)
-        buf = takebuf_array(s)
+        buf = _mpi_serialize(A)
         len[1] = numel(buf)
     end
 
@@ -176,15 +192,7 @@ function bcast(A, root::Integer, c::Comm)
     @_mpi_error_check ierr[1] "MPI_BCAST"
 
     if rank(c) != root
-        s = memio()
-        write(s, buf)
-        seek(s, 0)
-        Af = deserialize(s)
-        if isa(Af, Function)
-            Af()
-        else
-            Af
-        end
+        _mpi_deserialize(buf)
     else
         A
     end
