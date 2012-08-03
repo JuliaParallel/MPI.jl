@@ -262,6 +262,59 @@ for (fnnm, ffnm) in ((:Isend!, :MPI_ISEND), (:Irecv!, :MPI_IRECV))
     end
 end
 
+
+function send(A, dest::Integer, tag::Integer, c::Comm)
+    ierr = Array(Int32, 1)
+
+    buf = _mpi_serialize(A)
+
+    ccall(MPI_SEND, Void,
+          (Ptr{Uint8}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
+          Ptr{Int32}, Ptr{Int32}),
+          buf, &numel(buf), &MPI_BYTE, &dest, &tag, &c.fval, ierr)
+
+    @_mpi_error_check ierr[1] "MPI_SEND"
+end
+
+function probe(source::Integer, tag::Integer, c::Comm)
+    ierr = Array(Int32, 1)
+    stat = Array(Int32, MPI_STATUS_SIZE)
+
+    ccall(MPI_PROBE, Void,
+          (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+          &source, &tag, &c.fval, stat, ierr)
+
+    @_mpi_error_check ierr[1] "MPI_PROBE"
+    stat
+end
+
+function recv!(source::Integer, tag::Integer, c::Comm, status)
+    ierr = Array(Int32, 1)
+    count = Array(Int32, 1)
+    pstat = probe(source, tag, c)
+
+    ccall(MPI_GET_COUNT, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+          pstat, &MPI_BYTE, count, ierr)
+
+    @_mpi_error_check ierr[1] "MPI_GET_COUNT"
+
+    buf = Array(Uint8, count[1])
+
+    ccall(MPI_RECV, Void,
+          (Ptr{Uint8}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
+          Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+          buf, &numel(buf), &MPI_BYTE, &source, &tag, &c.fval, status, ierr)
+
+    @_mpi_error_check ierr[1] "MPI_RECV"
+
+    _mpi_deserialize(buf)
+end
+
+function recv(source::Integer, tag::Integer, c::Comm)
+    stat = Array(Int32, MPI_STATUS_SIZE)
+    recv!(source, tag, c, stat)
+end
+
 function wait!(req::Request)
     fval = Array(Int32, 1)
     stat = Array(Int32, MPI_STATUS_SIZE)

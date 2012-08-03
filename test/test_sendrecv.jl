@@ -39,4 +39,16 @@ rreq = Nothing
 sreq = Nothing
 gc()
 
+if rank == 0
+    MPI.send(send_mesg, dst, rank+32, comm)
+    recv_mesg = recv_mesg_expected
+elseif rank == size-1
+    recv_mesg = MPI.recv(src, src+32, comm)
+else
+    recv_mesg = MPI.recv(src, src+32, comm)
+    MPI.send(send_mesg, dst, rank+32, comm)
+end
+
+@test isapprox(norm(recv_mesg-recv_mesg_expected), 0.0)
+
 MPI.finalize()
