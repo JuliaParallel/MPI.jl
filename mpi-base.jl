@@ -188,6 +188,46 @@ function reduce{T<:MpiDatatype}(A::T, op::Operation, root::Integer, c::Comm)
     end
 end
 
+for (fnnm, ffnm) in ((:isend!, :MPI_ISEND), (:irecv!, :MPI_IRECV))
+    @eval begin
+        function ($fnnm){T<:MpiDatatype}(A::Union(Ptr{T},Array{T}),
+                                         count::Integer, srcdest::Integer,
+                                         tag::Integer, c::Comm)
+            ierr = Array(Int32, 1)
+            req  = Array(Int32, 1)
+
+            ccall(($ffnm), Void,
+                   (Ptr{T}, Ptr{Int32}, Ptr{Int32},  Ptr{Int32}, Ptr{Int32},
+                   Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+                   A, &count, &_mpi_datatype_map[T], &srcdest, &tag, &c.fval,
+                   req, ierr)
+
+            if ierr[1] != MPI_SUCCESS
+                ffnm_str = $string(ffnm)
+                error("$ffnm_str: error $(ierr[1])")
+            end
+            Request(req[1])
+        end
+
+        function ($fnnm){T<:MpiDatatype}(A::Array{T}, srcdest::Integer,
+                                         tag::Integer, c::Comm)
+            ($fnnm)(A, numel(A), srcdest, tag, c)
+        end
+    end
+end
+
+function wait!(req::Request)
+    fval = Array(Int32, 1)
+    stat = Array(Int32, MPI_STATUS_SIZE)
+    ierr = Array(Int32, 1)
+    fval[1] = req.fval
+    ccall(MPI_WAIT, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32},),
+          fval, stat, ierr)
+    req.fval = fval[1]
+    if ierr[1] != MPI_SUCCESS error("MPI_WAIT: error $(ierr[1])") end
+    stat
+end
+
 function finalize()
     ierr = Array(Int32, 1)
     ccall(MPI_FINALIZE, Void, (Ptr{Int32},), ierr)
