@@ -2,7 +2,7 @@ typealias MpiDatatype Union(Float32, Float64, Complex64, Complex128, Char,
                          Int8, Uint8, Int16, Uint16, Int32, Uint32, Int64,
                          Uint64)
 
-_mpi_datatype_map = {
+const _mpi_datatype_map = {
   Float32 => MPI_REAL4,
   Float64 => MPI_REAL8,
   Complex64 => MPI_COMPLEX,
