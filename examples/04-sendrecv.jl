@@ -25,8 +25,7 @@ function main()
     println("$rank: Sending   $rank -> $dst = $send_mesg")
     sreq = MPI.isend!(send_mesg, dst, rank+32, comm)
 
-    rstat = MPI.wait!(rreq)
-    sstat = MPI.wait!(sreq)
+    stats = MPI.waitall!([rreq, sreq])
 
     println("$rank: Receiving $src -> $rank = $recv_mesg")
 

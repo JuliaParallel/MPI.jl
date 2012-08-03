@@ -277,3 +277,26 @@ function wait!(req::Request)
     @_mpi_error_check ierr[1] "MPI_WAIT"
     stat
 end
+
+function waitall!(reqs::Array{Request})
+    ierr = Array(Int32, 1)
+    freqs = int32([r.fval for r in reqs])
+    count = numel(freqs)
+
+    stats = Array(Int32, MPI_STATUS_SIZE, count)
+
+    ccall(MPI_WAITALL, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32},Ptr{Int32},),
+          &count, freqs, stats, ierr)
+
+    @_mpi_error_check ierr[1] "MPI_WAITALL"
+
+    map((x,y)->x.fval=y, reqs, freqs)
+
+    stats
+end
+
+function waitall!(req::Request)
+    reqs = Array(Request, 1)
+    reqs[1] = req
+    waitall!(reqs::Array{Request})
+end
