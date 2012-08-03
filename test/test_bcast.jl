@@ -5,7 +5,7 @@ import MPI
 test_context("Testing MPI Bcast")
 MPI.init()
 
-test_group("bcast! tests")
+test_group("Bcast! tests")
 
 function bcast_array(A, root)
     comm = MPI.COMM_WORLD
@@ -16,7 +16,7 @@ function bcast_array(A, root)
         B = similar(A)
     end
 
-    MPI.bcast!(B, root, comm)
+    MPI.Bcast!(B, root, comm)
     B
 end
 

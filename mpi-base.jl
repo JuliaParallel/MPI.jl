@@ -147,7 +147,7 @@ function barrier(c::Comm)
     @_mpi_error_check ierr[1] "MPI_BARRIER"
 end
 
-function bcast!{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
+function Bcast!{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
                              root::Integer, c::Comm)
     ierr = Array(Int32, 1)
 
@@ -160,8 +160,8 @@ function bcast!{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
     A
 end
 
-function bcast!{T<:MpiDatatype}(A::Array{T}, root::Integer, c::Comm)
-    bcast!(A, numel(A), root, c)
+function Bcast!{T<:MpiDatatype}(A::Array{T}, root::Integer, c::Comm)
+    Bcast!(A, numel(A), root, c)
 end
 
 function bcast(A, root::Integer, c::Comm)
@@ -198,7 +198,7 @@ function bcast(A, root::Integer, c::Comm)
     end
 end
 
-function reduce{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
+function Reduce{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
                                 op::Operation, root::Integer, c::Comm)
     ierr = Array(Int32, 1)
 
@@ -221,15 +221,15 @@ function reduce{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
     B
 end
 
-function reduce{T<:MpiDatatype}(A::Array{T}, op::Operation, root::Integer,
+function Reduce{T<:MpiDatatype}(A::Array{T}, op::Operation, root::Integer,
                                 c::Comm)
-    reduce(A, numel(A), op, root, c)
+    Reduce(A, numel(A), op, root, c)
 end
 
-function reduce{T<:MpiDatatype}(A::T, op::Operation, root::Integer, c::Comm)
+function Reduce{T<:MpiDatatype}(A::T, op::Operation, root::Integer, c::Comm)
     A1 = Array(T, 1)
     A1[1] = A
-    B1 = reduce(A1, op, root, c)
+    B1 = Reduce(A1, op, root, c)
     if MPI.rank(c) == root
         B1[1]
     else

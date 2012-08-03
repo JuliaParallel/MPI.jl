@@ -22,7 +22,7 @@ function main()
         A = Array(Complex128, N)
     end
 
-    MPI.bcast!(A, root, comm)
+    MPI.Bcast!(A, root, comm)
 
     printf("[%02d] A:%s\n", MPI.rank(comm), A)
 
