@@ -29,6 +29,9 @@ sreq = MPI.isend!(send_mesg, dst, rank+32, comm)
 rstat = MPI.wait!(rreq)
 sstat = MPI.wait!(sreq)
 
+@test isequal(rreq, MPI.REQUEST_NULL)
+@test isequal(sreq, MPI.REQUEST_NULL)
+
 @test rstat[MPI.SOURCE] == src
 @test sstat[MPI.SOURCE] == rank
 @test isapprox(norm(recv_mesg-recv_mesg_expected), 0.0)

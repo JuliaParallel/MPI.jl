@@ -42,6 +42,10 @@ for (elty, elfn, elnl) in ((:Comm,      :MPI_COMM_FREE,    :MPI_COMM_NULL),
         convert(::Type{$elty}, x::Int32) = ($elty)(x)
         convert(::Type{Int32}, x::($elty)) = Int32(x.fval)
 
+        function isequal(a::($elty), b::($elty))
+            isequal(a.fval, b.fval)
+        end
+
         function free(el::($elty))
             ierr = Array(Int32, 1)
 
