@@ -61,6 +61,37 @@ for (elty, elfn, elnl) in ((:Comm,      :MPI_COMM_FREE,    :MPI_COMM_NULL),
     end
 end
 
+const COMM_SELF  = Comm(MPI_COMM_SELF)
+const COMM_WORLD = Comm(MPI_COMM_WORLD)
+const COMM_NULL  = Comm(MPI_COMM_NULL)
+
+const OP_NULL = Operation(MPI_OP_NULL)
+const MAX     = Operation(MPI_MAX    )
+const MIN     = Operation(MPI_MIN    )
+const SUM     = Operation(MPI_SUM    )
+const PROD    = Operation(MPI_PROD   )
+const LAND    = Operation(MPI_LAND   )
+const BAND    = Operation(MPI_BAND   )
+const LOR     = Operation(MPI_LOR    )
+const BOR     = Operation(MPI_BOR    )
+const LXOR    = Operation(MPI_LXOR   )
+const BXOR    = Operation(MPI_BXOR   )
+##The following are not supported yet
+#const MAXLOC  = Operation(MPI_MAXLOC )
+#const MINLOC  = Operation(MPI_MINLOC )
+#const REPLACE = Operation(MPI_REPLACE)
+
+const ANY_SOURCE = MPI_ANY_SOURCE
+const ANY_TAG    = MPI_ANY_TAG
+const TAG_UB     = MPI_TAG_UB
+
+const STATUS_SIZE   = MPI_STATUS_SIZE
+
+const SOURCE      = MPI_SOURCE
+const TAG         = MPI_TAG
+const ERROR       = MPI_ERROR
+
+const REQUEST_NULL = Request(MPI_REQUEST_NULL)
 
 function init()
     ierr = Array(Int32, 1)
@@ -237,35 +268,3 @@ function finalize()
     ccall(MPI_FINALIZE, Void, (Ptr{Int32},), ierr)
     if ierr[1] != MPI_SUCCESS error("MPI_FINALIZE: error $(ierr[1])") end
 end
-
-const COMM_SELF  = Comm(MPI_COMM_SELF)
-const COMM_WORLD = Comm(MPI_COMM_WORLD)
-const COMM_NULL  = Comm(MPI_COMM_NULL)
-
-const OP_NULL = Operation(MPI_OP_NULL)
-const MAX     = Operation(MPI_MAX    )
-const MIN     = Operation(MPI_MIN    )
-const SUM     = Operation(MPI_SUM    )
-const PROD    = Operation(MPI_PROD   )
-const LAND    = Operation(MPI_LAND   )
-const BAND    = Operation(MPI_BAND   )
-const LOR     = Operation(MPI_LOR    )
-const BOR     = Operation(MPI_BOR    )
-const LXOR    = Operation(MPI_LXOR   )
-const BXOR    = Operation(MPI_BXOR   )
-##The following are not supported yet
-#const MAXLOC  = Operation(MPI_MAXLOC )
-#const MINLOC  = Operation(MPI_MINLOC )
-#const REPLACE = Operation(MPI_REPLACE)
-
-const ANY_SOURCE = MPI_ANY_SOURCE
-const ANY_TAG    = MPI_ANY_TAG
-const TAG_UB     = MPI_TAG_UB
-
-const STATUS_SIZE   = MPI_STATUS_SIZE
-
-const SOURCE      = MPI_SOURCE
-const TAG         = MPI_TAG
-const ERROR       = MPI_ERROR
-
-const REQUEST_NULL = Request(MPI_REQUEST_NULL)
