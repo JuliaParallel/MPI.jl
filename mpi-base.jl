@@ -93,28 +93,36 @@ const ERROR       = MPI_ERROR
 
 const REQUEST_NULL = Request(MPI_REQUEST_NULL)
 
-function init()
-    ierr = Array(Int32, 1)
-    ccall(MPI_INIT, Void, (Ptr{Int32},), ierr)
-    if ierr[1] != MPI_SUCCESS error("MPI_INIT: error $(ierr[1])") end
+for (fn, ff) in ((:init,     :MPI_INIT),
+                 (:finalize, :MPI_FINALIZE))
+    @eval begin
+        function ($fn)()
+            ierr = Array(Int32, 1)
+            ccall($ff, Void, (Ptr{Int32},), ierr)
+
+            if ierr[1] != MPI_SUCCESS
+                ff_str = $string(ff)
+                error("$ff_str: error $(ierr[1])")
+            end
+        end
+    end
 end
 
-function rank(c::Comm)
-    ierr = Array(Int32, 1)
-    r = Array(Int32, 1)
-    ccall(MPI_COMM_RANK, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32},),
-        &c.fval, r, ierr)
-    if ierr[1] != MPI_SUCCESS error("MPI_COMM_RANK: error $(ierr[1])") end
-    r[1]
-end
-
-function size(c::Comm)
-    ierr = Array(Int32, 1)
-    s = Array(Int32, 1)
-    ccall(MPI_COMM_SIZE, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32},),
-        &c.fval, s, ierr)
-    if ierr[1] != MPI_SUCCESS error("MPI_COMM_SIZE: error $(ierr[1])") end
-    s[1]
+for (fn, ff) in ((:rank, :MPI_COMM_RANK),
+                 (:size, :MPI_COMM_SIZE))
+    @eval begin
+        function ($fn)(c::Comm)
+            ierr = Array(Int32, 1)
+            valu = Array(Int32, 1)
+            ccall($ff, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32},),
+                  &c.fval, valu, ierr)
+            if ierr[1] != MPI_SUCCESS
+                ff_str = $string(ff)
+                error("$ff_str: error $(ierr[1])")
+            end
+            valu[1]
+        end
+    end
 end
 
 function barrier(c::Comm)
@@ -261,10 +269,4 @@ function wait!(req::Request)
     req.fval = fval[1]
     if ierr[1] != MPI_SUCCESS error("MPI_WAIT: error $(ierr[1])") end
     stat
-end
-
-function finalize()
-    ierr = Array(Int32, 1)
-    ccall(MPI_FINALIZE, Void, (Ptr{Int32},), ierr)
-    if ierr[1] != MPI_SUCCESS error("MPI_FINALIZE: error $(ierr[1])") end
 end
