@@ -20,10 +20,10 @@ function main()
 
     fill!(send_mesg, float64(rank))
 
-    rreq = MPI.irecv!(recv_mesg, src,  src+32, comm)
+    rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 
     println("$rank: Sending   $rank -> $dst = $send_mesg")
-    sreq = MPI.isend!(send_mesg, dst, rank+32, comm)
+    sreq = MPI.Isend!(send_mesg, dst, rank+32, comm)
 
     stats = MPI.waitall!([rreq, sreq])
 

@@ -23,8 +23,8 @@ recv_mesg_expected = Array(Float64, N)
 fill!(send_mesg, float64(rank))
 fill!(recv_mesg_expected, float64(src))
 
-rreq = MPI.irecv!(recv_mesg, src,  src+32, comm)
-sreq = MPI.isend!(send_mesg, dst, rank+32, comm)
+rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
+sreq = MPI.Isend!(send_mesg, dst, rank+32, comm)
 
 stats = MPI.waitall!([rreq, sreq])
 

@@ -237,7 +237,7 @@ function reduce{T<:MpiDatatype}(A::T, op::Operation, root::Integer, c::Comm)
     end
 end
 
-for (fnnm, ffnm) in ((:isend!, :MPI_ISEND), (:irecv!, :MPI_IRECV))
+for (fnnm, ffnm) in ((:Isend!, :MPI_ISEND), (:Irecv!, :MPI_IRECV))
     @eval begin
         function ($fnnm){T<:MpiDatatype}(A::Union(Ptr{T},Array{T}),
                                          count::Integer, srcdest::Integer,
