@@ -27,3 +27,4 @@ run using the `$HOME/.julia/mpi/juliampi` script as in
 [mpi4py]: http://mpi4py.scipy.org
 [CMake]: http://www.cmake.org/
 [Open MPI]: http://www.open-mpi.org/
+[MPICH2]: http://www.mcs.anl.gov/research/projects/mpich2/
