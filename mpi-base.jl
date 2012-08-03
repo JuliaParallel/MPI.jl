@@ -93,17 +93,18 @@ const ERROR       = MPI_ERROR
 
 const REQUEST_NULL = Request(MPI_REQUEST_NULL)
 
+macro _mpi_error_check(ierr, fname)
+    :($esc(ierr) == MPI_SUCCESS ? nothing : error("MPI error in:", $fname,
+      "---", $ierr))
+end
+
 for (fn, ff) in ((:init,     :MPI_INIT),
                  (:finalize, :MPI_FINALIZE))
     @eval begin
         function ($fn)()
             ierr = Array(Int32, 1)
             ccall($ff, Void, (Ptr{Int32},), ierr)
-
-            if ierr[1] != MPI_SUCCESS
-                ff_str = $string(ff)
-                error("$ff_str: error $(ierr[1])")
-            end
+            @_mpi_error_check ierr[1] $string(ff)
         end
     end
 end
@@ -116,10 +117,7 @@ for (fn, ff) in ((:rank, :MPI_COMM_RANK),
             valu = Array(Int32, 1)
             ccall($ff, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32},),
                   &c.fval, valu, ierr)
-            if ierr[1] != MPI_SUCCESS
-                ff_str = $string(ff)
-                error("$ff_str: error $(ierr[1])")
-            end
+            @_mpi_error_check ierr[1] $string(ff)
             valu[1]
         end
     end
@@ -128,7 +126,7 @@ end
 function barrier(c::Comm)
     ierr = Array(Int32, 1)
     ccall(MPI_BARRIER, Void, (Ptr{Int32},Ptr{Int32},), &c.fval, ierr)
-    if ierr[1] != MPI_SUCCESS error("MPI_BARRIER: error $(ierr[1])") end
+    @_mpi_error_check ierr[1] "MPI_BARRIER"
 end
 
 function bcast!{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
@@ -140,7 +138,7 @@ function bcast!{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
           Ptr{Int32},),
           A, &count, &_mpi_datatype_map[T], &root, &c.fval, ierr)
 
-    if ierr[1] != MPI_SUCCESS error("MPI_BCAST: error $(ierr[1])") end
+    @_mpi_error_check ierr[1] "MPI_BCAST"
     A
 end
 
@@ -164,7 +162,7 @@ function bcast(A, root::Integer, c::Comm)
           Ptr{Int32},),
           len, &sizeof(Int32), &MPI_BYTE, &root, &c.fval, ierr)
 
-    if ierr[1] != MPI_SUCCESS error("MPI_BCAST: error $(ierr[1])") end
+    @_mpi_error_check ierr[1] "MPI_BCAST"
 
     if rank(c) != root
         buf = Array(Uint8, len[1])
@@ -175,7 +173,7 @@ function bcast(A, root::Integer, c::Comm)
           Ptr{Int32},),
           buf, len, &MPI_BYTE, &root, &c.fval, ierr)
 
-    if ierr[1] != MPI_SUCCESS error("MPI_BCAST: error $(ierr[1])") end
+    @_mpi_error_check ierr[1] "MPI_BCAST"
 
     if rank(c) != root
         s = memio()
@@ -207,7 +205,7 @@ function reduce{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
           Ptr{Int32}, Ptr{Int32}, Ptr{Int32},),
           A, B, &count, &_mpi_datatype_map[T], &op.fval, &root, &c.fval, ierr)
 
-    if ierr[1] != MPI_SUCCESS error("MPI_REDUCE: error $(ierr[1])") end
+    @_mpi_error_check ierr[1] "MPI_REDUCE"
 
     if MPI.rank(c) != root
         B = Nothing
@@ -245,10 +243,7 @@ for (fnnm, ffnm) in ((:isend!, :MPI_ISEND), (:irecv!, :MPI_IRECV))
                    A, &count, &_mpi_datatype_map[T], &srcdest, &tag, &c.fval,
                    req, ierr)
 
-            if ierr[1] != MPI_SUCCESS
-                ffnm_str = $string(ffnm)
-                error("$ffnm_str: error $(ierr[1])")
-            end
+            @_mpi_error_check ierr[1] $string(ffnm)
             Request(req[1])
         end
 
@@ -263,10 +258,14 @@ function wait!(req::Request)
     fval = Array(Int32, 1)
     stat = Array(Int32, MPI_STATUS_SIZE)
     ierr = Array(Int32, 1)
+
     fval[1] = req.fval
+
     ccall(MPI_WAIT, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32},),
           fval, stat, ierr)
+
     req.fval = fval[1]
-    if ierr[1] != MPI_SUCCESS error("MPI_WAIT: error $(ierr[1])") end
+
+    @_mpi_error_check ierr[1] "MPI_WAIT"
     stat
 end
