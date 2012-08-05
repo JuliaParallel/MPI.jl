@@ -26,13 +26,13 @@ fill!(recv_mesg_expected, float64(src))
 rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 sreq = MPI.Isend!(send_mesg, dst, rank+32, comm)
 
-stats = MPI.waitall!([rreq, sreq])
+stats = MPI.waitall!([sreq, rreq])
 
 @test isequal(rreq, MPI.REQUEST_NULL)
 @test isequal(sreq, MPI.REQUEST_NULL)
 
-@test stats[MPI.SOURCE,1] == src
-@test stats[MPI.SOURCE,2] == rank
+@test stats[MPI.SOURCE,2] == src
+@test stats[MPI.TAG,2] == src+32
 @test isapprox(norm(recv_mesg-recv_mesg_expected), 0.0)
 
 rreq = Nothing
