@@ -1,6 +1,5 @@
       PROGRAM MAIN
 C     Include the following althoung not standard 77
-      IMPLICIT NONE
       INCLUDE 'mpif.h'
 C
 C
