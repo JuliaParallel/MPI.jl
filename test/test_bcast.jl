@@ -1,11 +1,7 @@
-require("nearequal.jl")
-require("test.jl")
-
+using Base.Test
 import MPI
-test_context("Testing MPI Bcast")
-MPI.init()
 
-test_group("Bcast! tests")
+MPI.init()
 
 function bcast_array(A, root)
     comm = MPI.COMM_WORLD
@@ -27,7 +23,7 @@ srand(17)
 # Float64
 A = rand(13)
 @test bcast_array(A, root) == A
-@testfails bcast_array(A, root) == rand(13)
+#@testfails bcast_array(A, root) == rand(13)
 
 # Complex128
 A = rand(13) + im * rand(13)
@@ -46,38 +42,37 @@ A = ['s', 't', 'a', 'r', ' ', 'w', 'a', 'r', 's']
 @test bcast_array(A, root) == A
 
 # Int8
-A = int8(randi(143, 34))
+A = int8(rand(1:143, 34))
 @test bcast_array(A, root) == A
 
 # Uint8
-A = uint8(randi(34, 123))
+A = uint8(rand(34, 123))
 @test bcast_array(A, root) == A
 
 # Int16
-A = int16(randi(1430, 340))
+A = int16(rand(1430, 340))
 @test bcast_array(A, root) == A
 
 # Uint16
-A = uint16(randi(340, 1230))
+A = uint16(rand(340, 1230))
 @test bcast_array(A, root) == A
 
 # Int32
-A = randi(typemax(Int32), 34)
+A = rand(34,123)
 @test bcast_array(A, root) == A
 
 # Uint32
-A = randi(typemax(Uint32), 28)
+A = uint32(rand(34, 28))
 @test bcast_array(A, root) == A
 
 # Int64
-A = randi(typemax(Int64), 33)
+A = int64(rand(1:400, 33))
 @test bcast_array(A, root) == A
 
 # Uint64
-A = randi(typemax(Uint64), 128)
+A = uint64(rand(1:8000, 128))
 @test bcast_array(A, root) == A
 
-test_group("bcast tests")
 
 comm = MPI.COMM_WORLD
 
@@ -103,3 +98,4 @@ B = MPI.bcast(B, root, comm)
 @test B["foo"] == "bar"
 
 MPI.finalize()
+

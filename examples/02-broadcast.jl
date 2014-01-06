@@ -22,9 +22,9 @@ function main()
         A = Array(Complex128, N)
     end
 
-    MPI.Bcast!(A, root, comm)
+    MPI.Bcast!(A,length(A), root, comm)
 
-    printf("[%02d] A:%s\n", MPI.rank(comm), A)
+    @printf("[%02d] A:%s\n", MPI.rank(comm), A)
 
     if MPI.rank(comm) == root
         B = {"foo" => "bar"}
@@ -33,7 +33,7 @@ function main()
     end
 
     B = MPI.bcast(B, root, comm)
-    printf("[%02d] B:%s\n", MPI.rank(comm), B)
+    @printf("[%02d] B:%s\n", MPI.rank(comm), B)
 
 
     if MPI.rank(comm) == root
@@ -43,7 +43,7 @@ function main()
     end
 
     f = MPI.bcast(f, root, comm)
-    printf("[%02d] f(3):%d\n", MPI.rank(comm), f(3))
+    @printf("[%02d] f(3):%d\n", MPI.rank(comm), f(3))
 
     MPI.finalize()
 end
