@@ -31,11 +31,7 @@ for (elty, elfn, elnl) in ((:Comm,      :MPI_COMM_FREE,    :MPI_COMM_NULL),
 
             function ($elty)(b::Int32)
                 a = new(b)
-# the finalizer call below causes this error with OpenMPI, any ideas? 
-#The MPI_Op_f2c() function was called after MPI_FINALIZE was invoked.
-#*** This is disallowed by the MPI standard.
-#*** Your MPI job will now abort.
-#                finalizer(a, free)
+                finalizer(a, free)
                 a
             end
         end
@@ -121,6 +117,10 @@ for (fn, ff) in ((:init,     :MPI_INIT),
                  (:finalize, :MPI_FINALIZE))
     @eval begin
         function ($fn)()
+            # perform garbage collection to make sure
+            # all mpi objects are finalized before MPI_Finalize
+            # is called.
+            gc()
             ierr = Array(Int32, 1)
             ccall($ff, Void, (Ptr{Int32},), ierr)
             @_mpi_error_check ierr[1] $string(ff)
