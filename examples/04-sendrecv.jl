@@ -29,6 +29,8 @@ function main()
 
     println("$rank: Receiving $src -> $rank = $recv_mesg")
 
+    MPI.barrier(comm)
+   
     MPI.finalize()
 end
 

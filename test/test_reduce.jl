@@ -1,11 +1,8 @@
-require("nearequal.jl")
-require("test.jl")
+using Base.Test
 
 import MPI
-test_context("Testing MPI Reduce functions")
-MPI.init()
 
-test_group("Reduce tests")
+MPI.init()
 
 comm = MPI.COMM_WORLD
 size = MPI.size(comm)

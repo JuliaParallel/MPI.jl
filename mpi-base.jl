@@ -31,7 +31,11 @@ for (elty, elfn, elnl) in ((:Comm,      :MPI_COMM_FREE,    :MPI_COMM_NULL),
 
             function ($elty)(b::Int32)
                 a = new(b)
-                finalizer(a, free)
+# the finalizer call below causes this error with OpenMPI, any ideas? 
+#The MPI_Op_f2c() function was called after MPI_FINALIZE was invoked.
+#*** This is disallowed by the MPI standard.
+#*** Your MPI job will now abort.
+#                finalizer(a, free)
                 a
             end
         end
@@ -91,7 +95,7 @@ const ERROR       = MPI_ERROR
 const REQUEST_NULL = Request(MPI_REQUEST_NULL)
 
 macro _mpi_error_check(ierr, fname)
-    :($esc(ierr) == MPI_SUCCESS ? nothing : error("MPI error in:", $fname,
+    :($(ierr) == MPI_SUCCESS ? nothing : error("MPI error in:", $fname,
       "---", $ierr))
 end
 
@@ -99,21 +103,18 @@ takebuf_array(s::IOStream) =
     ccall(:jl_takebuf_array, Vector{Uint8}, (Ptr{Void},), s.ios)
 
 function _mpi_serialize(x)
-    s = memio()
+    s = IOBuffer()
     serialize(s, x)
-    takebuf_array(s)
+    Base.takebuf_array(s)
 end
 
 function _mpi_deserialize(x)
-    s = memio()
+    s = IOBuffer()
     write(s, x)
     seek(s, 0)
     y = deserialize(s)
-    if isa(y, Function)
-        y()
-    else
-        y
-    end
+    y
+
 end
 
 for (fn, ff) in ((:init,     :MPI_INIT),
@@ -161,7 +162,7 @@ function Bcast!{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
 end
 
 function Bcast!{T<:MpiDatatype}(A::Array{T}, root::Integer, c::Comm)
-    Bcast!(A, numel(A), root, c)
+    Bcast!(A, length(A), root, c)
 end
 
 function bcast(A, root::Integer, c::Comm)
@@ -170,7 +171,7 @@ function bcast(A, root::Integer, c::Comm)
 
     if rank(c) == root
         buf = _mpi_serialize(A)
-        len[1] = numel(buf)
+        len[1] = length(buf)
     end
 
     ccall(MPI_BCAST, Void,
@@ -223,7 +224,7 @@ end
 
 function Reduce{T<:MpiDatatype}(A::Array{T}, op::Operation, root::Integer,
                                 c::Comm)
-    Reduce(A, numel(A), op, root, c)
+    Reduce(A, length(A), op, root, c)
 end
 
 function Reduce{T<:MpiDatatype}(A::T, op::Operation, root::Integer, c::Comm)
@@ -257,7 +258,7 @@ for (fnnm, ffnm) in ((:Isend!, :MPI_ISEND), (:Irecv!, :MPI_IRECV))
 
         function ($fnnm){T<:MpiDatatype}(A::Array{T}, srcdest::Integer,
                                          tag::Integer, c::Comm)
-            ($fnnm)(A, numel(A), srcdest, tag, c)
+            ($fnnm)(A, length(A), srcdest, tag, c)
         end
     end
 end
@@ -271,7 +272,7 @@ function send(A, dest::Integer, tag::Integer, c::Comm)
     ccall(MPI_SEND, Void,
           (Ptr{Uint8}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
           Ptr{Int32}, Ptr{Int32}),
-          buf, &numel(buf), &MPI_BYTE, &dest, &tag, &c.fval, ierr)
+          buf, &length(buf), &MPI_BYTE, &dest, &tag, &c.fval, ierr)
 
     @_mpi_error_check ierr[1] "MPI_SEND"
 end
@@ -303,7 +304,7 @@ function recv!(source::Integer, tag::Integer, c::Comm, status)
     ccall(MPI_RECV, Void,
           (Ptr{Uint8}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
           Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
-          buf, &numel(buf), &MPI_BYTE, &source, &tag, &c.fval, status, ierr)
+          buf, &length(buf), &MPI_BYTE, &source, &tag, &c.fval, status, ierr)
 
     @_mpi_error_check ierr[1] "MPI_RECV"
 
@@ -334,7 +335,7 @@ end
 function waitall!(reqs::Array{Request})
     ierr = Array(Int32, 1)
     freqs = int32([r.fval for r in reqs])
-    count = numel(freqs)
+    count = length(freqs)
 
     stats = Array(Int32, MPI_STATUS_SIZE, count)
 

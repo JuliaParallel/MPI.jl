@@ -13,7 +13,7 @@ function main()
     sr = MPI.Reduce(r, MPI.SUM, root, comm)
 
     if(MPI.rank(comm) == root)
-        printf("sum of ranks: %s\n", sr)
+        @printf("sum of ranks: %s\n", sr)
     end
 
     MPI.finalize()

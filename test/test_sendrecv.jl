@@ -1,11 +1,7 @@
-require("nearequal.jl")
-require("test.jl")
-
+using Base.Test
 import MPI
-test_context("Testing MPI Isend Irecv functions")
-MPI.init()
 
-test_group("Isend Irecv tests")
+MPI.init()
 
 comm = MPI.COMM_WORLD
 size = MPI.size(comm)
@@ -27,9 +23,8 @@ rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 sreq = MPI.Isend!(send_mesg, dst, rank+32, comm)
 
 stats = MPI.waitall!([sreq, rreq])
-
-@test isequal(rreq, MPI.REQUEST_NULL)
-@test isequal(sreq, MPI.REQUEST_NULL)
+@test isequal(typeof(rreq), typeof(MPI.REQUEST_NULL))
+@test isequal(typeof(sreq), typeof(MPI.REQUEST_NULL))
 
 @test stats[MPI.SOURCE,2] == src
 @test stats[MPI.TAG,2] == src+32
