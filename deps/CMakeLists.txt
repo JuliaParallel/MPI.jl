@@ -9,6 +9,9 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     "Julia-MPI install prefix" FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
+set(CMAKE_LIB_INSTALL_PREFIX "$ENV{HOME}/.julia/v0.3/MPI/deps/usr/lib" CACHE PATH
+    "Julia-MPI lib install prefix" FORCE)
+
 include(FortranCInterface)
 
 FortranCInterface_HEADER(jlmpi_f2c.h MACRO_NAMESPACE "JLMPI_"
@@ -112,13 +115,13 @@ endif(UNIX)
 
 add_dependencies(dist version)
 
-add_library(mpi SHARED mpi.f)
+add_library(juliampi SHARED mpi.f)
 
 if(MPI_Fortran_LINK_FLAGS)
-  set_target_properties(mpi PROPERTIES LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})
+  set_target_properties(juliampi PROPERTIES LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})
 endif(MPI_Fortran_LINK_FLAGS)
 
-target_link_libraries(mpi ${MPI_Fortran_LIBRARIES})
+target_link_libraries(juliampi ${MPI_Fortran_LIBRARIES})
 
 add_executable(make_f2c make_f2c.c)
 add_dependencies(make_f2c version)
@@ -133,7 +136,7 @@ file(WRITE  \${DST} \"module MPI\n\")
 file(APPEND \${DST} \"\n\")
 file(APPEND \${DST} \"import Base.*\n\")
 file(APPEND \${DST} \"\n\")
-file(APPEND \${DST} \"const libmpi = dlopen(\\\"\${LIB}\\\",RTLD_LAZY|RTLD_DEEPBIND|RTLD_GLOBAL)\n\")
+file(APPEND \${DST} \"const libmpi = dlopen(\\\"libjuliampi\\\",RTLD_LAZY|RTLD_DEEPBIND|RTLD_GLOBAL)\n\")
 file(APPEND \${DST} \"\n\")
 file(APPEND \${DST} \${FTWOC})
 file(APPEND \${DST} \"\n\")
@@ -146,65 +149,36 @@ file(APPEND \${DST} \"end\n\")
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/MPI.jl
     COMMAND ${CMAKE_COMMAND}
                 -DSRC=${CMAKE_SOURCE_DIR}/mpi-base.jl
-                -DLIB=${CMAKE_INSTALL_PREFIX}/libmpi
+                -DLIB=${CMAKE_LIB_INSTALL_PREFIX}/libmpi
                 -DDST=${CMAKE_BINARY_DIR}/MPI.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
     DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
 add_custom_target(mpijl DEPENDS ${CMAKE_BINARY_DIR}/MPI.jl)
-add_dependencies(mpi mpijl)
+add_dependencies(juliampi mpijl)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi-build.jl
     COMMAND ${CMAKE_COMMAND}
                 -DSRC=${CMAKE_SOURCE_DIR}/mpi-base.jl
-                -DLIB=${CMAKE_BINARY_DIR}/libmpi
+                -DLIB=${CMAKE_LIB_INSTALL_PREFIX}/libmpi
                 -DDST=${CMAKE_BINARY_DIR}/mpi-build.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
     DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
 add_custom_target(mpijl-build DEPENDS ${CMAKE_BINARY_DIR}/mpi-build.jl)
-add_dependencies(mpi mpijl-build)
-
-file(WRITE ${CMAKE_BINARY_DIR}/juliampi.cmake "
-file(WRITE  \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST} \"#!/bin/sh\n\")
-file(APPEND \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST} \"exec julia -P \\\"require(\\\\\\\"\${MPIJL}\\\\\\\");\\\" \\$@\n\")
-file(COPY   \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST}
-  DESTINATION \${CMAKE_BINARY_DIR}
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
-                   GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-")
-
-add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/juliampi
-    COMMAND ${CMAKE_COMMAND}
-                -DMPIJL=${CMAKE_INSTALL_PREFIX}/MPI.jl
-                -DDST=juliampi
-                -P ${CMAKE_BINARY_DIR}/juliampi.cmake
-    DEPENDS ${CMAKE_BINARY_DIR}/juliampi.cmake)
-add_custom_target(juliampi-sh DEPENDS ${CMAKE_BINARY_DIR}/juliampi)
-add_dependencies(mpi juliampi-sh)
-
-add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/juliampi-build
-    COMMAND ${CMAKE_COMMAND}
-                -DMPIJL=${CMAKE_BINARY_DIR}/mpi-build.jl
-                -DDST=juliampi-build
-                -P ${CMAKE_BINARY_DIR}/juliampi.cmake
-    DEPENDS ${CMAKE_BINARY_DIR}/juliampi.cmake)
-add_custom_target(juliampi-build-sh DEPENDS ${CMAKE_BINARY_DIR}/juliampi-build)
-add_dependencies(mpi juliampi-build-sh)
+add_dependencies(juliampi mpijl-build)
 
 install(FILES ${CMAKE_BINARY_DIR}/MPI.jl DESTINATION .)
-install(PROGRAMS ${CMAKE_BINARY_DIR}/juliampi DESTINATION .)
-install(TARGETS mpi LIBRARY DESTINATION .)
+install(TARGETS juliampi LIBRARY DESTINATION ${CMAKE_LIB_INSTALL_PREFIX})
 
 enable_testing()
 
 set(NPROCS 2 5)
-set(JULIAEXEC ${CMAKE_BINARY_DIR}/juliampi-build)
 
-file(GLOB JTESTS "${CMAKE_SOURCE_DIR}/test/test_*.jl")
+file(GLOB JTESTS "${CMAKE_SOURCE_DIR}/../test/test_*.jl")
 
 foreach(np ${NPROCS})
   foreach(jtest ${JTESTS})
     get_filename_component(tname ${jtest} NAME)
     add_test(${tname}_np:${np} ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${np}
-      ${JULIAEXEC} "${CMAKE_SOURCE_DIR}/test/run_test.jl" ${jtest})
+      julia "${CMAKE_SOURCE_DIR}/../test/run_test.jl" ${jtest})
   endforeach(jtest ${JTESTS})
 endforeach(np ${NPROCS})
