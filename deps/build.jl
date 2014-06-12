@@ -2,7 +2,7 @@ using BinDeps
 
 @BinDeps.setup
 
-mpi = library_dependency("mpi", aliases=["libmpi", "libmpi.so", "libmpi.dylib"])
+libmpi = library_dependency("libmpi", aliases=["libmpi.so", "libmpi.dylib"])
 
 builddir = joinpath(BinDeps.depsdir(mpi),"build")
 srcdir = joinpath(BinDeps.depsdir(mpi),"..","src")
@@ -37,4 +37,4 @@ provides(SimpleBuild,
         end)
     end), [mpi], os = :Unix)
 
-@BinDeps.install [:mpi => :mpi]
+@BinDeps.install [:libmpi => :libmpi]
