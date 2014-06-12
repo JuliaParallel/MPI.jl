@@ -4,8 +4,8 @@ using BinDeps
 
 libmpi = library_dependency("libmpi", aliases=["libmpi.so", "libmpi.dylib"])
 
-builddir = joinpath(BinDeps.depsdir(mpi),"build")
-srcdir = joinpath(BinDeps.depsdir(mpi),"..","src")
+builddir = joinpath(BinDeps.depsdir(libmpi),"build")
+srcdir = joinpath(BinDeps.depsdir(libmpi),"..","src")
 
 provides(SimpleBuild,
     (@build_steps begin
@@ -20,7 +20,7 @@ provides(SimpleBuild,
                 `make test`
             end)
         end)
-    end), [mpi], os = :Darwin)
+    end), [libmpi], os = :Darwin)
 
 provides(SimpleBuild,
     (@build_steps begin
@@ -35,6 +35,6 @@ provides(SimpleBuild,
                 `make test`
             end)
         end)
-    end), [mpi], os = :Unix)
+    end), [libmpi], os = :Unix)
 
 @BinDeps.install [:libmpi => :libmpi]
