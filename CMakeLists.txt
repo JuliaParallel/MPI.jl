@@ -5,7 +5,7 @@ find_package(Git)
 find_package(MPI REQUIRED)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.julia/mpi" CACHE PATH
+  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.julia/v0.3/MPI/src" CACHE PATH
     "Julia-MPI install prefix" FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
@@ -143,14 +143,14 @@ file(APPEND \${DST} \${MPI})
 file(APPEND \${DST} \"end\n\")
 ")
 
-add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi.jl
+add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/MPI.jl
     COMMAND ${CMAKE_COMMAND}
                 -DSRC=${CMAKE_SOURCE_DIR}/mpi-base.jl
                 -DLIB=${CMAKE_INSTALL_PREFIX}/libmpi
-                -DDST=${CMAKE_BINARY_DIR}/mpi.jl
+                -DDST=${CMAKE_BINARY_DIR}/MPI.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
     DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
-add_custom_target(mpijl DEPENDS ${CMAKE_BINARY_DIR}/mpi.jl)
+add_custom_target(mpijl DEPENDS ${CMAKE_BINARY_DIR}/MPI.jl)
 add_dependencies(mpi mpijl)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi-build.jl
@@ -174,7 +174,7 @@ file(COPY   \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST}
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/juliampi
     COMMAND ${CMAKE_COMMAND}
-                -DMPIJL=${CMAKE_INSTALL_PREFIX}/mpi.jl
+                -DMPIJL=${CMAKE_INSTALL_PREFIX}/MPI.jl
                 -DDST=juliampi
                 -P ${CMAKE_BINARY_DIR}/juliampi.cmake
     DEPENDS ${CMAKE_BINARY_DIR}/juliampi.cmake)
@@ -190,7 +190,7 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/juliampi-build
 add_custom_target(juliampi-build-sh DEPENDS ${CMAKE_BINARY_DIR}/juliampi-build)
 add_dependencies(mpi juliampi-build-sh)
 
-install(FILES ${CMAKE_BINARY_DIR}/mpi.jl DESTINATION .)
+install(FILES ${CMAKE_BINARY_DIR}/MPI.jl DESTINATION .)
 install(PROGRAMS ${CMAKE_BINARY_DIR}/juliampi DESTINATION .)
 install(TARGETS mpi LIBRARY DESTINATION .)
 
