@@ -163,48 +163,19 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi-build.jl
 add_custom_target(mpijl-build DEPENDS ${CMAKE_BINARY_DIR}/mpi-build.jl)
 add_dependencies(mpi mpijl-build)
 
-file(WRITE ${CMAKE_BINARY_DIR}/juliampi.cmake "
-file(WRITE  \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST} \"#!/bin/sh\n\")
-file(APPEND \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST} \"exec julia -P \\\"require(\\\\\\\"\${MPIJL}\\\\\\\");\\\" \\$@\n\")
-file(COPY   \${CMAKE_BINARY_DIR}\${CMAKE_FILES_DIRECTORY}/\${DST}
-  DESTINATION \${CMAKE_BINARY_DIR}
-  FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ
-                   GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-")
-
-add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/juliampi
-    COMMAND ${CMAKE_COMMAND}
-                -DMPIJL=${CMAKE_INSTALL_PREFIX}/MPI.jl
-                -DDST=juliampi
-                -P ${CMAKE_BINARY_DIR}/juliampi.cmake
-    DEPENDS ${CMAKE_BINARY_DIR}/juliampi.cmake)
-add_custom_target(juliampi-sh DEPENDS ${CMAKE_BINARY_DIR}/juliampi)
-add_dependencies(mpi juliampi-sh)
-
-add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/juliampi-build
-    COMMAND ${CMAKE_COMMAND}
-                -DMPIJL=${CMAKE_BINARY_DIR}/mpi-build.jl
-                -DDST=juliampi-build
-                -P ${CMAKE_BINARY_DIR}/juliampi.cmake
-    DEPENDS ${CMAKE_BINARY_DIR}/juliampi.cmake)
-add_custom_target(juliampi-build-sh DEPENDS ${CMAKE_BINARY_DIR}/juliampi-build)
-add_dependencies(mpi juliampi-build-sh)
-
 install(FILES ${CMAKE_BINARY_DIR}/MPI.jl DESTINATION .)
-install(PROGRAMS ${CMAKE_BINARY_DIR}/juliampi DESTINATION .)
 install(TARGETS mpi LIBRARY DESTINATION .)
 
 enable_testing()
 
 set(NPROCS 2 5)
-set(JULIAEXEC ${CMAKE_BINARY_DIR}/juliampi-build)
 
-file(GLOB JTESTS "${CMAKE_SOURCE_DIR}/test/test_*.jl")
+file(GLOB JTESTS "${CMAKE_SOURCE_DIR}/../test/test_*.jl")
 
 foreach(np ${NPROCS})
   foreach(jtest ${JTESTS})
     get_filename_component(tname ${jtest} NAME)
     add_test(${tname}_np:${np} ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${np}
-      ${JULIAEXEC} "${CMAKE_SOURCE_DIR}/test/run_test.jl" ${jtest})
+      julia "${CMAKE_SOURCE_DIR}/../test/run_test.jl" ${jtest})
   endforeach(jtest ${JTESTS})
 endforeach(np ${NPROCS})
