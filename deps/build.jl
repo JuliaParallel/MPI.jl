@@ -2,10 +2,10 @@ using BinDeps
 
 @BinDeps.setup
 
-libmpi = library_dependency("libmpi", aliases=["libmpi.so", "libmpi.dylib"])
+libmpi = library_dependency("libjuliampi", aliases=["libjuliampi.so", "libjuliampi.dylib"])
 
 builddir = joinpath(BinDeps.depsdir(libmpi),"build")
-srcdir = BinDeps.srcdir(libmpi)
+srcdir   = BinDeps.srcdir(libmpi)
 
 provides(SimpleBuild,
     (@build_steps begin

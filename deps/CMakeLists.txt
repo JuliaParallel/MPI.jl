@@ -112,13 +112,13 @@ endif(UNIX)
 
 add_dependencies(dist version)
 
-add_library(mpi SHARED mpi.f)
+add_library(juliampi SHARED mpi.f)
 
 if(MPI_Fortran_LINK_FLAGS)
-  set_target_properties(mpi PROPERTIES LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})
+  set_target_properties(juliampi PROPERTIES LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})
 endif(MPI_Fortran_LINK_FLAGS)
 
-target_link_libraries(mpi ${MPI_Fortran_LIBRARIES})
+target_link_libraries(juliampi ${MPI_Fortran_LIBRARIES})
 
 add_executable(make_f2c make_f2c.c)
 add_dependencies(make_f2c version)
@@ -151,7 +151,7 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/MPI.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
     DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
 add_custom_target(mpijl DEPENDS ${CMAKE_BINARY_DIR}/MPI.jl)
-add_dependencies(mpi mpijl)
+add_dependencies(juliampi mpijl)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi-build.jl
     COMMAND ${CMAKE_COMMAND}
@@ -161,10 +161,10 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi-build.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
     DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
 add_custom_target(mpijl-build DEPENDS ${CMAKE_BINARY_DIR}/mpi-build.jl)
-add_dependencies(mpi mpijl-build)
+add_dependencies(juliampi mpijl-build)
 
 install(FILES ${CMAKE_BINARY_DIR}/MPI.jl DESTINATION .)
-install(TARGETS mpi LIBRARY DESTINATION .)
+install(TARGETS juliampi LIBRARY DESTINATION .)
 
 enable_testing()
 
