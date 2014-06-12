@@ -9,6 +9,9 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     "Julia-MPI install prefix" FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
+set(CMAKE_LIB_INSTALL_PREFIX "$ENV{HOME}/.julia/v0.3/MPI/deps/usr/lib" CACHE PATH
+    "Julia-MPI lib install prefix" FORCE)
+
 include(FortranCInterface)
 
 FortranCInterface_HEADER(jlmpi_f2c.h MACRO_NAMESPACE "JLMPI_"
@@ -146,7 +149,7 @@ file(APPEND \${DST} \"end\n\")
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/MPI.jl
     COMMAND ${CMAKE_COMMAND}
                 -DSRC=${CMAKE_SOURCE_DIR}/mpi-base.jl
-                -DLIB=${CMAKE_INSTALL_PREFIX}/libmpi
+                -DLIB=${CMAKE_LIB_INSTALL_PREFIX}/libmpi
                 -DDST=${CMAKE_BINARY_DIR}/MPI.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
     DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
@@ -156,7 +159,7 @@ add_dependencies(juliampi mpijl)
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi-build.jl
     COMMAND ${CMAKE_COMMAND}
                 -DSRC=${CMAKE_SOURCE_DIR}/mpi-base.jl
-                -DLIB=${CMAKE_BINARY_DIR}/libmpi
+                -DLIB=${CMAKE_LIB_INSTALL_PREFIX}/libmpi
                 -DDST=${CMAKE_BINARY_DIR}/mpi-build.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
     DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
@@ -164,7 +167,7 @@ add_custom_target(mpijl-build DEPENDS ${CMAKE_BINARY_DIR}/mpi-build.jl)
 add_dependencies(juliampi mpijl-build)
 
 install(FILES ${CMAKE_BINARY_DIR}/MPI.jl DESTINATION .)
-install(TARGETS juliampi LIBRARY DESTINATION .)
+install(TARGETS juliampi LIBRARY DESTINATION ${CMAKE_LIB_INSTALL_PREFIX})
 
 enable_testing()
 
