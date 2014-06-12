@@ -5,7 +5,7 @@ using BinDeps
 libmpi = library_dependency("libmpi", aliases=["libmpi.so", "libmpi.dylib"])
 
 builddir = joinpath(BinDeps.depsdir(libmpi),"build")
-srcdir = joinpath(BinDeps.depsdir(libmpi),"..","src")
+srcdir = realpath(joinpath(BinDeps.depsdir(libmpi),"..","src"))
 
 provides(SimpleBuild,
     (@build_steps begin
