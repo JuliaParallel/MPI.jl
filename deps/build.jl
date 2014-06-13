@@ -12,7 +12,7 @@ provides(SimpleBuild,
         (@build_steps begin
             ChangeDirectory(builddir)
             (@build_steps begin
-                `cmake ..`
+                `cmake -DCMAKE_INSTALL_PREFIX=$(pwd())/../../src -DCMAKE_LIB_INSTALL_PREFIX=$(pwd())/../usr/lib ..`
                 `make`
                 `make install`
                 `make test`
@@ -26,7 +26,7 @@ provides(SimpleBuild,
         (@build_steps begin
             ChangeDirectory(builddir)
             (@build_steps begin
-                `cmake ..`
+                `cmake -DCMAKE_INSTALL_PREFIX=$(pwd())/../../src -DCMAKE_LIB_INSTALL_PREFIX=$(pwd())/../usr/lib ..`
                 `make`
                 `make install`
                 `make test`
