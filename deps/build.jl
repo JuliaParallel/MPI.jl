@@ -2,15 +2,13 @@ using BinDeps
 
 @BinDeps.setup
 
-libmpi = library_dependency("libjuliampi", aliases=["libjuliampi.so", "libjuliampi.dylib"])
+mpi = library_dependency("juliampi", aliases=["libjuliampi", "libjuliampi.so", "libjuliampi.dylib"])
 
-builddir = joinpath(BinDeps.depsdir(libmpi),"build")
-srcdir   = BinDeps.srcdir(libmpi)
+builddir = joinpath(BinDeps.depsdir(mpi),"build")
 
 provides(SimpleBuild,
     (@build_steps begin
         CreateDirectory(builddir)
-        CreateDirectory(srcdir)
         (@build_steps begin
             ChangeDirectory(builddir)
             (@build_steps begin
@@ -20,12 +18,11 @@ provides(SimpleBuild,
                 `make test`
             end)
         end)
-    end), [libmpi], os = :Darwin)
+    end), [mpi], os = :Darwin)
 
 provides(SimpleBuild,
     (@build_steps begin
         CreateDirectory(builddir)
-        CreateDirectory(srcdir)
         (@build_steps begin
             ChangeDirectory(builddir)
             (@build_steps begin
@@ -35,6 +32,6 @@ provides(SimpleBuild,
                 `make test`
             end)
         end)
-    end), [libmpi], os = :Unix)
+    end), [mpi], os = :Unix)
 
-@BinDeps.install [:libmpi => :libmpi]
+@BinDeps.install [:mpi => :mpi]
