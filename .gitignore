@@ -1,0 +1,5 @@
+/deps/VERSION
+/deps/build/
+/deps/deps.jl
+/deps/usr/
+/src/
