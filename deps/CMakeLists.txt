@@ -1,4 +1,4 @@
-CMAKE_minimum_required(VERSION 2.8.8)
+CMAKE_minimum_required(VERSION 2.8.7)
 project(Julia-MPI Fortran C)
 include(InstallRequiredSystemLibraries)
 find_package(Git)
