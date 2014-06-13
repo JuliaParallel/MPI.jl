@@ -138,26 +138,25 @@ file(APPEND \${DST} \${FTWOC})
 file(APPEND \${DST} \"\n\")
 file(APPEND \${DST} \${FCONS})
 file(APPEND \${DST} \"\n\")
-file(APPEND \${DST} \"end\n\")
 ")
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/compile-time.jl
     COMMAND ${CMAKE_COMMAND}
-                -DSRC=${CMAKE_SOURCE_DIR}/mpi-base.jl
+                -DSRC=${CMAKE_SOURCE_DIR}/../src/mpi-base.jl
                 -DLIB=${CMAKE_LIB_INSTALL_PREFIX}/libmpi
                 -DDST=${CMAKE_BINARY_DIR}/compile-time.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
-    DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
+    DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/../src/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
 add_custom_target(mpijl DEPENDS ${CMAKE_BINARY_DIR}/compile-time.jl)
 add_dependencies(juliampi mpijl)
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi-build.jl
     COMMAND ${CMAKE_COMMAND}
-                -DSRC=${CMAKE_SOURCE_DIR}/mpi-base.jl
+                -DSRC=${CMAKE_SOURCE_DIR}/../src/mpi-base.jl
                 -DLIB=${CMAKE_LIB_INSTALL_PREFIX}/libmpi
                 -DDST=${CMAKE_BINARY_DIR}/mpi-build.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
-    DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
+    DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/../src/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
 add_custom_target(mpijl-build DEPENDS ${CMAKE_BINARY_DIR}/mpi-build.jl)
 add_dependencies(juliampi mpijl-build)
 
