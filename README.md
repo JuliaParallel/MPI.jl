@@ -5,22 +5,27 @@ Message Passing Interface ([MPI]).  Inspiration is taken from [mpi4py].
 
 ## Installing
 
-[CMake] is used to piece together the MPI wrapper.  Currently a shared
-library MPI installation for C and Fortran is required (tested with
-[Open MPI] and [MPICH2]).  To build and install the wrapper run from the
-root source directory
+[CMake] is used to piece together the MPI wrapper; as such, it is required 
+MPI.jl to build.  Currently a shared library MPI installation for C and 
+Fortran is required (tested with [Open MPI] and [MPICH2]). To install MPI.jl
+using the Julia packaging system, simply run
 
-    mkdir build
-    cd build
-    cmake ..
-    make
-    make test
-    make install
+    julia> Pkg.update()
+    julia> Pkg.add("MPI")
 
-which will install the wrapper into `$HOME/.julia/mpi`.  Examples can be
-run using the `$HOME/.julia/mpi/juliampi` script as in
+Alternatively, clone this git repository manually and run
 
-    mpirun -np 3 $HOME/.julia/mpi/juliampi ../examples/01-hello.jl
+    julia> Pkg.build("MPI")
+
+which will install the MPI library into `$HOME/.julia/vX.Y/MPI/deps/usr/lib`. 
+
+## Usage
+
+To run a Julia script with MPI, first make sure that `using MPI` or 
+`import MPI` is included at the top of your script. You should then be able
+to run the MPI job as expected, e.g. with
+
+    mpirun -np 3 julia examples/01-hello.jl
 
 [Julia]: http://julialang.org/
 [MPI]: http://www.mpi-forum.org/
