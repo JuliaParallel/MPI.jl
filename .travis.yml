@@ -16,3 +16,4 @@ before_install:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 script:
   - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.build("MPI")'
+  - cat `julia -e 'print(Pkg.dir())'`/MPI/deps/build/Testing/Temporary/LastTest.log
