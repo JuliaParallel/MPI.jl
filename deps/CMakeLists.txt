@@ -162,6 +162,7 @@ add_dependencies(juliampi mpijl-build)
 
 install(FILES ${CMAKE_BINARY_DIR}/compile-time.jl DESTINATION .)
 install(TARGETS juliampi LIBRARY DESTINATION ${CMAKE_LIB_INSTALL_PREFIX})
+set_property(TARGET juliampi PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 enable_testing()
 
