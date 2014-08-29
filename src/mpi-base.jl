@@ -221,7 +221,7 @@ function Reduce{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
     end
 
     ccall(MPI_REDUCE, Void,
-          (Ptr{T}, Ptr{T}, Ptr{Int32},  Ptr{Int32}, Ptr{Int32},
+          (Ptr{T}, Ptr{T}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
           Ptr{Int32}, Ptr{Int32}, Ptr{Int32},),
           A, B, &count, &_mpi_datatype_map[T], &op.fval, &root, &c.fval, ierr)
 

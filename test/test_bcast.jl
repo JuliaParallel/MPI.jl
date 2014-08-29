@@ -80,7 +80,7 @@ g = x -> x^2 + 2x - 1
 if MPI.rank(comm) == root
     f = copy(g)
 else
-    f = Nothing
+    f = nothing
 end
 f = MPI.bcast(f, root, comm)
 @test f(3) == g(3)
@@ -92,7 +92,7 @@ A = {"foo" => "bar"}
 if MPI.rank(comm) == root
     B = A
 else
-    B = Nothing
+    B = nothing
 end
 B = MPI.bcast(B, root, comm)
 @test B["foo"] == "bar"

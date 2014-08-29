@@ -30,8 +30,8 @@ stats = MPI.waitall!([sreq, rreq])
 @test stats[MPI.TAG,2] == src+32
 @test isapprox(norm(recv_mesg-recv_mesg_expected), 0.0)
 
-rreq = Nothing
-sreq = Nothing
+rreq = nothing
+sreq = nothing
 gc()
 
 if rank == 0
