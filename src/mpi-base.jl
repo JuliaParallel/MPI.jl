@@ -368,7 +368,7 @@ function iprobe_recv!(source::Integer, tag::Integer, c::Comm,
     ierr = Array(Int32, 1)
     (flag,pstat) = iprobe(source, tag, c)
     if !flag
-        return nothing
+        return (false, nothing)
     end
     count = get_count(pstat, Uint8)
 
@@ -381,7 +381,7 @@ function iprobe_recv!(source::Integer, tag::Integer, c::Comm,
 
     @_mpi_error_check ierr[1] "MPI_RECV"
 
-    _mpi_deserialize(buf)
+    (true, _mpi_deserialize(buf))
 end
 
 function iprobe_recv(source::Integer, tag::Integer, c::Comm)
