@@ -22,22 +22,28 @@ const _mpi_datatype_map = {
 #  Bool => MPI_LOGICAL1,
 }
 
-for (elty, elfn, elnl) in ((:Comm,      :MPI_COMM_FREE,    :MPI_COMM_NULL),
-                           (:Request,   :MPI_REQUEST_FREE, :MPI_REQUEST_NULL),
-                           (:Operation, :MPI_OP_FREE,      :MPI_OP_NULL))
+for (elty, elfn, elnl, elex) in
+    ((:Comm,      :MPI_COMM_FREE,    :MPI_COMM_NULL   , None),
+     (:Request,   :MPI_REQUEST_FREE, :MPI_REQUEST_NULL, Any ),
+     (:Operation, :MPI_OP_FREE,      :MPI_OP_NULL     , None))
     @eval begin
         type ($elty)
             fval::Int32
+            extra::$elex
 
             function ($elty)(b::Int32)
                 a = new(b)
-# the finalizer call below causes this error with OpenMPI, any ideas? 
-#The MPI_Op_f2c() function was called after MPI_FINALIZE was invoked.
-#*** This is disallowed by the MPI standard.
-#*** Your MPI job will now abort.
-#                finalizer(a, free)
+                # TODO: Call MPI_Finalized in the free routine, then
+                # re-enable this
+                # finalizer(a, free)
                 a
             end
+        end
+
+        function ($elty)(b::Int32, extra)
+            a = ($elty)(b)
+            a.extra = extra
+            a
         end
 
         convert(::Type{$elty}, x::Int32) = ($elty)(x)
@@ -48,14 +54,13 @@ for (elty, elfn, elnl) in ((:Comm,      :MPI_COMM_FREE,    :MPI_COMM_NULL),
         end
 
         function free(el::($elty))
-            ierr = Array(Int32, 1)
-
             if el.fval != $elnl
+                ierr = Array(Int32, 1)
                 ccall($elfn, Void, (Ptr{Int32},Ptr{Int32},), &el.fval, ierr)
 
                 if ierr[1] != MPI_SUCCESS
                     elfn_str = $string(elfn)
-                    prinln("$elfn_str: error $(ierr[1])")
+                    warn("$elfn_str: error $(ierr[1])")
                 end
             end
         end
@@ -95,8 +100,9 @@ const ERROR       = MPI_ERROR
 const REQUEST_NULL = Request(MPI_REQUEST_NULL)
 
 macro _mpi_error_check(ierr, fname)
-    :($(ierr) == MPI_SUCCESS ? nothing : error("MPI error in:", $fname,
-      "---", $ierr))
+    # By default, MPI aborts if there is an error, so we skip the error check
+    # :($(ierr) == MPI_SUCCESS ? nothing : error("MPI error in:", $fname,
+    #   "---", $ierr))
 end
 
 takebuf_array(s::IOStream) =
@@ -114,7 +120,6 @@ function _mpi_deserialize(x)
     seek(s, 0)
     y = deserialize(s)
     y
-
 end
 
 for (fn, ff) in ((:init,     :MPI_INIT),
@@ -126,6 +131,13 @@ for (fn, ff) in ((:init,     :MPI_INIT),
             @_mpi_error_check ierr[1] $string(ff)
         end
     end
+end
+
+function abort(c::Comm, errc::Integer)
+    ierr = Array(Int32, 1)
+    ccall(MPI_ABORT, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32},),
+          &c.fval, &errc, ierr)
+    @_mpi_error_check ierr[1] "MPI_ABORT"
 end
 
 for (fn, ff) in ((:rank, :MPI_COMM_RANK),
@@ -149,12 +161,11 @@ function barrier(c::Comm)
 end
 
 function Bcast!{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
-                             root::Integer, c::Comm)
+                                root::Integer, c::Comm)
     ierr = Array(Int32, 1)
 
     ccall(MPI_BCAST, Void,
-          (Ptr{T}, Ptr{Int32}, Ptr{Int32},  Ptr{Int32}, Ptr{Int32},
-          Ptr{Int32},),
+          (Ptr{T}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},),
           A, &count, &_mpi_datatype_map[T], &root, &c.fval, ierr)
 
     @_mpi_error_check ierr[1] "MPI_BCAST"
@@ -217,7 +228,7 @@ function Reduce{T<:MpiDatatype}(A::Union(Ptr{T},Array{T}), count::Integer,
     @_mpi_error_check ierr[1] "MPI_REDUCE"
 
     if MPI.rank(c) != root
-        B = Nothing
+        B = nothing
     end
     B
 end
@@ -228,13 +239,12 @@ function Reduce{T<:MpiDatatype}(A::Array{T}, op::Operation, root::Integer,
 end
 
 function Reduce{T<:MpiDatatype}(A::T, op::Operation, root::Integer, c::Comm)
-    A1 = Array(T, 1)
-    A1[1] = A
+    A1 = T[A]
     B1 = Reduce(A1, op, root, c)
     if MPI.rank(c) == root
         B1[1]
     else
-        Nothing
+        nothing
     end
 end
 
@@ -263,7 +273,6 @@ for (fnnm, ffnm) in ((:Isend!, :MPI_ISEND), (:Irecv!, :MPI_IRECV))
     end
 end
 
-
 function send(A, dest::Integer, tag::Integer, c::Comm)
     ierr = Array(Int32, 1)
 
@@ -275,6 +284,21 @@ function send(A, dest::Integer, tag::Integer, c::Comm)
           buf, &length(buf), &MPI_BYTE, &dest, &tag, &c.fval, ierr)
 
     @_mpi_error_check ierr[1] "MPI_SEND"
+end
+
+function isend(A, dest::Integer, tag::Integer, c::Comm)
+    ierr = Array(Int32, 1)
+    req  = Array(Int32, 1)
+
+    buf = _mpi_serialize(A)
+
+    ccall(MPI_ISEND, Void,
+          (Ptr{Uint8}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
+          Ptr{Int32}, Ptr{Int32}),
+          buf, &length(buf), &MPI_BYTE, &dest, &tag, &c.fval, req, ierr)
+
+    @_mpi_error_check ierr[1] "MPI_ISEND"
+    Request(req[1], buf)
 end
 
 function probe(source::Integer, tag::Integer, c::Comm)
@@ -289,17 +313,39 @@ function probe(source::Integer, tag::Integer, c::Comm)
     stat
 end
 
-function recv!(source::Integer, tag::Integer, c::Comm, status)
+function iprobe(source::Integer, tag::Integer, c::Comm)
+    ierr = Array(Int32, 1)
+    flag = Array(Int32, 1)
+    stat = Array(Int32, MPI_STATUS_SIZE)
+
+    ccall(MPI_IPROBE, Void,
+          (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
+           Ptr{Int32}),
+          &source, &tag, &c.fval, flag, stat, ierr)
+
+    @_mpi_error_check ierr[1] "MPI_IPROBE"
+    (bool(flag[1]), stat)
+end
+
+function get_count{T<:MpiDatatype}(status::Array{Int32,1}, ::Type{T})
+    @assert length(status) >= MPI_STATUS_SIZE
     ierr = Array(Int32, 1)
     count = Array(Int32, 1)
-    pstat = probe(source, tag, c)
 
     ccall(MPI_GET_COUNT, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
-          pstat, &MPI_BYTE, count, ierr)
+          status, &_mpi_datatype_map[T], count, ierr)
 
     @_mpi_error_check ierr[1] "MPI_GET_COUNT"
+    count[1]
+end
 
-    buf = Array(Uint8, count[1])
+function recv!(source::Integer, tag::Integer, c::Comm, status::Array{Int32,1})
+    @assert length(status) >= MPI_STATUS_SIZE
+    ierr = Array(Int32, 1)
+    pstat = probe(source, tag, c)
+    count = get_count(pstat, Uint8)
+
+    buf = Array(Uint8, count)
 
     ccall(MPI_RECV, Void,
           (Ptr{Uint8}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
@@ -316,19 +362,60 @@ function recv(source::Integer, tag::Integer, c::Comm)
     recv!(source, tag, c, stat)
 end
 
-function wait!(req::Request)
-    fval = Array(Int32, 1)
+function iprobe_recv!(source::Integer, tag::Integer, c::Comm,
+                      status::Array{Int32,1})
+    @assert length(status) >= MPI_STATUS_SIZE
+    ierr = Array(Int32, 1)
+    (flag,pstat) = iprobe(source, tag, c)
+    if !flag
+        return nothing
+    end
+    count = get_count(pstat, Uint8)
+
+    buf = Array(Uint8, count[1])
+
+    ccall(MPI_RECV, Void,
+          (Ptr{Uint8}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
+          Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+          buf, &length(buf), &MPI_BYTE, &source, &tag, &c.fval, status, ierr)
+
+    @_mpi_error_check ierr[1] "MPI_RECV"
+
+    _mpi_deserialize(buf)
+end
+
+function iprobe_recv(source::Integer, tag::Integer, c::Comm)
+    stat = Array(Int32, MPI_STATUS_SIZE)
+    iprobe_recv!(source, tag, c, stat)
+end
+
+function test!(req::Request)
+    flag = Array(Int32, 1)
     stat = Array(Int32, MPI_STATUS_SIZE)
     ierr = Array(Int32, 1)
 
-    fval[1] = req.fval
-
-    ccall(MPI_WAIT, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32},),
-          fval, stat, ierr)
-
-    req.fval = fval[1]
+    ccall(MPI_TEST, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32},Ptr{Int32},),
+          &req.fval, flag, stat, ierr)
 
     @_mpi_error_check ierr[1] "MPI_WAIT"
+
+    flag = bool(flag[1])
+    if flag
+        req.extra = nothing
+    end
+    (flag[1], stat)
+end
+
+function wait!(req::Request)
+    stat = Array(Int32, MPI_STATUS_SIZE)
+    ierr = Array(Int32, 1)
+
+    ccall(MPI_WAIT, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32},),
+          &fval.req, stat, ierr)
+
+    @_mpi_error_check ierr[1] "MPI_WAIT"
+
+    req.extra = nothing
     stat
 end
 
@@ -344,13 +431,9 @@ function waitall!(reqs::Array{Request})
 
     @_mpi_error_check ierr[1] "MPI_WAITALL"
 
-    map((x,y)->x.fval=y, reqs, freqs)
+    map((x,y)->(x.fval=y; x.extra=nothing), reqs, freqs)
 
     stats
 end
 
-function waitall!(req::Request)
-    reqs = Array(Request, 1)
-    reqs[1] = req
-    waitall!(reqs::Array{Request})
-end
+waitall!(req::Request) = wait!(req)
