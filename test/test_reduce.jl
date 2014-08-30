@@ -2,11 +2,11 @@ using Base.Test
 
 import MPI
 
-MPI.init()
+MPI.Init()
 
 comm = MPI.COMM_WORLD
-size = MPI.size(comm)
-rank = MPI.rank(comm)
+size = MPI.Comm_size(comm)
+rank = MPI.Comm_rank(comm)
 
 root = size-1
 val = rank == root ? sum([0:size-1]) : nothing
@@ -23,4 +23,4 @@ sum_mesg = MPI.Reduce(mesg, MPI.SUM, root, comm)
 sum_mesg = rank == root ? sum_mesg : size*mesg
 @test isapprox(norm(sum_mesg-size*mesg), 0.0)
 
-MPI.finalize()
+MPI.Finalize()

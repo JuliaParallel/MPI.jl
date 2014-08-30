@@ -1,12 +1,12 @@
 using Base.Test
 import MPI
 
-MPI.init()
+MPI.Init()
 
 function bcast_array(A, root)
     comm = MPI.COMM_WORLD
 
-    if MPI.rank(comm) == root
+    if MPI.Comm_rank(comm) == root
         B = copy(A)
     else
         B = similar(A)
@@ -77,7 +77,7 @@ A = uint64(rand(1:8000, 128))
 comm = MPI.COMM_WORLD
 
 g = x -> x^2 + 2x - 1
-if MPI.rank(comm) == root
+if MPI.Comm_rank(comm) == root
     f = copy(g)
 else
     f = nothing
@@ -89,7 +89,7 @@ f = MPI.bcast(f, root, comm)
 
 
 A = {"foo" => "bar"}
-if MPI.rank(comm) == root
+if MPI.Comm_rank(comm) == root
     B = A
 else
     B = nothing
@@ -97,5 +97,4 @@ end
 B = MPI.bcast(B, root, comm)
 @test B["foo"] == "bar"
 
-MPI.finalize()
-
+MPI.Finalize()
