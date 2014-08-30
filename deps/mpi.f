@@ -1,5 +1,5 @@
-      subroutine juliampi_empty()
-        INTEGER   IERROR
-        CALL MPI_INIT(IERROR)
-        CALL MPI_FINALIZE(IERROR)
+      subroutine juliampi_empty
+      integer ierr
+      call mpi_init(ierr)
+      call mpi_finalize(ierr)
       end
