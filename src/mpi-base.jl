@@ -103,14 +103,14 @@ function Comm_rank(comm::Comm)
     rank = Array(Int32, 1)
     ccall(MPI_COMM_RANK, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
           &comm.val, rank, &0)
-    rank[1]
+    int(rank[1])
 end
 
 function Comm_size(comm::Comm)
     size = Array(Int32, 1)
     ccall(MPI_COMM_SIZE, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
           &comm.val, size, &0)
-    size[1]
+    int(size[1])
 end
 
 # Point-to-point communication
@@ -141,7 +141,7 @@ function Get_count{T<:MPIDatatype}(stat::Status, ::Type{T})
     count = Array(Int32, 1)
     ccall(MPI_GET_COUNT, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
           stat.val, &datatypes[T], count, &0)
-    count[1]
+    int(count[1])
 end
 
 function Send{T<:MPIDatatype}(buf::Union(Ptr{T},Array{T}), count::Integer,
