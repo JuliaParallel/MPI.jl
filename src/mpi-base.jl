@@ -19,14 +19,14 @@ const datatypes =
      Complex128 => MPI_COMPLEX16}
 
 type Comm
-    val::Int32
+    val::Cint
 end
 const COMM_NULL  = Comm(MPI_COMM_NULL)
 const COMM_SELF  = Comm(MPI_COMM_SELF)
 const COMM_WORLD = Comm(MPI_COMM_WORLD)
 
 type Op
-    val::Int32
+    val::Cint
 end
 const OP_NULL = Op(MPI_OP_NULL)
 const BAND    = Op(MPI_BAND)
@@ -41,23 +41,23 @@ const PROD    = Op(MPI_PROD)
 const SUM     = Op(MPI_SUM)
 
 type Request
-    val::Int32
+    val::Cint
     buffer
 end
 const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
 
 type Status
-    val::Array{Int32,1}
-    Status() = new(Array(Int32, MPI_STATUS_SIZE))
+    val::Array{Cint,1}
+    Status() = new(Array(Cint, MPI_STATUS_SIZE))
 end
 Get_error(stat::Status) = stat.val[MPI_ERROR]
 Get_source(stat::Status) = stat.val[MPI_SOURCE]
 Get_tag(stat::Status) = stat.val[MPI_TAG]
 
-const ANY_SOURCE = MPI_ANY_SOURCE
-const ANY_TAG    = MPI_ANY_TAG
-const TAG_UB     = MPI_TAG_UB
-const UNDEFINED  = MPI_UNDEFINED
+const ANY_SOURCE = int(MPI_ANY_SOURCE)
+const ANY_TAG    = int(MPI_ANY_TAG)
+const TAG_UB     = int(MPI_TAG_UB)
+const UNDEFINED  = int(MPI_UNDEFINED)
 
 
 
@@ -75,40 +75,40 @@ end
 # Administrative functions
 
 function Init()
-    ccall(MPI_INIT, Void, (Ptr{Int32},), &0)
+    ccall(MPI_INIT, Void, (Ptr{Cint},), &0)
 end
 
 function Finalize()
-    ccall(MPI_FINALIZE, Void, (Ptr{Int32},), &0)
+    ccall(MPI_FINALIZE, Void, (Ptr{Cint},), &0)
 end
 
 function Abort(comm::Comm, errcode::Integer)
-    ccall(MPI_ABORT, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32}),
+    ccall(MPI_ABORT, Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint}),
           &comm.val, &errcode, &0)
 end
 
 function Initialized()
-    flag = Array(Int32, 1)
-    ccall(MPI_INITIALIZED, Void, (Ptr{Int32},Ptr{Int32}), flag, &0)
+    flag = Array(Cint, 1)
+    ccall(MPI_INITIALIZED, Void, (Ptr{Cint},Ptr{Cint}), flag, &0)
     bool(flag[1])
 end
 
 function Finalized()
-    flag = Array(Int32, 1)
-    ccall(MPI_FINALIZED, Void, (Ptr{Int32},Ptr{Int32}), flag, &0)
+    flag = Array(Cint, 1)
+    ccall(MPI_FINALIZED, Void, (Ptr{Cint},Ptr{Cint}), flag, &0)
     bool(flag[1])
 end
 
 function Comm_rank(comm::Comm)
-    rank = Array(Int32, 1)
-    ccall(MPI_COMM_RANK, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+    rank = Array(Cint, 1)
+    ccall(MPI_COMM_RANK, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, rank, &0)
     int(rank[1])
 end
 
 function Comm_size(comm::Comm)
-    size = Array(Int32, 1)
-    ccall(MPI_COMM_SIZE, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+    size = Array(Cint, 1)
+    ccall(MPI_COMM_SIZE, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, size, &0)
     int(size[1])
 end
@@ -118,17 +118,17 @@ end
 function Probe(src::Integer, tag::Integer, comm::Comm)
     stat = Status()
     ccall(MPI_PROBE, Void,
-          (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &src, &tag, &comm.val, stat.val, &0)
     stat
 end
 
 function Iprobe(src::Integer, tag::Integer, comm::Comm)
-    flag = Array(Int32, 1)
+    flag = Array(Cint, 1)
     stat = Status()
     ccall(MPI_IPROBE, Void,
-          (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
-           Ptr{Int32}),
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}),
           &src, &tag, &comm.val, flag, stat.val, &0)
     flag = bool(flag[1])
     if !flag
@@ -138,17 +138,17 @@ function Iprobe(src::Integer, tag::Integer, comm::Comm)
 end
 
 function Get_count{T<:MPIDatatype}(stat::Status, ::Type{T})
-    count = Array(Int32, 1)
-    ccall(MPI_GET_COUNT, Void, (Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+    count = Array(Cint, 1)
+    ccall(MPI_GET_COUNT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           stat.val, &datatypes[T], count, &0)
     int(count[1])
 end
 
 function Send{T<:MPIDatatype}(buf::Union(Ptr{T},Array{T}), count::Integer,
                               dest::Integer, tag::Integer, comm::Comm)
-    ccall(MPI_ISEND, Void,
-          (Ptr{T}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
-           Ptr{Int32}),
+    ccall(MPI_SEND, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}),
           buf, &count, &datatypes[T], &dest, &tag, &comm.val, &0)
 end
 
@@ -171,10 +171,10 @@ end
 
 function Isend{T<:MPIDatatype}(buf::Union(Ptr{T},Array{T}), count::Integer,
                                dest::Integer, tag::Integer, comm::Comm)
-    rval = Array(Int32, 1)
+    rval = Array(Cint, 1)
     ccall(MPI_ISEND, Void,
-          (Ptr{T}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
-           Ptr{Int32}, Ptr{Int32}),
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}, Ptr{Cint}),
           buf, &count, &datatypes[T], &dest, &tag, &comm.val, rval, &0)
     Request(rval[1], buf)
 end
@@ -200,10 +200,9 @@ function Recv!{T<:MPIDatatype}(buf::Union(Ptr{T},Array{T}), count::Integer,
                                src::Integer, tag::Integer, comm::Comm)
     stat = Status()
     ccall(MPI_RECV, Void,
-          (Ptr{T}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
-           Ptr{Int32}, Ptr{Int32}),
-          buf, &count, &datatypes[T], &src, &tag, &comm.val, stat.val,
-          &0)
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}, Ptr{Cint}),
+          buf, &count, &datatypes[T], &src, &tag, &comm.val, stat.val, &0)
     stat
 end
 
@@ -230,10 +229,10 @@ end
 
 function Irecv!{T<:MPIDatatype}(buf::Union(Ptr{T},Array{T}), count::Integer,
                                 src::Integer, tag::Integer, comm::Comm)
-    rval = Array(Int32, 1)
+    rval = Array(Cint, 1)
     ccall(MPI_IRECV, Void,
-          (Ptr{T}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
-           Ptr{Int32}, Ptr{Int32}),
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}, Ptr{Cint}),
           buf, &count, &datatypes[T], &src, &tag, &comm.val, rval, &0)
     Request(rval[1], buf)
 end
@@ -256,16 +255,16 @@ end
 
 function Wait!(req::Request)
     stat = Status()
-    ccall(MPI_WAIT, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32}),
+    ccall(MPI_WAIT, Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint}),
           &req.val, stat.val, &0)
     req.buffer = nothing
     stat
 end
 
 function Test!(req::Request)
-    flag = Array(Int32, 1)
+    flag = Array(Cint, 1)
     stat = Status()
-    ccall(MPI_TEST, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32},Ptr{Int32}),
+    ccall(MPI_TEST, Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
           &req.val, flag, stat.val, &0)
     flag = bool(flag[1])
     if !flag
@@ -278,8 +277,8 @@ end
 function Waitall!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    statvals = Array(Int32, MPI_STATUS_SIZE, count)
-    ccall(MPI_WAITALL, Void, (Ptr{Int32},Ptr{Int32},Ptr{Int32},Ptr{Int32}),
+    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    ccall(MPI_WAITALL, Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
           &count, reqvals, statvals, &0)
     stats = Array(Status, count)
     for i in 1:count
@@ -294,11 +293,11 @@ end
 function Testany!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    index = Array(Int32, 1)
-    flag = Array(Int32, 1)
+    index = Array(Cint, 1)
+    flag = Array(Cint, 1)
     stat = Status()
     ccall(MPI_TESTANY, Void,
-          (Ptr{Int32},Ptr{Int32},Ptr{Int32},Ptr{Int32},Ptr{Int32},Ptr{Int32}),
+          (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
           &count, reqvals, index, flag, stat.val, &0)
     flag = bool(flag[1])
     if !flag
@@ -312,13 +311,13 @@ end
 # Collective communication
 
 function Barrier(comm::Comm)
-    ccall(MPI_BARRIER, Void, (Ptr{Int32},Ptr{Int32}), &comm.val, &0)
+    ccall(MPI_BARRIER, Void, (Ptr{Cint},Ptr{Cint}), &comm.val, &0)
 end
 
 function Bcast!{T<:MPIDatatype}(buffer::Union(Ptr{T},Array{T}), count::Integer,
                                 root::Integer, comm::Comm)
     ccall(MPI_BCAST, Void,
-          (Ptr{T}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}),
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           buffer, &count, &datatypes[T], &root, &comm.val, &0)
     buffer
 end
@@ -337,7 +336,7 @@ end
 
 function bcast(obj, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
-    count = Array(Int32, 1)
+    count = Array(Cint, 1)
     if isroot
         buf = serialize(obj)
         count[1] = length(buf)
@@ -358,8 +357,8 @@ function Reduce{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}), count::Integer,
     isroot = Comm_rank(comm) == root
     recvbuf = Array(T, isroot ? count : 0)
     ccall(MPI_REDUCE, Void,
-          (Ptr{T}, Ptr{T}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32}, Ptr{Int32},
-           Ptr{Int32}, Ptr{Int32}),
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}, Ptr{Cint}),
           sendbuf, recvbuf, &count, &datatypes[T], &op.val, &root, &comm.val,
           &0)
     isroot ? recvbuf : nothing
