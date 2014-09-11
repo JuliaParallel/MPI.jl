@@ -17,7 +17,7 @@ Pkg.add("MPI")
 ```
 Alternatively,
 ```julia
-Pkg.clone("https://github.com/eschnett/MPI.jl.git")
+Pkg.clone("https://github.com/lcw/MPI.jl.git")
 Pkg.build()
 ```
 which will build and install the wrapper into `$HOME/.julia/vX.Y/MPI`.
