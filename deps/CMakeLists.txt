@@ -5,9 +5,9 @@ find_package(Git)
 find_package(MPI REQUIRED)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.julia/v0.3/MPI/src" CACHE PATH
+  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.julia/v0.4/MPI/src" CACHE PATH
     "Julia-MPI install prefix" FORCE)
-  set(CMAKE_LIB_INSTALL_PREFIX "$ENV{HOME}/.julia/v0.3/MPI/deps/usr/lib" CACHE PATH
+  set(CMAKE_LIB_INSTALL_PREFIX "$ENV{HOME}/.julia/v0.4/MPI/deps/usr/lib" CACHE PATH
     "Julia-MPI lib install prefix" FORCE)
 ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 

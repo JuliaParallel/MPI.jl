@@ -3,3 +3,4 @@
 /deps/deps.jl
 /deps/usr/
 /src/compile-time.jl
+libjuliampi.dylib
