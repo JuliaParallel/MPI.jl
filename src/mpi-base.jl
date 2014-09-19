@@ -127,8 +127,7 @@ function Iprobe(src::Integer, tag::Integer, comm::Comm)
     flag = Array(Cint, 1)
     stat = Status()
     ccall(MPI_IPROBE, Void,
-          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
-           Ptr{Cint}),
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &src, &tag, &comm.val, flag, stat.val, &0)
     flag = bool(flag[1])
     if !flag
@@ -157,12 +156,10 @@ function Send{T<:MPIDatatype}(buf::Array{T}, dest::Integer, tag::Integer,
     Send(buf, length(buf), dest, tag, comm)
 end
 
-#=
 function Send{T<:MPIDatatype}(obj::T, dest::Integer, tag::Integer, comm::Comm)
     buf = [obj]
     Send(buf, dest, tag, comm)
 end
-=#
 
 function send(obj, dest::Integer, tag::Integer, comm::Comm)
     buf = serialize(obj)
@@ -184,12 +181,10 @@ function Isend{T<:MPIDatatype}(buf::Array{T}, dest::Integer, tag::Integer,
     Isend(buf, length(buf), dest, tag, comm)
 end
 
-#=
 function Isend{T<:MPIDatatype}(obj::T, dest::Integer, tag::Integer, comm::Comm)
     buf = [obj]
     Isend(buf, dest, tag, comm)
 end
-=#
 
 function isend(obj, dest::Integer, tag::Integer, comm::Comm)
     buf = serialize(obj)
@@ -211,13 +206,11 @@ function Recv!{T<:MPIDatatype}(buf::Array{T}, src::Integer, tag::Integer,
     Recv!(buf, length(buf), src, tag, comm)
 end
 
-#=
 function Recv{T<:MPIDatatype}(::Type{T}, src::Integer, tag::Integer, comm::Comm)
     buf = Array(T, 1)
-    Recv!(buf, src, tag, comm)
-    buf[1]
+    stat = Recv!(buf, src, tag, comm)
+    (buf[1], stat)
 end
-=#
 
 function recv(src::Integer, tag::Integer, comm::Comm)
     stat = Probe(src, tag, comm)
@@ -306,6 +299,12 @@ function Testany!(reqs::Array{Request,1})
     reqs[index].val = reqvals[index]
     reqs[index].buffer = nothing
     (true, index, stat)
+end
+
+function Cancel!(res::Request)
+    ccall(MPI_CANCEL, Void, (Ptr{Cint},), &req.val, &0)
+    req.buffer = nothing
+    nothing
 end
 
 # Collective communication
