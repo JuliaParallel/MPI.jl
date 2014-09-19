@@ -301,6 +301,12 @@ function Testany!(reqs::Array{Request,1})
     (true, index, stat)
 end
 
+function Cancel!(res::Request)
+    ccall(MPI_CANCEL, Void, (Ptr{Cint},), &req.val, &0)
+    req.buffer = nothing
+    nothing
+end
+
 # Collective communication
 
 function Barrier(comm::Comm)
