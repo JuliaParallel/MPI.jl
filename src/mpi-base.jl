@@ -127,8 +127,7 @@ function Iprobe(src::Integer, tag::Integer, comm::Comm)
     flag = Array(Cint, 1)
     stat = Status()
     ccall(MPI_IPROBE, Void,
-          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
-           Ptr{Cint}),
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &src, &tag, &comm.val, flag, stat.val, &0)
     flag = bool(flag[1])
     if !flag
