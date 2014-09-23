@@ -1,14 +1,14 @@
 import MPI
 
 function main()
-    MPI.init()
+    MPI.Init()
 
     comm = MPI.COMM_WORLD
 
-    MPI.barrier(comm)
+    MPI.Barrier(comm)
 
-    rank = MPI.rank(comm)
-    size = MPI.size(comm)
+    rank = MPI.Comm_rank(comm)
+    size = MPI.Comm_size(comm)
 
     dst = mod(rank+1, size)
     src = mod(rank-1, size)
@@ -23,15 +23,15 @@ function main()
     rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 
     println("$rank: Sending   $rank -> $dst = $send_mesg")
-    sreq = MPI.Isend!(send_mesg, dst, rank+32, comm)
+    sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
-    stats = MPI.waitall!([rreq, sreq])
+    stats = MPI.Waitall!([rreq, sreq])
 
     println("$rank: Receiving $src -> $rank = $recv_mesg")
 
-    MPI.barrier(comm)
+    MPI.Barrier(comm)
    
-    MPI.finalize()
+    MPI.Finalize()
 end
 
 main()

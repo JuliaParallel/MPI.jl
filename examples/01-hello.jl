@@ -1,15 +1,15 @@
 import MPI
 
 function main()
-    MPI.init()
+    MPI.Init()
 
     comm = MPI.COMM_WORLD
 
-    println("Hello world, I am $(MPI.rank(comm)) of $(MPI.size(comm))")
+    println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")
 
-    MPI.barrier(comm)
+    MPI.Barrier(comm)
 
-    MPI.finalize()
+    MPI.Finalize()
 end
 
 main()
