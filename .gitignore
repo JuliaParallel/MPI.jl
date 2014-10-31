@@ -2,5 +2,5 @@
 /deps/build/
 /deps/deps.jl
 /deps/usr/
-/src/compile-time.jl
+/deps/src/
 libjuliampi.dylib

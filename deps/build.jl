@@ -4,7 +4,11 @@ using BinDeps
 
 mpi = library_dependency("juliampi", aliases=["libjuliampi", "libjuliampi.so", "libjuliampi.dylib"])
 
-builddir = joinpath(BinDeps.depsdir(mpi),"build")
+builddir = joinpath(BinDeps.depsdir(mpi), "build")
+
+prefix = joinpath(BinDeps.depsdir(mpi), "usr")
+
+src = joinpath(BinDeps.depsdir(mpi), "src")
 
 provides(SimpleBuild,
     (@build_steps begin
@@ -12,7 +16,7 @@ provides(SimpleBuild,
         (@build_steps begin
             ChangeDirectory(builddir)
             (@build_steps begin
-                `cmake -DCMAKE_INSTALL_PREFIX=$(pwd())/../src -DCMAKE_LIB_INSTALL_PREFIX=$(pwd())/../usr/lib ..`
+                `cmake -DCMAKE_INSTALL_PREFIX=$src -DCMAKE_LIB_INSTALL_PREFIX=$prefix/lib ..`
                 `make`
                 `make install`
                 `make test`
@@ -26,7 +30,7 @@ provides(SimpleBuild,
         (@build_steps begin
             ChangeDirectory(builddir)
             (@build_steps begin
-                `cmake -DCMAKE_INSTALL_PREFIX=$(pwd())/../src -DCMAKE_LIB_INSTALL_PREFIX=$(pwd())/../usr/lib ..`
+                `cmake -DCMAKE_INSTALL_PREFIX=$src -DCMAKE_LIB_INSTALL_PREFIX=$prefix/lib ..`
                 `make`
                 `make install`
                 `make test`
