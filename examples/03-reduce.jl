@@ -1,7 +1,7 @@
 import MPI
 
 function main()
-    MPI.Init()
+    (myid() == 1) && MPI.Init()
 
     comm = MPI.COMM_WORLD
 
@@ -16,7 +16,7 @@ function main()
         @printf("sum of ranks: %s\n", sr)
     end
 
-    MPI.Finalize()
+    (myid() == 1) && MPI.Finalize()
 end
 
 main()

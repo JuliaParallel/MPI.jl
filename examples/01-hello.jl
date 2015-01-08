@@ -1,7 +1,7 @@
 import MPI
 
 function main()
-    MPI.Init()
+    (myid() == 1) && MPI.Init()
 
     comm = MPI.COMM_WORLD
 
@@ -9,7 +9,7 @@ function main()
 
     MPI.Barrier(comm)
 
-    MPI.Finalize()
+    (myid() == 1) && MPI.Finalize()
 end
 
 main()

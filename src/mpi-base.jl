@@ -3,8 +3,7 @@ typealias MPIDatatype Union(Char,
                             Uint64,
                             Float32, Float64, Complex64, Complex128)
 
-const datatypes =
-    {Char => MPI_WCHAR,
+const datatypes = Dict{DataType, Any} (Char => MPI_WCHAR,
      Int8 => MPI_INT8_T,
      Uint8 => MPI_UINT8_T,
      Int16 => MPI_INT16_T,
@@ -16,7 +15,7 @@ const datatypes =
      Float32 => MPI_REAL4,
      Float64 => MPI_REAL8,
      Complex64 => MPI_COMPLEX8,
-     Complex128 => MPI_COMPLEX16}
+     Complex128 => MPI_COMPLEX16)
 
 type Comm
     val::Cint

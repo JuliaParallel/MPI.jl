@@ -1,7 +1,7 @@
 import MPI
 
 function main()
-    MPI.Init()
+    (myid() == 1) && MPI.Init()
 
     comm = MPI.COMM_WORLD
 
@@ -27,7 +27,7 @@ function main()
     @printf("[%02d] A:%s\n", MPI.Comm_rank(comm), A)
 
     if MPI.Comm_rank(comm) == root
-        B = {"foo" => "bar"}
+        B = Dict("foo" => "bar")
     else
         B = Nothing
     end
@@ -45,7 +45,7 @@ function main()
     f = MPI.bcast(f, root, comm)
     @printf("[%02d] f(3):%d\n", MPI.Comm_rank(comm), f(3))
 
-    MPI.Finalize()
+    (myid() == 1) && MPI.Finalize()
 end
 
 main()
