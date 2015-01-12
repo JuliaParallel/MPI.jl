@@ -1,15 +1,12 @@
 import MPI
+include("01-hello-impl.jl")
 
 function main()
-    (myid() == 1) && MPI.Init()
+    MPI.Init()
 
-    comm = MPI.COMM_WORLD
+    do_hello()
 
-    println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")
-
-    MPI.Barrier(comm)
-
-    (myid() == 1) && MPI.Finalize()
+    MPI.Finalize()
 end
 
 main()

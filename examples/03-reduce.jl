@@ -1,22 +1,12 @@
 import MPI
+include("03-reduce-impl.jl")
 
 function main()
-    (myid() == 1) && MPI.Init()
+    MPI.Init()
 
-    comm = MPI.COMM_WORLD
+    do_reduce()
 
-    MPI.Barrier(comm)
-
-    root = 0
-    r = MPI.Comm_rank(comm)
-
-    sr = MPI.Reduce(r, MPI.SUM, root, comm)
-
-    if(MPI.Comm_rank(comm) == root)
-        @printf("sum of ranks: %s\n", sr)
-    end
-
-    (myid() == 1) && MPI.Finalize()
+    MPI.Finalize()
 end
 
 main()

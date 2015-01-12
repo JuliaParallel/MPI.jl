@@ -35,16 +35,17 @@ able to run the MPI job as expected, e.g., with
 In order for MPI calls to be made from a Julia cluster, it requires the use of
 MPIManager, a cluster manager that will start the julia workers using `mpirun`
 
+Currently MPIManager only works with OpenMPI, support for MPICH is planned.
+
 An example is provided in `examples/05-juliacman.jl`.
 The julia master process is NOT part of the MPI cluster. All the workers
 started via MPIManager will be part of the MPI cluster.
 
-`MPIManager(;np=Sys.CPU_CORES, launch_cmd=false, output_filename=tempname(), launch_timeout=60.0)`
+`MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, output_filename=tempname(), launch_timeout=60.0)`
 
-If not specified, `launch_cmd` defaults to `mpirun -np $np --output-filename $output_filename julia --worker`
-If `launch_cmd` is specified, it is important that `--output-filename` is also specified and that it
-match exactly, since the julia cluster setup requires access to the STDOUT of each worker. Also note that
-`--worker` MUST be specified as an argument to the julia processes started via `mpirun`.
+If not specified, `mpi_cmd` defaults to `mpirun -np $np --output-filename $output_filename `
+If `mpi_cmd` is specified, it is important that `--output-filename` is also specified and that it
+match exactly, since the julia cluster setup requires access to the STDOUT of each worker.
 
 The following lines will be typically required on the julia master process to support both julia and mpi
 
@@ -58,19 +59,26 @@ manager=MPIManager(np=4)
 # start mpi workers and add them as julia workers too.
 addprocs(manager)
 
-# load module MPI on all newly launched workers
-@everywhere using MPI
-
-# calls MPI.Init() on all workers and sets up atexit() handlers to call MPI.Finalize()
-mpi_init(manager)
 ```
 
-To execute code with MPI calls on all workers, use `@mpi_do`, for example
+To execute code with MPI calls on all workers, use `@mpi_do`.
 
-`@mpi_do  include("01-hello.jl")` loads and runs `01-hello.jl` on all the mpi workers only
+`@mpi_do manager expr` executes `expr` on all processes that are part of `manager`
+
+For example:
+`@mpi_do manager (comm=MPI.COMM_WORLD; println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")`
+executes on all mpi workers belonging to `manager` only
 
 `examples/05-juliacman.jl` is a simple example of calling MPI functions on all workers
-interspersed with Julia parallel methods.
+interspersed with Julia parallel methods. `cd` to the `examples` directory and run `julia 05-juliacman.jl`
+
+A single instation of `MPIManager` can be used only once to launch MPI workers (via `addprocs`).
+To create multiple sets of MPI clusters, use separate, distinct `MPIManager` objects.
+
+procs(manager::MPIManager) returns a list of julia pids belonging to `manager`
+mpiprocs(manager::MPIManager) returns a list of MPI ranks belonging to `manager`
+
+Fields `j2mpi` and `mpi2j` of `MPIManager` are associative collections mapping julia pids to MPI ranks and vice-versa.
 
 
 
