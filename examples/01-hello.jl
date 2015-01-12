@@ -1,13 +1,10 @@
 import MPI
+include("01-hello-impl.jl")
 
 function main()
     MPI.Init()
 
-    comm = MPI.COMM_WORLD
-
-    println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")
-
-    MPI.Barrier(comm)
+    do_hello()
 
     MPI.Finalize()
 end
