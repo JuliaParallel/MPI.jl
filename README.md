@@ -30,12 +30,12 @@ able to run the MPI job as expected, e.g., with
 
   mpirun -np 3 julia 01-hello.jl
 
-## Using MPI and Julia parallel constructs together
+## Using MPI and Julia parallel constructs together (requires Julia 0.4)
 
 In order for MPI calls to be made from a Julia cluster, it requires the use of
 MPIManager, a cluster manager that will start the julia workers using `mpirun`
 
-Currently MPIManager only works with OpenMPI, support for MPICH is planned.
+Currently MPIManager only works with OpenMPI and Julia 0.4, support for MPICH is planned.
 
 An example is provided in `examples/05-juliacman.jl`.
 The julia master process is NOT part of the MPI cluster. All the workers
