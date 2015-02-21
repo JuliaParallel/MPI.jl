@@ -35,18 +35,17 @@ able to run the MPI job as expected, e.g., with
 In order for MPI calls to be made from a Julia cluster, it requires the use of
 MPIManager, a cluster manager that will start the julia workers using `mpirun`
 
-Currently MPIManager only works with OpenMPI and Julia 0.4, support for MPICH is planned.
+Currently MPIManager only works with Julia 0.4
 
 An example is provided in `examples/05-juliacman.jl`.
 The julia master process is NOT part of the MPI cluster. All the workers
 started via MPIManager will be part of the MPI cluster.
 
-`MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, output_filename=tempname(), launch_timeout=60.0)`
+`MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, launch_timeout=60.0)`
 
-If not specified, `mpi_cmd` defaults to `mpirun -np $np --output-filename $output_filename `
-If `mpi_cmd` is specified, it is important that `--output-filename` is also specified and that it
-match exactly, since the julia cluster setup requires access to the STDOUT of each worker.
-
+If not specified, `mpi_cmd` defaults to `mpirun -np $np`
+STDOUT from the launched workers is redirected back to the julia session calling `addprocs` via a TCP connection.
+Thus the workers must be able to freely connect via TCP to the host session.
 The following lines will be typically required on the julia master process to support both julia and mpi
 
 ```

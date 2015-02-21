@@ -4,21 +4,30 @@ export MPIManager, mpi_init, launch, manage, @mpi_do, procs, mpiprocs
 type MPIManager <: ClusterManager
     np::Integer
     mpi_cmd::Cmd
-    output_filename::String
     launch_timeout::Integer
     mpi2j::Dict
     j2mpi::Dict
     initialized::RemoteRef
     launched::Bool
+    port::UInt16
+    stdout_ios::Array
 
-    function MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, output_filename=tempname(), launch_timeout=60.0)
+    function MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, launch_timeout=60.0)
         if mpi_cmd == false
-            mpi_cmd = `mpirun -np $np --output-filename $output_filename`
+            mpi_cmd = `mpirun -np $np`
         end
-        l_path = tempname()
-        l_socket = listen(l_path)
+        # Start a listener for capturing stdout's from the workers
+        (port, server) = listenany(11000)
 
-        new(np, mpi_cmd, output_filename, launch_timeout, Dict{Int, Int}(), Dict{Int, Int}(), RemoteRef(), false)
+        mgr = new(np, mpi_cmd, launch_timeout, Dict{Int, Int}(), Dict{Int, Int}(), RemoteRef(), false, port, IO[])
+        @schedule begin
+            while true
+                sock = accept(server)
+                push!(mgr.stdout_ios, sock)
+            end
+        end
+        mgr
+
     end
 end
 
@@ -30,28 +39,21 @@ function launch(manager::MPIManager, params::Dict, instances_arr::Array, c::Cond
             throw(ErrorException("Reuse of MPIManager is not allowed."))
         end
 
-        setup_cmds = "using MPI; (!MPI.Initialized()) && MPI.Init(); atexit(() -> (!MPI.Finalized()) && MPI.Finalize()); Base.start_worker()"
+
+        setup_cmds = "using MPI; MPI.setup_worker($(getipaddr().host), $(manager.port))"
 
         out, proc = open(detach(`$(manager.mpi_cmd) $(params[:exename]) -e "$setup_cmds" --worker`))
 
-        # Get list of files with the same prefix as output_filename
-        output_dir = dirname(manager.output_filename)
-
         t0=time()
-        allf = []
         while (time() - t0) < manager.launch_timeout
-            allf = filter(x->startswith(x, basename(manager.output_filename)), readdir(output_dir))
-            (length(allf) == manager.np) && break
+            (length(manager.stdout_ios) == manager.np) && break
             sleep(1.0)
         end
 
-        @assert length(allf) == manager.np
-        for f in allf
+        @assert length(manager.stdout_ios) == manager.np
+        for io in manager.stdout_ios
             config = WorkerConfig()
-            io, proc = open(`tail -f $output_dir/$f`)
-            finalizer(proc, (x)->kill(x))
             config.io = io
-            config.userdata = proc
             push!(instances_arr, config)
             notify(c)
         end
@@ -81,6 +83,18 @@ function manage(manager::MPIManager, id::Integer, config::WorkerConfig, op::Symb
     elseif op == :interrupt
         warn("Interrupting MPI workers is currently unsupported")
     end
+end
+
+function setup_worker(host, port)
+    !MPI.Initialized() && MPI.Init()
+    atexit(() -> (!MPI.Finalized()) && MPI.Finalize())
+
+    c = connect(IPv4(host), port)
+    Base.wait_connected(c)
+    redirect_stdout(c)
+    redirect_stderr(c)
+
+    Base.start_worker(c)
 end
 
 macro mpi_do(manager, expr)
