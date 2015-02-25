@@ -113,6 +113,22 @@ function Comm_size(comm::Comm)
     int(size[1])
 end
 
+function Comm_split_type(comm::Comm, split_type::Int64, key::Int64)
+    new_comm = Comm(0)
+    stat = Status()
+    ccall(MPI_COMM_SPLIT_TYPE, Void, (Ptr{Cint},  Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint} ),
+          &comm.val, &split_type, &key, stat.val, &new_comm.val, &0)
+    return (new_comm,stat)
+end
+
+function Comm_split(comm::Comm, color::Int64, key::Int64)
+    new_comm = Comm(0)
+
+    ccall(MPI_COMM_SPLIT, Void, (Ptr{Cint},  Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint} ),
+          &comm.val, &color, &key, &new_comm.val, &0)
+    return new_comm
+end
+
 # Point-to-point communication
 
 function Probe(src::Integer, tag::Integer, comm::Comm)
