@@ -41,8 +41,7 @@ function launch(manager::MPIManager, params::Dict, instances_arr::Array, c::Cond
 
 
         setup_cmds = "using MPI; MPI.setup_worker($(getipaddr().host), $(manager.port))"
-
-        out, proc = open(detach(`$(manager.mpi_cmd) $(params[:exename]) -e "$setup_cmds" --worker`))
+        out, proc = open(detach(`$(manager.mpi_cmd) $(params[:exename]) --worker=custom -e "$setup_cmds"`))
 
         t0=time()
         while (time() - t0) < manager.launch_timeout
