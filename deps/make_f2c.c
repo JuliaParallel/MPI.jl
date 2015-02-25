@@ -21,6 +21,7 @@ int main (int argc, char *argv[])
   printf("const MPI_COMM_RANK          = dlsym(libmpi, \"%s\")\n", STRING(MPI_COMM_RANK));
   printf("const MPI_COMM_SIZE          = dlsym(libmpi, \"%s\")\n", STRING(MPI_COMM_SIZE));
   printf("const MPI_COMM_SPLIT         = dlsym(libmpi, \"%s\")\n", STRING(MPI_COMM_SPLIT));
+  printf("const MPI_COMM_SPLIT_TYPE    = dlsym(libmpi, \"%s\")\n", STRING(MPI_COMM_SPLIT_TYPE));
   printf("const MPI_FINALIZE           = dlsym(libmpi, \"%s\")\n", STRING(MPI_FINALIZE));
   printf("const MPI_FINALIZED          = dlsym(libmpi, \"%s\")\n", STRING(MPI_FINALIZED));
   printf("const MPI_GATHER             = dlsym(libmpi, \"%s\")\n", STRING(MPI_GATHER));

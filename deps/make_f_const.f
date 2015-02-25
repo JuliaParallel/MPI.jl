@@ -45,6 +45,8 @@
       call output("MPI_TAG_UB       ", MPI_TAG_UB)
       call output("MPI_UNDEFINED    ", MPI_UNDEFINED)
 
+      call output("COMM_TYPE_SHARED ", COMM_TYPE_SHARED)
+
       end
 
       subroutine output(name, value)
