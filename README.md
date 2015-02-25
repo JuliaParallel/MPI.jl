@@ -38,8 +38,9 @@ MPIManager, a cluster manager that will start the julia workers using `mpirun`
 Currently MPIManager only works with Julia 0.4
 
 An example is provided in `examples/05-juliacman.jl`.
-The julia master process is NOT part of the MPI cluster. All the workers
-started via MPIManager will be part of the MPI cluster.
+The julia master process is NOT part of the MPI cluster. The main script should be 
+launched directly, MPIManager internally calls `mpirun` to launch julia/mpi workers.
+All the workers started via MPIManager will be part of the MPI cluster.
 
 `MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, launch_timeout=60.0)`
 
