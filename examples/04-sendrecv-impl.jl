@@ -15,7 +15,7 @@ function do_sendrecv()
     send_mesg = Array(Float64, N)
     recv_mesg = Array(Float64, N)
 
-    fill!(send_mesg, float64(rank))
+    fill!(send_mesg, Float64(rank))
 
     rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 
