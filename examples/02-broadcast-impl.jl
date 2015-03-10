@@ -13,7 +13,7 @@ function do_broadcast()
     root = 0
 
     if MPI.Comm_rank(comm) == root
-        A = [1:N] * (1.0 + im*2.0)
+        A = [1:N;] * (1.0 + im*2.0)
     else
         A = Array(Complex128, N)
     end

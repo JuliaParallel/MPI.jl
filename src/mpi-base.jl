@@ -54,10 +54,10 @@ Get_error(stat::Status) = stat.val[MPI_ERROR]
 Get_source(stat::Status) = stat.val[MPI_SOURCE]
 Get_tag(stat::Status) = stat.val[MPI_TAG]
 
-const ANY_SOURCE = int(MPI_ANY_SOURCE)
-const ANY_TAG    = int(MPI_ANY_TAG)
-const TAG_UB     = int(MPI_TAG_UB)
-const UNDEFINED  = int(MPI_UNDEFINED)
+const ANY_SOURCE = Int(MPI_ANY_SOURCE)
+const ANY_TAG    = Int(MPI_ANY_TAG)
+const TAG_UB     = Int(MPI_TAG_UB)
+const UNDEFINED  = Int(MPI_UNDEFINED)
 
 
 
@@ -90,27 +90,27 @@ end
 function Initialized()
     flag = Array(Cint, 1)
     ccall(MPI_INITIALIZED, Void, (Ptr{Cint},Ptr{Cint}), flag, &0)
-    bool(flag[1])
+    Bool(flag[1])
 end
 
 function Finalized()
     flag = Array(Cint, 1)
     ccall(MPI_FINALIZED, Void, (Ptr{Cint},Ptr{Cint}), flag, &0)
-    bool(flag[1])
+    Bool(flag[1])
 end
 
 function Comm_rank(comm::Comm)
     rank = Array(Cint, 1)
     ccall(MPI_COMM_RANK, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, rank, &0)
-    int(rank[1])
+    Int(rank[1])
 end
 
 function Comm_size(comm::Comm)
     size = Array(Cint, 1)
     ccall(MPI_COMM_SIZE, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, size, &0)
-    int(size[1])
+    Int(size[1])
 end
 
 # Point-to-point communication
@@ -129,7 +129,7 @@ function Iprobe(src::Integer, tag::Integer, comm::Comm)
     ccall(MPI_IPROBE, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &src, &tag, &comm.val, flag, stat.val, &0)
-    flag = bool(flag[1])
+    flag = Bool(flag[1])
     if !flag
         return (false, nothing)
     end
@@ -140,7 +140,7 @@ function Get_count{T<:MPIDatatype}(stat::Status, ::Type{T})
     count = Array(Cint, 1)
     ccall(MPI_GET_COUNT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           stat.val, &datatypes[T], count, &0)
-    int(count[1])
+    Int(count[1])
 end
 
 function Send{T<:MPIDatatype}(buf::Union(Ptr{T},Array{T}), count::Integer,
@@ -259,7 +259,7 @@ function Test!(req::Request)
     stat = Status()
     ccall(MPI_TEST, Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
           &req.val, flag, stat.val, &0)
-    flag = bool(flag[1])
+    flag = Bool(flag[1])
     if !flag
         return (false, nothing)
     end
@@ -292,7 +292,7 @@ function Testany!(reqs::Array{Request,1})
     ccall(MPI_TESTANY, Void,
           (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
           &count, reqvals, index, flag, stat.val, &0)
-    flag = bool(flag[1])
+    flag = Bool(flag[1])
     if !flag
         return (false, index, nothing)
     end
