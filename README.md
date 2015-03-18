@@ -48,7 +48,7 @@ Currently MPIManager only works with Julia 0.4 . It has three modes of operation
   for julia messages. This is useful on environments which do not allow TCP/IP connectivity
   between worker processes
 
-### MPIManager (only workers on MPI mode)
+### MPIManager (only workers execute MPI code)
 
 An example is provided in `examples/05-juliacman.jl`.
 The julia master process is NOT part of the MPI cluster. The main script should be
@@ -93,7 +93,7 @@ mpiprocs(manager::MPIManager) returns a list of MPI ranks belonging to `manager`
 
 Fields `j2mpi` and `mpi2j` of `MPIManager` are associative collections mapping julia pids to MPI ranks and vice-versa.
 
-### MPIManager (All process are part of both MPI as well as Julia clusters, Uses TCP/IP for transport)
+### MPIManager (TCP/IP transport - All processes execute MPI code)
 
 - Useful on environments which do not allow TCP connections outside of the cluster
 - An example is in `examples/06-cman-transport.jl`
@@ -107,7 +107,7 @@ On mpi rank 0, it returns a `manager` which can be used with `@mpi_do`
 On other processes (i.e., the workers) the function does not return
 
 
-### MPIManager (All process are part of both MPI as well as Julia clusters). Uses MPI for transport.)
+### MPIManager (MPI transport - All processes execute MPI code)
 `MPI.start` must be called with option `MPI_TRANSPORT_ALL` to use MPI as transport.
 `mpirun -np 5 julia 06-cman-transport MPI` will run the example using MPI as transport.
 
