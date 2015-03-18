@@ -222,7 +222,7 @@ function main_loop(manager, comm)
             if streams == nothing
                 # First time..
                 (r_s, w_s) = setup_connection(manager, from_rank)
-                process_messages(r_s, w_s)
+                Base.process_messages(r_s, w_s)
             else
                 (r_s, w_s) = streams
             end
