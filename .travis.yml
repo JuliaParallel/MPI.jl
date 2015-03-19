@@ -6,8 +6,4 @@ julia:
 notifications:
   email: false
 before_install:
-  - sudo add-apt-repository ppa:staticfloat/julia-deps -y
-  - sudo add-apt-repository ppa:staticfloat/${JULIAVERSION} -y
-  - sudo apt-get update -qq -y
-  - sudo apt-get install libpcre3-dev julia -y
-  - sudo apt-get install -qq cmake git gfortran libopenmpi-dev openmpi-bin
+  - sudo apt-get install -qq libopenmpi-dev openmpi-bin
