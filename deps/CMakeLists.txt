@@ -132,7 +132,7 @@ file(WRITE ${CMAKE_BINARY_DIR}/mpi.cmake "
 execute_process(COMMAND ${CMAKE_BINARY_DIR}/make_f2c     OUTPUT_VARIABLE FTWOC)
 execute_process(COMMAND ${CMAKE_BINARY_DIR}/make_f_const OUTPUT_VARIABLE FCONS)
 file(READ   \${SRC} MPI)
-file(WRITE  \${DST} \"const libmpi = dlopen(\\\"${CMAKE_LIB_INSTALL_PREFIX}/libjuliampi\\\",RTLD_LAZY|RTLD_DEEPBIND|RTLD_GLOBAL)\n\")
+file(WRITE  \${DST} \"const libmpi = Libdl.dlopen(\\\"${CMAKE_LIB_INSTALL_PREFIX}/libjuliampi\\\",Libdl.RTLD_LAZY|Libdl.RTLD_DEEPBIND|Libdl.RTLD_GLOBAL)\n\")
 file(APPEND \${DST} \"\n\")
 file(APPEND \${DST} \${FTWOC})
 file(APPEND \${DST} \"\n\")

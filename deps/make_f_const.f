@@ -50,5 +50,5 @@
       subroutine output(name, value)
       character*(*) name
       integer value
-      print '("const ",a," = int32(",i0,")")', name, value
+      print '("const ",a," = Int32(",i0,")")', name, value
       end
