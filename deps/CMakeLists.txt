@@ -163,17 +163,3 @@ add_dependencies(juliampi mpijl-build)
 install(FILES ${CMAKE_BINARY_DIR}/compile-time.jl DESTINATION .)
 install(TARGETS juliampi LIBRARY DESTINATION ${CMAKE_LIB_INSTALL_PREFIX})
 set_property(TARGET juliampi PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-enable_testing()
-
-set(NPROCS 2 5)
-
-file(GLOB JTESTS "${CMAKE_SOURCE_DIR}/../test/test_*.jl")
-
-foreach(np ${NPROCS})
-  foreach(jtest ${JTESTS})
-    get_filename_component(tname ${jtest} NAME)
-    add_test(${tname}_np:${np} ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${np}
-      julia "${CMAKE_SOURCE_DIR}/../test/run_test.jl" ${jtest})
-  endforeach(jtest ${JTESTS})
-endforeach(np ${NPROCS})
