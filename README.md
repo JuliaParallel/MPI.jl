@@ -1,4 +1,5 @@
 # MPI interface for the Julia language
+[![Build Status](https://travis-ci.org/JuliaParallel/MPI.jl.svg?branch=master)](https://travis-ci.org/JuliaParallel/MPI.jl)
 
 This is a basic [Julia] wrapper for the portable message passing
 system Message Passing Interface ([MPI]). Inspiration is taken from
