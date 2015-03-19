@@ -6,4 +6,4 @@ julia:
 notifications:
   email: false
 before_install:
-  - sudo apt-get install -qq libopenmpi-dev openmpi-bin
+  - sudo apt-get install -qq gfortran libopenmpi-dev openmpi-bin
