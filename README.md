@@ -31,7 +31,7 @@ able to run the MPI job as expected, e.g., with
 
   mpirun -np 3 julia 01-hello.jl
 
-## Usage : MPI and Julia parallel constructs together (requires Julia 0.4)
+## Usage : MPI and Julia parallel constructs together
 
 In order for MPI calls to be made from a Julia cluster, it requires the use of
 MPIManager, a cluster manager that will start the julia workers using `mpirun`
@@ -94,7 +94,8 @@ mpiprocs(manager::MPIManager) returns a list of MPI ranks belonging to `manager`
 
 Fields `j2mpi` and `mpi2j` of `MPIManager` are associative collections mapping julia pids to MPI ranks and vice-versa.
 
-### MPIManager (TCP/IP transport - All processes execute MPI code)
+### MPIManager
+### (TCP/IP transport - all processes execute MPI code)
 
 - Useful on environments which do not allow TCP connections outside of the cluster
 - An example is in `examples/06-cman-transport.jl`
@@ -108,7 +109,8 @@ On mpi rank 0, it returns a `manager` which can be used with `@mpi_do`
 On other processes (i.e., the workers) the function does not return
 
 
-### MPIManager (MPI transport - All processes execute MPI code)
+### MPIManager
+### (MPI transport - all processes execute MPI code)
 `MPI.start` must be called with option `MPI_TRANSPORT_ALL` to use MPI as transport.
 `mpirun -np 5 julia 06-cman-transport MPI` will run the example using MPI as transport.
 
