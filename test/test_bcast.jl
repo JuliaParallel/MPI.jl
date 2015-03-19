@@ -46,7 +46,7 @@ f = MPI.bcast(f, root, comm)
 @test f(7) == g(7)
 
 
-A = {"foo" => "bar"}
+A = Dict("foo" => "bar")
 if MPI.Comm_rank(comm) == root
     B = A
 else
