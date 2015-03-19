@@ -16,7 +16,6 @@ provides(SimpleBuild,
                 `cmake -DCMAKE_INSTALL_PREFIX=$src -DCMAKE_LIB_INSTALL_PREFIX=$prefix/lib ..`
                 `make`
                 `make install`
-                `make test`
             end)
         end)
     end), [mpi], os = :Unix)
