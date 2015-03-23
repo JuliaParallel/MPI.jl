@@ -5,5 +5,15 @@ julia:
     - nightly
 notifications:
   email: false
+env:
+    - MPI=mpich3
+    - MPI=mpich2
+    - MPI=openmpi
 before_install:
-  - sudo apt-get install -qq gfortran libopenmpi-dev openmpi-bin
+  - sudo apt-get update -q
+  - sh ./conf/travis-install-mpi.sh $MPI
+before_script:
+  - sudo hostname localhost
+  - MPIEXEC='mpiexec'
+  - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
+  - test $MPI == mpich3 && MPIEXEC='mpiexec -launcher fork' || true
