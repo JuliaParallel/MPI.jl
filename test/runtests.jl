@@ -5,8 +5,26 @@ function runtests()
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     testfiles = sort(filter(x->x!="runtests.jl", readdir(dirname(@__FILE__))))
     nfail = 0
+    print_with_color(:white, "Running MPI.jl tests\n")
     for f in testfiles
-        nfail += !success(`mpirun -np $nprocs $exename $f`)
+        try
+            if success(`mpirun -np $nprocs $exename $f`)
+                Base.with_output_color(:green,STDOUT) do io
+                    println(io,"\tSUCCESS: $f")
+                end
+            else
+                Base.with_output_color(:red,STDERR) do io
+                    println("\tFAILED: $f")
+                end
+                nfail += 1
+            end
+        catch ex
+            Base.with_output_color(:red,STDERR) do io
+                println(io,"\tError: $f")
+                showerror(io,ex,backtrace())
+            end
+            nfail += 1
+        end
     end
     return nfail
 end
