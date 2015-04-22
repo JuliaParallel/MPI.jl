@@ -100,7 +100,7 @@ Fields `j2mpi` and `mpi2j` of `MPIManager` are associative collections mapping j
 - Useful on environments which do not allow TCP connections outside of the cluster
 - An example is in `examples/06-cman-transport.jl`
 
-`mpirun -np 5 julia 06-cman-transport TCP`
+`mpirun -np 5 julia 06-cman-transport.jl TCP`
 
 This launches a total of 5 processes, mpi rank 0 is the julia pid 1. mpi rank 1 is julia pid 2 and so on.
 
@@ -112,7 +112,7 @@ On other processes (i.e., the workers) the function does not return
 ### MPIManager
 ### (MPI transport - all processes execute MPI code)
 `MPI.start` must be called with option `MPI_TRANSPORT_ALL` to use MPI as transport.
-`mpirun -np 5 julia 06-cman-transport MPI` will run the example using MPI as transport.
+`mpirun -np 5 julia 06-cman-transport.jl MPI` will run the example using MPI as transport.
 
 
 [Julia]: http://julialang.org/
