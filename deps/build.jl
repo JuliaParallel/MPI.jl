@@ -20,4 +20,4 @@ provides(SimpleBuild,
         end)
     end), [mpi], os = :Unix)
 
-@BinDeps.install [:mpi => :mpi]
+@BinDeps.install Dict(:mpi => :mpi)
