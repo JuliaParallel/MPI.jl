@@ -374,3 +374,136 @@ function Reduce{T<:MPIDatatype}(object::T, op::Op, root::Integer, comm::Comm)
     recvbuf = Reduce(sendbuf, op, root, comm)
     isroot ? recvbuf[1] : nothing
 end
+
+function Scatter{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}),
+                                 count::Integer, root::Integer, comm::Comm)
+    recvbuf = Array(T, count)
+    ccall(MPI_SCATTER, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &count, &datatypes[T], recvbuf, &count, &datatypes[T], &root, &comm.val, &0)
+    recvbuf
+end
+
+function Scatterv{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}),
+                                  counts::Vector{Cint}, root::Integer,
+                                  comm::Comm)
+    recvbuf = Array(T, counts[Comm_rank(comm) + 1])
+    recvcnt = counts[Comm_rank(comm) + 1]
+    disps = cumsum(counts) - counts
+    ccall(MPI_SCATTERV, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, counts, disps, &datatypes[T], recvbuf, &recvcnt, &datatypes[T], &root, &comm.val, &0)
+    recvbuf
+end
+
+function Gather{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}), count::Integer,
+                                 root::Integer, comm::Comm)
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array(T, isroot ? Comm_size(comm) * count : 0)
+    ccall(MPI_GATHER, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &count, &datatypes[T], recvbuf, &count, &datatypes[T], &root, &comm.val, &0)
+    isroot ? recvbuf : nothing
+end
+
+function Gather{T<:MPIDatatype}(sendbuf::Array{T}, root::Integer,
+                                 comm::Comm)
+    Gather(sendbuf, length(sendbuf), root, comm)
+end
+
+function Gather{T<:MPIDatatype}(object::T, root::Integer, comm::Comm)
+    isroot = Comm_rank(comm) == root
+    sendbuf = T[object]
+    recvbuf = Gather(sendbuf, root, comm)
+    isroot ? recvbuf[1] : nothing
+end
+
+function Allgather{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}), count::Integer,
+                                   comm::Comm)
+    recvbuf = Array(T, Comm_size(comm) * count)
+    ccall(MPI_ALLGATHER, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &count, &datatypes[T], recvbuf, &count, &datatypes[T], &comm.val, &0)
+    recvbuf
+end
+
+function Allgather{T<:MPIDatatype}(sendbuf::Array{T}, comm::Comm)
+    Allgather(sendbuf, length(sendbuf), comm)
+end
+
+function Allgather{T<:MPIDatatype}(object::T, comm::Comm)
+    sendbuf = T[object]
+    recvbuf = Allgather(sendbuf, comm)
+    recvbuf[1]
+end
+
+function Gatherv{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}), counts::Vector{Cint},
+                                 root::Integer, comm::Comm)
+    isroot = Comm_rank(comm) == root
+    displs = cumsum(counts) - counts
+    sendcnt = counts[Comm_rank(comm) + 1]
+    recvbuf = Array(T, isroot ? sum(counts) : 0)
+    ccall(MPI_GATHERV, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &sendcnt, &datatypes[T], recvbuf, counts, displs, &datatypes[T], &root, &comm.val, &0)
+    isroot ? recvbuf : nothing
+end
+
+function Allgatherv{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}), counts::Vector{Cint},
+                                    comm::Comm)
+    displs = cumsum(counts) - counts
+    sendcnt = counts[Comm_rank(comm) + 1]
+    recvbuf = Array(T, sum(counts))
+    ccall(MPI_ALLGATHERV, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &sendcnt, &datatypes[T], recvbuf, counts, displs, &datatypes[T], &comm.val, &0)
+    recvbuf
+end
+
+function Alltoall{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}), count::Integer,
+				 comm::Comm)
+    recvbuf = Array(T, Comm_size(comm)*count)
+    ccall(MPI_ALLTOALL, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &count, &datatypes[T], recvbuf, &count, &datatypes[T], &comm.val, &0)
+    recvbuf
+end
+
+function Alltoallv{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}), scounts::Vector{Cint},
+				                   rcounts::Vector{Cint}, comm::Comm)
+    recvbuf = Array(T, sum(rcounts))
+    sdispls = cumsum(scounts) - scounts
+    rdispls = cumsum(rcounts) - rcounts
+    ccall(MPI_ALLTOALLV, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, scounts, sdispls, &datatypes[T], recvbuf, rcounts, rdispls, &datatypes[T], &comm.val, &0)
+    recvbuf
+end
+
+function Scan{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}), count::Integer,
+		              op::Op, comm::Comm)
+    recvbuf = Array(T, count)
+    ccall(MPI_SCAN, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, recvbuf, &count, &datatypes[T], &op.val, &comm.val, &0)
+    recvbuf
+end
+
+function Scan{T<:MPIDatatype}(object::T, op::Op, comm::Comm)
+    sendbuf = T[object]
+    Scan(sendbuf,1,op,comm)
+end
+
+function ExScan{T<:MPIDatatype}(sendbuf::Union(Ptr{T},Array{T}), count::Integer,
+	                        op::Op, comm::Comm)
+    recvbuf = Array(T, count)
+    ccall(MPI_EXSCAN, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, recvbuf, &count, &datatypes[T], &op.val, &comm.val, &0)
+    recvbuf
+end
+
+function ExScan{T<:MPIDatatype}(object::T, op::Op, comm::Comm)
+    sendbuf = T[object]
+    ExScan(sendbuf,1,op,comm)
+end
