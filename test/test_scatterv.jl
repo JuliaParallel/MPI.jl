@@ -1,5 +1,5 @@
 using Base.Test
-import MPI
+using MPI
 
 MPI.Init()
 
@@ -19,9 +19,10 @@ size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 root = 0
 
-for typ in ( Float32, Float64, Complex64, Complex128,
-             Int8, Int16, Int32, Int64,
-             Uint8, Uint16, Uint32, Uint64)
+# Defining this to make ones work for Char
+Base.one(::Type{Char}) = '\01'
+
+for typ in MPI.MPIDatatype.types
 
     A = ones(typ, 3 * div(size,2) + mod(size,2))
     counts = Cint[ mod(i,2) + 1 for i in 0:(size-1)]

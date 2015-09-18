@@ -1,18 +1,18 @@
-typealias MPIDatatype Union(Char,
-                            Int8, Uint8, Int16, Uint16, Int32, Uint32, Int64,
-                            Uint64,
-                            Float32, Float64, Complex64, Complex128)
+typealias MPIDatatype Union{Char,
+                            Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64,
+                            UInt64,
+                            Float32, Float64, Complex64, Complex128}
 
 const datatypes = Dict{DataType, Any}(
     Char => MPI_WCHAR,
     Int8 => MPI_INT8_T,
-    Uint8 => MPI_UINT8_T,
+    UInt8 => MPI_UINT8_T,
     Int16 => MPI_INT16_T,
-    Uint16 => MPI_UINT16_T,
+    UInt16 => MPI_UINT16_T,
     Int32 => MPI_INT32_T,
-    Uint32 => MPI_UINT32_T,
+    UInt32 => MPI_UINT32_T,
     Int64 => MPI_INT64_T,
-    Uint64 => MPI_UINT64_T,
+    UInt64 => MPI_UINT64_T,
     Float32 => MPI_REAL4,
     Float64 => MPI_REAL8,
     Complex64 => MPI_COMPLEX8,
@@ -214,8 +214,8 @@ end
 
 function recv(src::Integer, tag::Integer, comm::Comm)
     stat = Probe(src, tag, comm)
-    count = Get_count(stat, Uint8)
-    buf = Array(Uint8, count)
+    count = Get_count(stat, UInt8)
+    buf = Array(UInt8, count)
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
     (deserialize(buf), stat)
 end
@@ -240,8 +240,8 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
     if !flag
         return (false, nothing, nothing)
     end
-    count = Get_count(stat, Uint8)
-    buf = Array(Uint8, count)
+    count = Get_count(stat, UInt8)
+    buf = Array(UInt8, count)
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
     (true, deserialize(buf), stat)
 end
@@ -342,7 +342,7 @@ function bcast(obj, root::Integer, comm::Comm)
     end
     Bcast!(count, root, comm)
     if !isroot
-        buf = Array(Uint8, count[1])
+        buf = Array(UInt8, count[1])
     end
     Bcast!(buf, root, comm)
     if !isroot

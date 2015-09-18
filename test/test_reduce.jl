@@ -1,6 +1,6 @@
 using Base.Test
 
-import MPI
+using MPI
 
 MPI.Init()
 
