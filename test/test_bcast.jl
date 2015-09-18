@@ -1,5 +1,5 @@
 using Base.Test
-import MPI
+using MPI
 
 MPI.Init()
 
@@ -21,9 +21,7 @@ root = 0
 srand(17)
 
 matsize = (17,17)
-for typ in ( Float32, Float64, Complex64, Complex128,
-             Int8, Int16, Int32, Int64,
-             Uint8, Uint16, Uint32, Uint64)
+for typ in MPI.MPIDatatype.types
     A = rand(typ, matsize...)
     @test bcast_array(A, root) == A
 end
