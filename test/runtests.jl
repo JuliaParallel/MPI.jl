@@ -9,7 +9,6 @@ function runtests()
     print_with_color(:white, "Running MPI.jl tests\n")
     for f in testfiles
         try
-            run(`mpirun -np $nprocs $exename $(joinpath(testdir, f))`)
             if success(`mpirun -np $nprocs $exename $(joinpath(testdir, f))`)
                 Base.with_output_color(:green,STDOUT) do io
                     println(io,"\tSUCCESS: $f")
