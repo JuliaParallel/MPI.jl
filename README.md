@@ -23,6 +23,24 @@ Pkg.build()
 ```
 which will build and install the wrapper into `$HOME/.julia/vX.Y/MPI`.
 
+### Overriding the auto-detected MPI version
+
+It may be that CMake selects the wrong MPI version, or that CMake
+fails to correctly detect and configure your MPI implementation. You
+can override CMake's mechanism by setting two environment variables:
+```sh
+JULIA_MPI_INCLUDE_PATH
+JULIA_MPI_LIBRARIES
+```
+This will set `MPI_Fortran_INCLUDE_PATH` and `MPI_Fortran_LIBRARIES`
+when calling CMake as described in its [FindMPI] module. You can set
+these variables either in your shell startup file, or e.g. via your
+`~/.juliarc` file. Here is an example:
+```Julia
+ENV["JULIA_MPI_INCLUDE_PATH"] = "-I/opt/local/include"
+ENV["JULIA_MPI_LIBRARIES"] = "-L/opt/local/lib/openmpi-gcc5 -lmpi_usempif08 -lmpi_mpifh -lmpi"
+```
+
 ## Usage : MPI-Only mode
 
 To run a Julia script with MPI, first make sure that `using MPI` or
@@ -119,5 +137,6 @@ On other processes (i.e., the workers) the function does not return
 [MPI]: http://www.mpi-forum.org/
 [mpi4py]: http://mpi4py.scipy.org
 [CMake]: http://www.cmake.org/
+[FindMPI]: http://www.cmake.org/cmake/help/v3.3/module/FindMPI.html
 [Open MPI]: http://www.open-mpi.org/
 [MPICH]: http://www.mpich.org/
