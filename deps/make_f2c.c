@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include "jlmpi_f2c.h"
 #include "version.h"
