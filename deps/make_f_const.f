@@ -52,5 +52,5 @@
       implicit none
       character*(*) name
       integer value
-      print '("const ",a," = Int32(",i0,")")', name, value
+      print '("const ",a," = Cint(",i0,")")', name, value
       end
