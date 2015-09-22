@@ -1,4 +1,5 @@
       program main
+      implicit none
       include 'mpif.h'
 
       call output("MPI_BYTE         ", MPI_BYTE)
@@ -48,6 +49,7 @@
       end
 
       subroutine output(name, value)
+      implicit none
       character*(*) name
       integer value
       print '("const ",a," = Int32(",i0,")")', name, value
