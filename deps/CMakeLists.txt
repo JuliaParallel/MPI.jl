@@ -4,8 +4,15 @@ include(InstallRequiredSystemLibraries)
 find_package(Git)
 find_package(MPI REQUIRED)
 
-cmake_policy(SET CMP0042 OLD)   # MACOSX_RPATH
-cmake_policy(SET CMP0053 OLD) # variable reference and escape sequence evaluation
+cmake_policy(VERSION 2.8.7)
+if(POLICY CMP0042)
+  # MACOSX_RPATH
+  cmake_policy(SET CMP0042 OLD)
+endif()
+if(POLICY CMP0052)
+  # variable reference and escape sequence evaluation
+  cmake_policy(SET CMP0053 OLD)
+endif()
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.julia/v0.4/MPI/deps/src" CACHE PATH
