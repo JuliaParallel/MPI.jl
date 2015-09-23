@@ -12,6 +12,16 @@ case "$os" in
     Darwin)
         # TODO: Don't build -- but how? Use Homebrew? Macport seems to
         # want to build a compiler first, which takes too long.
+        wget http://www.ivarch.com/programs/sources/pv-1.6.0.tar.bz2
+        tar xjf pv-1.6.0.tar.bz2
+        pvdir="$(pwd)/pv"
+        pushd pv-1.6.0
+        ./configure --prefix="$pvdir"
+        make -j2
+        make install
+        popd
+        export PATH="$PATH:$pvdir/bin"
+        # rm -rf pv-1.6.0.tar.bz2 pv-1.6.0
         case "$impl" in
             mpich|mpich3)
                 wget http://www.mpich.org/static/downloads/3.1.4/mpich-3.1.4.tar.gz
