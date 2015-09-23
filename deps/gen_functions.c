@@ -5,7 +5,7 @@
 #define STRING1(s) #s
 #define STRING(s) STRING1(s)
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
   printf("const WRAPPER_VERSION        = \"%s\"\n", VERSION);
   printf("const MPI_ABORT              = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_ABORT));

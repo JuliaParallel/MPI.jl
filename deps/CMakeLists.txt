@@ -127,7 +127,7 @@ endif(UNIX)
 
 add_dependencies(dist version)
 
-add_library(juliampi SHARED test_mpi.f)
+add_library(juliampi SHARED test_mpi.f90)
 
 if(MPI_Fortran_LINK_FLAGS)
   set_target_properties(juliampi PROPERTIES LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})
@@ -135,16 +135,16 @@ endif(MPI_Fortran_LINK_FLAGS)
 
 target_link_libraries(juliampi ${MPI_Fortran_LIBRARIES})
 
-add_executable(make_f2c make_f2c.c)
-add_dependencies(make_f2c version)
+add_executable(gen_functions gen_functions.c)
+add_dependencies(gen_functions version)
 
-add_executable(make_f_const make_f_const.f)
+add_executable(gen_constants gen_constants.f90)
 
 file(WRITE ${CMAKE_BINARY_DIR}/mpi.cmake "
-execute_process(COMMAND ${CMAKE_BINARY_DIR}/make_f2c     OUTPUT_VARIABLE FTWOC)
-execute_process(COMMAND ${CMAKE_BINARY_DIR}/make_f_const OUTPUT_VARIABLE FCONS)
+execute_process(COMMAND ${CMAKE_BINARY_DIR}/gen_functions OUTPUT_VARIABLE FTWOC)
+execute_process(COMMAND ${CMAKE_BINARY_DIR}/gen_constants OUTPUT_VARIABLE FCONS)
 file(READ   \${SRC} MPI)
-file(WRITE  \${DST} \"const libmpi = Libdl.dlopen(\\\"${CMAKE_LIB_INSTALL_PREFIX}/libjuliampi\\\",Libdl.RTLD_LAZY|Libdl.RTLD_DEEPBIND|Libdl.RTLD_GLOBAL)\n\")
+file(WRITE  \${DST} \"const libmpi = Libdl.dlopen(\\\"${CMAKE_LIB_INSTALL_PREFIX}/libjuliampi\\\", Libdl.RTLD_LAZY|Libdl.RTLD_DEEPBIND|Libdl.RTLD_GLOBAL)\n\")
 file(APPEND \${DST} \"\n\")
 file(APPEND \${DST} \${FTWOC})
 file(APPEND \${DST} \"\n\")
@@ -158,7 +158,7 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/compile-time.jl
                 -DLIB=${CMAKE_LIB_INSTALL_PREFIX}/libmpi
                 -DDST=${CMAKE_BINARY_DIR}/compile-time.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
-    DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/../src/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
+    DEPENDS gen_functions gen_constants ${CMAKE_SOURCE_DIR}/../src/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
 add_custom_target(mpijl DEPENDS ${CMAKE_BINARY_DIR}/compile-time.jl)
 add_dependencies(juliampi mpijl)
 
@@ -168,7 +168,7 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi-build.jl
                 -DLIB=${CMAKE_LIB_INSTALL_PREFIX}/libmpi
                 -DDST=${CMAKE_BINARY_DIR}/mpi-build.jl
                 -P ${CMAKE_BINARY_DIR}/mpi.cmake
-    DEPENDS make_f2c make_f_const ${CMAKE_SOURCE_DIR}/../src/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
+    DEPENDS gen_functions gen_constants ${CMAKE_SOURCE_DIR}/../src/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
 add_custom_target(mpijl-build DEPENDS ${CMAKE_BINARY_DIR}/mpi-build.jl)
 add_dependencies(juliampi mpijl-build)
 
