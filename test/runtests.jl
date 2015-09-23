@@ -4,7 +4,8 @@ function runtests()
     nprocs = min(4, CPU_CORES)
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     testdir = dirname(@__FILE__)
-    testfiles = sort(filter(x->x!="runtests.jl", readdir(testdir)))
+    istest(f) = endswith(f, ".jl") && f != "runtests.jl"
+    testfiles = sort(filter(istest, readdir(testdir)))
     nfail = 0
     print_with_color(:white, "Running MPI.jl tests\n")
     for f in testfiles
