@@ -8,7 +8,9 @@ comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-for typ in setdiff([MPI.MPIDatatype.types...], [Char]) # Not possible to PROD a Char
+# Not possible to PROD a Char (and neither Int8 with OpenMPI)
+typs = setdiff([MPI.MPIDatatype.types...], [Char, Int8, UInt8])
+for typ in typs
     val = convert(typ,rank+1)
     B = MPI.ExScan(val, MPI.PROD, comm)
     if rank > 0
