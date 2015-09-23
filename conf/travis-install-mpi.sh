@@ -5,7 +5,7 @@
 set -e
 set -x
 
-impl="$1"
+MPI_IMPL="$1"
 os=`uname`
 
 case "$os" in
@@ -22,7 +22,7 @@ case "$os" in
         popd
         export PATH="$PATH:$pvdir/bin"
         # rm -rf pv-1.6.0.tar.bz2 pv-1.6.0
-        case "$impl" in
+        case "$MPI_IMPL" in
             mpich|mpich3)
                 wget http://www.mpich.org/static/downloads/3.1.4/mpich-3.1.4.tar.gz
                 tar xzf mpich-3.1.4.tar.gz
@@ -42,7 +42,7 @@ case "$os" in
                 sudo make install
                 ;;
             *)
-                echo "Unknown MPI implementation: $impl"
+                echo "Unknown MPI implementation: $MPI_IMPL"
                 exit 1
                 ;;
         esac
@@ -50,7 +50,7 @@ case "$os" in
 
     Linux)
         sudo apt-get update -q
-        case "$impl" in
+        case "$MPI_IMPL" in
             mpich1)
                 sudo apt-get install -q gfortran mpich-shmem-bin libmpich-shmem1.0-dev
                 ;;
@@ -67,7 +67,7 @@ case "$os" in
                 sudo apt-get install -q gfortran openmpi-bin openmpi-common libopenmpi-dev
                 ;;
             *)
-                echo "Unknown MPI implementation: $impl"
+                echo "Unknown MPI implementation: $MPI_IMPL"
                 exit 1
                 ;;
         esac

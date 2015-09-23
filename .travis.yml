@@ -8,10 +8,10 @@ julia:
 notifications:
   email: false
 env:
-  - MPI=mpich
-  - MPI=openmpi
+  - MPI_IMPL=mpich
+  - MPI_IMPL=openmpi
 before_install:
-  - sh ./conf/travis-install-mpi.sh $MPI
+  - sh ./conf/travis-install-mpi.sh $MPI_IMPL
 before_script:
   - sudo hostname localhost
   - MPIEXEC='mpiexec'
