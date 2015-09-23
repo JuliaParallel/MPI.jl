@@ -18,7 +18,8 @@ case "$os" in
                 tar xzf mpich-3.1.4.tar.gz
                 cd mpich-3.1.4
                 ./configure
-                make -j2
+                # Need to limit output to avoid Travis's $ MByte log file limit
+                make -j2 | pv -bl >/dev/null
                 sudo make install
                 ;; 
             openmpi)
@@ -26,7 +27,8 @@ case "$os" in
                 tar xjf openmpi-1.10.0.tar.bz2
                 cd openmpi-1.10.0
                 ./configure
-                make -j2
+                # Need to limit output to avoid Travis's $ MByte log file limit
+                make -j2 | pv -bl >/dev/null
                 sudo make install
                 ;;
             *)
