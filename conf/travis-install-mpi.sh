@@ -10,18 +10,24 @@ os=`uname`
 
 case "$os" in
     Darwin)
-        wget https://distfiles.macports.org/MacPorts/MacPorts-2.3.3.tar.bz2
-        tar xvfj MacPorts-2.3.3.tar.bz2
-        cd MacPorts-2.3.3
-        ./configure && make && sudo make install
-        export "PATH=/opt/local/bin:$PATH"
-        sudo port -v selfupdate
+        # TODO: Don't build -- but how? Use Homebrew? Macport seems to
+        # want to build a compiler first, which takes too long.
         case "$impl" in
             mpich|mpich3)
-                sudo port -v install mpich
+                wget http://www.mpich.org/static/downloads/3.1.4/mpich-3.1.4.tar.gz
+                tar xzf mpich-3.1.4.tar.gz
+                cd mpich-3.1.4
+                ./configure
+                make -j2
+                sudo make install
                 ;; 
             openmpi)
-                sudo port -v install openmpi
+                wget http://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.0.tar.bz2
+                tar xjf openmpi-1.10.0.tar.bz2
+                cd openmpi-1.10.0
+                ./configure
+                make -j2
+                sudo make install
                 ;;
             *)
                 echo "Unknown MPI implementation: $impl"
