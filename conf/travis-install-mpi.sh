@@ -61,7 +61,7 @@ case "$os" in
                 sudo apt-get install -q gfortran libcr0 default-jdk
                 wget -q http://www.cebacad.net/files/mpich/ubuntu/mpich-3.1/mpich_3.1-1ubuntu_amd64.deb
                 sudo dpkg -i ./mpich_3.1-1ubuntu_amd64.deb
-                rm -f ./mpich_3.1-1ubuntu_amd64.deb
+                # rm -f ./mpich_3.1-1ubuntu_amd64.deb
                 ;;
             openmpi)
                 sudo apt-get install -q gfortran openmpi-bin openmpi-common libopenmpi-dev
