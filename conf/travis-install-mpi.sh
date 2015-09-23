@@ -12,6 +12,16 @@ case "$os" in
     Darwin)
         # TODO: Don't build -- but how? Use Homebrew? Macport seems to
         # want to build a compiler first, which takes too long.
+        wget http://www.ivarch.com/programs/sources/pv-1.6.0.tar.bz2
+        tar xjf pv-1.6.0.tar.bz2
+        pvdir="$(pwd)/pv"
+        pushd pv-1.6.0
+        ./configure --prefix="$pvdir"
+        make -j2
+        make install
+        popd
+        export PATH="$PATH:$pvdir/bin"
+        # rm -rf pv-1.6.0.tar.bz2 pv-1.6.0
         case "$impl" in
             mpich|mpich3)
                 wget http://www.mpich.org/static/downloads/3.1.4/mpich-3.1.4.tar.gz
@@ -51,7 +61,7 @@ case "$os" in
                 sudo apt-get install -q gfortran libcr0 default-jdk
                 wget -q http://www.cebacad.net/files/mpich/ubuntu/mpich-3.1/mpich_3.1-1ubuntu_amd64.deb
                 sudo dpkg -i ./mpich_3.1-1ubuntu_amd64.deb
-                rm -f ./mpich_3.1-1ubuntu_amd64.deb
+                # rm -f ./mpich_3.1-1ubuntu_amd64.deb
                 ;;
             openmpi)
                 sudo apt-get install -q gfortran openmpi-bin openmpi-common libopenmpi-dev
