@@ -17,3 +17,5 @@ before_script:
   - MPIEXEC='mpiexec'
   - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
   - test $MPI == mpich3 && MPIEXEC='mpiexec -launcher fork' || true
+after_success:
+  - if [ "$TRAVIS_JULIA_VERSION" = nightly ]; then julia -e 'cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'; fi
