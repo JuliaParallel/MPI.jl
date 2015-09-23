@@ -1,15 +1,27 @@
 using Base.Test
 
+# Code coverage command line options; must correspond to src/julia.h
+# and src/ui/repl.c
+const JL_LOG_NONE = 0
+const JL_LOG_USER = 1
+const JL_LOG_ALL = 2
+const coverage_opts =
+    Dict{Int, ASCIIString}(JL_LOG_NONE => "none",
+                           JL_LOG_USER => "user",
+                           JL_LOG_ALL => "all")
+
 function runtests()
-    nprocs = min(4, CPU_CORES)
+    nprocs = clamp(CPU_CORES, 2, 4)
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     testdir = dirname(@__FILE__)
-    testfiles = sort(filter(x->x!="runtests.jl", readdir(testdir)))
+    istest(f) = endswith(f, ".jl") && f != "runtests.jl"
+    testfiles = sort(filter(istest, readdir(testdir)))
     nfail = 0
     print_with_color(:white, "Running MPI.jl tests\n")
     for f in testfiles
         try
-            run(`mpirun -np $nprocs $exename $(joinpath(testdir, f))`)
+            coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
+            run(`mpirun -np $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
             Base.with_output_color(:green,STDOUT) do io
                 println(io,"\tSUCCESS: $f")
             end

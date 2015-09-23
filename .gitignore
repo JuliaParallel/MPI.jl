@@ -4,3 +4,4 @@
 /deps/usr/
 /deps/src/
 libjuliampi.dylib
+*.cov

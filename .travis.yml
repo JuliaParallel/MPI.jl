@@ -8,14 +8,9 @@ julia:
 notifications:
   email: false
 env:
-  - MPI=mpich
-  - MPI=openmpi
+  - MPI_IMPL=mpich
+  - MPI_IMPL=openmpi
 before_install:
-  - sh ./conf/travis-install-mpi.sh $MPI
-before_script:
-  - sudo hostname localhost
-  - MPIEXEC='mpiexec'
-  - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
-  - test $MPI == mpich3 && MPIEXEC='mpiexec -launcher fork' || true
+  - sh ./conf/travis-install-mpi.sh $MPI_IMPL
 after_success:
   - if [ "$TRAVIS_JULIA_VERSION" = nightly ]; then julia -e 'cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'; fi
