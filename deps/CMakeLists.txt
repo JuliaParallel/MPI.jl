@@ -127,7 +127,7 @@ endif(UNIX)
 
 add_dependencies(dist version)
 
-add_library(juliampi SHARED mpi.f)
+add_library(juliampi SHARED test_mpi.f)
 
 if(MPI_Fortran_LINK_FLAGS)
   set_target_properties(juliampi PROPERTIES LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})

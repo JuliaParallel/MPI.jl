@@ -3,15 +3,22 @@
       include 'mpif.h'
 
       call output("MPI_BYTE         ", MPI_BYTE)
-      call output("MPI_WCHAR        ", MPI_WCHAR)
-      call output("MPI_INT8_T       ", MPI_INT8_T)
-      call output("MPI_UINT8_T      ", MPI_UINT8_T)
-      call output("MPI_INT16_T      ", MPI_INT16_T)
-      call output("MPI_UINT16_T     ", MPI_UINT16_T)
-      call output("MPI_INT32_T      ", MPI_INT32_T)
-      call output("MPI_UINT32_T     ", MPI_UINT32_T)
-      call output("MPI_INT64_T      ", MPI_INT64_T)
-      call output("MPI_UINT64_T     ", MPI_UINT64_T)
+*     Older versions of OpenMPI (such as those used by default by
+*     Travis) do not define MPI_WCHAR and the MPI_*INT*_T types for
+*     Fortran. We thus don't require them (yet).
+*     call output("MPI_WCHAR        ", MPI_WCHAR)
+*     call output("MPI_INT8_T       ", MPI_INT8_T)
+*     call output("MPI_UINT8_T      ", MPI_UINT8_T)
+*     call output("MPI_INT16_T      ", MPI_INT16_T)
+*     call output("MPI_UINT16_T     ", MPI_UINT16_T)
+*     call output("MPI_INT32_T      ", MPI_INT32_T)
+*     call output("MPI_UINT32_T     ", MPI_UINT32_T)
+*     call output("MPI_INT64_T      ", MPI_INT64_T)
+*     call output("MPI_UINT64_T     ", MPI_UINT64_T)
+      call output("MPI_INTEGER1     ", MPI_INTEGER1)
+      call output("MPI_INTEGER2     ", MPI_INTEGER2)
+      call output("MPI_INTEGER4     ", MPI_INTEGER4)
+      call output("MPI_INTEGER8     ", MPI_INTEGER8)
       call output("MPI_REAL4        ", MPI_REAL4)
       call output("MPI_REAL8        ", MPI_REAL8)
       call output("MPI_COMPLEX8     ", MPI_COMPLEX8)

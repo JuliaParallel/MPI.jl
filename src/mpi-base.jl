@@ -3,20 +3,44 @@ typealias MPIDatatype Union{Char,
                             UInt64,
                             Float32, Float64, Complex64, Complex128}
 
-const datatypes = Dict{DataType, Any}(
-    Char => MPI_WCHAR,
-    Int8 => MPI_INT8_T,
-    UInt8 => MPI_UINT8_T,
-    Int16 => MPI_INT16_T,
-    UInt16 => MPI_UINT16_T,
-    Int32 => MPI_INT32_T,
-    UInt32 => MPI_UINT32_T,
-    Int64 => MPI_INT64_T,
-    UInt64 => MPI_UINT64_T,
-    Float32 => MPI_REAL4,
-    Float64 => MPI_REAL8,
-    Complex64 => MPI_COMPLEX8,
-    Complex128 => MPI_COMPLEX16)
+const _int_datatypes = Dict{Int, Cint}(
+    1 => MPI_INTEGER1,
+    2 => MPI_INTEGER2,
+    4 => MPI_INTEGER4,
+    8 => MPI_INTEGER8)
+const _real_datatypes = Dict{Int, Cint}(
+    4 => MPI_REAL4,
+    8 => MPI_REAL8)
+const _complex_datatypes = Dict{Int, Cint}(
+    8 => MPI_COMPLEX8,
+    16 => MPI_COMPLEX16)
+
+const datatypes = Dict{DataType, Cint}(
+    # Older versions of OpenMPI (such as those used by default by
+    # Travis) do not define MPI_WCHAR and the MPI_*INT*_T types for
+    # Fortran. We thus don't require them (yet).
+    # Char => MPI_WCHAR,
+    # Int8 => MPI_INT8_T,
+    # UInt8 => MPI_UINT8_T,
+    # Int16 => MPI_INT16_T,
+    # UInt16 => MPI_UINT16_T,
+    # Int32 => MPI_INT32_T,
+    # UInt32 => MPI_UINT32_T,
+    # Int64 => MPI_INT64_T,
+    # UInt64 => MPI_UINT64_T,
+    Char => _int_datatypes[sizeof(Char)],
+    Int8 => _int_datatypes[sizeof(Int8)],
+    UInt8 => _int_datatypes[sizeof(UInt8)],
+    Int16 => _int_datatypes[sizeof(Int16)],
+    UInt16 => _int_datatypes[sizeof(UInt16)],
+    Int32 => _int_datatypes[sizeof(Int32)],
+    UInt32 => _int_datatypes[sizeof(UInt32)],
+    Int64 => _int_datatypes[sizeof(Int64)],
+    UInt64 => _int_datatypes[sizeof(UInt64)],
+    Float32 => _real_datatypes[sizeof(Float32)],
+    Float64 => _real_datatypes[sizeof(Float64)],
+    Complex64 => _complex_datatypes[sizeof(Complex64)],
+    Complex128 => _complex_datatypes[sizeof(Complex128)])
 
 type Comm
     val::Cint
