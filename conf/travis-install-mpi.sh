@@ -10,36 +10,12 @@ os=`uname`
 
 case "$os" in
     Darwin)
-        # TODO: Don't build -- but how? Use Homebrew? Macport seems to
-        # want to build a compiler first, which takes too long.
-        wget http://www.ivarch.com/programs/sources/pv-1.6.0.tar.bz2
-        tar xjf pv-1.6.0.tar.bz2
-        pvdir="$(pwd)/pv"
-        pushd pv-1.6.0
-        ./configure --prefix="$pvdir"
-        make -j2
-        make install
-        popd
-        export PATH="$PATH:$pvdir/bin"
-        # rm -rf pv-1.6.0.tar.bz2 pv-1.6.0
         case "$MPI_IMPL" in
             mpich|mpich3)
-                wget http://www.mpich.org/static/downloads/3.1.4/mpich-3.1.4.tar.gz
-                tar xzf mpich-3.1.4.tar.gz
-                cd mpich-3.1.4
-                ./configure
-                # Need to limit output to avoid Travis's $ MByte log file limit
-                make -j2 | pv -bl >/dev/null
-                sudo make install
+                brew install mpich
                 ;; 
             openmpi)
-                wget http://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.0.tar.bz2
-                tar xjf openmpi-1.10.0.tar.bz2
-                cd openmpi-1.10.0
-                ./configure
-                # Need to limit output to avoid Travis's $ MByte log file limit
-                make -j2 | pv -bl >/dev/null
-                sudo make install
+                brew install openmpi
                 ;;
             *)
                 echo "Unknown MPI implementation: $MPI_IMPL"
