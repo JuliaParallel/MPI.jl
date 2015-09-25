@@ -10,6 +10,7 @@ os=`uname`
 
 case "$os" in
     Darwin)
+        brew update
         case "$MPI_IMPL" in
             mpich|mpich3)
                 brew install mpich
