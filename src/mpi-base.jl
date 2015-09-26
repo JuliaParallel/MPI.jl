@@ -114,13 +114,13 @@ end
 function Initialized()
     flag = Array(Cint, 1)
     ccall(MPI_INITIALIZED, Void, (Ptr{Cint},Ptr{Cint}), flag, &0)
-    Bool(flag[1])
+    flag[1] != 0
 end
 
 function Finalized()
     flag = Array(Cint, 1)
     ccall(MPI_FINALIZED, Void, (Ptr{Cint},Ptr{Cint}), flag, &0)
-    Bool(flag[1])
+    flag[1] != 0
 end
 
 function Comm_rank(comm::Comm)
@@ -153,8 +153,7 @@ function Iprobe(src::Integer, tag::Integer, comm::Comm)
     ccall(MPI_IPROBE, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &src, &tag, &comm.val, flag, stat.val, &0)
-    flag = Bool(flag[1])
-    if !flag
+    if flag[1] == 0
         return (false, nothing)
     end
     (true, stat)
@@ -283,8 +282,7 @@ function Test!(req::Request)
     stat = Status()
     ccall(MPI_TEST, Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
           &req.val, flag, stat.val, &0)
-    flag = Bool(flag[1])
-    if !flag
+    if flag[1] == 0
         return (false, nothing)
     end
     req.buffer = nothing
@@ -316,8 +314,7 @@ function Testany!(reqs::Array{Request,1})
     ccall(MPI_TESTANY, Void,
           (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
           &count, reqvals, index, flag, stat.val, &0)
-    flag = Bool(flag[1])
-    if !flag
+    if flag[1] == 0
         return (false, index, nothing)
     end
     reqs[index].val = reqvals[index]
