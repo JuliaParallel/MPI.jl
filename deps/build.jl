@@ -14,19 +14,32 @@ if isdir(prefix)
     rm(prefix, recursive = true)
 end
 
+# Add cmake flags to specify the MPI library location
+configure = `cmake`
+flags = ["MPI_Fortran_COMPILER",
+         "MPI_Fortran_COMPILE_FLAGS",
+         "MPI_Fortran_INCLUDE_PATH",
+         "MPI_Fortran_LINK_FLAGS",
+         "MPI_Fortran_LIBRARIES",
+         "MPI_INCLUDE_PATH",
+         "MPI_LIBRARIES"]
+for flag in flags
+    try
+        val = ENV["JULIA_$flag"]
+        configure = `$configure -D$flag=$val`
+    catch
+        nothing
+    end
+end
+configure = `$configure -DCMAKE_INSTALL_PREFIX=$src -DCMAKE_LIB_INSTALL_PREFIX=$prefix/lib ..`
+
 provides(SimpleBuild,
     (@build_steps begin
         CreateDirectory(builddir)
         (@build_steps begin
             ChangeDirectory(builddir)
             (@build_steps begin
-                try
-                    # Add cmake flags to specify the MPI library location if set
-                    incs, libs = ENV["JULIA_MPI_INCLUDE_PATH"], ENV["JULIA_MPI_LIBRARIES"]
-                    `cmake -DMPI_Fortran_INCLUDE_PATH=$incs -DMPI_Fortran_LIBRARIES=$libs -DCMAKE_INSTALL_PREFIX=$src -DCMAKE_LIB_INSTALL_PREFIX=$prefix/lib ..`
-                catch
-                    `cmake -DCMAKE_INSTALL_PREFIX=$src -DCMAKE_LIB_INSTALL_PREFIX=$prefix/lib ..`
-                end
+                configure
                 `make`
                 `make install`
             end)
