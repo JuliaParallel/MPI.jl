@@ -23,10 +23,10 @@ if rank == 0
     nloops = 10^2
     function foo(n)
         a=ones(n)
-        remotecall_fetch(2, x->x, a);
+        remotecall_fetch(x->x, 2, a);
 
         @elapsed for i in 1:nloops
-            remotecall_fetch(2, x->x, a)
+            remotecall_fetch(x->x, 2, a)
         end
     end
 
