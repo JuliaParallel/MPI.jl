@@ -7,6 +7,13 @@ builddir = joinpath(BinDeps.depsdir(mpi), "build")
 prefix = joinpath(BinDeps.depsdir(mpi), "usr")
 src = joinpath(BinDeps.depsdir(mpi), "src")
 
+if isdir(builddir)
+    rm(builddir, recursive = true)
+end
+if isdir(prefix)
+    rm(prefix, recursive = true)
+end
+
 provides(SimpleBuild,
     (@build_steps begin
         CreateDirectory(builddir)
