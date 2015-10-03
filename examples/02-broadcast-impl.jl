@@ -25,7 +25,7 @@ function do_broadcast()
     if MPI.Comm_rank(comm) == root
         B = Dict("foo" => "bar")
     else
-        B = Nothing
+        B = nothing
     end
 
     B = MPI.bcast(B, root, comm)
@@ -35,7 +35,7 @@ function do_broadcast()
     if MPI.Comm_rank(comm) == root
         f = x -> x^2 + 2x - 1
     else
-        f = Nothing
+        f = nothing
     end
 
     f = MPI.bcast(f, root, comm)

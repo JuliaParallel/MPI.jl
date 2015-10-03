@@ -120,7 +120,7 @@ end
 
 function manage(manager::MPIManager, id::Integer, config::WorkerConfig, op::Symbol)
     if op == :register
-        mpi_id = remotecall_fetch(id, ()->MPI.Comm_rank(MPI.COMM_WORLD))
+        mpi_id = remotecall_fetch(()->MPI.Comm_rank(MPI.COMM_WORLD), id)
         manager.j2mpi[id] = mpi_id
         manager.mpi2j[mpi_id] = id
 
@@ -161,11 +161,11 @@ macro mpi_do(manager, expr)
         jpids = keys(mgr.j2mpi)
         refs = cell(length(jpids))
         for (i,p) in enumerate(filter(x->x!=myid(), jpids))
-            refs[i] = remotecall(p, ()->eval(Main,$(Expr(:quote,expr))))
+            refs[i] = remotecall(()->eval(Main,$(Expr(:quote,expr))), p)
         end
         # Execution on local process should be last, since it can block the main event loop
         if myid() in jpids
-            refs[end] = remotecall(myid(), ()->eval(Main,$(Expr(:quote,expr))))
+            refs[end] = remotecall(()->eval(Main,$(Expr(:quote,expr))), myid())
         end
 
         [wait(r) for r in refs]
@@ -213,8 +213,8 @@ function main_loop(manager, comm)
     while !MPI.Finalized()
         (hasdata, stat) = MPI.Iprobe(ANY_SOURCE, 0, comm)
         if hasdata
-            count = Get_count(stat, Uint8)
-            buf = Array(Uint8, count)
+            count = Get_count(stat, UInt8)
+            buf = Array(UInt8, count)
             from_rank = Get_source(stat)
             MPI.Recv!(buf, from_rank, 0, comm)
 

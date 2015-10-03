@@ -24,7 +24,7 @@ println("pmap successful")
 println("Running 03-reduce as part of a Julia cluster")
 @mpi_do  manager (include("03-reduce-impl.jl"); do_reduce())
 
-pids = [remotecall_fetch(p, myid) for p in workers()]
+pids = [remotecall_fetch(myid, p) for p in workers()]
 println("julia pids $pids")
 
 println("Running 04-sendrecv as part of a Julia cluster")
