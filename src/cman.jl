@@ -168,7 +168,21 @@ macro mpi_do(manager, expr)
             refs[end] = remotecall(()->eval(Main,$(Expr(:quote,expr))), myid())
         end
 
-        [wait(r) for r in refs]
+        # Retrieve remote exceptions if any
+        @sync begin
+            for r in refs
+                @async begin
+                    resp = remotecall_fetch(r.where, r) do rr
+                        wrkr_result = take!(rr)
+                        # Only return result if it is an exception, i.e.,
+                        # Don't return a valid result of worker computation.
+                        # The call is a mpi_do and not mpi_callfetch
+                        return isa(wrkr_result, Exception) ? wrkr_result : nothing
+                    end
+                    isa(resp, Exception) && throw(resp)
+                end
+            end
+        end
         nothing
     end
 end
