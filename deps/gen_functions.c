@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "jlmpi_f2c.h"
+#include "mpi.h"
 #include "version.h"
 
 #define STRING1(s) #s
@@ -57,6 +58,7 @@ int main(int argc, char *argv[])
   printf("const MPI_WAITALL            = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_WAITALL));
   printf("const MPI_WAITANY            = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_WAITANY));
   printf("const MPI_WTIME              = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_WTIME));
+  printf("const MPI_IN_PLACE           = Base.box(Ptr{Int}, Base.unbox(Int, Int(%d)))\n", MPI_IN_PLACE);
 
   return 0;
 }

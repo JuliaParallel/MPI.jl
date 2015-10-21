@@ -15,10 +15,6 @@ const _complex_datatypes = Dict{Int, Cint}(
     8 => MPI_COMPLEX8,
     16 => MPI_COMPLEX16)
 
-const _MPI_IN_PLACE = -1  # gen_constants.f90 is inconsistent with the C api which expects -1
-# Convert MPI_IN_PLACE to pointer manually because Julia complains about this
-const MPI_IN_PLACE = Base.box(Ptr{Int}, Base.unbox(Int, Int(_MPI_IN_PLACE)))
-
 const datatypes = Dict{DataType, Cint}(
     # Older versions of OpenMPI (such as those used by default by
     # Travis) do not define MPI_WCHAR and the MPI_*INT*_T types for
