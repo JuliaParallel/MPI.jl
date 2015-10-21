@@ -23,4 +23,9 @@ sum_mesg = MPI.Reduce(mesg, MPI.SUM, root, comm)
 sum_mesg = rank == root ? sum_mesg : size*mesg
 @test isapprox(norm(sum_mesg-size*mesg), 0.0)
 
+mesg = collect(1.0:5.0)
+MPI.Reduce!(mesg, MPI.SUM, root, comm)
+sum_mesg = rank == root ? mesg : size*mesg
+@test isapprox(norm(sum_mesg-size*collect(1.0:5.0)), 0.0)
+
 MPI.Finalize()
