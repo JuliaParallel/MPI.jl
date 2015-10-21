@@ -15,6 +15,10 @@ const _complex_datatypes = Dict{Int, Cint}(
     8 => MPI_COMPLEX8,
     16 => MPI_COMPLEX16)
 
+const _MPI_IN_PLACE = -1  # gen_constants.f90 is inconsistent with the C api which expects -1
+# Convert MPI_IN_PLACE to pointer manually because Julia complains about this
+const MPI_IN_PLACE = Base.box(Ptr{Int}, Base.unbox(Int, Int(_MPI_IN_PLACE)))
+
 const datatypes = Dict{DataType, Cint}(
     # Older versions of OpenMPI (such as those used by default by
     # Travis) do not define MPI_WCHAR and the MPI_*INT*_T types for
@@ -346,6 +350,19 @@ function Bcast!{T<:MPIDatatype}(buffer::Array{T}, root::Integer, comm::Comm)
     Bcast!(buffer, length(buffer), root, comm)
 end
 
+function IBcast!{T<:MPIDatatype}(buffer::Union{Ptr{T},Array{T}}, count::Integer,
+                                 root::Integer, comm::Comm)
+    rval = Array(Cint, 1)
+    ccall(MPI_IBCAST, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          buffer, &count, &datatypes[T], &root, &comm.val, rval, &0)
+    Request(rval[1], buffer)
+end
+
+function IBcast!{T<:MPIDatatype}(buffer::Array{T}, root::Integer, comm::Comm)
+    IBcast!(buffer, length(buffer), root, comm)
+end
+
 #=
 function Bcast{T<:MPIDatatype}(obj::T, root::Integer, comm::Comm)
     buf = [T]
@@ -373,9 +390,14 @@ function bcast(obj, root::Integer, comm::Comm)
 end
 
 function Reduce{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
-                                op::Op, root::Integer, comm::Comm)
+                                op::Op, root::Integer, comm::Comm; in_place=false)
     isroot = Comm_rank(comm) == root
-    recvbuf = Array(T, isroot ? count : 0)
+    if in_place && isroot
+        recvbuf = sendbuf
+        sendbuf = MPI_IN_PLACE
+    else
+        recvbuf = Array(T, isroot ? count : 0)
+    end
     ccall(MPI_REDUCE, Void,
           (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
            Ptr{Cint}, Ptr{Cint}),
@@ -386,7 +408,12 @@ end
 
 function Reduce{T<:MPIDatatype}(sendbuf::Array{T}, op::Op, root::Integer,
                                 comm::Comm)
-    Reduce(sendbuf, length(sendbuf), op, root, comm)
+    Reduce(sendbuf, length(sendbuf), op, root, comm; in_place=false)
+end
+
+function Reduce!{T<:MPIDatatype}(sendbuf::Array{T}, op::Op, root::Integer,
+                                 comm::Comm)
+    Reduce(sendbuf, length(sendbuf), op, root, comm; in_place=true)
 end
 
 function Reduce{T<:MPIDatatype}(object::T, op::Op, root::Integer, comm::Comm)
@@ -394,6 +421,34 @@ function Reduce{T<:MPIDatatype}(object::T, op::Op, root::Integer, comm::Comm)
     sendbuf = T[object]
     recvbuf = Reduce(sendbuf, op, root, comm)
     isroot ? recvbuf[1] : nothing
+end
+
+function IReduce{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
+                                 op::Op, root::Integer, comm::Comm; in_place=false)
+    isroot = Comm_rank(comm) == root
+    if in_place && isroot
+        recvbuf = sendbuf
+        sendbuf = MPI_IN_PLACE
+    else
+        recvbuf = Array(T, isroot ? count : 0)
+    end
+    rval = Array(Cint, 1)
+    ccall(MPI_IREDUCE, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, recvbuf, &count, &datatypes[T], &op.val, &root, &comm.val, rval,
+          &0)
+    isroot ? recvbuf : nothing, Request(rval[1], sendbuf)
+end
+
+function IReduce{T<:MPIDatatype}(sendbuf::Array{T}, op::Op, root::Integer,
+                                 comm::Comm)
+    IReduce(sendbuf, length(sendbuf), op, root, comm; in_place=false)
+end
+
+function IReduce!{T<:MPIDatatype}(sendbuf::Array{T}, op::Op, root::Integer,
+                                  comm::Comm)
+    IReduce(sendbuf, length(sendbuf), op, root, comm; in_place=true)
 end
 
 function Scatter{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}},
