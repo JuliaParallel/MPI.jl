@@ -350,6 +350,19 @@ function Bcast!{T<:MPIDatatype}(buffer::Array{T}, root::Integer, comm::Comm)
     Bcast!(buffer, length(buffer), root, comm)
 end
 
+function IBcast!{T<:MPIDatatype}(buffer::Union{Ptr{T},Array{T}}, count::Integer,
+                                 root::Integer, comm::Comm)
+    rval = Array(Cint, 1)
+    ccall(MPI_IBCAST, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          buffer, &count, &datatypes[T], &root, &comm.val, rval, &0)
+    Request(rval[1], buffer)
+end
+
+function IBcast!{T<:MPIDatatype}(buffer::Array{T}, root::Integer, comm::Comm)
+    IBcast!(buffer, length(buffer), root, comm)
+end
+
 #=
 function Bcast{T<:MPIDatatype}(obj::T, root::Integer, comm::Comm)
     buf = [T]
@@ -408,6 +421,34 @@ function Reduce{T<:MPIDatatype}(object::T, op::Op, root::Integer, comm::Comm)
     sendbuf = T[object]
     recvbuf = Reduce(sendbuf, op, root, comm)
     isroot ? recvbuf[1] : nothing
+end
+
+function IReduce{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
+                                 op::Op, root::Integer, comm::Comm; in_place=false)
+    isroot = Comm_rank(comm) == root
+    if in_place && isroot
+        recvbuf = sendbuf
+        sendbuf = MPI_IN_PLACE
+    else
+        recvbuf = Array(T, isroot ? count : 0)
+    end
+    rval = Array(Cint, 1)
+    ccall(MPI_IREDUCE, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, recvbuf, &count, &datatypes[T], &op.val, &root, &comm.val, rval,
+          &0)
+    isroot ? recvbuf : nothing, Request(rval[1], sendbuf)
+end
+
+function IReduce{T<:MPIDatatype}(sendbuf::Array{T}, op::Op, root::Integer,
+                                 comm::Comm)
+    IReduce(sendbuf, length(sendbuf), op, root, comm; in_place=false)
+end
+
+function IReduce!{T<:MPIDatatype}(sendbuf::Array{T}, op::Op, root::Integer,
+                                  comm::Comm)
+    IReduce(sendbuf, length(sendbuf), op, root, comm; in_place=true)
 end
 
 function Scatter{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}},

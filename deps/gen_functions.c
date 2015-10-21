@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
   printf("const MPI_ALLTOALLV          = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_ALLTOALLV));
   printf("const MPI_BARRIER            = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_BARRIER));
   printf("const MPI_BCAST              = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_BCAST));
+  printf("const MPI_IBCAST             = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_IBCAST));
   printf("const MPI_BSEND              = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_BSEND));
   printf("const MPI_CANCEL             = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_CANCEL));
   printf("const MPI_COMM_DUP           = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_COMM_DUP));
@@ -43,6 +44,7 @@ int main(int argc, char *argv[])
   printf("const MPI_RECV               = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_RECV));
   printf("const MPI_RECV_INIT          = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_RECV_INIT));
   printf("const MPI_REDUCE             = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_REDUCE));
+  printf("const MPI_IREDUCE            = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_IREDUCE));
   printf("const MPI_REQUEST_FREE       = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_REQUEST_FREE));
   printf("const MPI_RSEND              = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_RSEND));
   printf("const MPI_SCAN               = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_SCAN));
