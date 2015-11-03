@@ -7,7 +7,7 @@ const MPI_TRANSPORT_ALL  = 1
 const TCP_TRANSPORT_ALL  = 2
 
 type MPIManager <: ClusterManager
-    np::Integer
+    np::Int
     mpi2j::Dict
     j2mpi::Dict
     mode::Int
@@ -28,17 +28,24 @@ type MPIManager <: ClusterManager
     ranks::Array
 
 
-    function MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, launch_timeout=60.0, mode=MPI_ON_WORKERS)
+    function MPIManager(;np=Sys.CPU_CORES,
+                         mpi_cmd=`mpirun -np $np`,
+                         launch_timeout=60.0,
+                         mode=MPI_ON_WORKERS)
         launched = false
-
         if mode != MPI_ON_WORKERS
             launched = true
             mpi_cmd = ``
-        elseif mpi_cmd == false
-            mpi_cmd = `mpirun -np $np`
         end
-
-        mgr = new(np, Dict{Int, Int}(), Dict{Int, Int}(), mode, mpi_cmd, launch_timeout, false, Condition(), launched)
+        mgr = new(Int(np),
+                  Dict{Int,Int}(),
+                  Dict{Int,Int}(),
+                  mode,
+                  mpi_cmd,
+                  launch_timeout,
+                  false,
+                  Condition(),
+                  launched)
 
         if mode != MPI_TRANSPORT_ALL
             # Start a listener for capturing stdout's from the workers
@@ -56,9 +63,21 @@ type MPIManager <: ClusterManager
             comm, comm_size, rank = comm_info()
             mgr.ranks = [i for i in 1:(comm_size-1)]
         end
-
         return mgr
     end
+end
+
+function Base.show(io::IO, man::MPIManager)
+    mode = if man.mode == 0
+        "MPI_ON_WORKERS"
+    elseif man.mode == 1
+        "MPI_TRANSPORT_ALL"
+    elseif man.mode == 2
+        "TCP_TRANSPORT_ALL"
+    else
+        error("invalid MPIManager mode: $(man.mode)")
+    end
+    print(io, "MPI.MPIManager(np=$(man.np),launched=$(man.launched),mode=$(mode))")
 end
 
 function launch(manager::MPIManager, params::Dict, instances_arr::Array, c::Condition)
