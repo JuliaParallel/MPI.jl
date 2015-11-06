@@ -11,6 +11,7 @@ os=`uname`
 case "$os" in
     Darwin)
         brew update
+	brew upgrade gcc
         case "$MPI_IMPL" in
             mpich|mpich3)
                 brew install mpich
