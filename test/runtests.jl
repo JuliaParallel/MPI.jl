@@ -1,5 +1,15 @@
 using Base.Test
 
+info("DEBUG MPI BUILD")
+
+pth = joinpath(Pkg.dir(), "MPI/deps/usr/lib/")
+run(`ls -l $pth`)
+
+pth = joinpath(Pkg.dir(), "MPI/deps/src")
+run(`ls -l $pth`)
+
+info("END")
+
 # Code coverage command line options; must correspond to src/julia.h
 # and src/ui/repl.c
 const JL_LOG_NONE = 0
