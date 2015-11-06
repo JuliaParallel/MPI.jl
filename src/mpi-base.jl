@@ -83,8 +83,6 @@ const ANY_TAG    = Int(MPI_ANY_TAG)
 const TAG_UB     = Int(MPI_TAG_UB)
 const UNDEFINED  = Int(MPI_UNDEFINED)
 
-
-
 function serialize(x)
     s = IOBuffer()
     Base.serialize(s, x)
@@ -185,7 +183,7 @@ function Send{T<:MPIDatatype}(obj::T, dest::Integer, tag::Integer, comm::Comm)
 end
 
 function send(obj, dest::Integer, tag::Integer, comm::Comm)
-    buf = serialize(obj)
+    buf = MPI.serialize(obj)
     Send(buf, dest, tag, comm)
 end
 
@@ -210,7 +208,7 @@ function Isend{T<:MPIDatatype}(obj::T, dest::Integer, tag::Integer, comm::Comm)
 end
 
 function isend(obj, dest::Integer, tag::Integer, comm::Comm)
-    buf = serialize(obj)
+    buf = MPI.serialize(obj)
     Isend(buf, dest, tag, comm)
 end
 
@@ -240,7 +238,7 @@ function recv(src::Integer, tag::Integer, comm::Comm)
     count = Get_count(stat, UInt8)
     buf = Array(UInt8, count)
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
-    (deserialize(buf), stat)
+    (MPI.deserialize(buf), stat)
 end
 
 function Irecv!{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
@@ -266,7 +264,7 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
     count = Get_count(stat, UInt8)
     buf = Array(UInt8, count)
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
-    (true, deserialize(buf), stat)
+    (true, MPI.deserialize(buf), stat)
 end
 
 function Wait!(req::Request)
@@ -358,7 +356,7 @@ function bcast(obj, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     count = Array(Cint, 1)
     if isroot
-        buf = serialize(obj)
+        buf = MPI.serialize(obj)
         count[1] = length(buf)
     end
     Bcast!(count, root, comm)
@@ -367,7 +365,7 @@ function bcast(obj, root::Integer, comm::Comm)
     end
     Bcast!(buf, root, comm)
     if !isroot
-        obj = deserialize(buf)
+        obj = MPI.deserialize(buf)
     end
     obj
 end
