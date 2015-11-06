@@ -24,7 +24,8 @@ function montecarlo(mc_eval::Function, mc_monitor::Function, reps, n_returns, po
     end
 
     if mod(pernode,pooled) != 0
-        pooled = div(pernode, commsize-1)
+        pooled = Int64(div(pernode, commsize-1))
+        contrib = zeros(pooled, n_returns)
     end    
 
     # workers' code
