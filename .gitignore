@@ -3,5 +3,7 @@
 /deps/deps.jl
 /deps/usr/
 /deps/src/
+libjuliampi.so
 libjuliampi.dylib
 *.cov
+*.mem
