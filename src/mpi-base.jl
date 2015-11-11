@@ -44,6 +44,7 @@ const datatypes = Dict{DataType, Cint}(
 
 type Comm
     val::Cint
+    Comm(val::Integer) = new(val)
 end
 const COMM_NULL  = Comm(MPI_COMM_NULL)
 const COMM_SELF  = Comm(MPI_COMM_SELF)
@@ -525,4 +526,21 @@ end
 function ExScan{T<:MPIDatatype}(object::T, op::Op, comm::Comm)
     sendbuf = T[object]
     ExScan(sendbuf,1,op,comm)
+end
+
+# Conversion between C and Fortran Comm handles:
+
+if HAVE_MPI_COMM_C2F
+    # use MPI_Comm_f2c and MPI_Comm_c2f
+    const MPI_COMM_F2C = Libdl.dlsym(libmpi, "MPI_Comm_f2c")
+    const MPI_COMM_C2F = Libdl.dlsym(libmpi, "MPI_Comm_c2f")
+    Base.convert(::Type{CComm}, comm::Comm) = ccall(MPI_COMM_F2C, CComm, (Cint,), comm.val)
+    Base.convert(::Type{Comm}, ccomm::CComm) = Comm(ccall(MPI_COMM_C2F, Cint, (CComm,), ccomm))
+elseif sizeof(CComm) == sizeof(Cint)
+    # in MPICH, both C and Fortran use identical Cint comm handles
+    # and MPI_Comm_c2f is not provided.
+    Base.convert(::Type{CComm}, comm::Comm) = reinterpret(CComm, comm.val)
+    Base.convert(::Type{Comm}, ccomm::CComm) = Comm(reinterpret(Cint, ccomm))
+else
+    warn("No MPI_Comm_c2f found - conversion to/from MPI.CComm will not work")
 end

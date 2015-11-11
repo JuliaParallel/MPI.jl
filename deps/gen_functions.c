@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "jlmpi_f2c.h"
+#include "mpi.h"
 #include "version.h"
 
 #define STRING1(s) #s
@@ -58,5 +59,6 @@ int main(int argc, char *argv[])
   printf("const MPI_WAITANY            = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_WAITANY));
   printf("const MPI_WTIME              = Libdl.dlsym(libmpi, \"%s\")\n", STRING(MPI_WTIME));
 
+  printf("bitstype %lu CComm\n", sizeof(MPI_Comm) * 8);
   return 0;
 }
