@@ -135,6 +135,16 @@ endif(MPI_Fortran_LINK_FLAGS)
 
 target_link_libraries(juliampi ${MPI_Fortran_LIBRARIES})
 
+include(CheckFunctionExists)
+set(CMAKE_REQUIRED_LIBRARIES ${MPI_C_LIBRARIES})
+check_function_exists(MPI_Comm_c2f HAVE_MPI_COMM_C2F)
+unset(CMAKE_REQUIRED_LIBRARIES)
+if(${HAVE_MPI_COMM_C2F})
+  set(HAVE_MPI_COMM_C2F_BOOL "true")
+else()
+  set(HAVE_MPI_COMM_C2F_BOOL "false")
+endif()
+
 add_executable(gen_functions gen_functions.c)
 add_dependencies(gen_functions version)
 
@@ -150,6 +160,7 @@ file(APPEND \${DST} \${FTWOC})
 file(APPEND \${DST} \"\n\")
 file(APPEND \${DST} \${FCONS})
 file(APPEND \${DST} \"\n\")
+file(APPEND \${DST} \"const HAVE_MPI_COMM_C2F = ${HAVE_MPI_COMM_C2F_BOOL}\n\")
 ")
 
 add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/compile-time.jl
