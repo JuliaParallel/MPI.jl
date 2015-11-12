@@ -541,10 +541,8 @@ end
 
 if HAVE_MPI_COMM_C2F
     # use MPI_Comm_f2c and MPI_Comm_c2f
-    const MPI_COMM_F2C = Libdl.dlsym(libmpi, "MPI_Comm_f2c")
-    const MPI_COMM_C2F = Libdl.dlsym(libmpi, "MPI_Comm_c2f")
-    Base.convert(::Type{CComm}, comm::Comm) = ccall(MPI_COMM_F2C, CComm, (Cint,), comm.val)
-    Base.convert(::Type{Comm}, ccomm::CComm) = Comm(ccall(MPI_COMM_C2F, Cint, (CComm,), ccomm))
+    Base.convert(::Type{CComm}, comm::Comm) = ccall((:MPI_Comm_f2c,libmpi), CComm, (Cint,), comm.val)
+    Base.convert(::Type{Comm}, ccomm::CComm) = Comm(ccall((:MPI_Comm_c2f,libmpi), Cint, (CComm,), ccomm))
 elseif sizeof(CComm) == sizeof(Cint)
     # in MPICH, both C and Fortran use identical Cint comm handles
     # and MPI_Comm_c2f is not provided.
