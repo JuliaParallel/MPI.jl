@@ -24,6 +24,9 @@ Pkg.build()
 ```
 which will build and install the wrapper into `$HOME/.julia/vX.Y/MPI`.
 
+#### Platform specific notes:
+* If you are trying to build on OSX with Homebrew, the necessary Fortran headers are not included in the OpenMPI bottle.  To workaround this you can build OpenMPI from source: `brew install --build-from-source openmpi`
+
 ### Overriding the auto-detected MPI version
 
 It may be that CMake selects the wrong MPI version, or that CMake
