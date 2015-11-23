@@ -1,14 +1,14 @@
 language: julia
 os:
-  - linux
+  # - linux
   - osx
 julia:
   - 0.4
-  - nightly
+  # - nightly
 notifications:
   email: false
 env:
-  - MPI_IMPL=mpich
+  # - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
