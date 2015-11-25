@@ -324,18 +324,54 @@ function Waitall!(reqs::Array{Request,1})
     stats
 end
 
+function Testall!(reqs::Array{Request,1})
+    count = length(reqs)
+    reqvals = [reqs[i].val for i in 1:count]
+    flag = Array(Cint, 1)
+    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    ccall((MPI_TESTALL,libmpi), Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, flag, statvals, &0)
+    if flag[1] == 0
+        return (false, nothing)
+    end
+    stats = Array(Status, count)
+    for i in 1:count
+        reqs[i].val = reqvals[i]
+        reqs[i].buffer = nothing
+        stats[i] = Status()
+        stats[i].val[:] = statvals[:,i]
+    end
+    (true, stats)
+end
+
+function Waitany!(reqs::Array{Request,1})
+    count = length(reqs)
+    reqvals = [reqs[i].val for i in 1:count]
+    ind = Array(Cint, 1)
+    stat = Status()
+    ccall((MPI_WAITANY,libmpi), Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, index, statvals, &0)
+    index = ind[1]
+    reqs[index].val = reqvals[index]
+    reqa[index].buffer = nothing
+    (index, stat)
+end
+
 function Testany!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    index = Array(Cint, 1)
+    ind = Array(Cint, 1)
     flag = Array(Cint, 1)
     stat = Status()
     ccall((MPI_TESTANY,libmpi), Void,
-          (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
-          &count, reqvals, index, flag, stat.val, &0)
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, ind, flag, stat.val, &0)
     if flag[1] == 0
-        return (false, index, nothing)
+        return (false, 0, nothing)
     end
+    index = ind[1]
     reqs[index].val = reqvals[index]
     reqs[index].buffer = nothing
     (true, index, stat)

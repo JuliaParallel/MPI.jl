@@ -53,6 +53,8 @@ int main(int argc, char *argv[])
   printf("const MPI_SEND_INIT          = :%s\n", STRING(MPI_SEND_INIT));
   printf("const MPI_SSEND              = :%s\n", STRING(MPI_SSEND));
   printf("const MPI_TEST               = :%s\n", STRING(MPI_TEST));
+  printf("const MPI_TESTALL            = :%s\n", STRING(MPI_TESTALL));
+  printf("const MPI_TESTANY            = :%s\n", STRING(MPI_TESTANY));
   printf("const MPI_UNPACK             = :%s\n", STRING(MPI_UNPACK));
   printf("const MPI_WAIT               = :%s\n", STRING(MPI_WAIT));
   printf("const MPI_WAITALL            = :%s\n", STRING(MPI_WAITALL));
