@@ -21,7 +21,11 @@ function runtests()
     for f in testfiles
         try
             coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
-            run(`mpirun -np $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            if f == "test_cman_julia.jl"
+                run(`$exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            else
+                run(`mpiexec -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            end
             Base.with_output_color(:green,STDOUT) do io
                 println(io,"\tSUCCESS: $f")
             end
