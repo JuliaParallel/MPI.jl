@@ -360,6 +360,7 @@ function Waitany!(reqs::Array{Request,1})
     (index, stat)
 end
 
+#= MPI_Testany is not present in MPICH on OS X -- need to build from source?
 function Testany!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
@@ -377,6 +378,7 @@ function Testany!(reqs::Array{Request,1})
     reqs[index].buffer = nothing
     (true, index, stat)
 end
+=#
 
 function Cancel!(res::Request)
     ccall((MPI_CANCEL,libmpi), Void, (Ptr{Cint},), &req.val, &0)
