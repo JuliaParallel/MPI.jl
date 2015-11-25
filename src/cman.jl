@@ -276,10 +276,10 @@ function start_send_event_loop(mgr::MPIManager, rank::Int)
                     data = takebuf_array(w_s.buffer)
                     push!(reqs, MPI.Isend(data, rank, 0, mgr.comm))
                 end
-                while !isempty(reqs)
-                    (done, index, stat) = MPI.Testany!(reqs)
-                    !done && break
-                    reqs = [reqs[1:index-1]; reqs[index+1:end]]
+                if !isempty(reqs)
+                    (indices, stats) = MPI.Testsome!(reqs)
+                    reqs[indices] = MPI.REQUEST_NULL
+                    filter!(req -> req != MPI.REQUEST_NULL, reqs)
                 end
                 # TODO: Need a better way to integrate with libuv's event loop
                 yield()
