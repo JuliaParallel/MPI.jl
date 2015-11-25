@@ -15,12 +15,13 @@ case "$os" in
 	    brew upgrade gcc
         case "$MPI_IMPL" in
             mpich|mpich3)
-                brew install mpich --build-from-source
+                # Build MPICH from source, so that MPI_TestAny is available
+                brew install mpich --build-from-source --verbose
                 ;;
             openmpi)
                 # Temporarily build OpenMPI from source, since apparently our
                 # cmake doesn't know how to handle OpenMPI 1.10 yet
-                brew install openmpi --build-from-source
+                brew install openmpi --build-from-source --verbose
                 ;;
             *)
                 echo "Unknown MPI implementation: $MPI_IMPL"
