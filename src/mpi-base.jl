@@ -84,9 +84,9 @@ type Status
     val::Array{Cint,1}
     Status() = new(Array(Cint, MPI_STATUS_SIZE))
 end
-Get_error(stat::Status) = stat.val[MPI_ERROR]
-Get_source(stat::Status) = stat.val[MPI_SOURCE]
-Get_tag(stat::Status) = stat.val[MPI_TAG]
+Get_error(stat::Status) = Int(stat.val[MPI_ERROR])
+Get_source(stat::Status) = Int(stat.val[MPI_SOURCE])
+Get_tag(stat::Status) = Int(stat.val[MPI_TAG])
 
 const ANY_SOURCE = Int(MPI_ANY_SOURCE)
 const ANY_TAG    = Int(MPI_ANY_TAG)
