@@ -15,7 +15,7 @@ case "$os" in
 	    brew upgrade gcc
         case "$MPI_IMPL" in
             mpich|mpich3)
-                brew install mpich --build-from-source --verbose | sed -e 's/^.*$/./'
+                brew install mpich
                 ;;
             openmpi)
                 # Temporarily build OpenMPI from source, since apparently our
