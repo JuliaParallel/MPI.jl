@@ -278,7 +278,6 @@ function start_send_event_loop(mgr::MPIManager, rank::Int)
                 end
                 if !isempty(reqs)
                     (indices, stats) = MPI.Testsome!(reqs)
-                    reqs[indices] = MPI.REQUEST_NULL
                     filter!(req -> req != MPI.REQUEST_NULL, reqs)
                 end
                 # TODO: Need a better way to integrate with libuv's event loop
