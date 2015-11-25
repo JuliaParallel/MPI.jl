@@ -55,12 +55,15 @@ int main(int argc, char *argv[]) {
   printf("const MPI_TEST               = :%s\n", STRING(MPI_TEST));
   printf("const MPI_TESTALL            = :%s\n", STRING(MPI_TESTALL));
   printf("const MPI_TESTANY            = :%s\n", STRING(MPI_TESTANY));
+  printf("const MPI_TESTSOME           = :%s\n", STRING(MPI_TESTSOME));
   printf("const MPI_UNPACK             = :%s\n", STRING(MPI_UNPACK));
   printf("const MPI_WAIT               = :%s\n", STRING(MPI_WAIT));
   printf("const MPI_WAITALL            = :%s\n", STRING(MPI_WAITALL));
   printf("const MPI_WAITANY            = :%s\n", STRING(MPI_WAITANY));
+  printf("const MPI_WAITSOME           = :%s\n", STRING(MPI_WAITSOME));
   printf("const MPI_WTIME              = :%s\n", STRING(MPI_WTIME));
 
   printf("bitstype %d CComm\n", (int)(sizeof(MPI_Comm) * 8));
+
   return 0;
 }

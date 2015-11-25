@@ -378,6 +378,60 @@ function Testany!(reqs::Array{Request,1})
     (true, index, stat)
 end
 
+function Waitsome!(reqs::Array{Request,1})
+    count = length(reqs)
+    reqvals = [reqs[i].val for i in 1:count]
+    outcnt = Array(Cint, 1)
+    indices = Array(Cint, count)
+    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    ccall((MPI_WAITSOME,libmpi), Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, outcnt, indices, statvals, &0)
+    outcount = outcnt[1]
+    # This can happen if there were no valid requests
+    if outcount == MPI_UNDEFINED
+        outcount = 0
+    end
+    resize!(indices, outcount)
+    stats = Array(Status, outcount)
+    for i in indices
+        reqs[i].val = reqvals[i]
+        reqs[i].buffer = nothing
+    end
+    for i in 1:outcount
+        stats[i] = Status()
+        stats[i].val[:] = statvals[:,i]
+    end
+    (indices, stats)
+end
+
+function Testsome!(reqs::Array{Request,1})
+    count = length(reqs)
+    reqvals = [reqs[i].val for i in 1:count]
+    outcnt = Array(Cint, 1)
+    indices = Array(Cint, count)
+    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    ccall((MPI_TESTSOME,libmpi), Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, outcnt, indices, statvals, &0)
+    outcount = outcnt[1]
+    # This can happen if there were no valid requests
+    if outcount == MPI_UNDEFINED
+        outcount = 0
+    end
+    resize!(indices, outcount)
+    stats = Array(Status, outcount)
+    for i in indices
+        reqs[i].val = reqvals[i]
+        reqs[i].buffer = nothing
+    end
+    for i in 1:outcount
+        stats[i] = Status()
+        stats[i].val[:] = statvals[:,i]
+    end
+    (indices, stats)
+end
+
 function Cancel!(res::Request)
     ccall((MPI_CANCEL,libmpi), Void, (Ptr{Cint},), &req.val, &0)
     req.buffer = nothing
