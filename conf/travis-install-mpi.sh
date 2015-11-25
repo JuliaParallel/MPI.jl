@@ -15,8 +15,7 @@ case "$os" in
 	    brew upgrade gcc
         case "$MPI_IMPL" in
             mpich|mpich3)
-                # Build MPICH from source, so that MPI_TestAny is available
-                brew install mpich --build-from-source --verbose
+                brew install mpich
                 ;;
             openmpi)
                 # Temporarily build OpenMPI from source, since apparently our
