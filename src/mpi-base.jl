@@ -394,11 +394,10 @@ function Waitsome!(reqs::Array{Request,1})
     end
     indices = Array(Int, outcount)
     stats = Array(Status, outcount)
-    for i in inds
-        reqs[i].val = reqvals[i]
-        reqs[i].buffer = nothing
-    end
     for i in 1:outcount
+        ind = inds[i]
+        reqs[ind].val = reqvals[ind]
+        reqs[ind].buffer = nothing
         indices[i] = inds[i]
         stats[i] = Status()
         stats[i].val[:] = statvals[:,i]
@@ -422,11 +421,10 @@ function Testsome!(reqs::Array{Request,1})
     end
     indices = Array(Int, outcount)
     stats = Array(Status, outcount)
-    for i in inds
-        reqs[i].val = reqvals[i]
-        reqs[i].buffer = nothing
-    end
     for i in 1:outcount
+        ind = inds[i]
+        reqs[ind].val = reqvals[ind]
+        reqs[ind].buffer = nothing
         indices[i] = inds[i]
         stats[i] = Status()
         stats[i].val[:] = statvals[:,i]
