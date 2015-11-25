@@ -131,6 +131,17 @@ function Finalized()
     flag[1] != 0
 end
 
+function Comm_dup(comm::Comm)
+    newcomm = MPI.Comm(0)
+    ccall((MPI_COMM_DUP,libmpi), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &comm.val, &newcomm.val, &0)
+    newcomm
+end
+
+function Comm_free(comm::Comm)
+    ccall((MPI_COMM_FREE,libmpi), Void, (Ptr{Cint}, Ptr{Cint}), &comm.val, &0)
+end
+
 function Comm_rank(comm::Comm)
     rank = Array(Cint, 1)
     ccall((MPI_COMM_RANK,libmpi), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
