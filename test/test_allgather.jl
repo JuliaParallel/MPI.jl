@@ -3,18 +3,19 @@ using MPI
 
 MPI.Init()
 
-function allgather_array(A)
+function allgather(A)
     comm = MPI.COMM_WORLD
-
-    B = copy(A)
-    C = MPI.Allgather(B, comm)
+    C = MPI.Allgather(A, comm)
 end
 
 comm = MPI.COMM_WORLD
 
 for typ in MPI.MPIDatatype.types
     A = typ[MPI.Comm_rank(comm) + 1]
-    C = allgather_array(A)
+    C = allgather(A)
+    @test C == collect(1:MPI.Comm_size(comm))
+    A = convert(typ,MPI.Comm_rank(comm) + 1)
+    C = allgather(A)
     @test C == collect(1:MPI.Comm_size(comm))
 end
 
