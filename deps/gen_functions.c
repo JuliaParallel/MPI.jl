@@ -7,7 +7,8 @@
 #define STRING(s) STRING1(s)
 
 int main(int argc, char *argv[]) {
-  printf("const WRAPPER_VERSION        = \"%s\"\n", VERSION);
+  printf("const WRAPPER_VERSION = \"%s\"\n", VERSION);
+  printf("\n");
   printf("const MPI_ABORT              = :%s\n", STRING(MPI_ABORT));
   printf("const MPI_ALLGATHER          = :%s\n", STRING(MPI_ALLGATHER));
   printf("const MPI_ALLGATHERV         = :%s\n", STRING(MPI_ALLGATHERV));
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
   printf("const MPI_WAITANY            = :%s\n", STRING(MPI_WAITANY));
   printf("const MPI_WAITSOME           = :%s\n", STRING(MPI_WAITSOME));
   printf("const MPI_WTIME              = :%s\n", STRING(MPI_WTIME));
-
+  printf("\n");
   printf("bitstype %d CComm\n", (int)(sizeof(MPI_Comm) * 8));
 
   return 0;
