@@ -444,7 +444,7 @@ function Gather{T<:MPIDatatype}(object::T, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     sendbuf = T[object]
     recvbuf = Gather(sendbuf, root, comm)
-    isroot ? recvbuf[1] : nothing
+    isroot ? recvbuf : nothing
 end
 
 function Allgather{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
@@ -463,7 +463,7 @@ end
 function Allgather{T<:MPIDatatype}(object::T, comm::Comm)
     sendbuf = T[object]
     recvbuf = Allgather(sendbuf, comm)
-    recvbuf[1]
+    recvbuf
 end
 
 function Gatherv{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, counts::Vector{Cint},
