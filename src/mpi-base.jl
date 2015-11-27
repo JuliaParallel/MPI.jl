@@ -84,9 +84,9 @@ type Status
     val::Array{Cint,1}
     Status() = new(Array(Cint, MPI_STATUS_SIZE))
 end
-Get_error(stat::Status) = stat.val[MPI_ERROR]
-Get_source(stat::Status) = stat.val[MPI_SOURCE]
-Get_tag(stat::Status) = stat.val[MPI_TAG]
+Get_error(stat::Status) = Int(stat.val[MPI_ERROR])
+Get_source(stat::Status) = Int(stat.val[MPI_SOURCE])
+Get_tag(stat::Status) = Int(stat.val[MPI_TAG])
 
 const ANY_SOURCE = Int(MPI_ANY_SOURCE)
 const ANY_TAG    = Int(MPI_ANY_TAG)
@@ -115,19 +115,19 @@ function Finalize()
 end
 
 function Abort(comm::Comm, errcode::Integer)
-    ccall((MPI_ABORT,libmpi), Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint}),
+    ccall((MPI_ABORT,libmpi), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, &errcode, &0)
 end
 
 function Initialized()
     flag = Array(Cint, 1)
-    ccall((MPI_INITIALIZED,libmpi), Void, (Ptr{Cint},Ptr{Cint}), flag, &0)
+    ccall((MPI_INITIALIZED,libmpi), Void, (Ptr{Cint}, Ptr{Cint}), flag, &0)
     flag[1] != 0
 end
 
 function Finalized()
     flag = Array(Cint, 1)
-    ccall((MPI_FINALIZED,libmpi), Void, (Ptr{Cint},Ptr{Cint}), flag, &0)
+    ccall((MPI_FINALIZED,libmpi), Void, (Ptr{Cint}, Ptr{Cint}), flag, &0)
     flag[1] != 0
 end
 
@@ -290,7 +290,7 @@ end
 
 function Wait!(req::Request)
     stat = Status()
-    ccall((MPI_WAIT,libmpi), Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint}),
+    ccall((MPI_WAIT,libmpi), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &req.val, stat.val, &0)
     req.buffer = nothing
     stat
@@ -299,7 +299,7 @@ end
 function Test!(req::Request)
     flag = Array(Cint, 1)
     stat = Status()
-    ccall((MPI_TEST,libmpi), Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
+    ccall((MPI_TEST,libmpi), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &req.val, flag, stat.val, &0)
     if flag[1] == 0
         return (false, nothing)
@@ -312,7 +312,8 @@ function Waitall!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
     statvals = Array(Cint, MPI_STATUS_SIZE, count)
-    ccall((MPI_WAITALL,libmpi), Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
+    ccall((MPI_WAITALL,libmpi), Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, statvals, &0)
     stats = Array(Status, count)
     for i in 1:count
@@ -639,11 +640,12 @@ function ExScan{T<:MPIDatatype}(object::T, op::Op, comm::Comm)
 end
 
 # Conversion between C and Fortran Comm handles:
-
 if HAVE_MPI_COMM_C2F
     # use MPI_Comm_f2c and MPI_Comm_c2f
-    Base.convert(::Type{CComm}, comm::Comm) = ccall((:MPI_Comm_f2c,libmpi), CComm, (Cint,), comm.val)
-    Base.convert(::Type{Comm}, ccomm::CComm) = Comm(ccall((:MPI_Comm_c2f,libmpi), Cint, (CComm,), ccomm))
+    Base.convert(::Type{CComm}, comm::Comm) =
+        ccall((:MPI_Comm_f2c,libmpi), CComm, (Cint,), comm.val)
+    Base.convert(::Type{Comm}, ccomm::CComm) =
+        Comm(ccall((:MPI_Comm_c2f,libmpi), Cint, (CComm,), ccomm))
 elseif sizeof(CComm) == sizeof(Cint)
     # in MPICH, both C and Fortran use identical Cint comm handles
     # and MPI_Comm_c2f is not provided.
