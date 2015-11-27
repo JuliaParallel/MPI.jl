@@ -131,6 +131,17 @@ function Finalized()
     flag[1] != 0
 end
 
+function Comm_dup(comm::Comm)
+    newcomm = MPI.Comm(0)
+    ccall((MPI_COMM_DUP,libmpi), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &comm.val, &newcomm.val, &0)
+    newcomm
+end
+
+function Comm_free(comm::Comm)
+    ccall((MPI_COMM_FREE,libmpi), Void, (Ptr{Cint}, Ptr{Cint}), &comm.val, &0)
+end
+
 function Comm_rank(comm::Comm)
     rank = Array(Cint, 1)
     ccall((MPI_COMM_RANK,libmpi), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
@@ -313,21 +324,111 @@ function Waitall!(reqs::Array{Request,1})
     stats
 end
 
+function Testall!(reqs::Array{Request,1})
+    count = length(reqs)
+    reqvals = [reqs[i].val for i in 1:count]
+    flag = Array(Cint, 1)
+    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    ccall((MPI_TESTALL,libmpi), Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, flag, statvals, &0)
+    if flag[1] == 0
+        return (false, nothing)
+    end
+    stats = Array(Status, count)
+    for i in 1:count
+        reqs[i].val = reqvals[i]
+        reqs[i].buffer = nothing
+        stats[i] = Status()
+        stats[i].val[:] = statvals[:,i]
+    end
+    (true, stats)
+end
+
+function Waitany!(reqs::Array{Request,1})
+    count = length(reqs)
+    reqvals = [reqs[i].val for i in 1:count]
+    ind = Array(Cint, 1)
+    stat = Status()
+    ccall((MPI_WAITANY,libmpi), Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, index, statvals, &0)
+    index = ind[1]
+    reqs[index].val = reqvals[index]
+    reqa[index].buffer = nothing
+    (index, stat)
+end
+
 function Testany!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    index = Array(Cint, 1)
+    ind = Array(Cint, 1)
     flag = Array(Cint, 1)
     stat = Status()
     ccall((MPI_TESTANY,libmpi), Void,
-          (Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint},Ptr{Cint}),
-          &count, reqvals, index, flag, stat.val, &0)
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, ind, flag, stat.val, &0)
     if flag[1] == 0
-        return (false, index, nothing)
+        return (false, 0, nothing)
     end
+    index = ind[1]
     reqs[index].val = reqvals[index]
     reqs[index].buffer = nothing
     (true, index, stat)
+end
+
+function Waitsome!(reqs::Array{Request,1})
+    count = length(reqs)
+    reqvals = [reqs[i].val for i in 1:count]
+    outcnt = Array(Cint, 1)
+    inds = Array(Cint, count)
+    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    ccall((MPI_WAITSOME,libmpi), Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, outcnt, inds, statvals, &0)
+    outcount = outcnt[1]
+    # This can happen if there were no valid requests
+    if outcount == MPI_UNDEFINED
+        outcount = 0
+    end
+    indices = Array(Int, outcount)
+    stats = Array(Status, outcount)
+    for i in 1:outcount
+        ind = inds[i]
+        reqs[ind].val = reqvals[ind]
+        reqs[ind].buffer = nothing
+        indices[i] = inds[i]
+        stats[i] = Status()
+        stats[i].val[:] = statvals[:,i]
+    end
+    (indices, stats)
+end
+
+function Testsome!(reqs::Array{Request,1})
+    count = length(reqs)
+    reqvals = [reqs[i].val for i in 1:count]
+    outcnt = Array(Cint, 1)
+    inds = Array(Cint, count)
+    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    ccall((MPI_TESTSOME,libmpi), Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &count, reqvals, outcnt, inds, statvals, &0)
+    outcount = outcnt[1]
+    # This can happen if there were no valid requests
+    if outcount == MPI_UNDEFINED
+        outcount = 0
+    end
+    indices = Array(Int, outcount)
+    stats = Array(Status, outcount)
+    for i in 1:outcount
+        ind = inds[i]
+        reqs[ind].val = reqvals[ind]
+        reqs[ind].buffer = nothing
+        indices[i] = inds[i]
+        stats[i] = Status()
+        stats[i].val[:] = statvals[:,i]
+    end
+    (indices, stats)
 end
 
 function Cancel!(res::Request)

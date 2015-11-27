@@ -6,9 +6,9 @@
 #define STRING1(s) #s
 #define STRING(s) STRING1(s)
 
-int main(int argc, char *argv[])
-{
-  printf("const WRAPPER_VERSION        = \"%s\"\n", VERSION);
+int main(int argc, char *argv[]) {
+  printf("const WRAPPER_VERSION = \"%s\"\n", VERSION);
+  printf("\n");
   printf("const MPI_ABORT              = :%s\n", STRING(MPI_ABORT));
   printf("const MPI_ALLGATHER          = :%s\n", STRING(MPI_ALLGATHER));
   printf("const MPI_ALLGATHERV         = :%s\n", STRING(MPI_ALLGATHERV));
@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
   printf("const MPI_GATHER             = :%s\n", STRING(MPI_GATHER));
   printf("const MPI_GATHERV            = :%s\n", STRING(MPI_GATHERV));
   printf("const MPI_GET_COUNT          = :%s\n", STRING(MPI_GET_COUNT));
-  printf("const MPI_GET_PROCESSOR_NAME = :%s\n", STRING(MPI_GET_PROCESSOR_NAME));
+  printf("const MPI_GET_PROCESSOR_NAME = :%s\n",
+         STRING(MPI_GET_PROCESSOR_NAME));
   printf("const MPI_INIT               = :%s\n", STRING(MPI_INIT));
   printf("const MPI_INITIALIZED        = :%s\n", STRING(MPI_INITIALIZED));
   printf("const MPI_IPROBE             = :%s\n", STRING(MPI_IPROBE));
@@ -53,12 +54,17 @@ int main(int argc, char *argv[])
   printf("const MPI_SEND_INIT          = :%s\n", STRING(MPI_SEND_INIT));
   printf("const MPI_SSEND              = :%s\n", STRING(MPI_SSEND));
   printf("const MPI_TEST               = :%s\n", STRING(MPI_TEST));
+  printf("const MPI_TESTALL            = :%s\n", STRING(MPI_TESTALL));
+  printf("const MPI_TESTANY            = :%s\n", STRING(MPI_TESTANY));
+  printf("const MPI_TESTSOME           = :%s\n", STRING(MPI_TESTSOME));
   printf("const MPI_UNPACK             = :%s\n", STRING(MPI_UNPACK));
   printf("const MPI_WAIT               = :%s\n", STRING(MPI_WAIT));
   printf("const MPI_WAITALL            = :%s\n", STRING(MPI_WAITALL));
   printf("const MPI_WAITANY            = :%s\n", STRING(MPI_WAITANY));
+  printf("const MPI_WAITSOME           = :%s\n", STRING(MPI_WAITSOME));
   printf("const MPI_WTIME              = :%s\n", STRING(MPI_WTIME));
+  printf("\n");
+  printf("bitstype %d CComm\n", (int)(sizeof(MPI_Comm) * 8));
 
-  printf("bitstype %lu CComm\n", sizeof(MPI_Comm) * 8);
   return 0;
 }
