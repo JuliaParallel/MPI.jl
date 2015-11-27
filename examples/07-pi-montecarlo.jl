@@ -7,7 +7,7 @@ like to use, subject to  X-1 being an even divisor
 of 1e6, e.g., set X=5.
 =#
 
-include("07-pi-impl.jl")
+include("montecarlo.jl")
 
 function pi_wrapper()
     4.0 * (norm(rand(2)) < 1)
@@ -24,10 +24,13 @@ end
 
 # do the monte carlo: 10^6 reps of single draws
 function main()
-    reps = 10^7 # desired number of MC reps
-    nreturns = 1
-    pooled = 10^5
-    montecarlo(pi_wrapper, pi_monitor, reps, nreturns, pooled)
+    MPI.Init()
+    n_evals = 10^7 # desired number of MC reps
+    n_returns = 1
+    batchsize = 10^5
+    montecarlo(pi_wrapper, pi_monitor,
+               MPI.COMM_WORLD, n_evals, n_returns, batchsize)
+    MPI.Finalize()
 end
 
 main()
