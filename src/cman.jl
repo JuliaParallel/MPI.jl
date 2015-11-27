@@ -1,5 +1,5 @@
 import Base: launch, manage, procs, connect
-export MPIManager, launch, manage, @mpi_do, procs, mpiprocs, start
+export MPIManager, launch, manage, @mpi_do, procs, mpiprocs
 export MPI_ON_WORKERS, TCP_TRANSPORT_ALL, MPI_TRANSPORT_ALL
 
 const MPI_ON_WORKERS = 0
@@ -210,7 +210,7 @@ procs(manager::MPIManager) = sort([p for p in keys(manager.j2mpi)])
 mpiprocs(manager::MPIManager) = sort([p for p in keys(manager.mpi2j)])
 
 
-function start(mode=TCP_TRANSPORT_ALL)
+function Base.start(mode=TCP_TRANSPORT_ALL)
     comm, comm_size, rank = init_mpi()
     if mode == TCP_TRANSPORT_ALL
         if rank == 0
