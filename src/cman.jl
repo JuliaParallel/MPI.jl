@@ -330,7 +330,7 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
             setup_worker(host, port) # does not return
         end
     elseif mode == MPI_TRANSPORT_ALL
-        #TODO comm = MPI.Comm_dup(comm)
+        comm = MPI.Comm_dup(comm)
         rank = MPI.Comm_rank(comm)
         size = MPI.Comm_size(comm)
         # We are handling the workers and their event loops on our own
