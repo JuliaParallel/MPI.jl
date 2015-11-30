@@ -132,10 +132,10 @@ function Finalized()
 end
 
 function Comm_dup(comm::Comm)
-    newcomm = MPI.Comm(0)
+    newcomm = Array(Cint, 1)
     ccall((MPI_COMM_DUP,libmpi), Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-          &comm.val, &newcomm.val, &0)
-    newcomm
+          &comm.val, newcomm, &0)
+    MPI.Comm(newcomm[1])
 end
 
 function Comm_free(comm::Comm)
