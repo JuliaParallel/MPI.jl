@@ -217,7 +217,11 @@ function manage(mgr::MPIManager, id::Integer, config::WorkerConfig, op::Symbol)
         end
     elseif op == :deregister
         info("pid=$(getpid()) id=$id op=$op")
-        # TODO: terminate the worker
+        # TODO: Sometimes -- very rarely -- Julia calls this `deregister`
+        # function, and then outputs a warning such as """error in running
+        # finalizer: ErrorException("no process with id 3 exists")""". These
+        # warnings seem harmless; still, we should find out what is going wrong
+        # here.
     elseif op == :interrupt
         # TODO: This should never happen if we rmprocs the workers properly
         info("pid=$(getpid()) id=$id op=$op")
