@@ -16,7 +16,12 @@ end
 
 # Add cmake flags to specify the MPI library location
 configure = `cmake`
-flags = ["MPI_Fortran_COMPILER",
+flags = ["MPI_C_COMPILER",
+         "MPI_C_COMPILE_FLAGS",
+         "MPI_C_INCLUDE_PATH",
+         "MPI_C_LINK_FLAGS",
+         "MPI_C_LIBRARIES",
+         "MPI_Fortran_COMPILER",
          "MPI_Fortran_COMPILE_FLAGS",
          "MPI_Fortran_INCLUDE_PATH",
          "MPI_Fortran_LINK_FLAGS",

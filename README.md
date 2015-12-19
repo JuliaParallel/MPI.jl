@@ -32,18 +32,37 @@ which will build and install the wrapper into `$HOME/.julia/vX.Y/MPI`.
 
 It may be that CMake selects the wrong MPI version, or that CMake
 fails to correctly detect and configure your MPI implementation. You
-can override CMake's mechanism by setting two environment variables:
+can override CMake's mechanism by setting certain environment variables:
 ```sh
-JULIA_MPI_INCLUDE_PATH
-JULIA_MPI_LIBRARIES
+JULIA_MPI_C_LIBRARIES
+JULIA_MPI_Fortran_INCLUDE_PATH
+JULIA_MPI_Fortran_LIBRARIES
 ```
-This will set `MPI_Fortran_INCLUDE_PATH` and `MPI_Fortran_LIBRARIES`
-when calling CMake as described in its [FindMPI] module. You can set
-these variables either in your shell startup file, or e.g. via your
+This will set `MPI_C_LIBRARIES`, `MPI_Fortran_INCLUDE_PATH`, and
+`MPI_Fortran_LIBRARIES` when calling CMake as described in its [FindMPI] module.
+You can set these variables either in your shell startup file, or e.g. via your
 `~/.juliarc` file. Here is an example:
 ```Julia
-ENV["JULIA_MPI_INCLUDE_PATH"] = "-I/opt/local/include"
-ENV["JULIA_MPI_LIBRARIES"] = "-L/opt/local/lib/openmpi-gcc5 -lmpi_usempif08 -lmpi_mpifh -lmpi"
+ENV["JULIA_MPI_C_LIBRARIES"] = "-L/opt/local/lib/openmpi-gcc5 -lmpi"
+ENV["JULIA_MPI_Fortran_INCLUDE_PATH"] = "-I/opt/local/include"
+ENV["JULIA_MPI_Fortran_LIBRARIES"] = "-L/opt/local/lib/openmpi-gcc5 -lmpi_usempif08 -lmpi_mpifh -lmpi"
+```
+
+You can set other configuration variables as well (by adding a `JULIA_` prefix);
+the full list of variables currently supported is
+```sh
+MPI_C_COMPILER
+MPI_C_COMPILE_FLAGS
+MPI_C_INCLUDE_PATH
+MPI_C_LINK_FLAGS
+MPI_C_LIBRARIES
+MPI_Fortran_COMPILER
+MPI_Fortran_COMPILE_FLAGS
+MPI_Fortran_INCLUDE_PATH
+MPI_Fortran_LINK_FLAGS
+MPI_Fortran_LIBRARIES
+MPI_INCLUDE_PATH
+MPI_LIBRARIES
 ```
 
 ## Usage : MPI-Only mode
