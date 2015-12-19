@@ -12,7 +12,8 @@ include("cman.jl")
 
 function __init__()
     # need to open libmpi with RTLD_GLOBAL flag for Linux, before any ccall
-    Libdl.dlopen(libmpi, Libdl.RTLD_LAZY|Libdl.RTLD_DEEPBIND|Libdl.RTLD_GLOBAL)
+    # cannot use RTLD_DEEPBIND; this leads to segfaults at least on Ubuntu 15.10
+    Libdl.dlopen(libmpi, Libdl.RTLD_LAZY|Libdl.RTLD_GLOBAL)
 end
 
 end
