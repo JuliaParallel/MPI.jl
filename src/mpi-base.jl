@@ -120,22 +120,22 @@ function Abort(comm::Comm, errcode::Integer)
 end
 
 function Initialized()
-    flag = Array(Cint, 1)
+    flag = Ref{Cint}()
     ccall(MPI_INITIALIZED, Void, (Ptr{Cint}, Ptr{Cint}), flag, &0)
-    flag[1] != 0
+    flag[] != 0
 end
 
 function Finalized()
-    flag = Array(Cint, 1)
+    flag = Ref{Cint}()
     ccall(MPI_FINALIZED, Void, (Ptr{Cint}, Ptr{Cint}), flag, &0)
-    flag[1] != 0
+    flag[] != 0
 end
 
 function Comm_dup(comm::Comm)
-    newcomm = Array(Cint, 1)
+    newcomm = Ref{Cint}()
     ccall(MPI_COMM_DUP, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, newcomm, &0)
-    MPI.Comm(newcomm[1])
+    MPI.Comm(newcomm[])
 end
 
 function Comm_free(comm::Comm)
@@ -143,17 +143,17 @@ function Comm_free(comm::Comm)
 end
 
 function Comm_rank(comm::Comm)
-    rank = Array(Cint, 1)
+    rank = Ref{Cint}()
     ccall(MPI_COMM_RANK, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, rank, &0)
-    Int(rank[1])
+    Int(rank[])
 end
 
 function Comm_size(comm::Comm)
-    size = Array(Cint, 1)
+    size = Ref{Cint}()
     ccall(MPI_COMM_SIZE, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, size, &0)
-    Int(size[1])
+    Int(size[])
 end
 
 # Point-to-point communication
@@ -167,22 +167,22 @@ function Probe(src::Integer, tag::Integer, comm::Comm)
 end
 
 function Iprobe(src::Integer, tag::Integer, comm::Comm)
-    flag = Array(Cint, 1)
+    flag = Ref{Cint}()
     stat = Status()
     ccall(MPI_IPROBE, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &src, &tag, &comm.val, flag, stat.val, &0)
-    if flag[1] == 0
-        return (false, nothing)
+    if flag[] == 0
+        return false, nothing
     end
-    (true, stat)
+    true, stat
 end
 
 function Get_count{T<:MPIDatatype}(stat::Status, ::Type{T})
-    count = Array(Cint, 1)
+    count = Ref{Cint}()
     ccall(MPI_GET_COUNT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           stat.val, &mpitype(T), count, &0)
-    Int(count[1])
+    Int(count[])
 end
 
 function Send{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
@@ -210,12 +210,12 @@ end
 
 function Isend{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
                                dest::Integer, tag::Integer, comm::Comm)
-    rval = Array(Cint, 1)
+    rval = Ref{Cint}()
     ccall(MPI_ISEND, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
            Ptr{Cint}, Ptr{Cint}),
           buf, &count, &mpitype(T), &dest, &tag, &comm.val, rval, &0)
-    Request(rval[1], buf)
+    Request(rval[], buf)
 end
 
 function Isend{T<:MPIDatatype}(buf::Array{T}, dest::Integer, tag::Integer,
@@ -249,9 +249,9 @@ function Recv!{T<:MPIDatatype}(buf::Array{T}, src::Integer, tag::Integer,
 end
 
 function Recv{T<:MPIDatatype}(::Type{T}, src::Integer, tag::Integer, comm::Comm)
-    buf = Array(T, 1)
+    buf = Ref{T}
     stat = Recv!(buf, src, tag, comm)
-    (buf[1], stat)
+    (buf[], stat)
 end
 
 function recv(src::Integer, tag::Integer, comm::Comm)
@@ -264,12 +264,12 @@ end
 
 function Irecv!{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
                                 src::Integer, tag::Integer, comm::Comm)
-    rval = Array(Cint, 1)
+    val = Ref{Cint}()
     ccall(MPI_IRECV, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
            Ptr{Cint}, Ptr{Cint}),
-          buf, &count, &mpitype(T), &src, &tag, &comm.val, rval, &0)
-    Request(rval[1], buf)
+          buf, &count, &mpitype(T), &src, &tag, &comm.val, val, &0)
+    Request(val[], buf)
 end
 
 function Irecv!{T<:MPIDatatype}(buf::Array{T}, src::Integer, tag::Integer,
@@ -297,11 +297,11 @@ function Wait!(req::Request)
 end
 
 function Test!(req::Request)
-    flag = Array(Cint, 1)
+    flag = Ref{Cint}()
     stat = Status()
     ccall(MPI_TEST, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &req.val, flag, stat.val, &0)
-    if flag[1] == 0
+    if flag[] == 0
         return (false, nothing)
     end
     req.buffer = nothing
@@ -349,12 +349,12 @@ end
 function Waitany!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    ind = Array(Cint, 1)
+    ind = Ref{Cint}()
     stat = Status()
     ccall(MPI_WAITANY, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, index, statvals, &0)
-    index = ind[1]
+    index = ind[]
     reqs[index].val = reqvals[index]
     reqa[index].buffer = nothing
     (index, stat)
@@ -363,16 +363,16 @@ end
 function Testany!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    ind = Array(Cint, 1)
-    flag = Array(Cint, 1)
+    ind = Ref{Cint}()
+    flag = Ref{Cint}()
     stat = Status()
     ccall(MPI_TESTANY, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, ind, flag, stat.val, &0)
-    if flag[1] == 0
+    if flag[] == 0
         return (false, 0, nothing)
     end
-    index = ind[1]
+    index = ind[]
     reqs[index].val = reqvals[index]
     reqs[index].buffer = nothing
     (true, index, stat)
@@ -381,13 +381,13 @@ end
 function Waitsome!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    outcnt = Array(Cint, 1)
+    outcnt = Ref{Cint}()
     inds = Array(Cint, count)
     statvals = Array(Cint, MPI_STATUS_SIZE, count)
     ccall(MPI_WAITSOME, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, outcnt, inds, statvals, &0)
-    outcount = outcnt[1]
+    outcount = outcnt[]
     # This can happen if there were no valid requests
     if outcount == MPI_UNDEFINED
         outcount = 0
@@ -408,13 +408,13 @@ end
 function Testsome!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    outcnt = Array(Cint, 1)
+    outcnt = Ref{Cint}()
     inds = Array(Cint, count)
     statvals = Array(Cint, MPI_STATUS_SIZE, count)
     ccall(MPI_TESTSOME, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, outcnt, inds, statvals, &0)
-    outcount = outcnt[1]
+    outcount = outcnt[]
     # This can happen if there were no valid requests
     if outcount == MPI_UNDEFINED
         outcount = 0
