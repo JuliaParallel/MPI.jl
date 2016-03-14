@@ -444,7 +444,7 @@ function mpi_do(mgr::MPIManager, expr)
     !mgr.initialized && wait(mgr.cond_initialized)
     jpids = keys(mgr.j2mpi)
     refs = cell(length(jpids))
-    for (i,p) in enumerate(filter(x->x!=myid(), jpids))
+    for (i,p) in enumerate(filter(x -> x != myid(), jpids))
         refs[i] = remotecall(expr, p)
     end
     # Execution on local process should be last, since it can block the main
@@ -458,7 +458,7 @@ function mpi_do(mgr::MPIManager, expr)
         for r in refs
             @async begin
                 resp = remotecall_fetch(r.where, r) do rr
-                    wrkr_result = take!(rr)
+                    wrkr_result = rr[]
                     # Only return result if it is an exception, i.e. don't
                     # return a valid result of a worker computation. This is
                     # a mpi_do and not mpi_callfetch.
@@ -472,8 +472,11 @@ function mpi_do(mgr::MPIManager, expr)
 end
 
 macro mpi_do(mgr, expr)
-    expr = Base.localize_vars(:(()->$expr), false)
-    :(mpi_do($(esc(mgr)), $(esc(expr))))
+    quote
+        # Evaluate expression in Main module
+        thunk = () -> (eval(Main, $(Expr(:quote, expr))); nothing)
+        mpi_do($(esc(mgr)), thunk)
+    end
 end
 
 # All managed Julia processes
