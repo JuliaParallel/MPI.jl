@@ -18,10 +18,7 @@ case "$os" in
                 brew install mpich
                 ;;
             openmpi)
-                # Temporarily build OpenMPI from source, since apparently our
-                # cmake doesn't know how to handle OpenMPI 1.10 yet
-                brew install openmpi --build-from-source --verbose |
-                    sed -e 's/^.*$/./'
+                brew install openmpi
                 ;;
             *)
                 echo "Unknown MPI implementation: $MPI_IMPL"
