@@ -7,48 +7,12 @@ typealias MPIDatatype Union{Char,
 # for a given type T<:MPIDatatype.  This works better with precompilation
 # than a dictionary (since DataType keys need to be re-hashed at runtime),
 # and also allows the datatype code to be inlined at compile-time.
-let _int_datatypes = Dict{Int, Cint}(
-        1 => MPI_INTEGER1,
-        2 => MPI_INTEGER2,
-        4 => MPI_INTEGER4,
-        8 => MPI_INTEGER8),
-    _real_datatypes = Dict{Int, Cint}(
-        4 => MPI_REAL4,
-        8 => MPI_REAL8)
-    _complex_datatypes = Dict{Int, Cint}(
-        8 => MPI_COMPLEX8,
-        16 => MPI_COMPLEX16)
-    _datatypes = Dict{DataType, Cint}(
-        # Older versions of OpenMPI (such as those used by default in
-        # Travis) do not define MPI_WCHAR and the MPI_*INT*_T types for
-        # Fortran. We thus don't require them (yet).
-        # Char => MPI_WCHAR,
-        # Int8 => MPI_INT8_T,
-        # UInt8 => MPI_UINT8_T,
-        # Int16 => MPI_INT16_T,
-        # UInt16 => MPI_UINT16_T,
-        # Int32 => MPI_INT32_T,
-        # UInt32 => MPI_UINT32_T,
-        # Int64 => MPI_INT64_T,
-        # UInt64 => MPI_UINT64_T,
-        Char => _int_datatypes[sizeof(Char)],
-        Int8 => _int_datatypes[sizeof(Int8)],
-        UInt8 => _int_datatypes[sizeof(UInt8)],
-        Int16 => _int_datatypes[sizeof(Int16)],
-        UInt16 => _int_datatypes[sizeof(UInt16)],
-        Int32 => _int_datatypes[sizeof(Int32)],
-        UInt32 => _int_datatypes[sizeof(UInt32)],
-        Int64 => _int_datatypes[sizeof(Int64)],
-        UInt64 => _int_datatypes[sizeof(UInt64)],
-        Float32 => _real_datatypes[sizeof(Float32)],
-        Float64 => _real_datatypes[sizeof(Float64)],
-        Complex64 => _complex_datatypes[sizeof(Complex64)],
-        Complex128 => _complex_datatypes[sizeof(Complex128)])
 
-    global mpitype
-    for (T,t) in _datatypes
-        @eval mpitype(::Type{$T}) = $t
-    end
+
+# accessor function for getting MPI datatypes
+# use a function in case more behavior is needed later
+function mpitype{T}(::Type{T})
+  return mpitype_dict[T]
 end
 
 type Comm
