@@ -64,6 +64,10 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_WAITANY            => \"%s\",\n", STRING(MPI_WAITANY));
   printf("    :MPI_WAITSOME           => \"%s\",\n", STRING(MPI_WAITSOME));
   printf("    :MPI_WTIME              => \"%s\",\n", STRING(MPI_WTIME));
+  printf("    :MPI_TYPE_CREATE_STRUCT => \"%s\",\n", 
+         STRING(MPI_TYPE_CREATE_STRUCT));
+  printf("    :MPI_TYPE_COMMIT        => \"%s\",\n", 
+         STRING(MPI_TYPE_COMMIT));
   printf(")\n");
   printf("\n");
   printf("bitstype %d CComm\n", (int)(sizeof(MPI_Comm) * 8));

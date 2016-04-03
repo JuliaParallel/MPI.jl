@@ -120,6 +120,48 @@ function Comm_size(comm::Comm)
     Int(size[])
 end
 
+function Type_create_struct{T <: DataType}(::Type{T})
+
+  @assert isbits(T)
+  fieldtypes = T.types
+  offsets = fieldoffsets(T)
+  nfields = Cint(length(fieldtypes))
+
+  blocklengths = ones(Cint, nfields)
+  displacements = zeros(Cint, nfields)
+  types = zeros(Cint, nfields)
+  for i=1:nfields
+    displacements[i] = offsets[i]
+    types[i] = mpitype(fieldtypes[i])
+  end
+
+  newtype_ref = Ref{Cint}()
+  flag = Ref{Cint}()
+  ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, 
+        Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements, types, 
+        newtype_ref, flag)
+
+  if flag[] != 0
+    println(STDERR, "Warning: MPI_TYPE_CREATE_STRUCT returned non-zero exit stats")
+  end
+
+  flag2 = Ref{Cint}()
+
+  ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
+
+  if flag2[] != 0
+    println(STDERR, "Warning: MPI_TYPE_COMMIT returned non-zero exit status")
+  end
+
+  mpitype_dict[T] = newtype_ref[]
+
+  return nothing
+end
+
+
+
+
+
 # Point-to-point communication
 
 function Probe(src::Integer, tag::Integer, comm::Comm)
