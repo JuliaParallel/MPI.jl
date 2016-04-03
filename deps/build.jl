@@ -2,7 +2,7 @@ using BinDeps
 
 @BinDeps.setup
 
-mpi = library_dependency("juliampi", aliases=["libjuliampi", "libjuliampi.so", "libjuliampi.dylib"])
+mpi = library_dependency("juliampi", aliases=["libjuliampi", "libjuliampi.so", "libjuliampi.dylib"], os = :Unix)
 builddir = joinpath(BinDeps.depsdir(mpi), "build")
 prefix = joinpath(BinDeps.depsdir(mpi), "usr")
 src = joinpath(BinDeps.depsdir(mpi), "src")

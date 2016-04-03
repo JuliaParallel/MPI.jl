@@ -10,6 +10,8 @@ mpi4py, although we generally follow the C and not the C++ MPI API.
 
 ## Installing
 
+### Unix systems (OSX and Linux)
+
 [CMake] is used to piece together the MPI wrapper. Currently a shared
 library MPI installation for C and Fortran is required (tested with
 [Open MPI] and [MPICH]). To install MPI.jl using the Julia packaging
@@ -28,7 +30,7 @@ which will build and install the wrapper into `$HOME/.julia/vX.Y/MPI`.
 #### Platform specific notes:
 * If you are trying to build on OSX with Homebrew, the necessary Fortran headers are not included in the OpenMPI bottle.  To workaround this you can build OpenMPI from source: `brew install --build-from-source openmpi`
 
-### Overriding the auto-detected MPI version
+#### Overriding the auto-detected MPI version
 
 It may be that CMake selects the wrong MPI version, or that CMake
 fails to correctly detect and configure your MPI implementation. You
@@ -63,6 +65,15 @@ MPI_Fortran_LINK_FLAGS
 MPI_Fortran_LIBRARIES
 MPI_INCLUDE_PATH
 MPI_LIBRARIES
+```
+
+### Windows
+
+You need to install the [Microsoft MPI](https://www.microsoft.com/en-us/download/details.aspx?id=49926) runtime on your system (the SDK is not required). Then simply add the MPI.jl package with
+
+```julia
+Pkg.update()
+Pkg.add("MPI")
 ```
 
 ## Usage : MPI-Only mode
