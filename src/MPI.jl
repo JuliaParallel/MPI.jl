@@ -4,20 +4,22 @@ module MPI
 
 using Compat
 
-if @windows? true : false
-	include("win_mpiconstants.jl")
-else
+@windows_only begin
+	const depfile = "win_mpiconstants.jl"
+end
+
+@unix_only begin
 	const depfile = joinpath(dirname(@__FILE__), "..", "deps", "src", "compile-time.jl")
 	isfile(depfile) || error("MPI not properly installed. Please run Pkg.build(\"MPI\")")
-	include(depfile)
 end
+
+include(depfile)
 
 include("mpi-base.jl")
 include("cman.jl")
 
 function __init__()
-    if @windows? true : false
-    else
+    @unix_only begin
         # need to open libmpi with RTLD_GLOBAL flag for Linux, before any ccall
         # cannot use RTLD_DEEPBIND; this leads to segfaults at least on Ubuntu 15.10
         @eval const libmpi_handle =
