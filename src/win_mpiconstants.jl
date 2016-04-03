@@ -1,3 +1,6 @@
+# These constants were manually copied from the file mpi.h in the Microsoft
+# MPI SDK v7
+
 const MPI_BYTE = Int32(0x4c00010d)
 const MPI_WCHAR = Int32(0x4c00020e)
 const MPI_INT8_T = Int32(0x4c000133)
