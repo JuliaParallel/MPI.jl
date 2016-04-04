@@ -120,31 +120,36 @@ function Comm_size(comm::Comm)
     Int(size[])
 end
 
-function Type_create_struct{T <: DataType}(::Type{T})
+function Type_create_struct{T <: Any}(::Type{T})  # <: Any effectively 
+                                                  # limits T to being a Type
 
   @assert isbits(T)
+  # get the data from the type
   fieldtypes = T.types
   offsets = fieldoffsets(T)
   nfields = Cint(length(fieldtypes))
 
+  # put data in MPI format
   blocklengths = ones(Cint, nfields)
-  displacements = zeros(Cint, nfields)
+  displacements = zeros(Csize_t, nfields)  # size_t == MPI_Aint ?
   types = zeros(Cint, nfields)
   for i=1:nfields
     displacements[i] = offsets[i]
     types[i] = mpitype(fieldtypes[i])
   end
 
+  # create the datatype
   newtype_ref = Ref{Cint}()
   flag = Ref{Cint}()
-  ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, 
-        Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements, types, 
+  ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Csize_t}, 
+        Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements, types, 
         newtype_ref, flag)
 
   if flag[] != 0
     println(STDERR, "Warning: MPI_TYPE_CREATE_STRUCT returned non-zero exit stats")
   end
 
+  # commit the datatatype
   flag2 = Ref{Cint}()
 
   ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
@@ -153,6 +158,7 @@ function Type_create_struct{T <: DataType}(::Type{T})
     println(STDERR, "Warning: MPI_TYPE_COMMIT returned non-zero exit status")
   end
 
+  # add it to the dictonary of known types
   mpitype_dict[T] = newtype_ref[]
 
   return nothing
