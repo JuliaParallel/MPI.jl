@@ -131,7 +131,7 @@ function Type_create_struct{T <: Any}(::Type{T})  # <: Any effectively
 
   # put data in MPI format
   blocklengths = ones(Cint, nfields)
-  displacements = zeros(Csize_t, nfields)  # size_t == MPI_Aint ?
+  displacements = zeros(Cptrdiff_t, nfields)  # size_t == MPI_Aint ?
   types = zeros(Cint, nfields)
   for i=1:nfields
     displacements[i] = offsets[i]
@@ -141,7 +141,7 @@ function Type_create_struct{T <: Any}(::Type{T})  # <: Any effectively
   # create the datatype
   newtype_ref = Ref{Cint}()
   flag = Ref{Cint}()
-  ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Csize_t}, 
+  ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t}, 
         Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements, types, 
         newtype_ref, flag)
 
