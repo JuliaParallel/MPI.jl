@@ -4,10 +4,8 @@ typealias MPIDatatype Union{Char,
                             Float32, Float64, Complex64, Complex128}
 
 # Define a function mpitype(T) that returns the MPI datatype code
-# for a given type T.  This works better with precompilation
-# than a dictionary (since DataType keys need to be re-hashed at runtime),
-# and also allows the datatype code to be inlined at compile-time.
-
+# for a given type T.  The dictonary is defined in __init__ so 
+# the module can be precompiled
 
 # accessor function for getting MPI datatypes
 # use a function in case more behavior is needed later
@@ -120,10 +118,17 @@ function Comm_size(comm::Comm)
     Int(size[])
 end
 
-function Type_create_struct{T <: Any}(::Type{T})  # <: Any effectively 
+function type_create{T <: Any}(::Type{T})  # <: Any effectively 
                                                   # limits T to being a Type
 
-  @assert isbits(T)
+  if !isbits(T)
+    throw(ArgumentError("Type must be isbits()"))
+  end
+
+  if haskey(mpitype_dict, T)  # if the datatype already exists
+    return nothing
+  end
+
   # get the data from the type
   fieldtypes = T.types
   offsets = fieldoffsets(T)
@@ -135,6 +140,12 @@ function Type_create_struct{T <: Any}(::Type{T})  # <: Any effectively
   types = zeros(Cint, nfields)
   for i=1:nfields
     displacements[i] = offsets[i]
+
+    # create an MPI_Datatype for the current field if it does not exist yet
+    if !haskey(mpitype_dict, fieldtypes[i])
+      type_create(fieldtypes[i])
+    end
+
     types[i] = mpitype(fieldtypes[i])
   end
 
@@ -146,16 +157,15 @@ function Type_create_struct{T <: Any}(::Type{T})  # <: Any effectively
         newtype_ref, flag)
 
   if flag[] != 0
-    println(STDERR, "Warning: MPI_TYPE_CREATE_STRUCT returned non-zero exit stats")
+    throw(ErrorException("MPI_Type_create_struct returned non-zero exit status"))
   end
 
   # commit the datatatype
   flag2 = Ref{Cint}()
-
   ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
 
   if flag2[] != 0
-    println(STDERR, "Warning: MPI_TYPE_COMMIT returned non-zero exit status")
+    throw(ErrorException("MPI_Type_commit returned non-zero exit status"))
   end
 
   # add it to the dictonary of known types
