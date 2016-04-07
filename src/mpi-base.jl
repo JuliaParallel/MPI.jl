@@ -118,8 +118,7 @@ function Comm_size(comm::Comm)
     Int(size[])
 end
 
-function type_create{T <: Any}(::Type{T})  # <: Any effectively 
-                                                  # limits T to being a Type
+function type_create(T::DataType)
 
   if !isbits(T)
     throw(ArgumentError("Type must be isbits()"))
@@ -173,9 +172,6 @@ function type_create{T <: Any}(::Type{T})  # <: Any effectively
 
   return nothing
 end
-
-
-
 
 
 # Point-to-point communication
