@@ -168,6 +168,73 @@ On other processes (i.e., the workers) the function does not return
 `MPI.start` must be called with option `MPI_TRANSPORT_ALL` to use MPI as transport.
 `mpirun -np 5 julia 06-cman-transport.jl MPI` will run the example using MPI as transport.
 
+## Julia MPI-only interface
+
+### Communicators:
+Julia interfaces to the Fortran versions of the MPI functions. Since the C and
+Fortran communicators are different, if a C communicator is required (e.g., to
+interface with a C library), this can be achieved with the Fortran to C
+communicator conversion:
+
+```
+juliacomm = MPI.MPI_COMM_WORLD
+ccomm = MPI.CComm(juliacomm)
+```
+
+### Currently wrapped MPI functions
+Convention: `MPI_Fun => MPI.Fun`
+
+#### Administrative functions
+Julia Function (assuming `import MPI`) | Fortran Function
+---------------------------------------|--------------------------------------------------------
+ `MPI.Abort`                           | [`MPI_Abort`](http://www.mpich.org/static/docs/latest/www3/MPI_Abort.html)
+ `MPI.Comm_dup`                        | [`MPI_Comm_dup`](http://www.mpich.org/static/docs/latest/www3/MPI_Comm_dup.html)
+ `MPI.Comm_free`                       | [`MPI_Comm_free`](http://www.mpich.org/static/docs/latest/www3/MPI_Comm_free.html)
+ `MPI.Comm_rank`                       | [`MPI_Comm_rank`](http://www.mpich.org/static/docs/latest/www3/MPI_Comm_rank.html)
+ `MPI.Comm_size`                       | [`MPI_Comm_size`](http://www.mpich.org/static/docs/latest/www3/MPI_Comm_size.html)
+ `MPI.Finalize`                        | [`MPI_Finalize`](http://www.mpich.org/static/docs/latest/www3/MPI_Finalize.html)
+ `MPI.Finalized`                       | [`MPI_Finalized`](http://www.mpich.org/static/docs/latest/www3/MPI_Finalized.html)
+ `MPI.Init`                            | [`MPI_Init`](http://www.mpich.org/static/docs/latest/www3/MPI_Init.html)
+ `MPI.Initialized`                     | [`MPI_Initialized`](http://www.mpich.org/static/docs/latest/www3/MPI_Initialized.html)
+
+#### Point-to-point communication
+Julia Function (assuming `import MPI`) | Fortran Function
+---------------------------------------|--------------------------------------------------------
+ `MPI.Cancel!`                         | [`MPI_Cancel`](http://www.mpich.org/static/docs/latest/www3/MPI_Cancel.html)
+ `MPI.Get_count`                       | [`MPI_Get_count`](http://www.mpich.org/static/docs/latest/www3/MPI_Get_count.html)
+ `MPI.Iprobe`                          | [`MPI_Iprobe`](http://www.mpich.org/static/docs/latest/www3/MPI_Iprobe.html)
+ `MPI.Irecv!`                          | [`MPI_Irecv`](http://www.mpich.org/static/docs/latest/www3/MPI_Irecv.html)
+ `MPI.Isend`                           | [`MPI_Isend`](http://www.mpich.org/static/docs/latest/www3/MPI_Isend.html)
+ `MPI.Probe`                           | [`MPI_Probe`](http://www.mpich.org/static/docs/latest/www3/MPI_Probe.html)
+ `MPI.Recv!`                           | [`MPI_Recv`](http://www.mpich.org/static/docs/latest/www3/MPI_Recv.html)
+ `MPI.Send`                            | [`MPI_Send`](http://www.mpich.org/static/docs/latest/www3/MPI_Send.html)
+ `MPI.Test!`                           | [`MPI_Test`](http://www.mpich.org/static/docs/latest/www3/MPI_Test.html)
+ `MPI.Testall!`                        | [`MPI_Testall`](http://www.mpich.org/static/docs/latest/www3/MPI_Testall.html)
+ `MPI.Testany!`                        | [`MPI_Testany`](http://www.mpich.org/static/docs/latest/www3/MPI_Testany.html)
+ `MPI.Testsome!`                       | [`MPI_Testsome`](http://www.mpich.org/static/docs/latest/www3/MPI_Testsome.html)
+ `MPI.Wait!`                           | [`MPI_Wait`](http://www.mpich.org/static/docs/latest/www3/MPI_Wait.html)
+ `MPI.Waitall!`                        | [`MPI_Waitall`](http://www.mpich.org/static/docs/latest/www3/MPI_Waitall.html)
+ `MPI.Waitany!`                        | [`MPI_Waitany`](http://www.mpich.org/static/docs/latest/www3/MPI_Waitany.html)
+ `MPI.Waitsome!`                       | [`MPI_Waitsome`](http://www.mpich.org/static/docs/latest/www3/MPI_Waitsome.html)
+
+
+#### Collective communication
+Julia Function (assuming `import MPI`) | Fortran Function
+---------------------------------------|--------------------------------------------------------
+ `MPI.Allgather`                       | [`MPI_Allgather`](http://www.mpich.org/static/docs/latest/www3/MPI_Allgather.html)
+ `MPI.Allgatherv`                      | [`MPI_Allgatherv`](http://www.mpich.org/static/docs/latest/www3/MPI_Allgatherv.html)
+ `MPI.Alltoall`                        | [`MPI_Alltoall`](http://www.mpich.org/static/docs/latest/www3/MPI_Alltoall.html)
+ `MPI.Alltoallv`                       | [`MPI_Alltoallv`](http://www.mpich.org/static/docs/latest/www3/MPI_Alltoallv.html)
+ `MPI.Barrier`                         | [`MPI_Barrier`](http://www.mpich.org/static/docs/latest/www3/MPI_Barrier.html)
+ `MPI.Bcast!`                          | [`MPI_Bcast`](http://www.mpich.org/static/docs/latest/www3/MPI_Bcast.html)
+ `MPI.ExScan`                          | [`MPI_Exscan`](http://www.mpich.org/static/docs/latest/www3/MPI_Exscan.html)
+ `MPI.Gather`                          | [`MPI_Gather`](http://www.mpich.org/static/docs/latest/www3/MPI_Gather.html)
+ `MPI.Gatherv`                         | [`MPI_Gatherv`](http://www.mpich.org/static/docs/latest/www3/MPI_Gatherv.html)
+ `MPI.Reduce`                          | [`MPI_Reduce`](http://www.mpich.org/static/docs/latest/www3/MPI_Reduce.html)
+ `MPI.Scan`                            | [`MPI_Scan`](http://www.mpich.org/static/docs/latest/www3/MPI_Scan.html)
+ `MPI.Scatter`                         | [`MPI_Scatter`](http://www.mpich.org/static/docs/latest/www3/MPI_Scatter.html)
+ `MPI.Scatterv`                        | [`MPI_Scatterv`](http://www.mpich.org/static/docs/latest/www3/MPI_Scatterv.html)
+
 
 [Julia]: http://julialang.org/
 [MPI]: http://www.mpi-forum.org/
