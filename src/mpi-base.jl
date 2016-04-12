@@ -10,7 +10,7 @@ typealias MPIDatatype Union{Char,
 # accessor function for getting MPI datatypes
 # use a function in case more behavior is needed later
 function mpitype{T}(::Type{T})
-  return mpitype_dict[T]
+    return mpitype_dict[T]
 end
 
 type Comm
@@ -119,58 +119,55 @@ function Comm_size(comm::Comm)
 end
 
 function type_create(T::DataType)
-
-  if !isbits(T)
-    throw(ArgumentError("Type must be isbits()"))
-  end
-
-  if haskey(mpitype_dict, T)  # if the datatype already exists
-    return nothing
-  end
-
-  # get the data from the type
-  fieldtypes = T.types
-  offsets = fieldoffsets(T)
-  nfields = Cint(length(fieldtypes))
-
-  # put data in MPI format
-  blocklengths = ones(Cint, nfields)
-  displacements = zeros(Cptrdiff_t, nfields)  # size_t == MPI_Aint ?
-  types = zeros(Cint, nfields)
-  for i=1:nfields
-    displacements[i] = offsets[i]
-
-    # create an MPI_Datatype for the current field if it does not exist yet
-    if !haskey(mpitype_dict, fieldtypes[i])
-      type_create(fieldtypes[i])
+    if !isbits(T)
+        throw(ArgumentError("Type must be isbits()"))
     end
 
-    types[i] = mpitype(fieldtypes[i])
-  end
+    if haskey(mpitype_dict, T)  # if the datatype already exists
+        return nothing
+    end
 
-  # create the datatype
-  newtype_ref = Ref{Cint}()
-  flag = Ref{Cint}()
-  ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t}, 
-        Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements, types, 
-        newtype_ref, flag)
+    # get the data from the type
+    fieldtypes = T.types
+    offsets = fieldoffsets(T)
+    nfields = Cint(length(fieldtypes))
 
-  if flag[] != 0
-    throw(ErrorException("MPI_Type_create_struct returned non-zero exit status"))
-  end
+    # put data in MPI format
+    blocklengths = ones(Cint, nfields)
+    displacements = zeros(Cptrdiff_t, nfields)  # size_t == MPI_Aint ?
+    types = zeros(Cint, nfields)
+    for i=1:nfields
+        displacements[i] = offsets[i]
+        # create an MPI_Datatype for the current field if it does not exist yet
+        if !haskey(mpitype_dict, fieldtypes[i])
+            type_create(fieldtypes[i])
+        end
+        types[i] = mpitype(fieldtypes[i])
+    end
 
-  # commit the datatatype
-  flag2 = Ref{Cint}()
-  ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
+    # create the datatype
+    newtype_ref = Ref{Cint}()
+    flag = Ref{Cint}()
+    ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t}, 
+          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements, 
+          types, newtype_ref, flag)
 
-  if flag2[] != 0
-    throw(ErrorException("MPI_Type_commit returned non-zero exit status"))
-  end
+    if flag[] != 0
+        throw(ErrorException("MPI_Type_create_struct returned non-zero exit status"))
+    end
 
-  # add it to the dictonary of known types
-  mpitype_dict[T] = newtype_ref[]
+    # commit the datatatype
+    flag2 = Ref{Cint}()
+    ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
 
-  return nothing
+    if flag2[] != 0
+        throw(ErrorException("MPI_Type_commit returned non-zero exit status"))
+    end
+
+    # add it to the dictonary of known types
+    mpitype_dict[T] = newtype_ref[]
+
+    return nothing
 end
 
 
