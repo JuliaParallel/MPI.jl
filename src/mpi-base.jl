@@ -320,7 +320,9 @@ function Waitall!(reqs::Array{Request,1})
         reqs[i].val = reqvals[i]
         reqs[i].buffer = nothing
         stats[i] = Status()
-        stats[i].val[:] = statvals[:,i]
+        for v in 1:MPI_STATUS_SIZE
+            stats[i].val[v] = statvals[v,i]
+        end
     end
     stats
 end
@@ -341,7 +343,9 @@ function Testall!(reqs::Array{Request,1})
         reqs[i].val = reqvals[i]
         reqs[i].buffer = nothing
         stats[i] = Status()
-        stats[i].val[:] = statvals[:,i]
+        for v in 1:MPI_STATUS_SIZE
+            stats[i].val[v] = statvals[v,i]
+        end
     end
     (true, stats)
 end
@@ -354,7 +358,7 @@ function Waitany!(reqs::Array{Request,1})
     ccall(MPI_WAITANY, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, index, statvals, &0)
-    index = ind[]
+    index = Int(ind[])
     reqs[index].val = reqvals[index]
     reqa[index].buffer = nothing
     (index, stat)
@@ -372,7 +376,7 @@ function Testany!(reqs::Array{Request,1})
     if flag[] == 0
         return (false, 0, nothing)
     end
-    index = ind[]
+    index = Int(ind[])
     reqs[index].val = reqvals[index]
     reqs[index].buffer = nothing
     (true, index, stat)
@@ -387,20 +391,22 @@ function Waitsome!(reqs::Array{Request,1})
     ccall(MPI_WAITSOME, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, outcnt, inds, statvals, &0)
-    outcount = outcnt[]
+    outcount = Int(outcnt[])
     # This can happen if there were no valid requests
-    if outcount == MPI_UNDEFINED
+    if outcount == UNDEFINED
         outcount = 0
     end
     indices = Array(Int, outcount)
     stats = Array(Status, outcount)
     for i in 1:outcount
-        ind = inds[i]
+        ind = Int(inds[i])
         reqs[ind].val = reqvals[ind]
         reqs[ind].buffer = nothing
         indices[i] = inds[i]
         stats[i] = Status()
-        stats[i].val[:] = statvals[:,i]
+        for v in 1:MPI_STATUS_SIZE
+            stats[i].val[v] = statvals[v,i]
+        end
     end
     (indices, stats)
 end
@@ -416,18 +422,20 @@ function Testsome!(reqs::Array{Request,1})
           &count, reqvals, outcnt, inds, statvals, &0)
     outcount = outcnt[]
     # This can happen if there were no valid requests
-    if outcount == MPI_UNDEFINED
+    if outcount == UNDEFINED
         outcount = 0
     end
     indices = Array(Int, outcount)
     stats = Array(Status, outcount)
     for i in 1:outcount
-        ind = inds[i]
+        ind = Int(inds[i])
         reqs[ind].val = reqvals[ind]
         reqs[ind].buffer = nothing
         indices[i] = inds[i]
         stats[i] = Status()
-        stats[i].val[:] = statvals[:,i]
+        for v in 1:MPI_STATUS_SIZE
+            stats[i].val[v] = statvals[v,i]
+        end
     end
     (indices, stats)
 end
