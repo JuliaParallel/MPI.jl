@@ -5,12 +5,12 @@ module MPI
 using Compat
 
 @windows_only begin
-	const depfile = "win_mpiconstants.jl"
+    const depfile = "win_mpiconstants.jl"
 end
 
 @unix_only begin
-	const depfile = joinpath(dirname(@__FILE__), "..", "deps", "src", "compile-time.jl")
-	isfile(depfile) || error("MPI not properly installed. Please run Pkg.build(\"MPI\")")
+    const depfile = joinpath(dirname(@__FILE__), "..", "deps", "src", "compile-time.jl")
+    isfile(depfile) || error("MPI not properly installed. Please run Pkg.build(\"MPI\")")
 end
 
 include(depfile)
@@ -20,8 +20,9 @@ include("cman.jl")
 
 function __init__()
     @unix_only begin
-        # need to open libmpi with RTLD_GLOBAL flag for Linux, before any ccall
-        # cannot use RTLD_DEEPBIND; this leads to segfaults at least on Ubuntu 15.10
+        # need to open libmpi with RTLD_GLOBAL flag for Linux, before
+        # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
+        # at least on Ubuntu 15.10
         @eval const libmpi_handle =
             Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
 
@@ -57,7 +58,6 @@ function __init__()
         Float64 => MPI_REAL8,
         Complex64 => MPI_COMPLEX8,
         Complex128 => MPI_COMPLEX16)
-
 end
 
 end
