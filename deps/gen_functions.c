@@ -1,7 +1,11 @@
 #include <stdio.h>
+#include <stddef.h>
 #include "jlmpi_f2c.h"
 #include "mpi.h"
 #include "version.h"
+
+// check that the size of MPI_Aint is consistent
+typedef int check_sizeof_MPI_Aint[sizeof(MPI_Aint) == sizeof(ptrdiff_t) ? 1 : -1];
 
 #define STRING1(s) #s
 #define STRING(s) STRING1(s)
@@ -64,6 +68,10 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_WAITANY            => \"%s\",\n", STRING(MPI_WAITANY));
   printf("    :MPI_WAITSOME           => \"%s\",\n", STRING(MPI_WAITSOME));
   printf("    :MPI_WTIME              => \"%s\",\n", STRING(MPI_WTIME));
+  printf("    :MPI_TYPE_CREATE_STRUCT => \"%s\",\n", 
+         STRING(MPI_TYPE_CREATE_STRUCT));
+  printf("    :MPI_TYPE_COMMIT        => \"%s\",\n", 
+         STRING(MPI_TYPE_COMMIT));
   printf(")\n");
   printf("\n");
   printf("bitstype %d CComm\n", (int)(sizeof(MPI_Comm) * 8));

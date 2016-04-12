@@ -4,51 +4,13 @@ typealias MPIDatatype Union{Char,
                             Float32, Float64, Complex64, Complex128}
 
 # Define a function mpitype(T) that returns the MPI datatype code
-# for a given type T<:MPIDatatype.  This works better with precompilation
-# than a dictionary (since DataType keys need to be re-hashed at runtime),
-# and also allows the datatype code to be inlined at compile-time.
-let _int_datatypes = Dict{Int, Cint}(
-        1 => MPI_INTEGER1,
-        2 => MPI_INTEGER2,
-        4 => MPI_INTEGER4,
-        8 => MPI_INTEGER8),
-    _real_datatypes = Dict{Int, Cint}(
-        4 => MPI_REAL4,
-        8 => MPI_REAL8)
-    _complex_datatypes = Dict{Int, Cint}(
-        8 => MPI_COMPLEX8,
-        16 => MPI_COMPLEX16)
-    _datatypes = Dict{DataType, Cint}(
-        # Older versions of OpenMPI (such as those used by default in
-        # Travis) do not define MPI_WCHAR and the MPI_*INT*_T types for
-        # Fortran. We thus don't require them (yet).
-        # Char => MPI_WCHAR,
-        # Int8 => MPI_INT8_T,
-        # UInt8 => MPI_UINT8_T,
-        # Int16 => MPI_INT16_T,
-        # UInt16 => MPI_UINT16_T,
-        # Int32 => MPI_INT32_T,
-        # UInt32 => MPI_UINT32_T,
-        # Int64 => MPI_INT64_T,
-        # UInt64 => MPI_UINT64_T,
-        Char => _int_datatypes[sizeof(Char)],
-        Int8 => _int_datatypes[sizeof(Int8)],
-        UInt8 => _int_datatypes[sizeof(UInt8)],
-        Int16 => _int_datatypes[sizeof(Int16)],
-        UInt16 => _int_datatypes[sizeof(UInt16)],
-        Int32 => _int_datatypes[sizeof(Int32)],
-        UInt32 => _int_datatypes[sizeof(UInt32)],
-        Int64 => _int_datatypes[sizeof(Int64)],
-        UInt64 => _int_datatypes[sizeof(UInt64)],
-        Float32 => _real_datatypes[sizeof(Float32)],
-        Float64 => _real_datatypes[sizeof(Float64)],
-        Complex64 => _complex_datatypes[sizeof(Complex64)],
-        Complex128 => _complex_datatypes[sizeof(Complex128)])
+# for a given type T.  The dictonary is defined in __init__ so 
+# the module can be precompiled
 
-    global mpitype
-    for (T,t) in _datatypes
-        @eval mpitype(::Type{$T}) = $t
-    end
+# accessor function for getting MPI datatypes
+# use a function in case more behavior is needed later
+function mpitype{T}(::Type{T})
+    return mpitype_dict[T]
 end
 
 type Comm
@@ -156,6 +118,59 @@ function Comm_size(comm::Comm)
     Int(size[])
 end
 
+function type_create(T::DataType)
+    if !isbits(T)
+        throw(ArgumentError("Type must be isbits()"))
+    end
+
+    if haskey(mpitype_dict, T)  # if the datatype already exists
+        return nothing
+    end
+
+    # get the data from the type
+    fieldtypes = T.types
+    offsets = fieldoffsets(T)
+    nfields = Cint(length(fieldtypes))
+
+    # put data in MPI format
+    blocklengths = ones(Cint, nfields)
+    displacements = zeros(Cptrdiff_t, nfields)  # size_t == MPI_Aint ?
+    types = zeros(Cint, nfields)
+    for i=1:nfields
+        displacements[i] = offsets[i]
+        # create an MPI_Datatype for the current field if it does not exist yet
+        if !haskey(mpitype_dict, fieldtypes[i])
+            type_create(fieldtypes[i])
+        end
+        types[i] = mpitype(fieldtypes[i])
+    end
+
+    # create the datatype
+    newtype_ref = Ref{Cint}()
+    flag = Ref{Cint}()
+    ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t}, 
+          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements, 
+          types, newtype_ref, flag)
+
+    if flag[] != 0
+        throw(ErrorException("MPI_Type_create_struct returned non-zero exit status"))
+    end
+
+    # commit the datatatype
+    flag2 = Ref{Cint}()
+    ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
+
+    if flag2[] != 0
+        throw(ErrorException("MPI_Type_commit returned non-zero exit status"))
+    end
+
+    # add it to the dictonary of known types
+    mpitype_dict[T] = newtype_ref[]
+
+    return nothing
+end
+
+
 # Point-to-point communication
 
 function Probe(src::Integer, tag::Integer, comm::Comm)
@@ -178,14 +193,14 @@ function Iprobe(src::Integer, tag::Integer, comm::Comm)
     true, stat
 end
 
-function Get_count{T<:MPIDatatype}(stat::Status, ::Type{T})
+function Get_count{T}(stat::Status, ::Type{T})
     count = Ref{Cint}()
     ccall(MPI_GET_COUNT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           stat.val, &mpitype(T), count, &0)
     Int(count[])
 end
 
-function Send{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
+function Send{T}(buf::Union{Ptr{T},Array{T}}, count::Integer,
                               dest::Integer, tag::Integer, comm::Comm)
     ccall(MPI_SEND, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
@@ -193,12 +208,12 @@ function Send{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
           buf, &count, &mpitype(T), &dest, &tag, &comm.val, &0)
 end
 
-function Send{T<:MPIDatatype}(buf::Array{T}, dest::Integer, tag::Integer,
+function Send{T}(buf::Array{T}, dest::Integer, tag::Integer,
                               comm::Comm)
     Send(buf, length(buf), dest, tag, comm)
 end
 
-function Send{T<:MPIDatatype}(obj::T, dest::Integer, tag::Integer, comm::Comm)
+function Send{T}(obj::T, dest::Integer, tag::Integer, comm::Comm)
     buf = [obj]
     Send(buf, dest, tag, comm)
 end
@@ -208,7 +223,7 @@ function send(obj, dest::Integer, tag::Integer, comm::Comm)
     Send(buf, dest, tag, comm)
 end
 
-function Isend{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
+function Isend{T}(buf::Union{Ptr{T},Array{T}}, count::Integer,
                                dest::Integer, tag::Integer, comm::Comm)
     rval = Ref{Cint}()
     ccall(MPI_ISEND, Void,
@@ -218,12 +233,12 @@ function Isend{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
     Request(rval[], buf)
 end
 
-function Isend{T<:MPIDatatype}(buf::Array{T}, dest::Integer, tag::Integer,
+function Isend{T}(buf::Array{T}, dest::Integer, tag::Integer,
                                comm::Comm)
     Isend(buf, length(buf), dest, tag, comm)
 end
 
-function Isend{T<:MPIDatatype}(obj::T, dest::Integer, tag::Integer, comm::Comm)
+function Isend{T}(obj::T, dest::Integer, tag::Integer, comm::Comm)
     buf = [obj]
     Isend(buf, dest, tag, comm)
 end
@@ -233,7 +248,7 @@ function isend(obj, dest::Integer, tag::Integer, comm::Comm)
     Isend(buf, dest, tag, comm)
 end
 
-function Recv!{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
+function Recv!{T}(buf::Union{Ptr{T},Array{T}}, count::Integer,
                                src::Integer, tag::Integer, comm::Comm)
     stat = Status()
     ccall(MPI_RECV, Void,
@@ -243,12 +258,12 @@ function Recv!{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
     stat
 end
 
-function Recv!{T<:MPIDatatype}(buf::Array{T}, src::Integer, tag::Integer,
+function Recv!{T}(buf::Array{T}, src::Integer, tag::Integer,
                                comm::Comm)
     Recv!(buf, length(buf), src, tag, comm)
 end
 
-function Recv{T<:MPIDatatype}(::Type{T}, src::Integer, tag::Integer, comm::Comm)
+function Recv{T}(::Type{T}, src::Integer, tag::Integer, comm::Comm)
     buf = Ref{T}
     stat = Recv!(buf, src, tag, comm)
     (buf[], stat)
@@ -262,7 +277,7 @@ function recv(src::Integer, tag::Integer, comm::Comm)
     (MPI.deserialize(buf), stat)
 end
 
-function Irecv!{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
+function Irecv!{T}(buf::Union{Ptr{T},Array{T}}, count::Integer,
                                 src::Integer, tag::Integer, comm::Comm)
     val = Ref{Cint}()
     ccall(MPI_IRECV, Void,
@@ -272,7 +287,7 @@ function Irecv!{T<:MPIDatatype}(buf::Union{Ptr{T},Array{T}}, count::Integer,
     Request(val[], buf)
 end
 
-function Irecv!{T<:MPIDatatype}(buf::Array{T}, src::Integer, tag::Integer,
+function Irecv!{T}(buf::Array{T}, src::Integer, tag::Integer,
                                 comm::Comm)
     Irecv!(buf, length(buf), src, tag, comm)
 end
@@ -452,7 +467,7 @@ function Barrier(comm::Comm)
     ccall(MPI_BARRIER, Void, (Ptr{Cint},Ptr{Cint}), &comm.val, &0)
 end
 
-function Bcast!{T<:MPIDatatype}(buffer::Union{Ptr{T},Array{T}}, count::Integer,
+function Bcast!{T}(buffer::Union{Ptr{T},Array{T}}, count::Integer,
                                 root::Integer, comm::Comm)
     ccall(MPI_BCAST, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
@@ -460,12 +475,12 @@ function Bcast!{T<:MPIDatatype}(buffer::Union{Ptr{T},Array{T}}, count::Integer,
     buffer
 end
 
-function Bcast!{T<:MPIDatatype}(buffer::Array{T}, root::Integer, comm::Comm)
+function Bcast!{T}(buffer::Array{T}, root::Integer, comm::Comm)
     Bcast!(buffer, length(buffer), root, comm)
 end
 
 #=
-function Bcast{T<:MPIDatatype}(obj::T, root::Integer, comm::Comm)
+function Bcast{T}(obj::T, root::Integer, comm::Comm)
     buf = [T]
     Bcast!(buf, root, comm)
     buf[1]
@@ -490,7 +505,7 @@ function bcast(obj, root::Integer, comm::Comm)
     obj
 end
 
-function Reduce{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
+function Reduce{T}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
                                 op::Op, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     recvbuf = Array(T, isroot ? count : 0)
@@ -502,19 +517,19 @@ function Reduce{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
     isroot ? recvbuf : nothing
 end
 
-function Reduce{T<:MPIDatatype}(sendbuf::Array{T}, op::Op, root::Integer,
+function Reduce{T}(sendbuf::Array{T}, op::Op, root::Integer,
                                 comm::Comm)
     Reduce(sendbuf, length(sendbuf), op, root, comm)
 end
 
-function Reduce{T<:MPIDatatype}(object::T, op::Op, root::Integer, comm::Comm)
+function Reduce{T}(object::T, op::Op, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     sendbuf = T[object]
     recvbuf = Reduce(sendbuf, op, root, comm)
     isroot ? recvbuf[1] : nothing
 end
 
-function Scatter{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}},
+function Scatter{T}(sendbuf::Union{Ptr{T},Array{T}},
                                  count::Integer, root::Integer, comm::Comm)
     recvbuf = Array(T, count)
     ccall(MPI_SCATTER, Void,
@@ -523,7 +538,7 @@ function Scatter{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}},
     recvbuf
 end
 
-function Scatterv{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}},
+function Scatterv{T}(sendbuf::Union{Ptr{T},Array{T}},
                                   counts::Vector{Cint}, root::Integer,
                                   comm::Comm)
     recvbuf = Array(T, counts[Comm_rank(comm) + 1])
@@ -535,7 +550,7 @@ function Scatterv{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}},
     recvbuf
 end
 
-function Gather{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
+function Gather{T}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
                                  root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     recvbuf = Array(T, isroot ? Comm_size(comm) * count : 0)
@@ -545,19 +560,19 @@ function Gather{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
     isroot ? recvbuf : nothing
 end
 
-function Gather{T<:MPIDatatype}(sendbuf::Array{T}, root::Integer,
+function Gather{T}(sendbuf::Array{T}, root::Integer,
                                  comm::Comm)
     Gather(sendbuf, length(sendbuf), root, comm)
 end
 
-function Gather{T<:MPIDatatype}(object::T, root::Integer, comm::Comm)
+function Gather{T}(object::T, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     sendbuf = T[object]
     recvbuf = Gather(sendbuf, root, comm)
     isroot ? recvbuf : nothing
 end
 
-function Allgather{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
+function Allgather{T}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
                                    comm::Comm)
     recvbuf = Array(T, Comm_size(comm) * count)
     ccall(MPI_ALLGATHER, Void,
@@ -566,17 +581,17 @@ function Allgather{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integ
     recvbuf
 end
 
-function Allgather{T<:MPIDatatype}(sendbuf::Array{T}, comm::Comm)
+function Allgather{T}(sendbuf::Array{T}, comm::Comm)
     Allgather(sendbuf, length(sendbuf), comm)
 end
 
-function Allgather{T<:MPIDatatype}(object::T, comm::Comm)
+function Allgather{T}(object::T, comm::Comm)
     sendbuf = T[object]
     recvbuf = Allgather(sendbuf, comm)
     recvbuf
 end
 
-function Gatherv{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, counts::Vector{Cint},
+function Gatherv{T}(sendbuf::Union{Ptr{T},Array{T}}, counts::Vector{Cint},
                                  root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     displs = cumsum(counts) - counts
@@ -588,7 +603,7 @@ function Gatherv{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, counts::Vector
     isroot ? recvbuf : nothing
 end
 
-function Allgatherv{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, counts::Vector{Cint},
+function Allgatherv{T}(sendbuf::Union{Ptr{T},Array{T}}, counts::Vector{Cint},
                                     comm::Comm)
     displs = cumsum(counts) - counts
     sendcnt = counts[Comm_rank(comm) + 1]
@@ -599,7 +614,7 @@ function Allgatherv{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, counts::Vec
     recvbuf
 end
 
-function Alltoall{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
+function Alltoall{T}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
 				 comm::Comm)
     recvbuf = Array(T, Comm_size(comm)*count)
     ccall(MPI_ALLTOALL, Void,
@@ -608,7 +623,7 @@ function Alltoall{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Intege
     recvbuf
 end
 
-function Alltoallv{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, scounts::Vector{Cint},
+function Alltoallv{T}(sendbuf::Union{Ptr{T},Array{T}}, scounts::Vector{Cint},
 				                   rcounts::Vector{Cint}, comm::Comm)
     recvbuf = Array(T, sum(rcounts))
     sdispls = cumsum(scounts) - scounts
@@ -619,7 +634,7 @@ function Alltoallv{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, scounts::Vec
     recvbuf
 end
 
-function Scan{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
+function Scan{T}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
 		              op::Op, comm::Comm)
     recvbuf = Array(T, count)
     ccall(MPI_SCAN, Void,
@@ -628,12 +643,12 @@ function Scan{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
     recvbuf
 end
 
-function Scan{T<:MPIDatatype}(object::T, op::Op, comm::Comm)
+function Scan{T}(object::T, op::Op, comm::Comm)
     sendbuf = T[object]
     Scan(sendbuf,1,op,comm)
 end
 
-function ExScan{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
+function ExScan{T}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
 	                        op::Op, comm::Comm)
     recvbuf = Array(T, count)
     ccall(MPI_EXSCAN, Void,
@@ -642,7 +657,7 @@ function ExScan{T<:MPIDatatype}(sendbuf::Union{Ptr{T},Array{T}}, count::Integer,
     recvbuf
 end
 
-function ExScan{T<:MPIDatatype}(object::T, op::Op, comm::Comm)
+function ExScan{T}(object::T, op::Op, comm::Comm)
     sendbuf = T[object]
     ExScan(sendbuf,1,op,comm)
 end
