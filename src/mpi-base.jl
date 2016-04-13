@@ -368,10 +368,10 @@ function Waitany!(reqs::Array{Request,1})
     stat = Status()
     ccall(MPI_WAITANY, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-          &count, reqvals, index, statvals, &0)
+          &count, reqvals, ind, stat.val, &0)
     index = Int(ind[])
     reqs[index].val = reqvals[index]
-    reqa[index].buffer = nothing
+    reqs[index].buffer = nothing
     (index, stat)
 end
 
