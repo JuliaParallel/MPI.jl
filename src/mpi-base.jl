@@ -640,7 +640,7 @@ function Scan{T}(object::T, op::Op, comm::Comm)
     Scan(sendbuf,1,op,comm)
 end
 
-function ExScan{T}(sendbuf::MPIBuffertype{T}, count::Integer,
+function Exscan{T}(sendbuf::MPIBuffertype{T}, count::Integer,
                    op::Op, comm::Comm)
     recvbuf = Array(T, count)
     ccall(MPI_EXSCAN, Void,
@@ -649,9 +649,9 @@ function ExScan{T}(sendbuf::MPIBuffertype{T}, count::Integer,
     recvbuf
 end
 
-function ExScan{T}(object::T, op::Op, comm::Comm)
+function Exscan{T}(object::T, op::Op, comm::Comm)
     sendbuf = T[object]
-    ExScan(sendbuf,1,op,comm)
+    Exscan(sendbuf,1,op,comm)
 end
 
 # Conversion between C and Fortran Comm handles:
