@@ -9,7 +9,6 @@ typealias MPIBuffertype{T} Union{Ptr{T}, Array{T}, Ref{T}}
 # can be precompiled
 
 # accessor function for getting MPI datatypes
-mpitype{T}(::Type{T}) = mpitype_dict[T]
 
 type Comm
     val::Cint
@@ -116,13 +115,13 @@ function Comm_size(comm::Comm)
     Int(size[])
 end
 
-function type_create(T::DataType)
+function mpitype{T}(::Type{T})
     if !isbits(T)
         throw(ArgumentError("Type must be isbits()"))
     end
 
     if haskey(mpitype_dict, T)  # if the datatype already exists
-        return nothing
+      return mpitype_dict[T]
     end
 
     # get the data from the type
@@ -137,9 +136,6 @@ function type_create(T::DataType)
     for i=1:nfields
         displacements[i] = offsets[i]
         # create an MPI_Datatype for the current field if it does not exist yet
-        if !haskey(mpitype_dict, fieldtypes[i])
-            type_create(fieldtypes[i])
-        end
         types[i] = mpitype(fieldtypes[i])
     end
 
@@ -165,7 +161,7 @@ function type_create(T::DataType)
     # add it to the dictonary of known types
     mpitype_dict[T] = newtype_ref[]
 
-    return nothing
+    return mpitype_dict[T]
 end
 
 # Point-to-point communication
