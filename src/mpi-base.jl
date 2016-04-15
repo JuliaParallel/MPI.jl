@@ -525,6 +525,39 @@ function Reduce{T}(object::T, op::Op, root::Integer, comm::Comm)
     isroot ? recvbuf[1] : nothing
 end
 
+function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T}, 
+                      count::Integer, op::Op, comm::Comm)
+
+  flag = zero(Cint)
+  ccall(MPI_ALLREDUCE, Void, (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+        Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &Int32(count), &mpitype(T), &op.val, &comm.val, &flag)
+
+  if flag != 0
+    println(STDERR, "Warning: MPI_Allreduce exited with status ", flag)
+  end
+
+  recvbuf
+end
+                  
+function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                      op::Op, comm::Comm)
+
+    Allreduce(sendbuf, recvbuf, length(sendbuf), op, comm)
+end
+
+
+function Allreduce{T}(obj::T, op::Op, comm::Comm)
+
+  objref = Ref(obj)
+  outref = Ref{T}()
+  Allreduce(objref, outref, 1, op, comm)
+
+  return outref[]
+end
+
+# how to handle allocating the recvbuf, in-place operation?
+
+
 function Scatter{T}(sendbuf::MPIBuffertype{T},
                     count::Integer, root::Integer, comm::Comm)
     recvbuf = Array(T, count)
