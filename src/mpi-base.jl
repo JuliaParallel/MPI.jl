@@ -525,7 +525,8 @@ function Reduce{T}(object::T, op::Op, root::Integer, comm::Comm)
     isroot ? recvbuf[1] : nothing
 end
 
-function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T}, 
+# T and T2 are different for MPI_IN_PLACE as the sendbuf
+function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       count::Integer, op::Op, comm::Comm)
     flag = zero(Cint)
     ccall(MPI_ALLREDUCE, Void, (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
@@ -541,9 +542,8 @@ end
                   
 function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       op::Op, comm::Comm)
-    Allreduce(sendbuf, recvbuf, length(sendbuf), op, comm)
+    Allreduce(sendbuf, recvbuf, length(recvbuf), op, comm)
 end
-
 
 function Allreduce{T}(obj::T, op::Op, comm::Comm)
     objref = Ref(obj)
@@ -551,6 +551,32 @@ function Allreduce{T}(obj::T, op::Op, comm::Comm)
     Allreduce(objref, outref, 1, op, comm)
 
     outref[]
+end
+
+#=
+# in-place version
+function Allreduce{T}(recvbuf::MPIBuffertype{T}, op::Op, comm::Comm)
+
+#  Allreduce(sendbuf, recvbuf, length(recvbuf), op, comm)
+    flag = zero(Cint)
+    ccall(MPI_ALLREDUCE, Void, (Ptr{Cint}, Ptr{Void}, Ptr{Cint}, Ptr{Cint}, 
+          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &MPI_IN_PLACE, recvbuf, 
+          &Int32(length(recvbuf)), &mpitype(T), &op.val, &comm.val, &flag)
+
+    if flag != 0
+      println(STDERR, "Warning: MPI_Allreduce exited with status ", flag)
+    end
+
+  recvbuf
+end
+=#
+
+# allocate receive buffer automatically
+function allreduce{T}(sendbuf::MPIBuffertype{T}, op::Op, comm::Comm)
+
+  len = length(sendbuf)
+  recvbuf = Array(T, len)
+  Allreduce(sendbuf, recvbuf, len, op, comm)
 end
 
 # how to handle allocating the recvbuf, in-place operation?
