@@ -32,7 +32,9 @@ for i=1:nsends
     send_reqs[idx] = MPI.REQUEST_NULL
 end
 
-@test sum(send_check) == nsends
+for i=1:nsends
+  @test send_check[i] == 1
+end
 
 for i=1:nsends
     idx, stat = MPI.Waitany!(recv_reqs)
@@ -40,7 +42,9 @@ for i=1:nsends
     recv_reqs[idx] = MPI.REQUEST_NULL
 end
 
-@test sum(recv_check) == nsends
+for i=1:nsends
+  @test recv_check[i] == 1
+end
 
 MPI.Barrier(MPI.COMM_WORLD)
 MPI.Finalize()
