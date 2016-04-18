@@ -528,13 +528,13 @@ end
 # T and T2 are different for MPI_IN_PLACE as the sendbuf
 function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       count::Integer, op::Op, comm::Comm)
-    flag = zero(Cint)
+    flag = Ref{Cint}()
     ccall(MPI_ALLREDUCE, Void, (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
           Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &Int32(count), &mpitype(T), 
-          &op.val, &comm.val, &flag)
+          &op.val, &comm.val, flag)
 
-    if flag != 0
-      println(STDERR, "Warning: MPI_Allreduce exited with status ", flag)
+    if flag[] != 0
+      throw(ErrorException("Allreduce returned non-zero exit status"))
     end
 
     recvbuf
@@ -555,7 +555,7 @@ end
 
 #=
 # in-place version
-function Allreduce{T}(recvbuf::MPIBuffertype{T}, op::Op, comm::Comm)
+function Allreduce!{T}(recvbuf::MPIBuffertype{T}, op::Op, comm::Comm)
 
 #  Allreduce(sendbuf, recvbuf, length(recvbuf), op, comm)
     flag = zero(Cint)
