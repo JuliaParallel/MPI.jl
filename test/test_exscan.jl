@@ -12,7 +12,7 @@ rank = MPI.Comm_rank(comm)
 typs = setdiff([MPI.MPIDatatype.types...], [Char, Int8, UInt8])
 for typ in typs
     val = convert(typ,rank+1)
-    B = MPI.ExScan(val, MPI.PROD, comm)
+    B = MPI.Exscan(val, MPI.PROD, comm)
     if rank > 0
         @test_approx_eq B[1] factorial(rank)
     end
