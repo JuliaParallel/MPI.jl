@@ -11,12 +11,13 @@ typealias MPIBuffertype{T} Union{Ptr{T}, Array{T}, Ref{T}}
 
 # accessor and creation function for getting MPI datatypes
 function mpitype{T}(::Type{T})
-    if !isbits(T)
-        throw(ArgumentError("Type must be isbits()"))
-    end
 
     if haskey(mpitype_dict, T)  # if the datatype already exists
       return mpitype_dict[T]
+    end
+
+    if !isbits(T)
+        throw(ArgumentError("Type must be isbits()"))
     end
 
     # get the data from the type
