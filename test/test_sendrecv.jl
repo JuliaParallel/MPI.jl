@@ -30,6 +30,10 @@ stats = MPI.Waitall!([sreq, rreq])
 @test MPI.Get_tag(stats[2]) == src+32
 @test isapprox(norm(recv_mesg-recv_mesg_expected), 0.0)
 
+(done,stats) = MPI.Testall!([sreq, rreq])
+@test done
+
+
 rreq = nothing
 sreq = nothing
 gc()
