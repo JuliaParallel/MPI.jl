@@ -77,8 +77,12 @@ const MPI_PROBE = (:MPI_PROBE, "msmpi.dll")
 const MPI_COMM_FREE = (:MPI_COMM_FREE, "msmpi.dll")
 const MPI_GET_COUNT = (:MPI_GET_COUNT, "msmpi.dll")
 const MPI_TESTSOME = (:MPI_TESTSOME, "msmpi.dll")
+const MPI_TESTANY = (:MPI_TESTANY, "msmpi.dll")
+const MPI_TESTALL = (:MPI_TESTALL, "msmpi.dll")
 const MPI_TYPE_CREATE_STRUCT = (:MPI_TYPE_CREATE_STRUCT, "msmpi.dll")
 const MPI_TYPE_COMMIT = (:MPI_TYPE_COMMIT, "msmpi.dll")
 const MPI_WAIT = (:MPI_WAIT, "msmpi.dll")
+const MPI_WAITSOME = (:MPI_WAITSOME, "msmpi.dll")
+const MPI_WAITANY = (:MPI_WAITANY, "msmpi.dll")
 
 bitstype 32 CComm
