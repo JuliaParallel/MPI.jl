@@ -127,8 +127,12 @@ function type_create(T::DataType)
 
     # get the data from the type
     fieldtypes = T.types
-    offsets = fieldoffsets(T)
     nfields = Cint(length(fieldtypes))
+    if VERSION < v"0.5.0-dev+2285"
+        offsets = fieldoffsets(T)
+    else
+        offsets = map(idx->fieldoffset(T, idx), 1:nfields)
+    end
 
     # put data in MPI format
     blocklengths = ones(Cint, nfields)
