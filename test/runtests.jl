@@ -1,3 +1,4 @@
+using MPI
 using Base.Test
 
 # Code coverage command line options; must correspond to src/julia.h
