@@ -80,5 +80,6 @@ const MPI_TESTSOME = (:MPI_TESTSOME, "msmpi.dll")
 const MPI_TYPE_CREATE_STRUCT = (:MPI_TYPE_CREATE_STRUCT, "msmpi.dll")
 const MPI_TYPE_COMMIT = (:MPI_TYPE_COMMIT, "msmpi.dll")
 const MPI_WAIT = (:MPI_WAIT, "msmpi.dll")
+const MPI_WAITANY = (:MPI_WAITANY, "msmpi.dll")
 
 bitstype 32 CComm
