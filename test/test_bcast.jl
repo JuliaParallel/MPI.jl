@@ -34,7 +34,7 @@ comm = MPI.COMM_WORLD
 
 g = x -> x^2 + 2x - 1
 if MPI.Comm_rank(comm) == root
-    f = copy(g)
+    f = g
 else
     f = nothing
 end
