@@ -265,8 +265,8 @@ function Recv!{T}(buf::Array{T}, src::Integer, tag::Integer,
 end
 
 function Recv{T}(::Type{T}, src::Integer, tag::Integer, comm::Comm)
-    buf = Ref{T}
-    stat = Recv!(buf, src, tag, comm)
+    buf = Ref{T}()
+    stat = Recv!(buf, 1, src, tag, comm)
     (buf[], stat)
 end
 
@@ -389,10 +389,10 @@ function Testany!(reqs::Array{Request,1})
     ccall(MPI_TESTANY, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, ind, flag, stat.val, &0)
-    if flag[] == 0
+    index = Int(ind[])
+    if flag[] == 0 || index == MPI_UNDEFINED
         return (false, 0, nothing)
     end
-    index = Int(ind[])
     reqs[index].val = reqvals[index]
     reqs[index].buffer = nothing
     (true, index, stat)
