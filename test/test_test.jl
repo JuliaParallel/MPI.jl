@@ -25,7 +25,7 @@ sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 (done, ind, stats) = MPI.Testany!([sreq, rreq])
 arr = [sreq,rreq]
 if done
-    onedone = MPI.Test!(arr[ind])
+    (onedone,stats) = MPI.Test!(arr[ind])
     @test onedone
 end
 
