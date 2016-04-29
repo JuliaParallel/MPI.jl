@@ -37,6 +37,7 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_GET_COUNT          => \"%s\",\n", STRING(MPI_GET_COUNT));
   printf("    :MPI_GET_PROCESSOR_NAME => \"%s\",\n",
          STRING(MPI_GET_PROCESSOR_NAME));
+  printf("    :MPI_IBARRIER           => \"%s\",\n", STRING(MPI_IBARRIER));
   printf("    :MPI_INIT               => \"%s\",\n", STRING(MPI_INIT));
   printf("    :MPI_INITIALIZED        => \"%s\",\n", STRING(MPI_INITIALIZED));
   printf("    :MPI_IPROBE             => \"%s\",\n", STRING(MPI_IPROBE));

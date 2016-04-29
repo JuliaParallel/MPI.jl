@@ -463,6 +463,11 @@ function Cancel!(req::Request)
 end
 
 # Collective communication
+function Ibarrier(comm::Comm)
+    rval = Ref{Cint}()
+    ccall(MPI_IBARRIER, Void, (Ptr{Cint},Ptr{Cint},Ptr{Cint}), &comm.val, rval, &0)
+    Request(rval[], nothing)
+end
 
 function Barrier(comm::Comm)
     ccall(MPI_BARRIER, Void, (Ptr{Cint},Ptr{Cint}), &comm.val, &0)
