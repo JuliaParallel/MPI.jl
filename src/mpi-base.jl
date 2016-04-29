@@ -456,8 +456,8 @@ function Testsome!(reqs::Array{Request,1})
     (indices, stats)
 end
 
-function Cancel!(res::Request)
-    ccall(MPI_CANCEL, Void, (Ptr{Cint},), &req.val, &0)
+function Cancel!(req::Request)
+    ccall(MPI_CANCEL, Void, (Ptr{Cint},Ptr{Cint}), &req.val, &0)
     req.buffer = nothing
     nothing
 end
