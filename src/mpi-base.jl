@@ -485,6 +485,19 @@ function Bcast!{T}(buffer::Array{T}, root::Integer, comm::Comm)
     Bcast!(buffer, length(buffer), root, comm)
 end
 
+function Ibcast!{T}(buffer::MPIBuffertype{T}, count::Integer,
+                   root::Integer, comm::Comm)
+    rval = Ref{Cint}()
+    ccall(MPI_IBCAST, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          buffer, &count, &mpitype(T), &root, &comm.val, rval, &0)
+    Request(rval[], buffer), buffer
+end
+
+function Ibcast!{T}(buffer::Array{T}, root::Integer, comm::Comm)
+    Ibcast!(buffer, length(buffer), root, comm)
+end
+
 #=
 function Bcast{T}(obj::T, root::Integer, comm::Comm)
     buf = [T]

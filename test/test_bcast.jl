@@ -16,6 +16,19 @@ function bcast_array(A, root)
     B
 end
 
+function ibcast_array(A, root)
+    comm = MPI.COMM_WORLD
+
+    if MPI.Comm_rank(comm) == root
+        B = copy(A)
+    else
+        B = similar(A)
+    end
+
+    req, B = MPI.Ibcast!(B, root, comm)
+    req, B
+end
+
 root = 0
 
 srand(17)
@@ -52,5 +65,12 @@ else
 end
 B = MPI.bcast(B, root, comm)
 @test B["foo"] == "bar"
+
+#ibcast
+A = ['s', 't', 'a', 'r', ' ', 'w', 'a', 'r', 's']
+req, B = ibcast_array(A, root)
+MPI.Wait!(req)
+MPI.Barrier(MPI.COMM_WORLD)
+@test B == A
 
 MPI.Finalize()
