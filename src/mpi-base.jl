@@ -589,6 +589,27 @@ function Gather{T}(object::T, root::Integer, comm::Comm)
     isroot ? recvbuf : nothing
 end
 
+function Igather{T}(sendbuf::MPIBuffertype{T}, count::Integer,
+                    root::Integer, comm::Comm)
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array(T, isroot ? Comm_size(comm) * count : 0)
+    rval = Ref{Cint}()
+    ccall(MPI_IGATHER, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &root, &comm.val, rval, &0)
+    Request(rval[], sendbuf), isroot ? recvbuf : nothing
+end
+
+function Igather{T}(sendbuf::Array{T}, root::Integer, comm::Comm)
+    Igather(sendbuf, length(sendbuf), root, comm)
+end
+
+function Igather{T}(object::T, root::Integer, comm::Comm)
+    isroot = Comm_rank(comm) == root
+    sendbuf = T[object]
+    Igather(sendbuf, root, comm)
+end
+
 function Allgather{T}(sendbuf::MPIBuffertype{T}, count::Integer,
                       comm::Comm)
     recvbuf = Array(T, Comm_size(comm) * count)
@@ -608,6 +629,25 @@ function Allgather{T}(object::T, comm::Comm)
     recvbuf
 end
 
+function Iallgather{T}(sendbuf::MPIBuffertype{T}, count::Integer,
+                       comm::Comm)
+    rval = Ref{Cint}()
+    recvbuf = Array(T, Comm_size(comm) * count)
+    ccall(MPI_IALLGATHER, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &comm.val, rval, &0)
+    Request(rval[], sendbuf), recvbuf
+end
+
+function Iallgather{T}(sendbuf::Array{T}, comm::Comm)
+    Iallgather(sendbuf, length(sendbuf), comm)
+end
+
+function Iallgather{T}(object::T, comm::Comm)
+    sendbuf = T[object]
+    Iallgather(sendbuf, comm)
+end
+
 function Gatherv{T}(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
                     root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
@@ -620,6 +660,19 @@ function Gatherv{T}(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
     isroot ? recvbuf : nothing
 end
 
+function Igatherv{T}(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
+                     root::Integer, comm::Comm)
+    isroot = Comm_rank(comm) == root
+    rval = Ref{Cint}()
+    displs = cumsum(counts) - counts
+    sendcnt = counts[Comm_rank(comm) + 1]
+    recvbuf = Array(T, isroot ? sum(counts) : 0)
+    ccall(MPI_IGATHERV, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &sendcnt, &mpitype(T), recvbuf, counts, displs, &mpitype(T), &root, &comm.val, rval, &0)
+    Request(rval[], sendbuf), isroot ? recvbuf : nothing
+end
+
 function Allgatherv{T}(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
                        comm::Comm)
     displs = cumsum(counts) - counts
@@ -629,6 +682,18 @@ function Allgatherv{T}(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, &sendcnt, &mpitype(T), recvbuf, counts, displs, &mpitype(T), &comm.val, &0)
     recvbuf
+end
+
+function Iallgatherv{T}(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
+                        comm::Comm)
+    rval = Ref{Cint}()
+    displs = cumsum(counts) - counts
+    sendcnt = counts[Comm_rank(comm) + 1]
+    recvbuf = Array(T, sum(counts))
+    ccall(MPI_IALLGATHERV, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &sendcnt, &mpitype(T), recvbuf, counts, displs, &mpitype(T), &comm.val, rval, &0)
+    Request(rval[], sendbuf), recvbuf
 end
 
 function Alltoall{T}(sendbuf::MPIBuffertype{T}, count::Integer,

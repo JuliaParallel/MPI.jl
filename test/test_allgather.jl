@@ -8,6 +8,13 @@ function allgather(A)
     C = MPI.Allgather(A, comm)
 end
 
+function iallgather(A)
+    comm = MPI.COMM_WORLD
+    req, C = MPI.Iallgather(A, comm)
+    MPI.Wait!(req)
+    C
+end
+
 comm = MPI.COMM_WORLD
 
 for typ in MPI.MPIDatatype.types
@@ -16,6 +23,12 @@ for typ in MPI.MPIDatatype.types
     @test C == collect(1:MPI.Comm_size(comm))
     A = convert(typ,MPI.Comm_rank(comm) + 1)
     C = allgather(A)
+    @test C == collect(1:MPI.Comm_size(comm))
+    A = typ[MPI.Comm_rank(comm) + 1]
+    C = iallgather(A)
+    @test C == collect(1:MPI.Comm_size(comm))
+    A = convert(typ,MPI.Comm_rank(comm) + 1)
+    C = iallgather(A)
     @test C == collect(1:MPI.Comm_size(comm))
 end
 
