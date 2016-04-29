@@ -547,6 +547,30 @@ function Reduce{T}(object::T, op::Op, root::Integer, comm::Comm)
     isroot ? recvbuf[1] : nothing
 end
 
+function Ireduce{T}(sendbuf::MPIBuffertype{T}, count::Integer,
+                    op::Op, root::Integer, comm::Comm)
+    rval = Ref{Cint}()
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array(T, isroot ? count : 0)
+    ccall(MPI_IREDUCE, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, recvbuf, &count, &mpitype(T), &op.val, &root, &comm.val,
+          rval, &0)
+    Request(rval[], sendbuf), isroot ? recvbuf : nothing
+end
+
+function Ireduce{T}(sendbuf::Array{T}, op::Op, root::Integer, comm::Comm)
+    Ireduce(sendbuf, length(sendbuf), op, root, comm)
+end
+
+function Ireduce{T}(object::T, op::Op, root::Integer, comm::Comm)
+    isroot = Comm_rank(comm) == root
+    sendbuf = T[object]
+    req, recvbuf = Ireduce(sendbuf, op, root, comm)
+    req, isroot ? recvbuf[1] : nothing
+end
+
 function Scatter{T}(sendbuf::MPIBuffertype{T},
                     count::Integer, root::Integer, comm::Comm)
     recvbuf = Array(T, count)
@@ -775,6 +799,21 @@ function Scan{T}(object::T, op::Op, comm::Comm)
     Scan(sendbuf,1,op,comm)
 end
 
+function Iscan{T}(sendbuf::MPIBuffertype{T}, count::Integer,
+                  op::Op, comm::Comm)
+    recvbuf = Array(T, count)
+    rval = Ref{Cint}()
+    ccall(MPI_ISCAN, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, recvbuf, &count, &mpitype(T), &op.val, &comm.val, rval, &0)
+    Request(rval[], sendbuf), recvbuf
+end
+
+function Iscan{T}(object::T, op::Op, comm::Comm)
+    sendbuf = T[object]
+    Iscan(sendbuf,1,op,comm)
+end
+
 function ExScan{T}(sendbuf::MPIBuffertype{T}, count::Integer,
                    op::Op, comm::Comm)
     recvbuf = Array(T, count)
@@ -787,6 +826,21 @@ end
 function ExScan{T}(object::T, op::Op, comm::Comm)
     sendbuf = T[object]
     ExScan(sendbuf,1,op,comm)
+end
+
+function IExScan{T}(sendbuf::MPIBuffertype{T}, count::Integer,
+                    op::Op, comm::Comm)
+    recvbuf = Array(T, count)
+    rval = Ref{Cint}()
+    ccall(MPI_IEXSCAN, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, recvbuf, &count, &mpitype(T), &op.val, &comm.val, rval, &0)
+    Request(rval[], sendbuf), recvbuf
+end
+
+function IExScan{T}(object::T, op::Op, comm::Comm)
+    sendbuf = T[object]
+    IExScan(sendbuf,1,op,comm)
 end
 
 # Conversion between C and Fortran Comm handles:

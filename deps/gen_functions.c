@@ -43,12 +43,15 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_IALLTOALLV         => \"%s\",\n", STRING(MPI_IALLTOALLV));
   printf("    :MPI_IBARRIER           => \"%s\",\n", STRING(MPI_IBARRIER));
   printf("    :MPI_IBCAST             => \"%s\",\n", STRING(MPI_IBCAST));
+  printf("    :MPI_IEXSCAN            => \"%s\",\n", STRING(MPI_IEXSCAN));
   printf("    :MPI_IGATHER            => \"%s\",\n", STRING(MPI_IGATHER));
   printf("    :MPI_IGATHERV           => \"%s\",\n", STRING(MPI_IGATHERV));
   printf("    :MPI_INIT               => \"%s\",\n", STRING(MPI_INIT));
   printf("    :MPI_INITIALIZED        => \"%s\",\n", STRING(MPI_INITIALIZED));
   printf("    :MPI_IPROBE             => \"%s\",\n", STRING(MPI_IPROBE));
   printf("    :MPI_IRECV              => \"%s\",\n", STRING(MPI_IRECV));
+  printf("    :MPI_IREDUCE            => \"%s\",\n", STRING(MPI_IREDUCE));
+  printf("    :MPI_ISCAN              => \"%s\",\n", STRING(MPI_ISCAN));
   printf("    :MPI_ISCATTER           => \"%s\",\n", STRING(MPI_ISCATTER));
   printf("    :MPI_ISCATTERV          => \"%s\",\n", STRING(MPI_ISCATTERV));
   printf("    :MPI_ISEND              => \"%s\",\n", STRING(MPI_ISEND));

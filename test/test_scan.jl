@@ -14,6 +14,10 @@ for typ in typs
     val = convert(typ,rank + 1)
     B = MPI.Scan(val, MPI.PROD, comm)
     @test_approx_eq B[1] factorial(val)
+    val = convert(typ,rank + 1)
+    req, B = MPI.Iscan(val, MPI.PROD, comm)
+    MPI.Wait!(req)
+    @test_approx_eq B[1] factorial(val)
 end
 
 MPI.Finalize()
