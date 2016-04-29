@@ -37,6 +37,8 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_GET_COUNT          => \"%s\",\n", STRING(MPI_GET_COUNT));
   printf("    :MPI_GET_PROCESSOR_NAME => \"%s\",\n",
          STRING(MPI_GET_PROCESSOR_NAME));
+  printf("    :MPI_IALLTOALL          => \"%s\",\n", STRING(MPI_IALLTOALL));
+  printf("    :MPI_IALLTOALLV         => \"%s\",\n", STRING(MPI_IALLTOALLV));
   printf("    :MPI_IBARRIER           => \"%s\",\n", STRING(MPI_IBARRIER));
   printf("    :MPI_IBCAST             => \"%s\",\n", STRING(MPI_IBCAST));
   printf("    :MPI_INIT               => \"%s\",\n", STRING(MPI_INIT));

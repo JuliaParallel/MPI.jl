@@ -640,6 +640,16 @@ function Alltoall{T}(sendbuf::MPIBuffertype{T}, count::Integer,
     recvbuf
 end
 
+function Ialltoall{T}(sendbuf::MPIBuffertype{T}, count::Integer,
+                      comm::Comm)
+    rval = Ref{Cint}()
+    recvbuf = Array(T, Comm_size(comm)*count)
+    ccall(MPI_IALLTOALL, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &comm.val, rval, &0)
+    Request(rval[], sendbuf), recvbuf
+end
+
 function Alltoallv{T}(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
                       rcounts::Vector{Cint}, comm::Comm)
     recvbuf = Array(T, sum(rcounts))
@@ -649,6 +659,18 @@ function Alltoallv{T}(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, scounts, sdispls, &mpitype(T), recvbuf, rcounts, rdispls, &mpitype(T), &comm.val, &0)
     recvbuf
+end
+
+function Ialltoallv{T}(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
+                       rcounts::Vector{Cint}, comm::Comm)
+    rval = Ref{Cint}()
+    recvbuf = Array(T, sum(rcounts))
+    sdispls = cumsum(scounts) - scounts
+    rdispls = cumsum(rcounts) - rcounts
+    ccall(MPI_IALLTOALLV, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, scounts, sdispls, &mpitype(T), recvbuf, rcounts, rdispls, &mpitype(T), &comm.val, rval, &0)
+    Request(rval[], sendbuf), recvbuf
 end
 
 function Scan{T}(sendbuf::MPIBuffertype{T}, count::Integer,
