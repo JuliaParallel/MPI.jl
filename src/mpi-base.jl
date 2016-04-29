@@ -556,6 +556,16 @@ function Scatter{T}(sendbuf::MPIBuffertype{T},
     recvbuf
 end
 
+function Iscatter{T}(sendbuf::MPIBuffertype{T},
+                     count::Integer, root::Integer, comm::Comm)
+    rval = Ref{Cint}()
+    recvbuf = Array(T, count)
+    ccall(MPI_ISCATTER, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &root, &comm.val, rval, &0)
+    Request(rval[], sendbuf), recvbuf
+end
+
 function Scatterv{T}(sendbuf::MPIBuffertype{T},
                      counts::Vector{Cint}, root::Integer,
                      comm::Comm)
@@ -566,6 +576,19 @@ function Scatterv{T}(sendbuf::MPIBuffertype{T},
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, counts, disps, &mpitype(T), recvbuf, &recvcnt, &mpitype(T), &root, &comm.val, &0)
     recvbuf
+end
+
+function Iscatterv{T}(sendbuf::MPIBuffertype{T},
+                      counts::Vector{Cint}, root::Integer,
+                      comm::Comm)
+    rval = Ref{Cint}()
+    recvbuf = Array(T, counts[Comm_rank(comm) + 1])
+    recvcnt = counts[Comm_rank(comm) + 1]
+    disps = cumsum(counts) - counts
+    ccall(MPI_ISCATTERV, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, counts, disps, &mpitype(T), recvbuf, &recvcnt, &mpitype(T), &root, &comm.val, rval, &0)
+    Request(rval[], sendbuf), recvbuf
 end
 
 function Gather{T}(sendbuf::MPIBuffertype{T}, count::Integer,

@@ -49,6 +49,8 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_INITIALIZED        => \"%s\",\n", STRING(MPI_INITIALIZED));
   printf("    :MPI_IPROBE             => \"%s\",\n", STRING(MPI_IPROBE));
   printf("    :MPI_IRECV              => \"%s\",\n", STRING(MPI_IRECV));
+  printf("    :MPI_ISCATTER           => \"%s\",\n", STRING(MPI_ISCATTER));
+  printf("    :MPI_ISCATTERV          => \"%s\",\n", STRING(MPI_ISCATTERV));
   printf("    :MPI_ISEND              => \"%s\",\n", STRING(MPI_ISEND));
   printf("    :MPI_OP_CREATE          => \"%s\",\n", STRING(MPI_OP_CREATE));
   printf("    :MPI_OP_FREE            => \"%s\",\n", STRING(MPI_OP_FREE));
