@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
          STRING(MPI_GET_PROCESSOR_NAME));
   printf("    :MPI_IALLGATHER         => \"%s\",\n", STRING(MPI_IALLGATHER));
   printf("    :MPI_IALLGATHERV        => \"%s\",\n", STRING(MPI_IALLGATHERV));
+  printf("    :MPI_IALLREDUCE         => \"%s\",\n", STRING(MPI_IALLREDUCE));
   printf("    :MPI_IALLTOALL          => \"%s\",\n", STRING(MPI_IALLTOALL));
   printf("    :MPI_IALLTOALLV         => \"%s\",\n", STRING(MPI_IALLTOALLV));
   printf("    :MPI_IBARRIER           => \"%s\",\n", STRING(MPI_IBARRIER));

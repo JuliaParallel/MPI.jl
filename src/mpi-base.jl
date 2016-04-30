@@ -571,6 +571,45 @@ function Ireduce{T}(object::T, op::Op, root::Integer, comm::Comm)
     req, isroot ? recvbuf[1] : nothing
 end
 
+function Allreduce{T}(sendbuf::MPIBuffertype{T}, count::Integer, op::Op, comm::Comm)
+    recvbuf = Array(T, count)
+    ccall(MPI_ALLREDUCE, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, recvbuf, &count, &mpitype(T), &op.val, &comm.val, &0)
+    recvbuf
+end
+
+function Allreduce{T}(sendbuf::Array{T}, op::Op, comm::Comm)
+    Allreduce(sendbuf, length(sendbuf), op, comm)
+end
+
+function Allreduce{T}(object::T, op::Op, comm::Comm)
+    sendbuf = T[object]
+    recvbuf = Allreduce(sendbuf, op, comm)
+    recvbuf[1]
+end
+
+function Iallreduce{T}(sendbuf::MPIBuffertype{T}, count::Integer, op::Op, comm::Comm)
+    rval = Ref{Cint}()
+    recvbuf = Array(T, count)
+    ccall(MPI_IALLREDUCE, Void,
+          (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}, Ptr{Cint}),
+          sendbuf, recvbuf, &count, &mpitype(T), &op.val, &comm.val,
+          rval, &0)
+    Request(rval[], sendbuf), recvbuf
+end
+
+function Iallreduce{T}(sendbuf::Array{T}, op::Op, comm::Comm)
+    Iallreduce(sendbuf, length(sendbuf), op, comm)
+end
+
+function Iallreduce{T}(object::T, op::Op, comm::Comm)
+    sendbuf = T[object]
+    req, recvbuf = Iallreduce(sendbuf, op, comm)
+    req, recvbuf[1]
+end
+
 function Scatter{T}(sendbuf::MPIBuffertype{T},
                     count::Integer, root::Integer, comm::Comm)
     recvbuf = Array(T, count)
