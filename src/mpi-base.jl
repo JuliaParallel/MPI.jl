@@ -369,10 +369,10 @@ function Waitany!(reqs::Array{Request,1})
     stat = Status()
     ccall(MPI_WAITANY, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-          &count, reqvals, index, statvals, &0)
+          &count, reqvals, ind, stat.val, &0)
     index = Int(ind[])
     reqs[index].val = reqvals[index]
-    reqa[index].buffer = nothing
+    reqs[index].buffer = nothing
     (index, stat)
 end
 
@@ -530,7 +530,7 @@ function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       count::Integer, op::Op, comm::Comm)
     flag = Ref{Cint}()
     ccall(MPI_ALLREDUCE, Void, (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
-          Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &Int32(count), &mpitype(T), 
+          Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &count, &mpitype(T), 
           &op.val, &comm.val, flag)
 
     if flag[] != 0
@@ -553,14 +553,13 @@ function Allreduce{T}(obj::T, op::Op, comm::Comm)
     outref[]
 end
 
-#=
 # in-place version
 function Allreduce!{T}(recvbuf::MPIBuffertype{T}, op::Op, comm::Comm)
 
 #  Allreduce(sendbuf, recvbuf, length(recvbuf), op, comm)
     flag = zero(Cint)
-    ccall(MPI_ALLREDUCE, Void, (Ptr{Cint}, Ptr{Void}, Ptr{Cint}, Ptr{Cint}, 
-          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &MPI_IN_PLACE, recvbuf, 
+    ccall(MPI_ALLREDUCE, Void, (Ptr{Void}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, 
+          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), MPI_IN_PLACE, recvbuf, 
           &Int32(length(recvbuf)), &mpitype(T), &op.val, &comm.val, &flag)
 
     if flag != 0
@@ -569,7 +568,6 @@ function Allreduce!{T}(recvbuf::MPIBuffertype{T}, op::Op, comm::Comm)
 
   recvbuf
 end
-=#
 
 # allocate receive buffer automatically
 function allreduce{T}(sendbuf::MPIBuffertype{T}, op::Op, comm::Comm)
@@ -581,12 +579,13 @@ end
 
 # how to handle allocating the recvbuf, in-place operation?
 
-function Scatter{T}(sendbuf::MPIBuffertype{T},
-                    count::Integer, root::Integer, comm::Comm)
+function Scatter{T}(sendbuf::MPIBuffertype{T},count::Integer, root::Integer, 
+                    comm::Comm)
     recvbuf = Array(T, count)
     ccall(MPI_SCATTER, Void,
-          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-          sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &root, &comm.val, &0)
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, 
+           Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), sendbuf, &count, &mpitype(T), 
+           recvbuf, &count, &mpitype(T), &root, &comm.val, &0)
     recvbuf
 end
 

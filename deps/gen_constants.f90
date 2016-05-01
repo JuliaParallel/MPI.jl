@@ -54,7 +54,7 @@ program gen_constants
   call output("MPI_ANY_TAG     ", MPI_ANY_TAG)
   call output("MPI_TAG_UB      ", MPI_TAG_UB)
   call output("MPI_UNDEFINED   ", MPI_UNDEFINED)
-  call output("MPI_IN_PLACE    ", MPI_IN_PLACE)
+  call outputl("MPI_IN_PLACE    ", loc(MPI_IN_PLACE))
 
 contains
 
@@ -63,5 +63,12 @@ contains
     integer value
     print '("const ",a," = Cint(",i0,")")', name, value
   end subroutine output
+
+  subroutine outputl(name, value)
+    character*(*) name
+    INTEGER(8) value
+    print '("const ",a," = Int64(",i0,")")', name, value
+  end subroutine outputl
+
 
 end program gen_constants
