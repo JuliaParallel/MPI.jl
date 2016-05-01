@@ -127,8 +127,12 @@ function type_create(T::DataType)
 
     # get the data from the type
     fieldtypes = T.types
-    offsets = fieldoffsets(T)
     nfields = Cint(length(fieldtypes))
+    if VERSION < v"0.5.0-dev+2285"
+        offsets = fieldoffsets(T)
+    else
+        offsets = map(idx->fieldoffset(T, idx), 1:nfields)
+    end
 
     # put data in MPI format
     blocklengths = ones(Cint, nfields)
@@ -261,8 +265,8 @@ function Recv!{T}(buf::Array{T}, src::Integer, tag::Integer,
 end
 
 function Recv{T}(::Type{T}, src::Integer, tag::Integer, comm::Comm)
-    buf = Ref{T}
-    stat = Recv!(buf, src, tag, comm)
+    buf = Ref{T}()
+    stat = Recv!(buf, 1, src, tag, comm)
     (buf[], stat)
 end
 
@@ -385,10 +389,10 @@ function Testany!(reqs::Array{Request,1})
     ccall(MPI_TESTANY, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, ind, flag, stat.val, &0)
-    if flag[] == 0
+    index = Int(ind[])
+    if flag[] == 0 || index == MPI_UNDEFINED
         return (false, 0, nothing)
     end
-    index = Int(ind[])
     reqs[index].val = reqvals[index]
     reqs[index].buffer = nothing
     (true, index, stat)
@@ -452,8 +456,8 @@ function Testsome!(reqs::Array{Request,1})
     (indices, stats)
 end
 
-function Cancel!(res::Request)
-    ccall(MPI_CANCEL, Void, (Ptr{Cint},), &req.val, &0)
+function Cancel!(req::Request)
+    ccall(MPI_CANCEL, Void, (Ptr{Cint},Ptr{Cint}), &req.val, &0)
     req.buffer = nothing
     nothing
 end
