@@ -525,7 +525,6 @@ function Reduce{T}(object::T, op::Op, root::Integer, comm::Comm)
     isroot ? recvbuf[1] : nothing
 end
 
-# T and T2 are different for MPI_IN_PLACE as the sendbuf
 function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       count::Integer, op::Op, comm::Comm)
     flag = Ref{Cint}()
@@ -572,8 +571,7 @@ end
 # allocate receive buffer automatically
 function allreduce{T}(sendbuf::MPIBuffertype{T}, op::Op, comm::Comm)
 
-  len = length(sendbuf)
-  recvbuf = Array(T, len)
+  recvbuf = similar(sendbuf)
   Allreduce(sendbuf, recvbuf, len, op, comm)
 end
 
