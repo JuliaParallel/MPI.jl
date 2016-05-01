@@ -106,4 +106,10 @@ rreq = nothing
 sreq = nothing
 gc()
 
+recv_mesg = Array(Float64, N)
+sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
+MPI.Cancel!(sreq)
+@test sreq.buffer == nothing
+gc()
+
 MPI.Finalize()
