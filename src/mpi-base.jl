@@ -530,7 +530,7 @@ function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       count::Integer, op::Op, comm::Comm)
     flag = zero(Cint)
     ccall(MPI_ALLREDUCE, Void, (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
-          Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &Int32(count), &mpitype(T), 
+          Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &count, &mpitype(T), 
           &op.val, &comm.val, &flag)
 
     if flag != 0
@@ -553,14 +553,13 @@ function Allreduce{T}(obj::T, op::Op, comm::Comm)
     outref[]
 end
 
-#=
 # in-place version
 function Allreduce{T}(recvbuf::MPIBuffertype{T}, op::Op, comm::Comm)
 
 #  Allreduce(sendbuf, recvbuf, length(recvbuf), op, comm)
     flag = zero(Cint)
-    ccall(MPI_ALLREDUCE, Void, (Ptr{Cint}, Ptr{Void}, Ptr{Cint}, Ptr{Cint}, 
-          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &MPI_IN_PLACE, recvbuf, 
+    ccall(MPI_ALLREDUCE, Void, (Ptr{Void}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, 
+          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), MPI_IN_PLACE, recvbuf, 
           &Int32(length(recvbuf)), &mpitype(T), &op.val, &comm.val, &flag)
 
     if flag != 0
@@ -569,7 +568,6 @@ function Allreduce{T}(recvbuf::MPIBuffertype{T}, op::Op, comm::Comm)
 
   recvbuf
 end
-=#
 
 # allocate receive buffer automatically
 function allreduce{T}(sendbuf::MPIBuffertype{T}, op::Op, comm::Comm)

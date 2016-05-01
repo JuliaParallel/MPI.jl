@@ -25,7 +25,6 @@ for i=1:3
   @test vals[i] == comm_size*send_arr[i]
 end
 
-#=
 # test in-place operation
 send_arr2 = Int32[1,2,3]
 send_arr3 = copy(send_arr2)
@@ -35,7 +34,7 @@ println("send_arr3 = ", send_arr3)
 for i=1:3
   @test send_arr3[i] == comm_size*send_arr2[i]
 end
-=#
+
 
 
 MPI.Barrier( MPI.COMM_WORLD )
