@@ -557,8 +557,8 @@ function Allreduce!{T}(recvbuf::MPIBuffertype{T}, op::Op, comm::Comm)
 
 #  Allreduce(sendbuf, recvbuf, length(recvbuf), op, comm)
     flag = zero(Cint)
-    ccall(MPI_ALLREDUCE, Void, (Ptr{Void}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, 
-          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), MPI_IN_PLACE, recvbuf, 
+    ccall(MPI_ALLREDUCE, Void, (Ptr{Ptr{Void}}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, 
+          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &MPI_IN_PLACE, recvbuf, 
           &Int32(length(recvbuf)), &mpitype(T), &op.val, &comm.val, &flag)
 
     if flag != 0
@@ -572,10 +572,9 @@ end
 function allreduce{T}(sendbuf::MPIBuffertype{T}, op::Op, comm::Comm)
 
   recvbuf = similar(sendbuf)
-  Allreduce(sendbuf, recvbuf, len, op, comm)
+  Allreduce(sendbuf, recvbuf, length(recvbuf), op, comm)
 end
 
-# how to handle allocating the recvbuf, in-place operation?
 
 function Scatter{T}(sendbuf::MPIBuffertype{T},count::Integer, root::Integer, 
                     comm::Comm)
