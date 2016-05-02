@@ -45,11 +45,11 @@ case "$os" in
             openmpi)
                 sudo apt-get install -y gfortran
                 wget --no-check-certificate https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.2.tar.gz
-                tar -zxvf openmpi-1.10.2.tar.gz
+                tar -zxf openmpi-1.10.2.tar.gz
                 cd openmpi-1.10.2
-                sh ./configure --prefix=$HOME/OpenMPI
-                make -j
-                sudo make install
+                sh ./configure --prefix=$HOME/OpenMPI > /dev/null
+                make -j > /dev/null
+                sudo make install > /dev/null
                 ;;
             *)
                 echo "Unknown MPI implementation: $MPI_IMPL"
