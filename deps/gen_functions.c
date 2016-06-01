@@ -37,10 +37,24 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_GET_COUNT          => \"%s\",\n", STRING(MPI_GET_COUNT));
   printf("    :MPI_GET_PROCESSOR_NAME => \"%s\",\n",
          STRING(MPI_GET_PROCESSOR_NAME));
+  printf("    :MPI_IALLGATHER         => \"%s\",\n", STRING(MPI_IALLGATHER));
+  printf("    :MPI_IALLGATHERV        => \"%s\",\n", STRING(MPI_IALLGATHERV));
+  printf("    :MPI_IALLREDUCE         => \"%s\",\n", STRING(MPI_IALLREDUCE));
+  printf("    :MPI_IALLTOALL          => \"%s\",\n", STRING(MPI_IALLTOALL));
+  printf("    :MPI_IALLTOALLV         => \"%s\",\n", STRING(MPI_IALLTOALLV));
+  printf("    :MPI_IBARRIER           => \"%s\",\n", STRING(MPI_IBARRIER));
+  printf("    :MPI_IBCAST             => \"%s\",\n", STRING(MPI_IBCAST));
+  printf("    :MPI_IEXSCAN            => \"%s\",\n", STRING(MPI_IEXSCAN));
+  printf("    :MPI_IGATHER            => \"%s\",\n", STRING(MPI_IGATHER));
+  printf("    :MPI_IGATHERV           => \"%s\",\n", STRING(MPI_IGATHERV));
   printf("    :MPI_INIT               => \"%s\",\n", STRING(MPI_INIT));
   printf("    :MPI_INITIALIZED        => \"%s\",\n", STRING(MPI_INITIALIZED));
   printf("    :MPI_IPROBE             => \"%s\",\n", STRING(MPI_IPROBE));
   printf("    :MPI_IRECV              => \"%s\",\n", STRING(MPI_IRECV));
+  printf("    :MPI_IREDUCE            => \"%s\",\n", STRING(MPI_IREDUCE));
+  printf("    :MPI_ISCAN              => \"%s\",\n", STRING(MPI_ISCAN));
+  printf("    :MPI_ISCATTER           => \"%s\",\n", STRING(MPI_ISCATTER));
+  printf("    :MPI_ISCATTERV          => \"%s\",\n", STRING(MPI_ISCATTERV));
   printf("    :MPI_ISEND              => \"%s\",\n", STRING(MPI_ISEND));
   printf("    :MPI_OP_CREATE          => \"%s\",\n", STRING(MPI_OP_CREATE));
   printf("    :MPI_OP_FREE            => \"%s\",\n", STRING(MPI_OP_FREE));

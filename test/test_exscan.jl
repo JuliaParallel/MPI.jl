@@ -16,6 +16,11 @@ for typ in typs
     if rank > 0
         @test_approx_eq B[1] factorial(rank)
     end
+    req, C = MPI.IExScan(val, MPI.PROD, comm)
+    MPI.Wait!(req)
+    if rank > 0
+        @test_approx_eq C[1] factorial(rank)
+    end
 end
 
 MPI.Finalize()

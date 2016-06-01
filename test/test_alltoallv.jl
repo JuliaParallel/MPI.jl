@@ -8,6 +8,14 @@ function alltoallv_array(A, scounts::Vector{Cint}, rcounts::Vector{Cint})
     MPI.Alltoallv(A,scounts,rcounts,comm)
 end
 
+function ialltoallv_array(A, scounts::Vector{Cint}, rcounts::Vector{Cint})
+    comm = MPI.COMM_WORLD
+    req, B = MPI.Ialltoallv(A,scounts,rcounts,comm)
+    MPI.Wait!(req)
+    MPI.Barrier(comm)
+    B
+end
+
 comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
@@ -23,6 +31,17 @@ for typ in MPI.MPIDatatype.types
     rcounts = fill(convert(Cint,rank + 1),size)
     C = alltoallv_array(A, scounts, rcounts)
     @test B == C
+    
+    A = typ[]
+    B = typ[]
+    for i in 1:size
+        A = vcat(A,convert(Vector{typ},collect(1:i)))
+        B = vcat(B,convert(Vector{typ},collect(1:(rank+1))))
+    end
+    scounts = convert(Vector{Cint}, collect(1:size))
+    rcounts = fill(convert(Cint,rank + 1),size)
+    D = ialltoallv_array(A, scounts, rcounts)
+    @test B == D
 end
 
 MPI.Finalize()
