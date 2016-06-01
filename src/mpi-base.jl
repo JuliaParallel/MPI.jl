@@ -529,29 +529,25 @@ function Reduce{T}(object::T, op::Op, root::Integer, comm::Comm)
     isroot ? recvbuf[1] : nothing
 end
 
-function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+function Allreduce!{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       count::Integer, op::Op, comm::Comm)
     flag = Ref{Cint}()
     ccall(MPI_ALLREDUCE, Void, (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
           Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &count, &mpitype(T), 
           &op.val, &comm.val, flag)
 
-    if flag[] != 0
-      throw(ErrorException("Allreduce returned non-zero exit status"))
-    end
-
     recvbuf
 end
                   
-function Allreduce{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+function Allreduce!{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       op::Op, comm::Comm)
-    Allreduce(sendbuf, recvbuf, length(recvbuf), op, comm)
+    Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
 end
 
 function Allreduce{T}(obj::T, op::Op, comm::Comm)
     objref = Ref(obj)
     outref = Ref{T}()
-    Allreduce(objref, outref, 1, op, comm)
+    Allreduce!(objref, outref, 1, op, comm)
 
     outref[]
 end
@@ -560,7 +556,7 @@ end
 function allreduce{T}(sendbuf::MPIBuffertype{T}, op::Op, comm::Comm)
 
   recvbuf = similar(sendbuf)
-  Allreduce(sendbuf, recvbuf, length(recvbuf), op, comm)
+  Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
 end
 
 
