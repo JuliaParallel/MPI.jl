@@ -25,20 +25,5 @@ for i=1:3
   @test vals[i] == comm_size*send_arr[i]
 end
 
-#=
-# test in-place operation
-send_arr2 = Int32[1,2,3]
-send_arr3 = copy(send_arr2)
-MPI.Allreduce!(send_arr3, MPI.SUM,MPI.COMM_WORLD)
-sleep(5*comm_rank)
-println("process ", comm_rank, "proceeding")
-println("send_arr2 = ", send_arr2)
-println("send_arr3 = ", send_arr3)
-for i=1:3
-  @test send_arr3[i] == comm_size*send_arr2[i]
-end
-=#
-
-
 MPI.Barrier( MPI.COMM_WORLD )
 MPI.Finalize()
