@@ -166,6 +166,62 @@ function Comm_size(comm::Comm)
     Int(size[])
 end
 
+function type_create(T::DataType)
+    if !isbits(T)
+        throw(ArgumentError("Type must be isbits()"))
+    end
+
+    if haskey(mpitype_dict, T)  # if the datatype already exists
+        return nothing
+    end
+
+    # get the data from the type
+    fieldtypes = T.types
+    nfields = Cint(length(fieldtypes))
+    if VERSION < v"0.5.0-dev+2285"
+        offsets = fieldoffsets(T)
+    else
+        offsets = map(idx->fieldoffset(T, idx), 1:nfields)
+    end
+
+    # put data in MPI format
+    blocklengths = ones(Cint, nfields)
+    displacements = zeros(Cptrdiff_t, nfields)  # size_t == MPI_Aint ?
+    types = zeros(Cint, nfields)
+    for i=1:nfields
+        displacements[i] = offsets[i]
+        # create an MPI_Datatype for the current field if it does not exist yet
+        if !haskey(mpitype_dict, fieldtypes[i])
+            type_create(fieldtypes[i])
+        end
+        types[i] = mpitype(fieldtypes[i])
+    end
+
+    # create the datatype
+    newtype_ref = Ref{Cint}()
+    flag = Ref{Cint}()
+    ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t}, 
+          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements, 
+          types, newtype_ref, flag)
+
+    if flag[] != 0
+        throw(ErrorException("MPI_Type_create_struct returned non-zero exit status"))
+    end
+
+    # commit the datatatype
+    flag2 = Ref{Cint}()
+    ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
+
+    if flag2[] != 0
+        throw(ErrorException("MPI_Type_commit returned non-zero exit status"))
+    end
+
+    # add it to the dictonary of known types
+    mpitype_dict[T] = newtype_ref[]
+
+    return nothing
+end
+
 # Point-to-point communication
 
 function Probe(src::Integer, tag::Integer, comm::Comm)
@@ -259,8 +315,8 @@ function Recv!{T}(buf::Array{T}, src::Integer, tag::Integer,
 end
 
 function Recv{T}(::Type{T}, src::Integer, tag::Integer, comm::Comm)
-    buf = Ref{T}
-    stat = Recv!(buf, src, tag, comm)
+    buf = Ref{T}()
+    stat = Recv!(buf, 1, src, tag, comm)
     (buf[], stat)
 end
 
@@ -367,10 +423,10 @@ function Waitany!(reqs::Array{Request,1})
     stat = Status()
     ccall(MPI_WAITANY, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-          &count, reqvals, index, statvals, &0)
+          &count, reqvals, ind, stat.val, &0)
     index = Int(ind[])
     reqs[index].val = reqvals[index]
-    reqa[index].buffer = nothing
+    reqs[index].buffer = nothing
     (index, stat)
 end
 
@@ -383,10 +439,10 @@ function Testany!(reqs::Array{Request,1})
     ccall(MPI_TESTANY, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, ind, flag, stat.val, &0)
-    if flag[] == 0
+    index = Int(ind[])
+    if flag[] == 0 || index == MPI_UNDEFINED
         return (false, 0, nothing)
     end
-    index = Int(ind[])
     reqs[index].val = reqvals[index]
     reqs[index].buffer = nothing
     (true, index, stat)
@@ -450,8 +506,8 @@ function Testsome!(reqs::Array{Request,1})
     (indices, stats)
 end
 
-function Cancel!(res::Request)
-    ccall(MPI_CANCEL, Void, (Ptr{Cint},), &req.val, &0)
+function Cancel!(req::Request)
+    ccall(MPI_CANCEL, Void, (Ptr{Cint},Ptr{Cint}), &req.val, &0)
     req.buffer = nothing
     nothing
 end
