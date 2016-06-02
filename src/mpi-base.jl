@@ -674,7 +674,7 @@ end
 
 function Alltoall!{T}(recvbuf::MPIBuffertype{T}, sendbuf::MPIBuffertype{T}, 
                       count::Integer, comm::Comm)
-    @assert size(recvbuf, 1) == Comm_size(comm)*count
+    @assert prod(size(recvbuf)) == Comm_size(comm)*count
     @assert pointer(recvbuf) != pointer(sendbuf)
     ccall(MPI_ALLTOALL, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
