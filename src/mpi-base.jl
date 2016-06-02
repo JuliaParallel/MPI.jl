@@ -622,6 +622,16 @@ function Alltoall{T}(sendbuf::MPIBuffertype{T}, count::Integer,
     recvbuf
 end
 
+function Alltoall!{T}(recvbuf::MPIBuffertype{T}, sendbuf::MPIBuffertype{T}, 
+                      count::Integer, comm::Comm)
+    @assert size(recvbuf, 1) == Comm_size(comm)*count
+    @assert pointer(recvbuf) != pointer(sendbuf)
+    ccall(MPI_ALLTOALL, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &comm.val, &0)
+    recvbuf
+end
+
 function Alltoallv{T}(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
                       rcounts::Vector{Cint}, comm::Comm)
     recvbuf = Array(T, sum(rcounts))
