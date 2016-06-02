@@ -30,7 +30,7 @@ immutable Boundary
   b::UInt8
 end
 
-MPI.type_create(Boundary)
+MPI.mpitype(Boundary)
 
 arr = Array(Boundary, 3)
 for i=1:3
@@ -61,7 +61,7 @@ immutable Boundary2
   b::Tuple{Int, UInt8}
 end
 
-MPI.type_create(Boundary2)
+MPI.mpitype(Boundary2)
 
 arr = Array(Boundary2, 3)
 arr_recv = Array(Boundary2, 3)
