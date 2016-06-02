@@ -1,3 +1,4 @@
+using MPI
 using Base.Test
 
 using Compat
