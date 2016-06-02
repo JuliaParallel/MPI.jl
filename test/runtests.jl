@@ -1,14 +1,17 @@
 using Base.Test
 
+using Compat
+import Compat.String
+
 # Code coverage command line options; must correspond to src/julia.h
 # and src/ui/repl.c
 const JL_LOG_NONE = 0
 const JL_LOG_USER = 1
 const JL_LOG_ALL = 2
 const coverage_opts =
-    Dict{Int, ASCIIString}(JL_LOG_NONE => "none",
-                           JL_LOG_USER => "user",
-                           JL_LOG_ALL => "all")
+    Dict{Int, String}(JL_LOG_NONE => "none",
+                      JL_LOG_USER => "user",
+                      JL_LOG_ALL => "all")
 
 function runtests()
     nprocs = clamp(CPU_CORES, 2, 4)
