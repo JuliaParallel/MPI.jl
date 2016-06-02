@@ -4,6 +4,11 @@ typealias MPIDatatype Union{Char,
                             Float32, Float64, Complex64, Complex128}
 typealias MPIBuffertype{T} Union{Ptr{T}, Array{T}, Ref{T}}
 
+if VERSION >= v"0.5"
+    # TODO: Use Compat for this
+    fieldoffsets{T}(::Type{T}) = Int[fieldoffset(T, i) for i in 1:nfields(T)]
+end
+
 # Define a function mpitype(T) that returns the MPI datatype code for
 # a given type T. In the case the the type does not exist, it is created and
 # then returned. The dictonary is defined in __init__ so the module can be
