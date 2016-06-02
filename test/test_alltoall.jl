@@ -15,4 +15,11 @@ recv = zeros(eltype(b), size)
 MPI.Alltoall!(recv, b, 1, comm)
 @test recv == -collect(0:(size-1))
 
+# Sending columns of matrix
+b = rank*ones(Int, size, size)
+recv = similar(b)
+MPI.Alltoall!(recv, b, size, comm) # By communicating all rows should be 0, 1, 2...
+
+@test reduce(&, [sumabs2(recv[i, :]'-collect(0:(size-1))) == 0 for i in 1:size])
+
 MPI.Finalize()
