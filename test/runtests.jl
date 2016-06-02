@@ -11,7 +11,7 @@ const coverage_opts =
                            JL_LOG_ALL => "all")
 
 function runtests()
-    nprocs = clamp(CPU_CORES, 2, 4)
+    nprocs = clamp(Sys.CPU_CORES, 2, 4)
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     testdir = dirname(@__FILE__)
     istest(f) = endswith(f, ".jl") && f != "runtests.jl"
