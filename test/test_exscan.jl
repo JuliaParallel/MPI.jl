@@ -14,7 +14,7 @@ for typ in typs
     val = convert(typ,rank+1)
     B = MPI.Exscan(val, MPI.PROD, comm)
     if rank > 0
-        @test_approx_eq B[1] factorial(rank)
+        @test B[1] === convert(typ, factorial(rank))
     end
 end
 
