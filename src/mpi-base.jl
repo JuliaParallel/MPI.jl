@@ -674,8 +674,8 @@ end
 
 function Alltoall!{T}(recvbuf::MPIBuffertype{T}, sendbuf::MPIBuffertype{T}, 
                       count::Integer, comm::Comm)
-    @assert length(recvbuf) == Comm_size(comm)*count
-    @assert pointer(recvbuf) != pointer(sendbuf)
+    @assert length(recvbuf) == Comm_size(comm)*count "Wrong length of receiveing buffer"
+    @assert pointer(recvbuf) != pointer(sendbuf) "Receiving and sending buffer are identical"
     ccall(MPI_ALLTOALL, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &comm.val, &0)
@@ -685,6 +685,18 @@ end
 function Alltoallv{T}(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
                       rcounts::Vector{Cint}, comm::Comm)
     recvbuf = Array(T, sum(rcounts))
+    sdispls = cumsum(scounts) - scounts
+    rdispls = cumsum(rcounts) - rcounts
+    ccall(MPI_ALLTOALLV, Void,
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          sendbuf, scounts, sdispls, &mpitype(T), recvbuf, rcounts, rdispls, &mpitype(T), &comm.val, &0)
+    recvbuf
+end
+
+function Alltoallv!{T}(recvbuf::MPIBuffertype{T}, sendbuf::MPIBuffertype{T},
+                       scounts::Vector{Cint}, rcounts::Vector{Cint}, comm::Comm)
+    @assert length(recvbuf) == sum(rcounts) "Wrong length of receiveing buffer"
+    @assert pointer(recvbuf) != pointer(sendbuf) "Receiving and sending buffer are identical"
     sdispls = cumsum(scounts) - scounts
     rdispls = cumsum(rcounts) - rcounts
     ccall(MPI_ALLTOALLV, Void,

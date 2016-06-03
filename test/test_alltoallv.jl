@@ -23,6 +23,12 @@ for typ in MPI.MPIDatatype.types
     rcounts = fill(convert(Cint,rank + 1),size)
     C = alltoallv_array(A, scounts, rcounts)
     @test B == C
+
+    D = similar(C)
+    MPI.Alltoallv!(D, A, scounts, rcounts, comm)
+    @test B == D
 end
+
+
 
 MPI.Finalize()
