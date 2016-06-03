@@ -22,7 +22,7 @@ vals = MPI.allreduce(send_arr, MPI.SUM, MPI.COMM_WORLD)
 for i=1:3
   @test vals[i] == comm_size*send_arr[i]
   @test length(vals) == 3
-  @test eltype(vals) == Int64
+  @test eltype(vals) == Int
 end
 
 MPI.Barrier( MPI.COMM_WORLD )
