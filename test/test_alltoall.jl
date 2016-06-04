@@ -20,6 +20,6 @@ b = rank*ones(Int, size, size)
 recv = similar(b)
 MPI.Alltoall!(recv, b, size, comm) # By communicating all rows should be 0, 1, 2...
 
-@test reduce(&, [sumabs2(recv[i, :]'-collect(0:(size-1))) == 0 for i in 1:size])
+@test reduce(&, [recv[:, i] == (i-1)*ones(Int, size) for i in 1:size])
 
 MPI.Finalize()
