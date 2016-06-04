@@ -11,9 +11,12 @@ typedef int check_sizeof_MPI_Aint[sizeof(MPI_Aint) == sizeof(ptrdiff_t) ? 1 : -1
 #define STRING(s) STRING1(s)
 
 int main(int argc, char *argv[]) {
+  printf("using Compat\n");
+  printf("import Compat.String\n");
+  printf("\n");
   printf("const WRAPPER_VERSION = \"%s\"\n", VERSION);
   printf("\n");
-  printf("const _mpi_functions = Dict{Symbol, ASCIIString}(\n");
+  printf("const _mpi_functions = Dict{Symbol, String}(\n");
   printf("    :MPI_ABORT              => \"%s\",\n", STRING(MPI_ABORT));
   printf("    :MPI_ALLGATHER          => \"%s\",\n", STRING(MPI_ALLGATHER));
   printf("    :MPI_ALLGATHERV         => \"%s\",\n", STRING(MPI_ALLGATHERV));
