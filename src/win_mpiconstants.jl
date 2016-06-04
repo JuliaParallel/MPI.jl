@@ -86,5 +86,6 @@ const MPI_WAIT = (:MPI_WAIT, "msmpi.dll")
 const MPI_WAITSOME = (:MPI_WAITSOME, "msmpi.dll")
 const MPI_WAITANY = (:MPI_WAITANY, "msmpi.dll")
 const MPI_CANCEL = (:MPI_CANCEL, "msmpi.dll")
+const MPI_ALLREDUCE = (:MPI_ALLREDUCE, "msmpi.dll")
 
 bitstype 32 CComm

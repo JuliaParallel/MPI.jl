@@ -584,12 +584,44 @@ function Reduce{T}(object::T, op::Op, root::Integer, comm::Comm)
     isroot ? recvbuf[1] : nothing
 end
 
-function Scatter{T}(sendbuf::MPIBuffertype{T},
-                    count::Integer, root::Integer, comm::Comm)
+function Allreduce!{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                      count::Integer, op::Op, comm::Comm)
+    flag = Ref{Cint}()
+    ccall(MPI_ALLREDUCE, Void, (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+          Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &count, &mpitype(T), 
+          &op.val, &comm.val, flag)
+
+    recvbuf
+end
+                  
+function Allreduce!{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                      op::Op, comm::Comm)
+    Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
+end
+
+function Allreduce{T}(obj::T, op::Op, comm::Comm)
+    objref = Ref(obj)
+    outref = Ref{T}()
+    Allreduce!(objref, outref, 1, op, comm)
+
+    outref[]
+end
+
+# allocate receive buffer automatically
+function allreduce{T}(sendbuf::MPIBuffertype{T}, op::Op, comm::Comm)
+
+  recvbuf = similar(sendbuf)
+  Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
+end
+
+
+function Scatter{T}(sendbuf::MPIBuffertype{T},count::Integer, root::Integer, 
+                    comm::Comm)
     recvbuf = Array(T, count)
     ccall(MPI_SCATTER, Void,
-          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-          sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &root, &comm.val, &0)
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, 
+           Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), sendbuf, &count, &mpitype(T), 
+           recvbuf, &count, &mpitype(T), &root, &comm.val, &0)
     recvbuf
 end
 
