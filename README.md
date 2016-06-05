@@ -184,6 +184,10 @@ ccomm = MPI.CComm(juliacomm)
 ### Currently wrapped MPI functions
 Convention: `MPI_Fun => MPI.Fun`
 
+Constants like `MPI_SUM` are wrapped as `MPI.SUM`.   Note also that
+arbitrary Julia functions `f(x,y)` can be passed as reduction operations
+to the MPI `Allreduce` and `Reduce` functions.
+
 #### Administrative functions
 Julia Function (assuming `import MPI`) | Fortran Function
 ---------------------------------------|--------------------------------------------------------
