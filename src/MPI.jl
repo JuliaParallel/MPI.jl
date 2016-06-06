@@ -21,6 +21,8 @@ include("cman.jl")
 const mpitype_dict = Dict{DataType, Cint}()
 const mpitype_dict_inverse = Dict{Cint, DataType}()
 
+
+
 function __init__()
     @static if is_unix()
         # need to open libmpi with RTLD_GLOBAL flag for Linux, before
