@@ -77,6 +77,8 @@ Pkg.update()
 Pkg.add("MPI")
 ```
 
+If you would like to wrap an MPI function on Windows, keep in mind you may need to add its signature to `src/win_mpiconstants.jl`.
+
 ## Usage : MPI-Only mode
 
 To run a Julia script with MPI, first make sure that `using MPI` or
