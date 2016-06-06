@@ -36,6 +36,9 @@ function user_op(opfunc::Function)
     # we must initialize these at runtime, but it can't be done in __init__
     # since MPI.Init is not called yet.  So we do it lazily here:
     if _user_op.val == MPI_OP_NULL
+        # FIXME: to be thread-safe, there should really be a mutex lock
+        # of some sort so that this initialization only occurs once.
+        # To do when native threading in Julia stabilizes (and is documented).
         resize!(_user_functions, nthreads()) # for mpi-op.jl
         user_function = cfunction(_mpi_user_function, Void, (Ptr{Void}, Ptr{Void}, Ptr{Cint}, Ptr{Cint}))
         opnum = Ref{Cint}()
