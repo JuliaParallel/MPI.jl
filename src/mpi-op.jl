@@ -39,7 +39,7 @@ function user_op(opfunc::Function)
         # FIXME: to be thread-safe, there should really be a mutex lock
         # of some sort so that this initialization only occurs once.
         # To do when native threading in Julia stabilizes (and is documented).
-        resize!(_user_functions, nthreads()) # for mpi-op.jl
+        resize!(_user_functions, nthreads())
         user_function = cfunction(_mpi_user_function, Void, (Ptr{Void}, Ptr{Void}, Ptr{Cint}, Ptr{Cint}))
         opnum = Ref{Cint}()
         ccall(MPI_OP_CREATE, Void, (Ptr{Void}, Ref{Cint}, Ref{Cint}, Ptr{Cint}),
