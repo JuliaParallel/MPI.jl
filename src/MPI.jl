@@ -35,15 +35,17 @@ function __init__()
         end
     end
 
-    for (T,mpiT) in (Char => MPI_INTEGER4,
-                     Int8 => MPI_INTEGER1,
-                     UInt8 => MPI_INTEGER1,
-                     Int16 => MPI_INTEGER2,
-                     UInt16 => MPI_INTEGER2,
-                     Int32 => MPI_INTEGER4,
-                     UInt32 => MPI_INTEGER4,
-                     Int64 => MPI_INTEGER8,
-                     UInt64 => MPI_INTEGER8,
+    # Note: older versions of OpenMPI (e.g. the version on Travis) do not
+    # define MPI_CHAR and MPI_*INT*_T for Fortran, so we don't use them (yet).
+    for (T,mpiT) in (Char => MPI_INTEGER4,   # => MPI_WCHAR, (note: wchar_t is 16 bits in Windows)
+                     Int8 => MPI_INTEGER1,   # => MPI_INT8_T,
+                     UInt8 => MPI_INTEGER1,  # => MPI_UINT8_T,
+                     Int16 => MPI_INTEGER2,  # => MPI_INT16_T,
+                     UInt16 => MPI_INTEGER2, # => MPI_UINT16_T,
+                     Int32 => MPI_INTEGER4,  # => MPI_INT32_T,
+                     UInt32 => MPI_INTEGER4, # => MPI_UINT32_T,
+                     Int64 => MPI_INTEGER8,  # => MPI_INT64_T,
+                     UInt64 => MPI_INTEGER8, # => MPI_UINT64_T,
                      Float32 => MPI_REAL4,
                      Float64 => MPI_REAL8,
                      Complex64 => MPI_COMPLEX8,
