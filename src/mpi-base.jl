@@ -61,6 +61,7 @@ function mpitype{T}(::Type{T})
 
     # add it to the dictonary of known types
     mpitype_dict[T] = newtype_ref[]
+    mpitype_dict_inverse[newtype_ref[]] = T
 
     return mpitype_dict[T]
 end
@@ -205,8 +206,8 @@ function type_create(T::DataType)
     # create the datatype
     newtype_ref = Ref{Cint}()
     flag = Ref{Cint}()
-    ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t}, 
-          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements, 
+    ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t},
+          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths, displacements,
           types, newtype_ref, flag)
 
     if flag[] != 0
@@ -573,11 +574,11 @@ function Reduce{T}(sendbuf::MPIBuffertype{T}, count::Integer,
     isroot ? recvbuf : nothing
 end
 
-function Reduce{T}(sendbuf::Array{T}, op::Op, root::Integer, comm::Comm)
+function Reduce{T}(sendbuf::Array{T}, op::Union{Op,Function}, root::Integer, comm::Comm)
     Reduce(sendbuf, length(sendbuf), op, root, comm)
 end
 
-function Reduce{T}(object::T, op::Op, root::Integer, comm::Comm)
+function Reduce{T}(object::T, op::Union{Op,Function}, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     sendbuf = T[object]
     recvbuf = Reduce(sendbuf, op, root, comm)
@@ -588,18 +589,18 @@ function Allreduce!{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       count::Integer, op::Op, comm::Comm)
     flag = Ref{Cint}()
     ccall(MPI_ALLREDUCE, Void, (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
-          Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &count, &mpitype(T), 
+          Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &count, &mpitype(T),
           &op.val, &comm.val, flag)
 
     recvbuf
 end
-                  
+
 function Allreduce!{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
-                      op::Op, comm::Comm)
+                      op::Union{Op,Function}, comm::Comm)
     Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
 end
 
-function Allreduce{T}(obj::T, op::Op, comm::Comm)
+function Allreduce{T}(obj::T, op::Union{Op,Function}, comm::Comm)
     objref = Ref(obj)
     outref = Ref{T}()
     Allreduce!(objref, outref, 1, op, comm)
@@ -608,19 +609,20 @@ function Allreduce{T}(obj::T, op::Op, comm::Comm)
 end
 
 # allocate receive buffer automatically
-function allreduce{T}(sendbuf::MPIBuffertype{T}, op::Op, comm::Comm)
+function allreduce{T}(sendbuf::MPIBuffertype{T}, op::Union{Op,Function}, comm::Comm)
 
   recvbuf = similar(sendbuf)
   Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
 end
 
+include("mpi-op.jl")
 
-function Scatter{T}(sendbuf::MPIBuffertype{T},count::Integer, root::Integer, 
+function Scatter{T}(sendbuf::MPIBuffertype{T},count::Integer, root::Integer,
                     comm::Comm)
     recvbuf = Array(T, count)
     ccall(MPI_SCATTER, Void,
-          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, 
-           Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), sendbuf, &count, &mpitype(T), 
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint},
+           Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), sendbuf, &count, &mpitype(T),
            recvbuf, &count, &mpitype(T), &root, &comm.val, &0)
     recvbuf
 end

@@ -18,6 +18,9 @@ include(depfile)
 include("mpi-base.jl")
 include("cman.jl")
 
+const mpitype_dict = Dict{DataType, Cint}()
+const mpitype_dict_inverse = Dict{Cint, DataType}()
+
 function __init__()
     @static if is_unix()
         # need to open libmpi with RTLD_GLOBAL flag for Linux, before
@@ -32,32 +35,24 @@ function __init__()
         end
     end
 
-    global const mpitype_dict = Dict{DataType, Cint}(
-        # Older versions of OpenMPI (such as those used by default in
-        # Travis) do not define MPI_WCHAR and the MPI_*INT*_T types for
-        # Fortran. We thus don't require them (yet).
-        # Char => MPI_WCHAR,
-        # Int8 => MPI_INT8_T,
-        # UInt8 => MPI_UINT8_T,
-        # Int16 => MPI_INT16_T,
-        # UInt16 => MPI_UINT16_T,
-        # Int32 => MPI_INT32_T,
-        # UInt32 => MPI_UINT32_T,
-        # Int64 => MPI_INT64_T,
-        # UInt64 => MPI_UINT64_T,
-        Char => MPI_INTEGER4,
-        Int8 => MPI_INTEGER1,
-        UInt8 => MPI_INTEGER1,
-        Int16 => MPI_INTEGER2,
-        UInt16 => MPI_INTEGER2,
-        Int32 => MPI_INTEGER4,
-        UInt32 => MPI_INTEGER4,
-        Int64 => MPI_INTEGER8,
-        UInt64 => MPI_INTEGER8,
-        Float32 => MPI_REAL4,
-        Float64 => MPI_REAL8,
-        Complex64 => MPI_COMPLEX8,
-        Complex128 => MPI_COMPLEX16)
+    # Note: older versions of OpenMPI (e.g. the version on Travis) do not
+    # define MPI_CHAR and MPI_*INT*_T for Fortran, so we don't use them (yet).
+    for (T,mpiT) in (Char => MPI_INTEGER4,   # => MPI_WCHAR, (note: wchar_t is 16 bits in Windows)
+                     Int8 => MPI_INTEGER1,   # => MPI_INT8_T,
+                     UInt8 => MPI_INTEGER1,  # => MPI_UINT8_T,
+                     Int16 => MPI_INTEGER2,  # => MPI_INT16_T,
+                     UInt16 => MPI_INTEGER2, # => MPI_UINT16_T,
+                     Int32 => MPI_INTEGER4,  # => MPI_INT32_T,
+                     UInt32 => MPI_INTEGER4, # => MPI_UINT32_T,
+                     Int64 => MPI_INTEGER8,  # => MPI_INT64_T,
+                     UInt64 => MPI_INTEGER8, # => MPI_UINT64_T,
+                     Float32 => MPI_REAL4,
+                     Float64 => MPI_REAL8,
+                     Complex64 => MPI_COMPLEX8,
+                     Complex128 => MPI_COMPLEX16)
+        mpitype_dict[T] = mpiT
+        mpitype_dict_inverse[mpiT] = T
+    end
 end
 
 end
