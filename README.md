@@ -85,7 +85,7 @@ To run a Julia script with MPI, first make sure that `using MPI` or
 `import MPI` is included at the top of your script. You should then be
 able to run the MPI job as expected, e.g., with
 
-  mpirun -np 3 julia 01-hello.jl
+`mpirun -np 3 julia 01-hello.jl`
 
 ## Usage : MPI and Julia parallel constructs together
 
