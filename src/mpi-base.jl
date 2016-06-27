@@ -42,22 +42,12 @@ function mpitype{T}(::Type{T})
 
     # create the datatype
     newtype_ref = Ref{Cint}()
-    flag = Ref{Cint}()
     ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t},
           Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths,
-          displacements, types, newtype_ref, flag)
-
-    if flag[] != 0
-        throw(ErrorException("MPI_Type_create_struct returned non-zero exit status"))
-    end
+          displacements, types, newtype_ref, &0)
 
     # commit the datatatype
-    flag2 = Ref{Cint}()
-    ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
-
-    if flag2[] != 0
-        throw(ErrorException("MPI_Type_commit returned non-zero exit status"))
-    end
+    ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, &0)
 
     # add it to the dictonary of known types
     mpitype_dict[T] = newtype_ref[]
