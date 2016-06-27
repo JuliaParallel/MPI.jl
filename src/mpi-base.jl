@@ -402,12 +402,12 @@ end
 function Testall!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    flag = Array(Cint, 1)
+    flag = Ref{Cint}()
     statvals = Array(Cint, MPI_STATUS_SIZE, count)
     ccall(MPI_TESTALL, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, flag, statvals, &0)
-    if flag[1] == 0
+    if flag[] == 0
         return (false, nothing)
     end
     stats = Array(Status, count)
@@ -587,10 +587,9 @@ end
 
 function Allreduce!{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                       count::Integer, op::Op, comm::Comm)
-    flag = Ref{Cint}()
     ccall(MPI_ALLREDUCE, Void, (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
           Ptr{Cint}, Ptr{Cint}), sendbuf, recvbuf, &count, &mpitype(T),
-          &op.val, &comm.val, flag)
+          &op.val, &comm.val, &0)
 
     recvbuf
 end
