@@ -2,11 +2,8 @@ environment:
   matrix:
   - JULIAVERSION: "julialang/bin/winnt/x86/0.4/julia-0.4-latest-win32.exe"
   - JULIAVERSION: "julialang/bin/winnt/x64/0.4/julia-0.4-latest-win64.exe"
-  # The MPI tests with Julia 0.5 are currently broken. We don't quite
-  # know why; see <https://github.com/JuliaParallel/MPI.jl/issues/123>
-  # for the respective discussion.
-  # - JULIAVERSION: "julianightlies/bin/winnt/x86/julia-latest-win32.exe"
-  # - JULIAVERSION: "julianightlies/bin/winnt/x64/julia-latest-win64.exe"
+  - JULIAVERSION: "julianightlies/bin/winnt/x86/julia-latest-win32.exe"
+  - JULIAVERSION: "julianightlies/bin/winnt/x64/julia-latest-win64.exe"
 
 branches:
   only:
@@ -20,20 +17,21 @@ notifications:
     on_build_status_changed: false
 
 install:
-# Download most recent Julia Windows binary
-  - ps: (new-object net.webclient).DownloadFile(
-        $("http://s3.amazonaws.com/"+$env:JULIAVERSION),
-        "C:\projects\julia-binary.exe")
+  # Download and install MPI
   - ps: (new-object net.webclient).DownloadFile(
         "https://download.microsoft.com/download/D/7/B/D7BBA00F-71B7-436B-80BC-4D22F2EE9862/MSMpiSetup.exe",
         "C:\projects\MSMpiSetup.exe")
-# Run installer silently, output to C:\projects\julia
-  - C:\projects\julia-binary.exe /S /D=C:\projects\julia
   - C:\projects\MSMpiSetup.exe -unattend -minimal
   - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
+  # Download most recent Julia Windows binary
+  - ps: (new-object net.webclient).DownloadFile(
+        $("http://s3.amazonaws.com/"+$env:JULIAVERSION),
+        "C:\projects\julia-binary.exe")
+  # Run installer silently, output to C:\projects\julia
+  - C:\projects\julia-binary.exe /S /D=C:\projects\julia
 
 build_script:
-# Need to convert from shallow to complete for Pkg.clone to work
+  # Need to convert from shallow to complete for Pkg.clone to work
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia -e "versioninfo();
       Pkg.clone(pwd(), \"MPI\"); Pkg.build(\"MPI\")"
