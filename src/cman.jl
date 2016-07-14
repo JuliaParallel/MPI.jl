@@ -474,7 +474,7 @@ end
 function mpi_do(mgr::MPIManager, expr)
     !mgr.initialized && wait(mgr.cond_initialized)
     jpids = keys(mgr.j2mpi)
-    refs = cell(length(jpids))
+    refs = Array(Any, length(jpids))
     for (i,p) in enumerate(filter(x -> x != myid(), jpids))
         refs[i] = remotecall(expr, p)
     end

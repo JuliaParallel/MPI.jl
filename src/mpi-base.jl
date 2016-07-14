@@ -4,7 +4,7 @@ typealias MPIDatatype Union{Char,
                             Float32, Float64, Complex64, Complex128}
 typealias MPIBuffertype{T} Union{Ptr{T}, Array{T}, Ref{T}}
 
-if VERSION >= v"0.5"
+if VERSION >= v"0.5.0-"
     # TODO: Use Compat for this
     fieldoffsets{T}(::Type{T}) = Int[fieldoffset(T, i) for i in 1:nfields(T)]
 end
