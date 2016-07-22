@@ -25,8 +25,8 @@ sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 stats = MPI.Waitall!([sreq, rreq])
 @test isequal(typeof(rreq), typeof(MPI.REQUEST_NULL))
 @test isequal(typeof(sreq), typeof(MPI.REQUEST_NULL))
-@test MPI.Get_source(stats[2]) == src
-@test MPI.Get_tag(stats[2]) == src+32
+@test stats[2].source == src
+@test stats[2].tag == src+32
 @test isapprox(norm(recv_mesg-recv_mesg_expected), 0.0)
 
 (done, stats) = MPI.Testall!([sreq, rreq])

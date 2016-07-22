@@ -15,5 +15,6 @@ env:
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - export PATH=$HOME/OpenMPI/bin:$PATH
+  - export LD_LIBRARY_PATH=$HOME/OpenMPI/lib:$LD_LIBRARY_PATH
 after_success:
   - if [ "$TRAVIS_JULIA_VERSION" = nightly ]; then julia -e 'cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Coveralls.process_folder())'; fi

@@ -279,7 +279,7 @@ end
 
 # Event loop for sending data to one other process, for the MPI_TRANSPORT_ALL
 # case
-function start_send_event_loop(mgr::MPIManager, rank::Int)
+function start_send_event_loop(mgr::MPIManager, rank::Integer)
     try
         r_s = BufferStream()
         w_s = BufferStream()
@@ -403,7 +403,7 @@ function receive_event_loop(mgr::MPIManager)
         if hasdata
             count = Get_count(stat, UInt8)
             buf = Array(UInt8, count)
-            from_rank = Get_source(stat)
+            from_rank = stat.source
             MPI.Recv!(buf, from_rank, 0, mgr.comm)
 
             streams = get(mgr.rank2streams, from_rank, nothing)
