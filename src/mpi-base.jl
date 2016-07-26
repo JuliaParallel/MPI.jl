@@ -9,15 +9,27 @@ if VERSION >= v"0.5.0-"
     fieldoffsets{T}(::Type{T}) = Int[fieldoffset(T, i) for i in 1:nfields(T)]
 end
 
-MPIString = readstring(`mpirun --version`)
-if ismatch(r"Open MPI", MPIString)
+if !is_windows()
+    if success(`ompi_info`)
+        MPIString = "OpenRTE"
+    else
+        MPIString = readstring(`mpiexec --version`)
+    end
+else
+    MPIString = readstring(`mpiexec`)
+end
+
+if ismatch(r"OpenRTE", MPIString)
     MPIName = :OpenMPI
 elseif ismatch(r"mpich", MPIString)
     MPIName = :MPICH
 elseif ismatch(r"Intel", MPIString)
     MPIName = :Intel
+elseif ismatch(r"Microsoft", MPIString)
+    MPIName = :Microsoft
 else
-    error("Your MPI implementation is now known to MPI.jl. Please file a bug report.")
+    error("Your MPI implementation is not known to MPI.jl. Please add the necessary constant from
+        from mpi.h of your MPI implementation ans submit pull request.")
 end
 
 if MPIName == :OpenMPI
@@ -187,9 +199,7 @@ const mpitype_dict = Dict{DataType, MPI_Datatype}()
 const mpitype_dict_inverse = Dict{MPI_Datatype, DataType}()
 
 function __init__()
-    # Note: older versions of OpenMPI (e.g. the version on Travis) do not
-    # define MPI_CHAR and MPI_*INT*_T for Fortran, so we don't use them (yet).
-    for (T,S) in (Char       => WCHAR, # (note: wchar_t is 16 bits in Windows)
+    for (T,S) in (Char       => INT32_T,
                   Int8       => INT8_T,
                   UInt8      => UINT8_T,
                   Int16      => INT16_T,
