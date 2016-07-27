@@ -1,6 +1,7 @@
 module MPI
 
 using Compat
+import Compat.String
 
 const libmpi = Libdl.find_library(["libmpi", "msmpi"])
 # libmpi is loaded with RTLD_GLOBAL to make sure that all dependent modules are loaded correctly
@@ -11,8 +12,13 @@ Libdl.dlopen(libmpi, Libdl.RTLD_GLOBAL)
 # implementations I'm aware of. The MPI_Get_library_version function doesn't allow us two query the length.
 sbuf = Array(UInt8, 8192)
 n = Ref{Cint}()
+mjr, mnr = Ref{Cint}(), Ref{Cint}()
+
 ccall((:MPI_Get_library_version, libmpi), Cint, (Ptr{UInt8}, Ref{Cint}), sbuf, n)
-MPIString = String(sbuf[1:n[] - 1])
+ccall((:MPI_Get_version, libmpi), Cint, (Ref{Cint}, Ref{Cint}), mjr, mnr)
+
+const MPIString  = String(sbuf[1:n[] - 1])
+const MPIVersion = VersionNumber(mjr[], mnr[])
 
 # Load header file information for linked MPI implementation
 if ismatch(r"Open MPI", MPIString)

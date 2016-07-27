@@ -92,10 +92,35 @@ ROOT          = Cint(-3)
 ANY_TAG       = Cint(-1)
 UNDEFINED     = Cint(-32766)
 
-immutable Status
-    count_lo::Cint
-    count_hi_and_cancelled::Cint
-    source::Cint
-    tag::Cint
-    error::Cint
+if MPIVersion < v"3.0.0"
+
+    error("Your version of MPICH is too old.")
+
+elseif MPIVersion < v"3.1.0"
+
+    # MPICH decided to make life miserable and allow the size of Status struct to be modified
+    # in configure so we'll have to search to see if the struct is deviating from the default
+    if ismatch(r"EXTRA_STATUS_DECL", MPIString) || ismatch(r"MPI_Count", MPIString)
+        error("Status stuct has non-standard layout. Cannot proceed.")
+    end
+
+    immutable Status
+        source::Cint
+        tag::Cint
+        error::Cint
+        count::Clonglong
+        cancelled::Cint
+        abi_slush_fund::NTuple{2,Cint}
+    end
+
+else
+
+    immutable Status
+        count_lo::Cint
+        count_hi_and_cancelled::Cint
+        source::Cint
+        tag::Cint
+        error::Cint
+    end
+
 end
