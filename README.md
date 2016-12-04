@@ -90,9 +90,9 @@ able to run the MPI job as expected, e.g., with
 ## Usage : MPI and Julia parallel constructs together
 
 In order for MPI calls to be made from a Julia cluster, it requires the use of
-MPIManager, a cluster manager that will start the julia workers using `mpirun`
+`MPIManager`, a cluster manager that will start the julia workers using `mpirun`
 
-Currently MPIManager only works with Julia 0.4 . It has three modes of operation
+Currently `MPIManager` only works with Julia 0.4 and above. It has three modes of operation
 
 - Only worker processes execute MPI code. The Julia master process executes outside of and
   is not part of the MPI cluster. Free bi-directional TCP/IP connectivity is required
@@ -109,15 +109,15 @@ Currently MPIManager only works with Julia 0.4 . It has three modes of operation
 
 An example is provided in `examples/05-juliacman.jl`.
 The julia master process is NOT part of the MPI cluster. The main script should be
-launched directly, MPIManager internally calls `mpirun` to launch julia/mpi workers.
-All the workers started via MPIManager will be part of the MPI cluster.
+launched directly, `MPIManager` internally calls `mpirun` to launch julia/mpi workers.
+All the workers started via `MPIManager` will be part of the MPI cluster.
 
 `MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, launch_timeout=60.0)`
 
 If not specified, `mpi_cmd` defaults to `mpirun -np $np`
-STDOUT from the launched workers is redirected back to the julia session calling `addprocs` via a TCP connection.
+`STDOUT` from the launched workers is redirected back to the julia session calling `addprocs` via a TCP connection.
 Thus the workers must be able to freely connect via TCP to the host session.
-The following lines will be typically required on the julia master process to support both julia and mpi
+The following lines will be typically required on the julia master process to support both julia and MPI:
 
 ```
 # to import MPIManager
@@ -133,11 +133,13 @@ addprocs(manager)
 
 To execute code with MPI calls on all workers, use `@mpi_do`.
 
-`@mpi_do manager expr` executes `expr` on all processes that are part of `manager`
+`@mpi_do manager expr` executes `expr` on all processes that are part of `manager`.
 
 For example:
-`@mpi_do manager (comm=MPI.COMM_WORLD; println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")`
-executes on all mpi workers belonging to `manager` only
+```jl
+@mpi_do manager (comm=MPI.COMM_WORLD, println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")
+```
+executes on all mpi workers belonging to `manager` only.
 
 `examples/05-juliacman.jl` is a simple example of calling MPI functions on all workers
 interspersed with Julia parallel methods. `cd` to the `examples` directory and run `julia 05-juliacman.jl`
@@ -145,8 +147,8 @@ interspersed with Julia parallel methods. `cd` to the `examples` directory and r
 A single instation of `MPIManager` can be used only once to launch MPI workers (via `addprocs`).
 To create multiple sets of MPI clusters, use separate, distinct `MPIManager` objects.
 
-procs(manager::MPIManager) returns a list of julia pids belonging to `manager`
-mpiprocs(manager::MPIManager) returns a list of MPI ranks belonging to `manager`
+`procs(manager::MPIManager)` returns a list of julia pids belonging to `manager`
+`mpiprocs(manager::MPIManager)` returns a list of MPI ranks belonging to `manager`
 
 Fields `j2mpi` and `mpi2j` of `MPIManager` are associative collections mapping julia pids to MPI ranks and vice-versa.
 
