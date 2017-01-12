@@ -179,7 +179,7 @@ interface with a C library), this can be achieved with the Fortran to C
 communicator conversion:
 
 ```
-juliacomm = MPI.MPI_COMM_WORLD
+juliacomm = MPI.COMM_WORLD
 ccomm = MPI.CComm(juliacomm)
 ```
 
