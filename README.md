@@ -92,7 +92,7 @@ able to run the MPI job as expected, e.g., with
 In order for MPI calls to be made from a Julia cluster, it requires the use of
 MPIManager, a cluster manager that will start the julia workers using `mpirun`
 
-Currently MPIManager only works with Julia 0.4 . It has three modes of operation
+MPIManager has three modes of operation
 
 - Only worker processes execute MPI code. The Julia master process executes outside of and
   is not part of the MPI cluster. Free bi-directional TCP/IP connectivity is required
