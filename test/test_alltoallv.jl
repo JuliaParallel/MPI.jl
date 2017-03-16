@@ -12,7 +12,7 @@ comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-for typ in MPI.MPIDatatype.types
+for typ in MPI.MPIDatatype
     A = typ[]
     B = typ[]
     for i in 1:size

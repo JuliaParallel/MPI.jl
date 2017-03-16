@@ -21,7 +21,7 @@ root = 0
 srand(17)
 
 matsize = (17,17)
-for typ in MPI.MPIDatatype.types
+for typ in MPI.MPIDatatype
     A = rand(typ, matsize...)
     @test bcast_array(A, root) == A
 end

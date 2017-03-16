@@ -10,7 +10,7 @@ end
 
 comm = MPI.COMM_WORLD
 
-for typ in MPI.MPIDatatype.types
+for typ in MPI.MPIDatatype
     A = typ[MPI.Comm_rank(comm) + 1]
     C = allgather(A)
     @test typeof(C) === Vector{typ}
