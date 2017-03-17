@@ -1,6 +1,6 @@
 # MPI interface for the Julia language
 [![Build Status](https://travis-ci.org/JuliaParallel/MPI.jl.svg?branch=master)](https://travis-ci.org/JuliaParallel/MPI.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/e8mr8rx8sjryyba6/branch/master?svg=true)](https://ci.appveyor.com/project/eschnett/mpi-jl/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/e8mr8rx8sjryyba6/branch/master?svg=true)](https://ci.appveyor.com/project/andreasnoack/mpi-jl/branch/master)
 [![codecov.io](https://codecov.io/github/JuliaParallel/MPI.jl/coverage.svg?branch=master)](https://codecov.io/github/JuliaParallel/MPI.jl?branch=master)
 [![Coverage Status](https://coveralls.io/repos/JuliaParallel/MPI.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaParallel/MPI.jl?branch=master)
 
