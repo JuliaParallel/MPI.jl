@@ -12,7 +12,7 @@ notifications:
   email: false
 env:
   - MPI_IMPL=mpich
-  - MPI_IMPL=openmpi
+  - MPI_IMPL=openmpi TMPDIR=/tmp
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - export PATH=$HOME/OpenMPI/bin:$PATH
