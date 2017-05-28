@@ -15,7 +15,7 @@ function do_broadcast()
     if MPI.Comm_rank(comm) == root
         A = [1:N;] * (1.0 + im*2.0)
     else
-        A = Array(Complex128, N)
+        A = Vector{Complex128}(N)
     end
 
     MPI.Bcast!(A,length(A), root, comm)

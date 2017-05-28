@@ -12,8 +12,8 @@ function do_sendrecv()
 
     N = 4
 
-    send_mesg = Array(Float64, N)
-    recv_mesg = Array(Float64, N)
+    send_mesg = Vector{Float64}(N)
+    recv_mesg = Vector{Float64}(N)
 
     fill!(send_mesg, Float64(rank))
 

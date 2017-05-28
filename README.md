@@ -1,6 +1,6 @@
 # MPI interface for the Julia language
 [![Build Status](https://travis-ci.org/JuliaParallel/MPI.jl.svg?branch=master)](https://travis-ci.org/JuliaParallel/MPI.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/e8mr8rx8sjryyba6/branch/master?svg=true)](https://ci.appveyor.com/project/eschnett/mpi-jl/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/e8mr8rx8sjryyba6/branch/master?svg=true)](https://ci.appveyor.com/project/andreasnoack/mpi-jl/branch/master)
 [![codecov.io](https://codecov.io/github/JuliaParallel/MPI.jl/coverage.svg?branch=master)](https://codecov.io/github/JuliaParallel/MPI.jl?branch=master)
 [![Coverage Status](https://coveralls.io/repos/JuliaParallel/MPI.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaParallel/MPI.jl?branch=master)
 
@@ -92,7 +92,7 @@ able to run the MPI job as expected, e.g., with
 In order for MPI calls to be made from a Julia cluster, it requires the use of
 MPIManager, a cluster manager that will start the julia workers using `mpirun`
 
-Currently MPIManager only works with Julia 0.4 . It has three modes of operation
+MPIManager has three modes of operation
 
 - Only worker processes execute MPI code. The Julia master process executes outside of and
   is not part of the MPI cluster. Free bi-directional TCP/IP connectivity is required

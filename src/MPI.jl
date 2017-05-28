@@ -3,6 +3,7 @@ __precompile__()
 module MPI
 
 using Compat
+using Compat.Iterators
 
 @static if is_windows()
     const depfile = "win_mpiconstants.jl"
