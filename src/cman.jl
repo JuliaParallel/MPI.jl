@@ -198,11 +198,9 @@ function setup_worker(host, port, cookie)
     Base.wait_connected(io)
     redirect_stdout(io)
     redirect_stderr(io)
-
     # Send our MPI rank to the manager
     rank = MPI.Comm_rank(MPI.COMM_WORLD)
     Base.serialize(io, rank)
-
     # Hand over control to Base
     if cookie == nothing
         Base.start_worker(io)
@@ -279,7 +277,7 @@ end
 
 # Event loop for sending data to one other process, for the MPI_TRANSPORT_ALL
 # case
-function start_send_event_loop(mgr::MPIManager, rank::Int)
+function start_send_event_loop(mgr::MPIManager, rank::Integer)
     try
         r_s = BufferStream()
         w_s = BufferStream()
@@ -296,6 +294,9 @@ function start_send_event_loop(mgr::MPIManager, rank::Int)
                 # When data are available, send them
                 while nb_available(w_s) > 0
                     data = takebuf_array(w_s.buffer)
+                    if length(data) == 0
+                        warn("sending zero sized message")
+                    end
                     push!(reqs, MPI.Isend(data, rank, 0, mgr.comm))
                 end
                 if !isempty(reqs)
@@ -383,10 +384,11 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
                 cookie = MPI.bcast(nothing, 0, comm)
                 Base.init_worker(cookie, mgr)
             else
-                Base.init_worker(mgr)
+                Base.init_worker(mgr)#;println("D")
             end
             # Start a worker event loop
-            receive_event_loop(mgr)
+            #println("DD")
+            receive_event_loop(mgr)#;println("E")
             MPI.Finalize()
             exit()
         end
@@ -402,8 +404,11 @@ function receive_event_loop(mgr::MPIManager)
         (hasdata, stat) = MPI.Iprobe(MPI.ANY_SOURCE, 0, mgr.comm)
         if hasdata
             count = Get_count(stat, UInt8)
+            if count == 0
+                warn("receive empty msg: ", stat.source)
+            end
             buf = Array(UInt8, count)
-            from_rank = Get_source(stat)
+            from_rank = stat.source
             MPI.Recv!(buf, from_rank, 0, mgr.comm)
 
             streams = get(mgr.rank2streams, from_rank, nothing)
@@ -417,6 +422,7 @@ function receive_event_loop(mgr::MPIManager)
                 (r_s, w_s) = streams
             end
             write(r_s, buf)
+            yield()
         else
             # TODO: Need a better way to integrate with libuv's event loop
             yield()

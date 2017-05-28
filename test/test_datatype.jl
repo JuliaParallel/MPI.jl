@@ -22,7 +22,7 @@ type NotABits
   a::Any
 end
 
-@test_throws ArgumentError MPI.type_create(NotABits)
+@test_throws ArgumentError MPI.mpitype(NotABits)
 
 immutable Boundary
   c::UInt16  # force some padding to be inserted
