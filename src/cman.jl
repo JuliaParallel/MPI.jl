@@ -262,7 +262,7 @@ end
 function connect(mgr::MPIManager, pid::Int, config::WorkerConfig)
     if mgr.mode != MPI_TRANSPORT_ALL
         # Forward the call to the connect function in Base
-        return invoke(connect, (ClusterManager, Int, WorkerConfig),
+        return invoke(connect, Tuple{ClusterManager, Int, WorkerConfig},
                       mgr, pid, config)
     end
 
