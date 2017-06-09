@@ -15,5 +15,8 @@ env:
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - export PATH=$HOME/OpenMPI/bin:$PATH
+# Work around OpenMPI attempting to create overly long temporary
+# file names - and erroring as a result
+  - export TMPDIR=/tmp
 after_success:
   - if [ "$TRAVIS_JULIA_VERSION" = nightly ]; then julia -e 'cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Coveralls.process_folder())'; fi
