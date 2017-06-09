@@ -9,7 +9,7 @@ function scatterv_array(A, counts::Vector{Cint}, root)
     if MPI.Comm_rank(comm) == root
         B = copy(A)
     else
-        B = Array(T,1)
+        B = Array{T}(1)
     end
     C = MPI.Scatterv(B, counts, root, comm)
 end
@@ -22,7 +22,7 @@ root = 0
 # Defining this to make ones work for Char
 Base.one(::Type{Char}) = '\01'
 
-for typ in MPI.MPIDatatype.types
+for typ in (isdefined(:UnionAll) ? Base.uniontypes(MPI.MPIDatatype) : MPI.MPIDatatype.types)
 
     A = ones(typ, 3 * div(size,2) + mod(size,2))
     counts = Cint[ mod(i,2) + 1 for i in 0:(size-1)]

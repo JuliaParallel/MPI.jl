@@ -16,7 +16,7 @@ end
 # the reduction functions are barriers, being re-entrant is probably
 # not important in practice, fortunately.)   For MPI_THREAD_MULTIPLE
 # using Julia native threading, however, we do make this global thread-local
-const _user_functions = Array(Function, 1) # resized to nthreads() at runtime
+const _user_functions = Array{Function}(1) # resized to nthreads() at runtime
 const _user_op = Op(MPI_OP_NULL) # _mpi_user_function operation, initialized below
 
 # C callback function corresponding to MPI_User_function

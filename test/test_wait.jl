@@ -7,16 +7,16 @@ myrank = MPI.Comm_rank(MPI.COMM_WORLD)
 commsize = MPI.Comm_rank(MPI.COMM_WORLD)
 
 nsends = 2
-send_arr = Array(Array{Int, 1}, nsends)
-recv_arr = Array(Array{Int, 1}, nsends)
+send_arr = Array{Array{Int, 1}}(nsends)
+recv_arr = Array{Array{Int, 1}}(nsends)
 
 for i=1:nsends
     send_arr[i] = [i]
-    recv_arr[i] = Array(Int, 1)
+    recv_arr[i] = Array{Int}(1)
 end
 
-send_reqs = Array(MPI.Request, nsends)
-recv_reqs = Array(MPI.Request, nsends)
+send_reqs = Array{MPI.Request}(nsends)
+recv_reqs = Array{MPI.Request}(nsends)
 
 # send to self
 for i=1:nsends

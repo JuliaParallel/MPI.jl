@@ -98,7 +98,7 @@ const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
 
 type Status
     val::Array{Cint,1}
-    Status() = new(Array(Cint, MPI_STATUS_SIZE))
+    Status() = new(Array{Cint}(MPI_STATUS_SIZE))
 end
 Get_error(stat::Status) = Int(stat.val[MPI_ERROR])
 Get_source(stat::Status) = Int(stat.val[MPI_SOURCE])
@@ -112,7 +112,7 @@ const UNDEFINED  = Int(MPI_UNDEFINED)
 function serialize(x)
     s = IOBuffer()
     Base.serialize(s, x)
-    Base.takebuf_array(s)
+    take!(s)
 end
 
 function deserialize(x)
@@ -329,7 +329,7 @@ end
 function recv(src::Integer, tag::Integer, comm::Comm)
     stat = Probe(src, tag, comm)
     count = Get_count(stat, UInt8)
-    buf = Array(UInt8, count)
+    buf = Array{UInt8}(count)
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
     (MPI.deserialize(buf), stat)
 end
@@ -355,7 +355,7 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
         return (false, nothing, nothing)
     end
     count = Get_count(stat, UInt8)
-    buf = Array(UInt8, count)
+    buf = Array{UInt8}(count)
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
     (true, MPI.deserialize(buf), stat)
 end
@@ -383,11 +383,11 @@ end
 function Waitall!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    statvals = Array{Cint}(MPI_STATUS_SIZE, count)
     ccall(MPI_WAITALL, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, statvals, &0)
-    stats = Array(Status, count)
+    stats = Array{Status}(count)
     for i in 1:count
         reqs[i].val = reqvals[i]
         reqs[i].buffer = nothing
@@ -403,14 +403,14 @@ function Testall!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
     flag = Ref{Cint}()
-    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    statvals = Array{Cint}(MPI_STATUS_SIZE, count)
     ccall(MPI_TESTALL, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, flag, statvals, &0)
     if flag[] == 0
         return (false, nothing)
     end
-    stats = Array(Status, count)
+    stats = Array{Status}(count)
     for i in 1:count
         reqs[i].val = reqvals[i]
         reqs[i].buffer = nothing
@@ -458,8 +458,8 @@ function Waitsome!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
     outcnt = Ref{Cint}()
-    inds = Array(Cint, count)
-    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    inds = Array{Cint}(count)
+    statvals = Array{Cint}(MPI_STATUS_SIZE, count)
     ccall(MPI_WAITSOME, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, outcnt, inds, statvals, &0)
@@ -468,8 +468,8 @@ function Waitsome!(reqs::Array{Request,1})
     if outcount == UNDEFINED
         outcount = 0
     end
-    indices = Array(Int, outcount)
-    stats = Array(Status, outcount)
+    indices = Array{Int}(outcount)
+    stats = Array{Status}(outcount)
     for i in 1:outcount
         ind = Int(inds[i])
         reqs[ind].val = reqvals[ind]
@@ -487,8 +487,8 @@ function Testsome!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
     outcnt = Ref{Cint}()
-    inds = Array(Cint, count)
-    statvals = Array(Cint, MPI_STATUS_SIZE, count)
+    inds = Array{Cint}(count)
+    statvals = Array{Cint}(MPI_STATUS_SIZE, count)
     ccall(MPI_TESTSOME, Void,
           (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &count, reqvals, outcnt, inds, statvals, &0)
@@ -497,8 +497,8 @@ function Testsome!(reqs::Array{Request,1})
     if outcount == UNDEFINED
         outcount = 0
     end
-    indices = Array(Int, outcount)
-    stats = Array(Status, outcount)
+    indices = Array{Int}(outcount)
+    stats = Array{Status}(outcount)
     for i in 1:outcount
         ind = Int(inds[i])
         reqs[ind].val = reqvals[ind]
@@ -546,14 +546,14 @@ end
 
 function bcast(obj, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
-    count = Array(Cint, 1)
+    count = Array{Cint}(1)
     if isroot
         buf = MPI.serialize(obj)
         count[1] = length(buf)
     end
     Bcast!(count, root, comm)
     if !isroot
-        buf = Array(UInt8, count[1])
+        buf = Array{UInt8}(count[1])
     end
     Bcast!(buf, root, comm)
     if !isroot
@@ -565,7 +565,7 @@ end
 function Reduce{T}(sendbuf::MPIBuffertype{T}, count::Integer,
                    op::Op, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
-    recvbuf = Array(T, isroot ? count : 0)
+    recvbuf = Array{T}(isroot ? count : 0)
     ccall(MPI_REDUCE, Void,
           (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
            Ptr{Cint}, Ptr{Cint}),
@@ -618,7 +618,7 @@ include("mpi-op.jl")
 
 function Scatter{T}(sendbuf::MPIBuffertype{T},count::Integer, root::Integer,
                     comm::Comm)
-    recvbuf = Array(T, count)
+    recvbuf = Array{T}(count)
     ccall(MPI_SCATTER, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint},
            Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), sendbuf, &count, &mpitype(T),
@@ -629,7 +629,7 @@ end
 function Scatterv{T}(sendbuf::MPIBuffertype{T},
                      counts::Vector{Cint}, root::Integer,
                      comm::Comm)
-    recvbuf = Array(T, counts[Comm_rank(comm) + 1])
+    recvbuf = Array{T}(counts[Comm_rank(comm) + 1])
     recvcnt = counts[Comm_rank(comm) + 1]
     disps = cumsum(counts) - counts
     ccall(MPI_SCATTERV, Void,
@@ -641,7 +641,7 @@ end
 function Gather{T}(sendbuf::MPIBuffertype{T}, count::Integer,
                    root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
-    recvbuf = Array(T, isroot ? Comm_size(comm) * count : 0)
+    recvbuf = Array{T}(isroot ? Comm_size(comm) * count : 0)
     ccall(MPI_GATHER, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &root, &comm.val, &0)
@@ -661,7 +661,7 @@ end
 
 function Allgather{T}(sendbuf::MPIBuffertype{T}, count::Integer,
                       comm::Comm)
-    recvbuf = Array(T, Comm_size(comm) * count)
+    recvbuf = Array{T}(Comm_size(comm) * count)
     ccall(MPI_ALLGATHER, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &comm.val, &0)
@@ -683,7 +683,7 @@ function Gatherv{T}(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
     isroot = Comm_rank(comm) == root
     displs = cumsum(counts) - counts
     sendcnt = counts[Comm_rank(comm) + 1]
-    recvbuf = Array(T, isroot ? sum(counts) : 0)
+    recvbuf = Array{T}(isroot ? sum(counts) : 0)
     ccall(MPI_GATHERV, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, &sendcnt, &mpitype(T), recvbuf, counts, displs, &mpitype(T), &root, &comm.val, &0)
@@ -694,7 +694,7 @@ function Allgatherv{T}(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
                        comm::Comm)
     displs = cumsum(counts) - counts
     sendcnt = counts[Comm_rank(comm) + 1]
-    recvbuf = Array(T, sum(counts))
+    recvbuf = Array{T}(sum(counts))
     ccall(MPI_ALLGATHERV, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, &sendcnt, &mpitype(T), recvbuf, counts, displs, &mpitype(T), &comm.val, &0)
@@ -703,7 +703,7 @@ end
 
 function Alltoall{T}(sendbuf::MPIBuffertype{T}, count::Integer,
                      comm::Comm)
-    recvbuf = Array(T, Comm_size(comm)*count)
+    recvbuf = Array{T}(Comm_size(comm)*count)
     ccall(MPI_ALLTOALL, Void,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, &count, &mpitype(T), recvbuf, &count, &mpitype(T), &comm.val, &0)
@@ -712,7 +712,7 @@ end
 
 function Alltoallv{T}(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
                       rcounts::Vector{Cint}, comm::Comm)
-    recvbuf = Array(T, sum(rcounts))
+    recvbuf = Array{T}(sum(rcounts))
     sdispls = cumsum(scounts) - scounts
     rdispls = cumsum(rcounts) - rcounts
     ccall(MPI_ALLTOALLV, Void,
@@ -723,7 +723,7 @@ end
 
 function Scan{T}(sendbuf::MPIBuffertype{T}, count::Integer,
                  op::Op, comm::Comm)
-    recvbuf = Array(T, count)
+    recvbuf = Array{T}(count)
     ccall(MPI_SCAN, Void,
           (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, recvbuf, &count, &mpitype(T), &op.val, &comm.val, &0)
@@ -737,7 +737,7 @@ end
 
 function Exscan{T}(sendbuf::MPIBuffertype{T}, count::Integer,
                    op::Op, comm::Comm)
-    recvbuf = Array(T, count)
+    recvbuf = Array{T}(count)
     ccall(MPI_EXSCAN, Void,
           (Ptr{T}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           sendbuf, recvbuf, &count, &mpitype(T), &op.val, &comm.val, &0)
