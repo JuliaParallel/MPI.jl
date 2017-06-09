@@ -11,7 +11,7 @@ end
 comm = MPI.COMM_WORLD
 root = 0
 
-for typ in MPI.MPIDatatype.types
+for typ in (isdefined(:UnionAll) ? Base.uniontypes(MPI.MPIDatatype) : MPI.MPIDatatype.types)
     A = typ[MPI.Comm_rank(comm) + 1]
     C = gather(A, root)
     if MPI.Comm_rank(comm) == root

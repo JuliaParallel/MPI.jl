@@ -262,7 +262,7 @@ end
 function connect(mgr::MPIManager, pid::Int, config::WorkerConfig)
     if mgr.mode != MPI_TRANSPORT_ALL
         # Forward the call to the connect function in Base
-        return invoke(connect, (ClusterManager, Int, WorkerConfig),
+        return invoke(connect, Tuple{ClusterManager, Int, WorkerConfig},
                       mgr, pid, config)
     end
 
@@ -295,7 +295,7 @@ function start_send_event_loop(mgr::MPIManager, rank::Int)
             while !isready(mgr.initiate_shutdown)
                 # When data are available, send them
                 while nb_available(w_s) > 0
-                    data = takebuf_array(w_s.buffer)
+                    data = take!(w_s.buffer)
                     push!(reqs, MPI.Isend(data, rank, 0, mgr.comm))
                 end
                 if !isempty(reqs)
@@ -402,7 +402,7 @@ function receive_event_loop(mgr::MPIManager)
         (hasdata, stat) = MPI.Iprobe(MPI.ANY_SOURCE, 0, mgr.comm)
         if hasdata
             count = Get_count(stat, UInt8)
-            buf = Array(UInt8, count)
+            buf = Array{UInt8}(count)
             from_rank = Get_source(stat)
             MPI.Recv!(buf, from_rank, 0, mgr.comm)
 
@@ -474,7 +474,7 @@ end
 function mpi_do(mgr::MPIManager, expr)
     !mgr.initialized && wait(mgr.cond_initialized)
     jpids = keys(mgr.j2mpi)
-    refs = Array(Any, length(jpids))
+    refs = Array{Any}(length(jpids))
     for (i,p) in enumerate(filter(x -> x != myid(), jpids))
         refs[i] = remotecall(expr, p)
     end
