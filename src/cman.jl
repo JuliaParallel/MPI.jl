@@ -24,7 +24,7 @@ export TransportMode, MPI_ON_WORKERS, TCP_TRANSPORT_ALL, MPI_TRANSPORT_ALL
 
 @enum TransportMode MPI_ON_WORKERS MPI_TRANSPORT_ALL TCP_TRANSPORT_ALL
 
-type MPIManager <: ClusterManager
+mutable struct MPIManager <: ClusterManager
     np::Int # number of worker processes (excluding the manager process)
     mpi2j::Dict{Int,Int} # map MPI ranks to Julia processes
     j2mpi::Dict{Int,Int} # map Julia to MPI ranks
@@ -139,7 +139,7 @@ function launch(mgr::MPIManager, params::Dict,
             else
                 cookie = `nothing`
             end
-            setup_cmds = `using MPI;MPI.setup_worker($(getipaddr().host),$(mgr.port),$cookie)`
+            setup_cmds = `using MPI\;MPI.setup_worker'('$(getipaddr().host),$(mgr.port),$cookie')'`
             mpi_cmd = `$(mgr.mpirun_cmd) $(params[:exename]) -e $(Base.shell_escape(setup_cmds))`
             open(detach(mpi_cmd))
             mgr.launched = true
@@ -475,7 +475,7 @@ function mpi_do(mgr::MPIManager, expr)
     !mgr.initialized && wait(mgr.cond_initialized)
     jpids = keys(mgr.j2mpi)
     refs = Array{Any}(length(jpids))
-    for (i,p) in enumerate(filter(x -> x != myid(), jpids))
+    for (i,p) in enumerate(Iterators.filter(x -> x != myid(), jpids))
         refs[i] = remotecall(expr, p)
     end
     # Execution on local process should be last, since it can block the main

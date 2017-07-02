@@ -1,8 +1,8 @@
-typealias MPIDatatype Union{Char,
+const MPIDatatype = Union{Char,
                             Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64,
                             UInt64,
                             Float32, Float64, Complex64, Complex128}
-typealias MPIBuffertype{T} Union{Ptr{T}, Array{T}, Ref{T}}
+MPIBuffertype{T} = Union{Ptr{T}, Array{T}, Ref{T}}
 
 if VERSION >= v"0.5.0-"
     # TODO: Use Compat for this
@@ -67,7 +67,7 @@ function mpitype{T}(::Type{T})
 end
 
 
-type Comm
+mutable struct Comm
     val::Cint
     Comm(val::Integer) = new(val)
 end
@@ -75,7 +75,7 @@ const COMM_NULL  = Comm(MPI_COMM_NULL)
 const COMM_SELF  = Comm(MPI_COMM_SELF)
 const COMM_WORLD = Comm(MPI_COMM_WORLD)
 
-type Op
+mutable struct Op
     val::Cint
 end
 const OP_NULL = Op(MPI_OP_NULL)
@@ -90,13 +90,13 @@ const MIN     = Op(MPI_MIN)
 const PROD    = Op(MPI_PROD)
 const SUM     = Op(MPI_SUM)
 
-type Request
+mutable struct Request
     val::Cint
     buffer
 end
 const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
 
-type Status
+mutable struct Status
     val::Array{Cint,1}
     Status() = new(Array{Cint}(MPI_STATUS_SIZE))
 end
