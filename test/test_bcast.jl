@@ -21,7 +21,7 @@ root = 0
 srand(17)
 
 matsize = (17,17)
-for typ in (isdefined(:UnionAll) ? Base.uniontypes(MPI.MPIDatatype) : MPI.MPIDatatype.types)
+for typ in (@isdefined(UnionAll) ? Base.uniontypes(MPI.MPIDatatype) : MPI.MPIDatatype.types)
     A = rand(typ, matsize...)
     @test bcast_array(A, root) == A
 end
