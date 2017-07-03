@@ -12,7 +12,7 @@ comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-for typ in (isdefined(:UnionAll) ? Base.uniontypes(MPI.MPIDatatype) : MPI.MPIDatatype.types)
+for typ in (@isdefined(UnionAll) ? Base.uniontypes(MPI.MPIDatatype) : MPI.MPIDatatype.types)
     A = typ[]
     B = typ[]
     for i in 1:size

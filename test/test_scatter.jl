@@ -20,7 +20,7 @@ root = 0
 A = collect(1:MPI.Comm_size(comm))
 B = scatter_array(A, root)
 @test B[1] == MPI.Comm_rank(comm) + 1
-for typ in (isdefined(:UnionAll) ? Base.uniontypes(MPI.MPIDatatype) : MPI.MPIDatatype.types)
+for typ in (@isdefined(UnionAll) ? Base.uniontypes(MPI.MPIDatatype) : MPI.MPIDatatype.types)
     A = convert(Vector{typ},collect(1:MPI.Comm_size(comm)))
     B = scatter_array(A, root)
     @test B[1] == convert(typ,MPI.Comm_rank(comm) + 1)
