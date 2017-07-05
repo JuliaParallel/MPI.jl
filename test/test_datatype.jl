@@ -18,13 +18,13 @@ end
 
 # test simple type 
 
-type NotABits
+mutable struct NotABits
   a::Any
 end
 
 @test_throws ArgumentError MPI.type_create(NotABits)
 
-immutable Boundary
+struct Boundary
   c::UInt16  # force some padding to be inserted
   a::Int
   b::UInt8
@@ -56,7 +56,7 @@ end
 
 
 # test nested types
-immutable Boundary2
+struct Boundary2
   a::UInt32
   b::Tuple{Int, UInt8}
 end
