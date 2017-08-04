@@ -47,6 +47,7 @@ const MPI_TAG_UB = Int32(1681915906)
 const MPI_UNDEFINED = Int32(-32766)
 const HAVE_MPI_COMM_C2F = false
 
+const MPI_ABORT = (:MPI_ABORT, "msmpi.dll")
 const MPI_INIT = (:MPI_INIT, "msmpi.dll")
 const MPI_COMM_RANK = (:MPI_COMM_RANK, "msmpi.dll")
 const MPI_COMM_SIZE = (:MPI_COMM_SIZE, "msmpi.dll")
