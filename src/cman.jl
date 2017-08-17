@@ -129,16 +129,7 @@ function launch(mgr::MPIManager, params::Dict,
                 println("Try again with a different instance of MPIManager.")
                 throw(ErrorException("Reuse of MPIManager is not allowed."))
             end
-            if VERSION >= v"0.5.0-dev+4047"
-                # Pass the cookie as symbol to `setup_worker` to work around
-                # the mangling issues with command objects, strings and `julia -e` option.
-                # Same reason that the ip-address is passed as an integer.
-                # Prefix cookie with a "cookie_" since symbols do not
-                # lend itself well to strings starting with a "0"
-                cookie = string(":cookie_",Base.cluster_cookie())
-            else
-                cookie = `nothing`
-            end
+            cookie = string(":cookie_",Base.cluster_cookie())
             setup_cmds = `using MPI\;MPI.setup_worker'('$(getipaddr().host),$(mgr.port),$cookie')'`
             mpi_cmd = `$(mgr.mpirun_cmd) $(params[:exename]) -e $(Base.shell_escape(setup_cmds))`
             open(detach(mpi_cmd))
@@ -365,9 +356,7 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
 
             # Send the cookie over. Introduced in v"0.5.0-dev+4047". Irrelevant under MPI
             # transport, but need it to satisfy the changed protocol.
-            if VERSION >= v"0.5.0-dev+4047"
-                MPI.bcast(Base.cluster_cookie(), 0, comm)
-            end
+            MPI.bcast(Base.cluster_cookie(), 0, comm)
             # Start event loop for the workers
             @schedule receive_event_loop(mgr)
             # Tell Base about the workers
@@ -379,12 +368,8 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
             mgr = MPIManager(np=size-1, mode=mode)
             mgr.comm = comm
             # Recv the cookie
-            if VERSION >= v"0.5.0-dev+4047"
-                cookie = MPI.bcast(nothing, 0, comm)
-                Base.init_worker(cookie, mgr)
-            else
-                Base.init_worker(mgr)
-            end
+            cookie = MPI.bcast(nothing, 0, comm)
+            Base.init_worker(cookie, mgr)
             # Start a worker event loop
             receive_event_loop(mgr)
             MPI.Finalize()
