@@ -169,6 +169,20 @@ function Comm_size(comm::Comm)
     Int(size[])
 end
 
+function Wtime()
+
+  val = ccall(MPI_WTIME, Cdouble, () )
+  return val
+end
+
+function Wtick()
+
+  val = ccall(MPI_WTICK, Cdouble, () )
+  return val
+end
+
+
+
 function type_create(T::DataType)
     if !isbits(T)
         throw(ArgumentError("Type must be isbits()"))
