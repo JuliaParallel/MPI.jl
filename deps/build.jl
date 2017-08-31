@@ -27,7 +27,8 @@ flags = ["MPI_C_COMPILER",
          "MPI_Fortran_LINK_FLAGS",
          "MPI_Fortran_LIBRARIES",
          "MPI_INCLUDE_PATH",
-         "MPI_LIBRARIES"]
+         "MPI_LIBRARIES",
+         "HAVE_MPI_COMM_C2F"]
 for flag in flags
     try
         val = ENV["JULIA_$flag"]
