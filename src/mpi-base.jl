@@ -93,6 +93,11 @@ mutable struct Request
 end
 const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
 
+mutable struct Info
+    val::Cint
+end
+const INFO_NULL = Info(MPI_INFO_NULL)
+
 mutable struct Status
     val::Array{Cint,1}
     Status() = new(Array{Cint}(MPI_STATUS_SIZE))
@@ -167,6 +172,28 @@ function Comm_size(comm::Comm)
     ccall(MPI_COMM_SIZE, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, size, &0)
     Int(size[])
+end
+
+function Comm_split(comm::Comm,color::Integer,key::Integer)
+    newcomm = Ref{Cint}()
+    ccall(MPI_COMM_SPLIT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &comm.val, &color, &key, newcomm, &0)
+    MPI.Comm(newcomm[])
+end
+
+function Comm_split_type(comm::Comm,split_type::Integer,key::Integer;info::Info=INFO_NULL)
+    newcomm = Ref{Cint}()
+    ccall(MPI_COMM_SPLIT_TYPE, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &comm.val, &split_type, &key, &info.val, newcomm, &0)
+    MPI.Comm(newcomm[])
+end
+
+function Wtick()
+    ccall(MPI_WTICK, Cdouble, () )
+end
+
+function Wtime()
+    ccall(MPI_WTIME, Cdouble, () )
 end
 
 function type_create(T::DataType)

@@ -28,6 +28,8 @@ program gen_constants
   call output("MPI_COMM_SELF   ", MPI_COMM_SELF)
   call output("MPI_COMM_WORLD  ", MPI_COMM_WORLD)
 
+  call output("MPI_COMM_TYPE_SHARED", MPI_COMM_TYPE_SHARED)
+
   call output("MPI_OP_NULL     ", MPI_OP_NULL)
   call output("MPI_BAND        ", MPI_BAND)
   call output("MPI_BOR         ", MPI_BOR)
@@ -44,6 +46,8 @@ program gen_constants
   call output("MPI_SUM         ", MPI_SUM)
 
   call output("MPI_REQUEST_NULL", MPI_REQUEST_NULL)
+
+  call output("MPI_INFO_NULL   ", MPI_INFO_NULL)
 
   call output("MPI_STATUS_SIZE ", MPI_STATUS_SIZE)
   call output("MPI_ERROR       ", MPI_ERROR)

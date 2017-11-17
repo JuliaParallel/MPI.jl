@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_COMM_RANK          => \"%s\",\n", STRING(MPI_COMM_RANK));
   printf("    :MPI_COMM_SIZE          => \"%s\",\n", STRING(MPI_COMM_SIZE));
   printf("    :MPI_COMM_SPLIT         => \"%s\",\n", STRING(MPI_COMM_SPLIT));
+  printf("    :MPI_COMM_SPLIT_TYPE    => \"%s\",\n", STRING(MPI_COMM_SPLIT_TYPE));
   printf("    :MPI_EXSCAN             => \"%s\",\n", STRING(MPI_EXSCAN));
   printf("    :MPI_FINALIZE           => \"%s\",\n", STRING(MPI_FINALIZE));
   printf("    :MPI_FINALIZED          => \"%s\",\n", STRING(MPI_FINALIZED));
@@ -70,6 +71,7 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_WAITALL            => \"%s\",\n", STRING(MPI_WAITALL));
   printf("    :MPI_WAITANY            => \"%s\",\n", STRING(MPI_WAITANY));
   printf("    :MPI_WAITSOME           => \"%s\",\n", STRING(MPI_WAITSOME));
+  printf("    :MPI_WTICK              => \"%s\",\n", STRING(MPI_WTICK));
   printf("    :MPI_WTIME              => \"%s\",\n", STRING(MPI_WTIME));
   printf("    :MPI_TYPE_CREATE_STRUCT => \"%s\",\n", 
          STRING(MPI_TYPE_CREATE_STRUCT));
