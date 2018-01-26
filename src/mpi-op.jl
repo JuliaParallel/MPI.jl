@@ -53,12 +53,19 @@ end
 
 # use function types in Julia 0.5 to automatically use built-in
 # MPI operations for the corresponding Julia functions.
-for (f,op) in ((+,SUM), (*,PROD),
-               (min,MIN), (max,MAX),
-               (&, BAND), (|, BOR), ($, BXOR))
-    @eval user_op(::$(typeof(f))) = $op
+@static if VERSION < v"0.6-"
+    for (f,op) in ((+,SUM), (*,PROD),
+                (min,MIN), (max,MAX),
+                (&, BAND), (|, BOR), ($, BXOR))
+        @eval user_op(::$(typeof(f))) = $op
+    end
+else
+    for (f,op) in ((+,SUM), (*,PROD),
+                (min,MIN), (max,MAX),
+                (&, BAND), (|, BOR), (xor, BXOR))
+        @eval user_op(::$(typeof(f))) = $op
+    end
 end
-
 Allreduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
            count::Integer, opfunc::Function, comm::Comm) where {T} =
     Allreduce!(sendbuf, recvbuf, count, user_op(opfunc), comm)
