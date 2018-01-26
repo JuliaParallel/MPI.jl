@@ -1,0 +1,13 @@
+diff --git a/gen_functions.c b/gen_functions.c
+index 1b308c7..c086ff8 100644
+--- a/gen_functions.c
++++ b/gen_functions.c
+@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
+          STRING(MPI_TYPE_COMMIT));
+   printf(")\n");
+   printf("\n");
+-  printf("bitstype %d CComm\n", (int)(sizeof(MPI_Comm) * 8));
++  printf("primitive type CComm %d end\n", (int)(sizeof(MPI_Comm) * 8));
+ 
+   return 0;
+ }
