@@ -97,16 +97,16 @@ function has_data_available(w::WindowIO)
     end
 
     # Check if we need to grow the buffer
+    MPI.Win_lock(MPI.LOCK_EXCLUSIVE, w.myrank, 0, w.header_win)
     MPI.Win_sync(w.header_cwin) # CWin version doesn't allocate
     if w.header.needed_length > w.header.length
-        MPI.Win_lock(MPI.LOCK_EXCLUSIVE, w.myrank, 0, w.header_win)
         MPI.Win_detach(w.win, w.buffer)
         resize!(w.buffer, w.header.needed_length)
         MPI.Win_attach(w.win, w.buffer)
         w.header.address = MPI.Get_address(w.buffer)
         w.header.length = w.header.needed_length
-        MPI.Win_unlock(w.myrank, w.header_win)
     end
+    MPI.Win_unlock(w.myrank, w.header_win)
     
     return w.header.count > w.ptr
 end
@@ -128,7 +128,9 @@ end
 function wait_nb_available(w, nb)
     nb_found = wait_nb_available(w)
     while nb_found < nb && w.is_open
+        MPI.Win_lock(MPI.LOCK_SHARED, w.myrank, 0, w.header_win)
         MPI.Win_sync(w.header_cwin) # sync every loop, to make sure we get updates
+        MPI.Win_unlock(w.myrank, w.header_win)
         nb_found = wait_nb_available(w)
     end
     return nb_found

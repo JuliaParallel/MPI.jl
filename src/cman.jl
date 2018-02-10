@@ -1,31 +1,37 @@
 import Base: kill
 export MPIManager, launch, manage, kill, procs, connect, mpiprocs, @mpi_do
-export TransportMode, MPI_ON_WORKERS, TCP_TRANSPORT_ALL, MPI_TRANSPORT_ALL
+export TransportMode, MPI_ON_WORKERS, TCP_TRANSPORT_ALL, MPI_TRANSPORT_ALL, MPI_WINDOW_IO, MPI_WINDOW_NOWAIT
 using Compat
 using Compat.Distributed
 import Compat.Sockets: connect, listenany, accept, IPv4, getsockname
 
 
 
-################################################################################
-# MPI Cluster Manager
-# Note: The cluster manager object lives only in the manager process,
-# except for MPI_TRANSPORT_ALL
+"""
+MPI Cluster Manager
+Note: The cluster manager object lives only in the manager process,
+except for MPI_TRANSPORT_ALL and MPI_WINDOW_IO
 
-# There are three different transport modes:
+There are four different transport modes:
 
-# MPI_ON_WORKERS: Use MPI between the workers only, not for the manager. This
-# allows interactive use from a Julia shell, using the familiar `addprocs`
-# interface.
+MPI_ON_WORKERS: Use MPI between the workers only, not for the manager. This
+allows interactive use from a Julia shell, using the familiar `addprocs`
+interface.
 
-# MPI_TRANSPORT_ALL: Use MPI on all processes; there is no separate manager
-# process. This corresponds to the "usual" way in which MPI is used in a
-# headless mode, e.g. submitted as a script to a queueing system.
+MPI_TRANSPORT_ALL: Use MPI on all processes; there is no separate manager
+process. This corresponds to the "usual" way in which MPI is used in a
+headless mode, e.g. submitted as a script to a queueing system.
 
-# TCP_TRANSPORT_ALL: Same as MPI_TRANSPORT_ALL, but Julia uses TCP for its
-# communication between processes. MPI can still be used by the user.
+TCP_TRANSPORT_ALL: Same as MPI_TRANSPORT_ALL, but Julia uses TCP for its
+communication between processes. MPI can still be used by the user.
 
-@enum TransportMode MPI_ON_WORKERS MPI_TRANSPORT_ALL TCP_TRANSPORT_ALL
+MPI_WINDOW_IO: Uses the MPI shared memory model with passive communication on all processes.
+The program must be started with mpirun or equivalent.
+
+MPI_WINDOW_NOWAIT: Sets up a cluster manager, but only uses it for code enlosed in the @cluster
+macro. All other code runs as regular MPI code (single program, multiple data).
+"""
+@enum TransportMode MPI_ON_WORKERS MPI_TRANSPORT_ALL TCP_TRANSPORT_ALL MPI_WINDOW_IO MPI_WINDOW_NOWAIT
 
 mutable struct MPIManager <: ClusterManager
     np::Int # number of worker processes (excluding the manager process)
@@ -319,8 +325,9 @@ end
 ################################################################################
 # Alternative startup model: All Julia processes are started via an external
 # mpirun, and the user does not call addprocs.
-
-# Enter the MPI cluster manager's main loop (does not return on the workers)
+"""
+Enter the MPI cluster manager's main loop (does not return on the workers)
+"""
 function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
                          comm::MPI.Comm=MPI.COMM_WORLD)
     !MPI.Initialized() && MPI.Init()
@@ -392,6 +399,10 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
             MPI.Finalize()
             exit()
         end
+    elseif mode == MPI_WINDOW_IO
+        start_window_worker(comm, true)
+    elseif mode == MPI_WINDOW_NOWAIT
+        start_window_worker(comm, false)
     else
         error("Unknown mode $mode")
     end
