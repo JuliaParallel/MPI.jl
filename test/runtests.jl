@@ -18,7 +18,7 @@ const coverage_opts =
 # Files to run without mpiexec
 juliafiles = ["test_cman_julia.jl"]
 # Files to run with mpiexec -n 1
-singlefiles = []
+singlefiles = ["test_spawn.jl"]
 
 function runtests()
     nprocs = clamp(Sys.CPU_CORES, 2, 4)

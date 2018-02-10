@@ -40,6 +40,7 @@ program gen_constants
   call output("MPI_MAX         ", MPI_MAX)
   call output("MPI_MAXLOC      ", MPI_MAXLOC)
   call output("MPI_MIN         ", MPI_MIN)
+  call output("MPI_NO_OP       ", MPI_NO_OP)
   call output("MPI_MINLOC      ", MPI_MINLOC)
   call output("MPI_PROD        ", MPI_PROD)
   call output("MPI_REPLACE     ", MPI_REPLACE)
@@ -59,6 +60,9 @@ program gen_constants
   call output("MPI_TAG_UB      ", MPI_TAG_UB)
   call output("MPI_UNDEFINED   ", MPI_UNDEFINED)
 
+  call output("MPI_INFO_NULL   ", MPI_INFO_NULL)
+  call output("MPI_LOCK_EXCLUSIVE", MPI_LOCK_EXCLUSIVE)
+  call output("MPI_LOCK_SHARED ", MPI_LOCK_SHARED)
 contains
 
   subroutine output(name, value)

@@ -84,7 +84,9 @@ const LOR     = Op(MPI_LOR)
 const LXOR    = Op(MPI_LXOR)
 const MAX     = Op(MPI_MAX)
 const MIN     = Op(MPI_MIN)
+const NO_OP   = Op(MPI_NO_OP)
 const PROD    = Op(MPI_PROD)
+const REPLACE = Op(MPI_REPLACE)
 const SUM     = Op(MPI_SUM)
 
 mutable struct Request
@@ -95,7 +97,6 @@ const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
 
 mutable struct Info
     val::Cint
-    #val::Cint
     function Info()
         newinfo = Ref{Cint}()
         ccall(MPI_INFO_CREATE, Void, (Ptr{Cint}, Ptr{Cint}), newinfo, &0 )
@@ -105,8 +106,15 @@ mutable struct Info
                                   info.val = MPI_INFO_NULL ) )
         info
     end
+
+    function Info(val::Cint)
+        if val != MPI_INFO_NULL
+            error("Info can only be created using Info()")
+        end
+        return new(MPI_INFO_NULL)
+    end
 end
-const INFO_NULL = MPI_INFO_NULL
+const INFO_NULL = Info(MPI_INFO_NULL)
 
 # the info functions assume that Fortran hidden arguments are placed at the end of the argument list
 function Info_set(info::Info,key::AbstractString,value::AbstractString)
@@ -148,6 +156,17 @@ end
 Get_error(stat::Status) = Int(stat.val[MPI_ERROR])
 Get_source(stat::Status) = Int(stat.val[MPI_SOURCE])
 Get_tag(stat::Status) = Int(stat.val[MPI_TAG])
+
+mutable struct Win
+    val::Cint
+    Win() = new(0)
+end
+
+struct LockType
+    val::Cint
+end
+const LOCK_EXCLUSIVE = LockType(MPI_LOCK_EXCLUSIVE)
+const LOCK_SHARED = LockType(MPI_LOCK_SHARED)
 
 const ANY_SOURCE = Int(MPI_ANY_SOURCE)
 const ANY_TAG    = Int(MPI_ANY_TAG)
@@ -814,6 +833,129 @@ function Exscan(object::T, op::Op, comm::Comm) where T
     Exscan(sendbuf,1,op,comm)
 end
 
+function Win_create(base::Array{T}, info::Info, comm::Comm, win::Win) where T
+    out_win = Ref(win.val)
+    ccall(MPI_WIN_CREATE, Void,
+          (Ptr{T}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          base, Cptrdiff_t(length(base)), sizeof(T), info.val, comm.val, out_win, 0)
+    win.val = out_win[]
+end
+
+function Win_create_dynamic(info::Info, comm::Comm, win::Win)
+    out_win = Ref(win.val)
+    ccall(MPI_WIN_CREATE_DYNAMIC, Void,
+          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          info.val, comm.val, out_win, 0)
+    win.val = out_win[]
+end
+
+function Win_attach(win::Win, base::Array{T}) where T
+    ccall(MPI_WIN_ATTACH, Void,
+          (Ref{Cint}, Ptr{T}, Ref{Cptrdiff_t}, Ref{Cint}),
+          win.val, base, Cptrdiff_t(sizeof(base)), 0)
+end
+
+function Win_detach(win::Win, base::Array{T}) where T
+    ccall(MPI_WIN_DETACH, Void,
+          (Ref{Cint}, Ptr{T}, Ref{Cint}),
+          win.val, base, 0)
+end
+
+function Win_fence(assert::Integer, win::Win)
+    ccall(MPI_WIN_FENCE, Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), assert, win.val, 0)
+end
+
+function Win_flush(rank::Integer, win::Win)
+    ccall(MPI_WIN_FLUSH, Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), rank, win.val, 0)
+end
+
+function Win_free(win::Win)
+    ccall(MPI_WIN_FREE, Void, (Ref{Cint}, Ref{Cint}), win.val, 0)
+end
+
+function Win_sync(win::Win)
+    ccall(MPI_WIN_SYNC, Void, (Ref{Cint}, Ref{Cint}), win.val, 0)
+end
+
+function Win_sync(win::CWin)
+    ccall(:MPI_Win_sync, Void, (CWin,), win)
+end
+
+function Win_lock(lock_type::LockType, rank::Integer, assert::Integer, win::Win)
+    ccall(MPI_WIN_LOCK, Void,
+          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          lock_type.val, rank, assert, win.val, 0)
+end
+
+function Win_unlock(rank::Integer, win::Win)
+    ccall(MPI_WIN_UNLOCK, Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}), rank, win.val, 0)
+end
+
+function Get(origin_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, win::Win) where T
+    ccall(MPI_GET, Void,
+          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), win.val, 0)
+end
+function Get(origin_buffer::Array{T}, target_rank::Integer, win::Win) where T
+    count = length(origin_buffer)
+    Get(origin_buffer, count, target_rank, 0, win)
+end
+function Get(origin_value::Ref{T}, target_rank::Integer, win::Win) where T
+    Get(origin_value, 1, target_rank, 0, win)
+end
+
+function Put(origin_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, win::Win) where T
+    ccall(MPI_PUT, Void,
+          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), win.val, 0)
+end
+function Put(origin_buffer::Array{T}, target_rank::Integer, win::Win) where T
+    count = length(origin_buffer)
+    Put(origin_buffer, count, target_rank, 0, win)
+end
+function Put(origin_value::Ref{T}, target_rank::Integer, win::Win) where T
+    Put(origin_value, 1, target_rank, 0, win)
+end
+
+function Fetch_and_op(sourceval::MPIBuffertype{T}, returnval::MPIBuffertype{T}, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where T
+    ccall(MPI_FETCH_AND_OP, Void,
+          (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          sourceval, returnval, mpitype(T), target_rank, Cptrdiff_t(target_disp), op.val, win.val, 0)
+end
+
+function Fetch_and_op(sourceval::MPIBuffertype{T}, returnval::MPIBuffertype{T}, target_rank::Integer, target_disp::Integer, op::Op, win::CWin) where T
+    ccall(:MPI_Fetch_and_op, Void,
+          (Ptr{T}, Ptr{T}, Cint, Cint, Cptrdiff_t, Cint, CWin),
+          sourceval, returnval, mpitype(T), target_rank, target_disp, op.val, win)
+end
+
+function Get_address(location::MPIBuffertype{T}) where T
+    addr = Ref{Cptrdiff_t}(0)
+    ccall(MPI_GET_ADDRESS, Void, (Ptr{T}, Ref{Cptrdiff_t}, Ref{Cint}), location, addr, 0)
+    #ccall(:MPI_Get_address, Int, (Ptr{Void}, Ref{Cptrdiff_t}), location, addr)
+    return addr[]
+end
+
+function Comm_get_parent()
+    comm_id = Ref{Cint}()
+    ccall(MPI_COMM_GET_PARENT, Void, (Ref{Cint}, Ref{Cint}), comm_id, 0)
+    return Comm(comm_id[])
+end
+
+function Comm_spawn(command::String, argv::Vector{String}, nprocs::Integer, comm::Comm, errors = Vector{Cint}(nprocs))
+    c_intercomm = Ref{CComm}()
+    ccall(:MPI_Comm_spawn, Void,
+         (Cstring, Ptr{Ptr{Cchar}}, Cint, CInfo, Cint, CComm, Ref{CComm}, Ptr{Cint}),
+         command, argv, nprocs, CInfo(INFO_NULL), 0, CComm(comm), c_intercomm, errors)
+    return Comm(c_intercomm[])
+end
+
+function Intercomm_merge(intercomm::Comm, flag::Bool)
+    comm_id = Ref{Cint}()
+    ccall(MPI_INTERCOMM_MERGE, Void, (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}), intercomm.val, Cint(flag), comm_id, 0)
+    return Comm(comm_id[])
+end
+
 # Conversion between C and Fortran Comm handles:
 if HAVE_MPI_COMM_C2F
     # use MPI_Comm_f2c and MPI_Comm_c2f
@@ -821,11 +963,24 @@ if HAVE_MPI_COMM_C2F
         ccall(:MPI_Comm_f2c, CComm, (Cint,), comm.val)
     Base.convert(::Type{Comm}, ccomm::CComm) =
         Comm(ccall(:MPI_Comm_c2f, Cint, (CComm,), ccomm))
+    # Assume info is treated the same way
+    Base.convert(::Type{CInfo}, info::Info) =
+        ccall(:MPI_Info_f2c, CInfo, (Cint,), info.val)
+    Base.convert(::Type{Info}, cinfo::CInfo) =
+        Info(ccall(:MPI_Info_c2f, Cint, (CInfo,), cinfo))
+    Base.convert(::Type{CWin}, win::Win) =
+        ccall(:MPI_Win_f2c, CWin, (Cint,), win.val)
+    Base.convert(::Type{Win}, cwin::CWin) =
+        Win(ccall(:MPI_Win_c2f, Cint, (CWin,), cwin))
 elseif sizeof(CComm) == sizeof(Cint)
     # in MPICH, both C and Fortran use identical Cint comm handles
     # and MPI_Comm_c2f is not provided.
     Base.convert(::Type{CComm}, comm::Comm) = reinterpret(CComm, comm.val)
     Base.convert(::Type{Comm}, ccomm::CComm) = Comm(reinterpret(Cint, ccomm))
+    Base.convert(::Type{CInfo}, info::Info) = reinterpret(CInfo, info.val)
+    Base.convert(::Type{Info}, cinfo::CInfo) = Info(reinterpret(Cint, cinfo))
+    Base.convert(::Type{CWin}, win::Win) = reinterpret(CWin, win.val)
+    Base.convert(::Type{Win}, cwin::CWin) = Win(reinterpret(Cint, cwin))
 else
     warn("No MPI_Comm_c2f found - conversion to/from MPI.CComm will not work")
 end
