@@ -14,7 +14,7 @@ env:
   - MPI_IMPL=openmpi
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
-  - export PATH=$HOME/OpenMPI/bin:$PATH
+  - export PATH=$HOME/OpenMPI/bin:$HOME/MPICH/bin:$PATH
 # Work around OpenMPI attempting to create overly long temporary
 # file names - and erroring as a result
   - export TMPDIR=/tmp
