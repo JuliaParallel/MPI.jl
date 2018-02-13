@@ -14,21 +14,34 @@ const coverage_opts =
                       JL_LOG_USER => "user",
                       JL_LOG_ALL => "all")
 
+# Files to run without mpiexec
+juliafiles = ["test_cman_julia.jl"]
+# Files to run with mpiexec -n 1
+singlefiles = []
+
 function runtests()
     nprocs = clamp(Sys.CPU_CORES, 2, 4)
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     testdir = dirname(@__FILE__)
-    istest(f) = endswith(f, ".jl") && f != "runtests.jl"
+    istest(f) = endswith(f, ".jl") && startswith(f, "test_")
     testfiles = sort(filter(istest, readdir(testdir)))
+
+    extra_args = []
+    if contains(readlines(open(`mpiexec --version`)[1])[1], "OpenRTE")
+        push!(extra_args,"--oversubscribe")
+    end
+
     nfail = 0
     print_with_color(:white, "Running MPI.jl tests\n")
     for f in testfiles
         try
             coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
-            if f == "test_cman_julia.jl"
+            if f ∈ singlefiles
+                run(`mpiexec $extra_args -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            elseif f ∈ juliafiles
                 run(`$exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
             else
-                run(`mpiexec -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+                run(`mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
             end
             Base.with_output_color(:green,STDOUT) do io
                 println(io,"\tSUCCESS: $f")
