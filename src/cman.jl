@@ -245,8 +245,12 @@ end
 
 # Kill a worker
 function kill(mgr::MPIManager, pid::Int, config::WorkerConfig)
-    # Do nothing, as the worker will self-terminate after calling MPI.Finalize
-    Base.set_worker_state(Base.Worker(pid), Base.W_TERMINATED)
+    # Exit the worker to avoid EOF errors on the workers
+    @spawnat pid begin
+        MPI.Finalize()
+        exit()
+    end
+    Distributed.set_worker_state(Distributed.Worker(pid), Distributed.W_TERMINATED)
 end
 
 # Set up a connection to a worker
@@ -418,14 +422,7 @@ end
 function stop_main_loop(mgr::MPIManager)
     if mgr.mode == TCP_TRANSPORT_ALL
         # Shut down all workers
-        for i in workers()
-            if i != myid()
-                @spawnat i begin
-                    MPI.Finalize()
-                    exit()
-                end
-            end
-        end
+        rmprocs(workers())
         # Poor man's flush of the send queue
         sleep(1)
         put!(mgr.initiate_shutdown, nothing)
