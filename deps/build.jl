@@ -38,6 +38,11 @@ for flag in flags
 end
 configure = `$configure -DCMAKE_INSTALL_PREFIX=$src -DCMAKE_LIB_INSTALL_PREFIX=$prefix/lib ..`
 
+if VERSION >= v"0.6-"
+    println("Patching gen_functions.c for Julia v0.6+ syntax.")
+    run(Cmd(`patch -p0 gen_functions.c gen_functions_Julia_v0.7.patch`, dir = @__DIR__))
+end
+
 provides(SimpleBuild,
     (@build_steps begin
         CreateDirectory(builddir)
