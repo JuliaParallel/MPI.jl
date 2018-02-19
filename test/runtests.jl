@@ -3,6 +3,7 @@ using Base.Test
 
 using Compat
 import Compat.String
+import Compat.Sys: BINDIR
 
 # Code coverage command line options; must correspond to src/julia.h
 # and src/ui/repl.c
@@ -21,7 +22,7 @@ singlefiles = []
 
 function runtests()
     nprocs = clamp(Sys.CPU_CORES, 2, 4)
-    exename = joinpath(JULIA_HOME, Base.julia_exename())
+    exename = joinpath(BINDIR, Base.julia_exename())
     testdir = dirname(@__FILE__)
     istest(f) = endswith(f, ".jl") && startswith(f, "test_")
     testfiles = sort(filter(istest, readdir(testdir)))
