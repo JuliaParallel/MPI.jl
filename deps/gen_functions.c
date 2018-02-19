@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
          STRING(MPI_TYPE_COMMIT));
   printf(")\n");
   printf("\n");
-  printf("bitstype %d CComm\n", (int)(sizeof(MPI_Comm) * 8));
+  printf("primitive type CComm %d end\n", (int)(sizeof(MPI_Comm) * 8));
 
   return 0;
 }
