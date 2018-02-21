@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_COMM_RANK          => \"%s\",\n", STRING(MPI_COMM_RANK));
   printf("    :MPI_COMM_SIZE          => \"%s\",\n", STRING(MPI_COMM_SIZE));
   printf("    :MPI_COMM_SPLIT         => \"%s\",\n", STRING(MPI_COMM_SPLIT));
+  printf("    :MPI_COMM_SPLIT_TYPE    => \"%s\",\n", STRING(MPI_COMM_SPLIT_TYPE));
   printf("    :MPI_EXSCAN             => \"%s\",\n", STRING(MPI_EXSCAN));
   printf("    :MPI_FINALIZE           => \"%s\",\n", STRING(MPI_FINALIZE));
   printf("    :MPI_FINALIZED          => \"%s\",\n", STRING(MPI_FINALIZED));
@@ -40,6 +41,12 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_GET_COUNT          => \"%s\",\n", STRING(MPI_GET_COUNT));
   printf("    :MPI_GET_PROCESSOR_NAME => \"%s\",\n",
          STRING(MPI_GET_PROCESSOR_NAME));
+  printf("    :MPI_INFO_CREATE        => \"%s\",\n", STRING(MPI_INFO_CREATE));
+  printf("    :MPI_INFO_DELETE        => \"%s\",\n", STRING(MPI_INFO_DELETE));
+  printf("    :MPI_INFO_FREE          => \"%s\",\n", STRING(MPI_INFO_FREE));
+  printf("    :MPI_INFO_GET           => \"%s\",\n", STRING(MPI_INFO_GET));
+  printf("    :MPI_INFO_GET_VALUELEN  => \"%s\",\n", STRING(MPI_INFO_GET_VALUELEN));
+  printf("    :MPI_INFO_SET           => \"%s\",\n", STRING(MPI_INFO_SET));
   printf("    :MPI_INIT               => \"%s\",\n", STRING(MPI_INIT));
   printf("    :MPI_INITIALIZED        => \"%s\",\n", STRING(MPI_INITIALIZED));
   printf("    :MPI_IPROBE             => \"%s\",\n", STRING(MPI_IPROBE));
@@ -70,6 +77,7 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_WAITALL            => \"%s\",\n", STRING(MPI_WAITALL));
   printf("    :MPI_WAITANY            => \"%s\",\n", STRING(MPI_WAITANY));
   printf("    :MPI_WAITSOME           => \"%s\",\n", STRING(MPI_WAITSOME));
+  printf("    :MPI_WTICK              => \"%s\",\n", STRING(MPI_WTICK));
   printf("    :MPI_WTIME              => \"%s\",\n", STRING(MPI_WTIME));
   printf("    :MPI_TYPE_CREATE_STRUCT => \"%s\",\n", 
          STRING(MPI_TYPE_CREATE_STRUCT));
@@ -77,7 +85,7 @@ int main(int argc, char *argv[]) {
          STRING(MPI_TYPE_COMMIT));
   printf(")\n");
   printf("\n");
-  printf("bitstype %d CComm\n", (int)(sizeof(MPI_Comm) * 8));
+  printf("primitive type CComm %d end\n", (int)(sizeof(MPI_Comm) * 8));
 
   return 0;
 }

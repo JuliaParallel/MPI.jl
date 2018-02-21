@@ -93,6 +93,54 @@ mutable struct Request
 end
 const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
 
+mutable struct Info
+    val::Cint
+    #val::Cint
+    function Info()
+        newinfo = Ref{Cint}()
+        ccall(MPI_INFO_CREATE, Void, (Ptr{Cint}, Ptr{Cint}), newinfo, &0 )
+        info=new(newinfo[])
+        finalizer(info, info -> ( ccall(MPI_INFO_FREE, Void,
+                                       (Ptr{Cint}, Ptr{Cint}), &info.val, &0);
+                                  info.val = MPI_INFO_NULL ) )
+        info
+    end
+end
+const INFO_NULL = MPI_INFO_NULL
+
+# the info functions assume that Fortran hidden arguments are placed at the end of the argument list
+function Info_set(info::Info,key::AbstractString,value::AbstractString)
+    @assert isascii(key) && isascii(value)
+    ccall(MPI_INFO_SET, Void,
+          (Ptr{Cint}, Ptr{UInt8}, Ptr{UInt8}, Ptr{Cint}, Csize_t, Csize_t),
+           &info.val, key, value, &0, sizeof(key), sizeof(value))
+end
+
+function Info_get(info::Info,key::AbstractString)
+    @assert isascii(key)
+    keyexists=Ref{Bool}()
+    len=Ref{Cint}()
+    ccall(MPI_INFO_GET_VALUELEN, Void,
+          (Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{Bool}, Ptr{Cint}, Csize_t),
+           &info.val, key, len, keyexists, &0, sizeof(key))
+    if keyexists[]
+        value=" "^(len[])
+        ccall(MPI_INFO_GET, Void,
+              (Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{UInt8}, Ptr{Bool}, Ptr{Cint}, Csize_t, Csize_t),
+               &info.val, key, len, value, keyexists, &0, sizeof(key), sizeof(value) )
+    else
+        value=""
+    end
+    value
+end
+
+function Info_delete(info::Info,key::AbstractString)
+    @assert isascii(key)
+    ccall(MPI_INFO_DELETE, Void,
+          (Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Csize_t), &info.val, key ,&0, sizeof(key) )
+end
+Info_free(info::Info) = finalize(info)
+
 mutable struct Status
     val::Array{Cint,1}
     Status() = new(Array{Cint}(MPI_STATUS_SIZE))
@@ -167,6 +215,30 @@ function Comm_size(comm::Comm)
     ccall(MPI_COMM_SIZE, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, size, &0)
     Int(size[])
+end
+
+function Comm_split(comm::Comm,color::Integer,key::Integer)
+    newcomm = Ref{Cint}()
+    ccall(MPI_COMM_SPLIT, Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &comm.val, &color, &key, newcomm, &0)
+    MPI.Comm(newcomm[])
+end
+
+function Comm_split_type(comm::Comm,split_type::Integer,key::Integer;info::Info=INFO_NULL)
+    newcomm = Ref{Cint}()
+    ccall(MPI_COMM_SPLIT_TYPE, Void,
+          (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+          &comm.val, &split_type, &key, &info.val, newcomm, &0)
+    MPI.Comm(newcomm[])
+end
+
+function Wtick()
+    ccall(MPI_WTICK, Cdouble, () )
+end
+
+function Wtime()
+    ccall(MPI_WTIME, Cdouble, () )
 end
 
 function type_create(T::DataType)
