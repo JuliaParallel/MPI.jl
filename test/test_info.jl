@@ -12,6 +12,6 @@ MPI.Info_set(info, "bar", "evenfaster")
 MPI.Info_delete(info, "bar")
 @test MPI.Info_get(info, "bar" ) == ""
 finalize(info)
-@test info.val == MPI.INFO_NULL
+@test info.val == MPI.MPI_INFO_NULL
 
 MPI.Finalize()
