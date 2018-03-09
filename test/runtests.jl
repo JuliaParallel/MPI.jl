@@ -28,8 +28,10 @@ function runtests()
     testfiles = sort(filter(istest, readdir(testdir)))
 
     extra_args = []
-    if contains(readlines(open(`mpiexec --version`)[1])[1], "OpenRTE")
-        push!(extra_args,"--oversubscribe")
+    @static if !is_windows()
+        if contains(readlines(open(`mpiexec --version`)[1])[1], "OpenRTE")
+            push!(extra_args,"--oversubscribe")
+        end
     end
 
     nfail = 0
