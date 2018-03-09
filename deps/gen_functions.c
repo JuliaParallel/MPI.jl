@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
   printf("\n");
   printf("const _mpi_functions = Dict{Symbol, String}(\n");
   printf("    :MPI_ABORT              => \"%s\",\n", STRING(MPI_ABORT));
+  printf("    :MPI_ACCUMULATE         => \"%s\",\n", STRING(MPI_ACCUMULATE));
   printf("    :MPI_ALLGATHER          => \"%s\",\n", STRING(MPI_ALLGATHER));
   printf("    :MPI_ALLGATHERV         => \"%s\",\n", STRING(MPI_ALLGATHERV));
   printf("    :MPI_ALLREDUCE          => \"%s\",\n", STRING(MPI_ALLREDUCE));
@@ -41,6 +42,7 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_GATHER             => \"%s\",\n", STRING(MPI_GATHER));
   printf("    :MPI_GATHERV            => \"%s\",\n", STRING(MPI_GATHERV));
   printf("    :MPI_GET                => \"%s\",\n", STRING(MPI_GET));
+  printf("    :MPI_GET_ACCUMULATE     => \"%s\",\n", STRING(MPI_GET_ACCUMULATE));
   printf("    :MPI_GET_ADDRESS        => \"%s\",\n", STRING(MPI_GET_ADDRESS));
   printf("    :MPI_GET_COUNT          => \"%s\",\n", STRING(MPI_GET_COUNT));
   printf("    :MPI_GET_PROCESSOR_NAME => \"%s\",\n",

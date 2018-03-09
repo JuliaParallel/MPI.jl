@@ -55,6 +55,7 @@ const HAVE_MPI_COMM_C2F = false
 const libmpi = "msmpi.dll"
 
 const MPI_ABORT = (:MPI_ABORT, libmpi)
+const MPI_ACCUMULATE = (:MPI_ACCUMULATE, libmpi)
 const MPI_ALLREDUCE = (:MPI_ALLREDUCE, libmpi)
 const MPI_INIT = (:MPI_INIT, libmpi)
 const MPI_CANCEL = (:MPI_CANCEL, libmpi)
@@ -93,6 +94,7 @@ const MPI_SEND = (:MPI_SEND, libmpi)
 const MPI_SCAN = (:MPI_SCAN, libmpi)
 const MPI_EXSCAN = (:MPI_EXSCAN, libmpi)
 const MPI_GET = (:MPI_GET, libmpi)
+const MPI_GET_ACCUMULATE = (:MPI_GET_ACCUMULATE, libmpi)
 const MPI_GET_ADDRESS = (:MPI_GET_ADDRESS, libmpi)
 const MPI_GET_COUNT = (:MPI_GET_COUNT, libmpi)
 const MPI_GATHER = (:MPI_GATHER, libmpi)
