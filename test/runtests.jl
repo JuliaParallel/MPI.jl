@@ -20,6 +20,14 @@ juliafiles = ["test_cman_julia.jl"]
 # Files to run with mpiexec -n 1
 singlefiles = ["test_spawn.jl"]
 
+excludedfiles = []
+if is_windows()
+    excludedfiles = ["test_info.jl", "test_onesided.jl"]
+    if Sys.WORD_SIZE == 32
+        push!(excludedfiles, "test_spawn.jl")
+    end
+end
+
 function runtests()
     nprocs = clamp(Sys.CPU_CORES, 2, 4)
     exename = joinpath(BINDIR, Base.julia_exename())
@@ -37,6 +45,10 @@ function runtests()
     nfail = 0
     print_with_color(:white, "Running MPI.jl tests\n")
     for f in testfiles
+        if f ∈ excludedfiles
+            println("Skipping disabled test $f")
+            continue
+        end
         try
             coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
             if f ∈ singlefiles
