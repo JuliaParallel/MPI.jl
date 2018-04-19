@@ -878,7 +878,7 @@ function Win_sync(win::Win)
 end
 
 function Win_sync(win::CWin)
-    ccall(:MPI_Win_sync, Void, (CWin,), win)
+    ccall((:MPI_Win_sync, libmpi), Void, (CWin,), win)
 end
 
 function Win_lock(lock_type::LockType, rank::Integer, assert::Integer, win::Win)
@@ -924,7 +924,7 @@ function Fetch_and_op(sourceval::MPIBuffertype{T}, returnval::MPIBuffertype{T}, 
 end
 
 function Fetch_and_op(sourceval::MPIBuffertype{T}, returnval::MPIBuffertype{T}, target_rank::Integer, target_disp::Integer, op::Op, win::CWin) where T
-    ccall(:MPI_Fetch_and_op, Void,
+    ccall((:MPI_Fetch_and_op, libmpi), Void,
           (Ptr{T}, Ptr{T}, Cint, Cint, Cptrdiff_t, Cint, CWin),
           sourceval, returnval, mpitype(T), target_rank, target_disp, op.val, win)
 end
@@ -932,7 +932,6 @@ end
 function Get_address(location::MPIBuffertype{T}) where T
     addr = Ref{Cptrdiff_t}(0)
     ccall(MPI_GET_ADDRESS, Void, (Ptr{T}, Ref{Cptrdiff_t}, Ref{Cint}), location, addr, 0)
-    #ccall(:MPI_Get_address, Int, (Ptr{Void}, Ref{Cptrdiff_t}), location, addr)
     return addr[]
 end
 
@@ -944,7 +943,7 @@ end
 
 function Comm_spawn(command::String, argv::Vector{String}, nprocs::Integer, comm::Comm, errors = Vector{Cint}(nprocs))
     c_intercomm = Ref{CComm}()
-    ccall(:MPI_Comm_spawn, Void,
+    ccall((:MPI_Comm_spawn, libmpi), Void,
          (Cstring, Ptr{Ptr{Cchar}}, Cint, CInfo, Cint, CComm, Ref{CComm}, Ptr{Cint}),
          command, argv, nprocs, CInfo(INFO_NULL), 0, CComm(comm), c_intercomm, errors)
     return Comm(c_intercomm[])
@@ -960,18 +959,18 @@ end
 if HAVE_MPI_COMM_C2F
     # use MPI_Comm_f2c and MPI_Comm_c2f
     Base.convert(::Type{CComm}, comm::Comm) =
-        ccall(:MPI_Comm_f2c, CComm, (Cint,), comm.val)
+        ccall((:MPI_Comm_f2c, libmpi), CComm, (Cint,), comm.val)
     Base.convert(::Type{Comm}, ccomm::CComm) =
-        Comm(ccall(:MPI_Comm_c2f, Cint, (CComm,), ccomm))
+        Comm(ccall((:MPI_Comm_c2f, libmpi), Cint, (CComm,), ccomm))
     # Assume info is treated the same way
     Base.convert(::Type{CInfo}, info::Info) =
-        ccall(:MPI_Info_f2c, CInfo, (Cint,), info.val)
+        ccall((:MPI_Info_f2c, libmpi), CInfo, (Cint,), info.val)
     Base.convert(::Type{Info}, cinfo::CInfo) =
-        Info(ccall(:MPI_Info_c2f, Cint, (CInfo,), cinfo))
+        Info(ccall((:MPI_Info_c2f, libmpi), Cint, (CInfo,), cinfo))
     Base.convert(::Type{CWin}, win::Win) =
-        ccall(:MPI_Win_f2c, CWin, (Cint,), win.val)
+        ccall((:MPI_Win_f2c, libmpi), CWin, (Cint,), win.val)
     Base.convert(::Type{Win}, cwin::CWin) =
-        Win(ccall(:MPI_Win_c2f, Cint, (CWin,), cwin))
+        Win(ccall((:MPI_Win_c2f, libmpi), Cint, (CWin,), cwin))
 elseif sizeof(CComm) == sizeof(Cint)
     # in MPICH, both C and Fortran use identical Cint comm handles
     # and MPI_Comm_c2f is not provided.
