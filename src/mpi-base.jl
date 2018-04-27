@@ -929,6 +929,18 @@ function Fetch_and_op(sourceval::MPIBuffertype{T}, returnval::MPIBuffertype{T}, 
           sourceval, returnval, mpitype(T), target_rank, target_disp, op.val, win)
 end
 
+function Accumulate(origin_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where T
+    ccall(MPI_ACCUMULATE, Void,
+          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), op.val, win.val, 0)
+end
+
+function Get_accumulate(origin_buffer::MPIBuffertype{T}, result_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where T
+    ccall(MPI_GET_ACCUMULATE, Void,
+          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          origin_buffer, count, mpitype(T), result_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), op.val, win.val, 0)
+end
+
 function Get_address(location::MPIBuffertype{T}) where T
     addr = Ref{Cptrdiff_t}(0)
     ccall(MPI_GET_ADDRESS, Void, (Ptr{T}, Ref{Cptrdiff_t}, Ref{Cint}), location, addr, 0)

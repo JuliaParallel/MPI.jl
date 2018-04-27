@@ -27,6 +27,7 @@ include(FortranCInterface)
 # Keep these function names sorted alphabetically
 FortranCInterface_HEADER(jlmpi_f2c.h MACRO_NAMESPACE "JLMPI_" SYMBOLS
   MPI_ABORT
+  MPI_ACCUMULATE
   MPI_ALLGATHER
   MPI_ALLGATHERV
   MPI_ALLREDUCE
@@ -51,6 +52,7 @@ FortranCInterface_HEADER(jlmpi_f2c.h MACRO_NAMESPACE "JLMPI_" SYMBOLS
   MPI_GATHER
   MPI_GATHERV
   MPI_GET
+  MPI_GET_ACCUMULATE
   MPI_GET_ADDRESS
   MPI_GET_COUNT
   MPI_GET_PROCESSOR_NAME

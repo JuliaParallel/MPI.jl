@@ -37,6 +37,50 @@ if rank == 0
 end
 
 MPI.Barrier(comm)
+
+if rank == 1
+  MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 1, 0, win)
+  fill!(buf,3)
+  MPI.Win_unlock(1,win)
+end
+
+MPI.Barrier(comm)
+
+if rank == 0
+  MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 0, 0, win)
+  fill!(buf, 2)
+  MPI.Win_unlock(0,win)
+  MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 1, 0, win)
+  result = similar(buf)
+  MPI.Get_accumulate(buf, result, length(buf), 1, 0, MPI.SUM, win)
+  MPI.Win_unlock(1,win)
+  @test all(result .== 3)
+end
+
+MPI.Barrier(comm)
+
+if rank == 1
+  MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 1, 0, win)
+  @test all(buf .== 5)
+  fill!(buf,-2)
+  MPI.Win_unlock(1,win)
+  MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 0, 0, win)
+  MPI.Accumulate(buf, length(buf), 0, 0, MPI.SUM, win)
+  MPI.Win_unlock(0,win)
+  MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 1, 0, win)
+  fill!(buf,1)
+  MPI.Win_unlock(1,win)
+end
+
+MPI.Barrier(comm)
+
+if rank == 0
+  MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 0, 0, win)
+  @test all(buf .== 0)
+  MPI.Win_unlock(0,win)
+end
+
+MPI.Barrier(comm)
 MPI.Win_free(win)
 MPI.Barrier(comm)
 

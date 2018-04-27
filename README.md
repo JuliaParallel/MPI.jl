@@ -266,6 +266,8 @@ Julia Function (assuming `import MPI`) | Fortran Function
  `MPI.Get`                             | [`MPI_Get`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Get.3.php)
  `MPI.Put`                             | [`MPI_Put`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Put.3.php)
  `MPI.Fetch_and_op`                    | [`MPI_Fetch_and_op`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Fetch_and_op.3.php)
+ `MPI.Accumulate`                      | [`MPI_Accumulate`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Accumulate.3.php)
+ `MPI.Get_accumulate`                      | [`MPI_Get_accumulate`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Get_accumulate.3.php)
 
 [Julia]: http://julialang.org/
 [MPI]: http://www.mpi-forum.org/
