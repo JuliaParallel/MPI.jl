@@ -3,6 +3,9 @@ using Base.Test
 
 using Compat
 import Compat.String
+if VERSION >= v"0.7-"
+    const JULIA_HOME = Compat.Sys.BINDIR
+end
 
 # Code coverage command line options; must correspond to src/julia.h
 # and src/ui/repl.c
