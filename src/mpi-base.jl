@@ -2,7 +2,7 @@ const MPIDatatype = Union{Char,
                             Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64,
                             UInt64,
                             Float32, Float64, Complex64, Complex128}
-MPIBuffertype{T} = Union{Ptr{T}, Array{T}, Ref{T}}
+MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 
 fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:nfields(T)]
 
@@ -354,6 +354,12 @@ function Send(buf::Array{T}, dest::Integer, tag::Integer,
     Send(buf, length(buf), dest, tag, comm)
 end
 
+function Send(buf::SubArray{T}, dest::Integer, tag::Integer,
+                           comm::Comm) where T
+    @assert Base.iscontiguous(buf)
+    Send(buf, length(buf), dest, tag, comm)
+end
+
 function Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
     buf = [obj]
     Send(buf, dest, tag, comm)
@@ -379,6 +385,12 @@ function Isend(buf::Array{T}, dest::Integer, tag::Integer,
     Isend(buf, length(buf), dest, tag, comm)
 end
 
+function Isend(buf::SubArray{T}, dest::Integer, tag::Integer,
+                            comm::Comm) where T
+    @assert Base.iscontiguous(buf)
+    Isend(buf, length(buf), dest, tag, comm)
+end
+
 function Isend(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
     buf = [obj]
     Isend(buf, dest, tag, comm)
@@ -401,6 +413,12 @@ end
 
 function Recv!(buf::Array{T}, src::Integer, tag::Integer,
                             comm::Comm) where T
+    Recv!(buf, length(buf), src, tag, comm)
+end
+
+function Recv!(buf::SubArray{T}, src::Integer, tag::Integer,
+                            comm::Comm) where T
+    @assert Base.iscontiguous(buf)
     Recv!(buf, length(buf), src, tag, comm)
 end
 
@@ -430,6 +448,12 @@ end
 
 function Irecv!(buf::Array{T}, src::Integer, tag::Integer,
                              comm::Comm) where T
+    Irecv!(buf, length(buf), src, tag, comm)
+end
+
+function Irecv!(buf::SubArray{T}, src::Integer, tag::Integer,
+                             comm::Comm) where T
+    @assert Base.iscontiguous(buf)
     Irecv!(buf, length(buf), src, tag, comm)
 end
 
@@ -620,6 +644,11 @@ function Bcast!(buffer::Array{T}, root::Integer, comm::Comm) where T
     Bcast!(buffer, length(buffer), root, comm)
 end
 
+function Bcast!(buffer::SubArray{T}, root::Integer, comm::Comm) where T
+    @assert Base.iscontiguous(buffer)
+    Bcast!(buffer, length(buffer), root, comm)
+end
+
 #=
 function Bcast{T}(obj::T, root::Integer, comm::Comm)
     buf = [T]
@@ -659,6 +688,11 @@ function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
 end
 
 function Reduce(sendbuf::Array{T}, op::Union{Op,Function}, root::Integer, comm::Comm) where T
+    Reduce(sendbuf, length(sendbuf), op, root, comm)
+end
+
+function Reduce(sendbuf::SubArray{T}, op::Union{Op,Function}, root::Integer, comm::Comm) where T
+    @assert Base.iscontiguous(sendbuf)
     Reduce(sendbuf, length(sendbuf), op, root, comm)
 end
 
@@ -736,6 +770,11 @@ function Gather(sendbuf::Array{T}, root::Integer, comm::Comm) where T
     Gather(sendbuf, length(sendbuf), root, comm)
 end
 
+function Gather(sendbuf::SubArray{T}, root::Integer, comm::Comm) where T
+    @assert Base.iscontiguous(sendbuf)
+    Gather(sendbuf, length(sendbuf), root, comm)
+end
+
 function Gather(object::T, root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
     sendbuf = T[object]
@@ -753,6 +792,11 @@ function Allgather(sendbuf::MPIBuffertype{T}, count::Integer,
 end
 
 function Allgather(sendbuf::Array{T}, comm::Comm) where T
+    Allgather(sendbuf, length(sendbuf), comm)
+end
+
+function Allgather(sendbuf::SubArray{T}, comm::Comm) where T
+    @assert Base.iscontiguous(sendbuf)
     Allgather(sendbuf, length(sendbuf), comm)
 end
 
