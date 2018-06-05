@@ -22,7 +22,7 @@ singlefiles = ["test_spawn.jl"]
 
 excludedfiles = []
 if is_windows()
-    excludedfiles = ["test_info.jl", "test_onesided.jl"]
+    excludedfiles = ["test_info.jl", "test_onesided.jl", "test_finalize_atexit.jl"]
     if Sys.WORD_SIZE == 32
         push!(excludedfiles, "test_spawn.jl")
     end

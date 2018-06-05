@@ -202,13 +202,13 @@ endif(UNIX)
 
 add_dependencies(dist version)
 
-add_library(juliampi SHARED test_mpi.f90)
+add_library(juliampi SHARED juliampi.c test_mpi.f90)
 
 if(MPI_Fortran_LINK_FLAGS)
   set_target_properties(juliampi PROPERTIES LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})
 endif(MPI_Fortran_LINK_FLAGS)
 
-target_link_libraries(juliampi ${MPI_Fortran_LIBRARIES})
+target_link_libraries(juliampi ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES})
 
 include(CheckFunctionExists)
 set(CMAKE_REQUIRED_LIBRARIES ${MPI_C_LIBRARIES})

@@ -87,6 +87,12 @@ able to run the MPI job as expected, e.g., with
 
 `mpirun -np 3 julia 01-hello.jl`
 
+### Cleanup
+In Julia code building on this package, it may happen that you want to run MPI cleanup functions in a finalizer.
+This makes it impossible to manually call `MPI.Finalize()`, since the Julia finalizers may run after this call.
+To solve this, a C `atexit` hook to run `MPI.Finalize()` can be set using `MPI.finalize_atexit()`. It is possible
+to check if this function was called by checking the global `Ref` `MPI.FINALIZE_ATEXIT`.
+
 ## Usage : MPI and Julia parallel constructs together
 
 In order for MPI calls to be made from a Julia cluster, it requires the use of

@@ -194,6 +194,25 @@ function Finalize()
     ccall(MPI_FINALIZE, Void, (Ptr{Cint},), &0)
 end
 
+const FINALIZE_ATEXIT = Ref(false)
+
+"""
+    finalize_atexit()
+
+Indicate that MPI.Finalize() should be called automatically at exit, if not called manually already.
+The global variable `FINALIZE_ATEXIT` indicates if this function was called.
+"""
+function finalize_atexit()
+    if is_windows()
+        error("finalize_atexit is not supported on Windows")
+    end
+    ret = ccall(:install_finalize_atexit_hook, Cint, ())
+    if ret != 0
+        error("Failed to set finalize_atexit")
+    end
+    FINALIZE_ATEXIT[] = true
+end
+
 function Abort(comm::Comm, errcode::Integer)
     ccall(MPI_ABORT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
           &comm.val, &errcode, &0)
