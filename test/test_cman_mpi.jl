@@ -1,4 +1,4 @@
-using Base.Test
+using Compat.Test
 using MPI
 
 # This uses MPI to communicate with the workers
