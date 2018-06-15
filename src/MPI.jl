@@ -4,11 +4,13 @@ module MPI
 
 using Compat
 
-@static if is_windows()
+using Compat.Libdl
+
+@static if Compat.Sys.iswindows()
     const depfile = "win_mpiconstants.jl"
 end
 
-@static if is_unix()
+@static if Compat.Sys.isunix()
     const depfile = joinpath(dirname(@__FILE__), "..", "deps", "src", "compile-time.jl")
     isfile(depfile) || error("MPI not properly installed. Please run Pkg.build(\"MPI\")")
 end
@@ -22,7 +24,7 @@ const mpitype_dict = Dict{DataType, Cint}()
 const mpitype_dict_inverse = Dict{Cint, DataType}()
 
 function __init__()
-    @static if is_unix()
+    @static if Compat.Sys.isunix()
         # need to open libmpi with RTLD_GLOBAL flag for Linux, before
         # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
         # at least on Ubuntu 15.10
@@ -48,8 +50,8 @@ function __init__()
                      UInt64 => MPI_INTEGER8, # => MPI_UINT64_T,
                      Float32 => MPI_REAL4,
                      Float64 => MPI_REAL8,
-                     Complex64 => MPI_COMPLEX8,
-                     Complex128 => MPI_COMPLEX16)
+                     Compat.ComplexF32 => MPI_COMPLEX8,
+                     Compat.ComplexF64 => MPI_COMPLEX16)
         mpitype_dict[T] = mpiT
         mpitype_dict_inverse[mpiT] = T
     end

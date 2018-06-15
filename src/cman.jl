@@ -1,6 +1,9 @@
-import Base: launch, manage, kill, procs, connect
+import Base: kill
 export MPIManager, launch, manage, kill, procs, connect, mpiprocs, @mpi_do
 export TransportMode, MPI_ON_WORKERS, TCP_TRANSPORT_ALL, MPI_TRANSPORT_ALL
+using Compat
+using Compat.Distributed
+import Compat.Sockets: connect, listenany, accept, getipaddr, IPv4
 
 
 
@@ -47,9 +50,9 @@ mutable struct MPIManager <: ClusterManager
 
     # MPI_TRANSPORT_ALL
     comm::MPI.Comm
-    initiate_shutdown::Channel{Void}
-    sending_done::Channel{Void}
-    receiving_done::Channel{Void}
+    initiate_shutdown::Channel{Nothing}
+    sending_done::Channel{Nothing}
+    receiving_done::Channel{Nothing}
 
     function MPIManager(; np::Integer = Sys.CPU_CORES,
                           mpirun_cmd::Cmd = `mpiexec -n $np`,
@@ -83,7 +86,7 @@ mutable struct MPIManager <: ClusterManager
         if mode != MPI_TRANSPORT_ALL
             # Start a listener for capturing stdout from the workers
             port, server = listenany(11000)
-            @schedule begin
+            @async begin
                 while true
                     sock = accept(server)
                     push!(mgr.stdout_ios, sock)
@@ -98,12 +101,12 @@ mutable struct MPIManager <: ClusterManager
         end
 
         if mode == MPI_TRANSPORT_ALL
-            mgr.initiate_shutdown = Channel{Void}(1)
-            mgr.sending_done = Channel{Void}(np)
-            mgr.receiving_done = Channel{Void}(1)
+            mgr.initiate_shutdown = Channel{Nothing}(1)
+            mgr.sending_done = Channel{Nothing}(np)
+            mgr.receiving_done = Channel{Nothing}(1)
             global initiate_shutdown = mgr.initiate_shutdown
         end
-        mgr.initiate_shutdown = Channel{Void}(1)
+        mgr.initiate_shutdown = Channel{Nothing}(1)
         global initiate_shutdown = mgr.initiate_shutdown
 
         return mgr
@@ -119,7 +122,7 @@ end
 # MPI_ON_WORKERS case
 
 # Launch a new worker, called from Base.addprocs
-function launch(mgr::MPIManager, params::Dict,
+function Distributed.launch(mgr::MPIManager, params::Dict,
                 instances::Array, cond::Condition)
     try
         if mgr.mode == MPI_ON_WORKERS
@@ -129,7 +132,7 @@ function launch(mgr::MPIManager, params::Dict,
                 println("Try again with a different instance of MPIManager.")
                 throw(ErrorException("Reuse of MPIManager is not allowed."))
             end
-            cookie = string(":cookie_",Base.cluster_cookie())
+            cookie = string(":cookie_",Distributed.cluster_cookie())
             setup_cmds = `using MPI\;MPI.setup_worker'('$(getipaddr().host),$(mgr.port),$cookie')'`
             mpi_cmd = `$(mgr.mpirun_cmd) $(params[:exename]) -e $(Base.shell_escape(setup_cmds))`
             open(detach(mpi_cmd))
@@ -156,7 +159,7 @@ function launch(mgr::MPIManager, params::Dict,
                         config.io = io
                         # Add config to the correct slot so that MPI ranks and
                         # Julia pids are in the same order
-                        rank = Base.deserialize(io)
+                        rank = Compat.Serialization.deserialize(io)
                         idx = mgr.mode == MPI_ON_WORKERS ? rank+1 : rank
                         configs[idx] = config
                     end
@@ -192,7 +195,7 @@ function setup_worker(host, port, cookie)
 
     # Send our MPI rank to the manager
     rank = MPI.Comm_rank(MPI.COMM_WORLD)
-    Base.serialize(io, rank)
+    Compat.Serialization.serialize(io, rank)
 
     # Hand over control to Base
     if cookie == nothing
@@ -206,7 +209,7 @@ function setup_worker(host, port, cookie)
 end
 
 # Manage a worker (e.g. register / deregister it)
-function manage(mgr::MPIManager, id::Integer, config::WorkerConfig, op::Symbol)
+function Distributed.manage(mgr::MPIManager, id::Integer, config::WorkerConfig, op::Symbol)
     if op == :register
         # Retrieve MPI rank from worker
         # TODO: Why is this necessary? The workers already sent their rank.
@@ -284,7 +287,7 @@ function start_send_event_loop(mgr::MPIManager, rank::Int)
         # quite expensive when there are many workers. Design something better.
         # For example, instead of maintaining two streams per worker, provide
         # only abstract functions to write to / read from these streams.
-        @schedule begin
+        @async begin
             rr = MPI.Comm_rank(mgr.comm)
             reqs = MPI.Request[]
             while !isready(mgr.initiate_shutdown)
@@ -334,7 +337,7 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
             # Send connection information to all workers
             # TODO: Use Bcast
             for j in 1:size-1
-                cookie = VERSION >= v"0.5.0-dev+4047" ? Base.cluster_cookie() : nothing
+                cookie = VERSION >= v"0.5.0-dev+4047" ? Distributed.cluster_cookie() : nothing
                 MPI.send((getipaddr().host, mgr.port, cookie), j, 0, comm)
             end
             # Tell Base about the workers
@@ -360,9 +363,9 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
 
             # Send the cookie over. Introduced in v"0.5.0-dev+4047". Irrelevant under MPI
             # transport, but need it to satisfy the changed protocol.
-            MPI.bcast(Base.cluster_cookie(), 0, comm)
+            MPI.bcast(Distributed.cluster_cookie(), 0, comm)
             # Start event loop for the workers
-            @schedule receive_event_loop(mgr)
+            @async receive_event_loop(mgr)
             # Tell Base about the workers
             addprocs(mgr)
             return mgr
@@ -493,7 +496,7 @@ macro mpi_do(mgr, expr)
 end
 
 # All managed Julia processes
-procs(mgr::MPIManager) = sort(keys(mgr.j2mpi))
+Distributed.procs(mgr::MPIManager) = sort(keys(mgr.j2mpi))
 
 # All managed MPI ranks
 mpiprocs(mgr::MPIManager) = sort(keys(mgr.mpi2j))
