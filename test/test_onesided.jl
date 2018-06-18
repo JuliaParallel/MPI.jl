@@ -1,4 +1,5 @@
-using Base.Test
+using Compat
+using Compat.Test
 using MPI
 
 MPI.Init()
@@ -89,7 +90,7 @@ MPI.Win_create_dynamic(MPI.INFO_NULL, comm, win)
 MPI.Win_attach(win, buf)
 
 address_win = MPI.Win()
-address_buf = Vector{Cptrdiff_t}(1)
+address_buf = Vector{Cptrdiff_t}(undef, 1)
 MPI.Win_create(address_buf, MPI.INFO_NULL, comm, address_win)
 
 # Address for dynamic window is global instead of relative to the start of the buffer, so we need to share it

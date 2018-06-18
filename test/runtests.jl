@@ -1,5 +1,5 @@
 using MPI
-using Base.Test
+using Compat.Test
 
 using Compat
 import Compat.String
@@ -21,13 +21,20 @@ juliafiles = ["test_cman_julia.jl"]
 singlefiles = ["test_spawn.jl"]
 
 excludedfiles = []
-if is_windows()
-    excludedfiles = ["test_info.jl", "test_onesided.jl", "test_finalize_atexit.jl"]
+if Compat.Sys.iswindows()
+    push!(excludedfiles, "test_info.jl")
+    push!(excludedfiles, "test_onesided.jl")
+    push!(excludedfiles, "test_finalize_atexit.jl")
     if Sys.WORD_SIZE == 32
         push!(excludedfiles, "test_spawn.jl")
     end
 end
 
+if VERSION > v"0.7.0-DEV.2005"
+  push!(excludedfiles, "test_cman_julia.jl")
+  push!(excludedfiles, "test_cman_mpi.jl")
+  push!(excludedfiles, "test_cman_tcp.jl")
+end
 function runtests()
     nprocs = clamp(Sys.CPU_CORES, 2, 4)
     exename = joinpath(BINDIR, Base.julia_exename())
@@ -36,14 +43,14 @@ function runtests()
     testfiles = sort(filter(istest, readdir(testdir)))
 
     extra_args = []
-    @static if !is_windows()
-        if contains(readlines(open(`mpiexec --version`)[1])[1], "OpenRTE")
+    @static if !Compat.Sys.iswindows()
+      if Compat.occursin( "OpenRTE", Compat.open(f->read(f, String),`mpiexec --version`))
             push!(extra_args,"--oversubscribe")
         end
     end
 
     nfail = 0
-    print_with_color(:white, "Running MPI.jl tests\n")
+    Compat.printstyled("Running MPI.jl tests\n"; color=:white)
     for f in testfiles
         if f ∈ excludedfiles
             println("Skipping disabled test $f")
@@ -58,11 +65,11 @@ function runtests()
             else
                 run(`mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
             end
-            Base.with_output_color(:green,STDOUT) do io
+            Base.with_output_color(:green,Compat.stdout) do io
                 println(io,"\tSUCCESS: $f")
             end
         catch ex
-            Base.with_output_color(:red,STDERR) do io
+            Base.with_output_color(:red,Compat.stderr) do io
                 println(io,"\tError: $(joinpath(testdir, f))")
                 showerror(io,ex,backtrace())
             end

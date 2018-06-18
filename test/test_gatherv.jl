@@ -1,4 +1,4 @@
-using Base.Test
+using Compat.Test
 using MPI
 
 MPI.Init()
@@ -16,7 +16,7 @@ root = 0
 # Defining this to make ones work for Char
 Base.one(::Type{Char}) = '\01'
 
-for typ in (isdefined(:UnionAll) ? Base.uniontypes(MPI.MPIDatatype) : MPI.MPIDatatype.types)
+for typ in Base.uniontypes(MPI.MPIDatatype)
 
     A = ones(typ, mod(rank,2) + 1)
     counts = Cint[ mod(i,2) + 1 for i in 0:(size-1)]
