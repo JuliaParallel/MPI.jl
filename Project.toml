@@ -1,7 +1,7 @@
-authors = []
 name = "MPI"
 uuid = "da04e1cc-30fd-572f-bb4f-1f8673147195"
-version = "0.1.0"
+authors = []
+version = "0.7.0"
 
 [deps]
 BinDeps = "9e28174c-4ba2-5203-b857-d8d62c4213ee"
