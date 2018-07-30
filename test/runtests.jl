@@ -1,5 +1,5 @@
 using MPI
-using Compat.Test
+using Test
 
 using Compat
 import Compat.String
@@ -21,7 +21,7 @@ juliafiles = ["test_cman_julia.jl"]
 singlefiles = ["test_spawn.jl"]
 
 excludedfiles = []
-if Compat.Sys.iswindows()
+if Sys.iswindows()
     push!(excludedfiles, "test_info.jl")
     push!(excludedfiles, "test_onesided.jl")
     push!(excludedfiles, "test_finalize_atexit.jl")
@@ -60,11 +60,11 @@ function runtests()
             else
                 run(`mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
             end
-            Base.with_output_color(:green,Compat.stdout) do io
+            Base.with_output_color(:green,stdout) do io
                 println(io,"\tSUCCESS: $f")
             end
         catch ex
-            Base.with_output_color(:red,Compat.stderr) do io
+            Base.with_output_color(:red,stderr) do io
                 println(io,"\tError: $(joinpath(testdir, f))")
                 showerror(io,ex,backtrace())
             end
