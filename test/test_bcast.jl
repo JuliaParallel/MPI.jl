@@ -1,5 +1,5 @@
-using Compat.Test
-using Compat.Random
+using Test
+using Random
 using MPI
 
 MPI.Init()
@@ -19,7 +19,7 @@ end
 
 root = 0
 
-srand(17)
+Random.seed!(17)
 
 matsize = (17,17)
 for typ in Base.uniontypes(MPI.MPIDatatype)

@@ -118,10 +118,10 @@ The julia master process is NOT part of the MPI cluster. The main script should 
 launched directly, MPIManager internally calls `mpirun` to launch julia/mpi workers.
 All the workers started via MPIManager will be part of the MPI cluster.
 
-`MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, launch_timeout=60.0)`
+`MPIManager(;np=Sys.CPU_THREADS, mpi_cmd=false, launch_timeout=60.0)`
 
 If not specified, `mpi_cmd` defaults to `mpirun -np $np`
-STDOUT from the launched workers is redirected back to the julia session calling `addprocs` via a TCP connection.
+`stdout` from the launched workers is redirected back to the julia session calling `addprocs` via a TCP connection.
 Thus the workers must be able to freely connect via TCP to the host session.
 The following lines will be typically required on the julia master process to support both julia and mpi
 

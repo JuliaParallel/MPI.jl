@@ -3,7 +3,7 @@ export MPIManager, launch, manage, kill, procs, connect, mpiprocs, @mpi_do
 export TransportMode, MPI_ON_WORKERS, TCP_TRANSPORT_ALL, MPI_TRANSPORT_ALL
 using Compat
 using Compat.Distributed
-import Compat.Sockets: connect, listenany, accept, getipaddr, IPv4
+import Compat.Sockets: connect, listenany, accept, IPv4, getsockname
 
 
 
@@ -42,6 +42,7 @@ mutable struct MPIManager <: ClusterManager
 
     # TCP Transport
     port::UInt16
+    ip::UInt32
     stdout_ios::Array
 
     # MPI transport
@@ -54,7 +55,7 @@ mutable struct MPIManager <: ClusterManager
     sending_done::Channel{Nothing}
     receiving_done::Channel{Nothing}
 
-    function MPIManager(; np::Integer = Sys.CPU_CORES,
+    function MPIManager(; np::Integer = Sys.CPU_THREADS,
                           mpirun_cmd::Cmd = `mpiexec -n $np`,
                           launch_timeout::Real = 60.0,
                           mode::TransportMode = MPI_ON_WORKERS)
@@ -86,6 +87,7 @@ mutable struct MPIManager <: ClusterManager
         if mode != MPI_TRANSPORT_ALL
             # Start a listener for capturing stdout from the workers
             port, server = listenany(11000)
+            ip = getsockname(server)[1].host
             @async begin
                 while true
                     sock = accept(server)
@@ -93,6 +95,7 @@ mutable struct MPIManager <: ClusterManager
                 end
             end
             mgr.port = port
+            mgr.ip = ip
             mgr.stdout_ios = IO[]
         else
             mgr.rank2streams = Dict{Int,Tuple{IO,IO}}()
@@ -133,7 +136,7 @@ function Distributed.launch(mgr::MPIManager, params::Dict,
                 throw(ErrorException("Reuse of MPIManager is not allowed."))
             end
             cookie = string(":cookie_",Distributed.cluster_cookie())
-            setup_cmds = `using MPI\;MPI.setup_worker'('$(getipaddr().host),$(mgr.port),$cookie')'`
+            setup_cmds = `using MPI\;MPI.setup_worker'('$(mgr.ip),$(mgr.port),$cookie')'`
             mpi_cmd = `$(mgr.mpirun_cmd) $(params[:exename]) -e $(Base.shell_escape(setup_cmds))`
             open(detach(mpi_cmd))
             mgr.launched = true
@@ -151,7 +154,7 @@ function Distributed.launch(mgr::MPIManager, params::Dict,
             end
 
             # Traverse all worker I/O streams and receive their MPI rank
-            configs = Array{WorkerConfig}(mgr.np)
+            configs = Array{WorkerConfig}(undef, mgr.np)
             @sync begin
                 for io in mgr.stdout_ios
                     @async let io=io
@@ -199,12 +202,12 @@ function setup_worker(host, port, cookie)
 
     # Hand over control to Base
     if cookie == nothing
-        Base.start_worker(io)
+        Distributed.start_worker(io)
     else
         if isa(cookie, Symbol)
             cookie = string(cookie)[8:end] # strip the leading "cookie_"
         end
-        Base.start_worker(io, cookie)
+        Distributed.start_worker(io, cookie)
     end
 end
 
@@ -279,8 +282,8 @@ end
 # case
 function start_send_event_loop(mgr::MPIManager, rank::Int)
     try
-        r_s = BufferStream()
-        w_s = BufferStream()
+        r_s = Base.BufferStream()
+        w_s = Base.BufferStream()
         mgr.rank2streams[rank] = (r_s, w_s)
 
         # TODO: There is one task per communication partner -- this can be
@@ -292,7 +295,7 @@ function start_send_event_loop(mgr::MPIManager, rank::Int)
             reqs = MPI.Request[]
             while !isready(mgr.initiate_shutdown)
                 # When data are available, send them
-                while nb_available(w_s) > 0
+                while bytesavailable(w_s) > 0
                     data = take!(w_s.buffer)
                     push!(reqs, MPI.Isend(data, rank, 0, mgr.comm))
                 end
@@ -307,7 +310,7 @@ function start_send_event_loop(mgr::MPIManager, rank::Int)
         end
         (r_s, w_s)
     catch e
-        Base.show_backtrace(STDOUT, catch_backtrace())
+        Base.show_backtrace(stdout, catch_backtrace())
         println(e)
         rethrow(e)
     end
@@ -334,11 +337,15 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
             # Create manager object
             mgr = MPIManager(np=size-1, mode=mode)
             mgr.comm = comm
+            # Needed because of Julia commit https://github.com/JuliaLang/julia/commit/299300a409c35153a1fa235a05c3929726716600
+            if isdefined(Distributed, :init_multi)
+                Distributed.init_multi()
+            end
             # Send connection information to all workers
             # TODO: Use Bcast
             for j in 1:size-1
                 cookie = VERSION >= v"0.5.0-dev+4047" ? Distributed.cluster_cookie() : nothing
-                MPI.send((getipaddr().host, mgr.port, cookie), j, 0, comm)
+                MPI.send((mgr.ip, mgr.port, cookie), j, 0, comm)
             end
             # Tell Base about the workers
             addprocs(mgr)
@@ -363,6 +370,9 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
 
             # Send the cookie over. Introduced in v"0.5.0-dev+4047". Irrelevant under MPI
             # transport, but need it to satisfy the changed protocol.
+            if isdefined(Distributed, :init_multi)
+                Distributed.init_multi()
+            end
             MPI.bcast(Distributed.cluster_cookie(), 0, comm)
             # Start event loop for the workers
             @async receive_event_loop(mgr)
@@ -376,7 +386,7 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
             mgr.comm = comm
             # Recv the cookie
             cookie = MPI.bcast(nothing, 0, comm)
-            Base.init_worker(cookie, mgr)
+            Distributed.init_worker(cookie, mgr)
             # Start a worker event loop
             receive_event_loop(mgr)
             MPI.Finalize()
@@ -394,7 +404,7 @@ function receive_event_loop(mgr::MPIManager)
         (hasdata, stat) = MPI.Iprobe(MPI.ANY_SOURCE, 0, mgr.comm)
         if hasdata
             count = Get_count(stat, UInt8)
-            buf = Array{UInt8}(count)
+            buf = Array{UInt8}(undef, count)
             from_rank = Get_source(stat)
             MPI.Recv!(buf, from_rank, 0, mgr.comm)
 
@@ -403,7 +413,7 @@ function receive_event_loop(mgr::MPIManager)
                 # This is the first time we communicate with this rank.
                 # Set up a new connection.
                 (r_s, w_s) = start_send_event_loop(mgr, from_rank)
-                Base.process_messages(r_s, w_s)
+                Distributed.process_messages(r_s, w_s)
                 num_send_loops += 1
             else
                 (r_s, w_s) = streams
@@ -459,7 +469,7 @@ end
 function mpi_do(mgr::MPIManager, expr)
     !mgr.initialized && wait(mgr.cond_initialized)
     jpids = keys(mgr.j2mpi)
-    refs = Array{Any}(length(jpids))
+    refs = Array{Any}(undef, length(jpids))
     for (i,p) in enumerate(Iterators.filter(x -> x != myid(), jpids))
         refs[i] = remotecall(expr, p)
     end
@@ -490,7 +500,7 @@ end
 macro mpi_do(mgr, expr)
     quote
         # Evaluate expression in Main module
-        thunk = () -> (eval(Main, $(Expr(:quote, expr))); nothing)
+        thunk = () -> (Core.eval(Main, $(Expr(:quote, expr))); nothing)
         mpi_do($(esc(mgr)), thunk)
     end
 end

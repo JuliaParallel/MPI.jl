@@ -1,5 +1,6 @@
 using Compat.Test
 using MPI
+using Distributed
 
 # This uses TCP to communicate with the workers
 mgr = MPI.start_main_loop(MPI.TCP_TRANSPORT_ALL)
@@ -24,7 +25,7 @@ for id in ids
     @test id
 end
 
-s = @parallel (+) for i in 1:10
+s = @distributed (+) for i in 1:10
     i^2
 end
 @test s == 385
