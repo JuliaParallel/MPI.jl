@@ -4,7 +4,7 @@ module MPI
 
 using Compat
 
-using Compat.Libdl
+using Libdl
 
 @static if Compat.Sys.iswindows()
     const depfile = "win_mpiconstants.jl"
@@ -50,8 +50,8 @@ function __init__()
                      UInt64 => MPI_INTEGER8, # => MPI_UINT64_T,
                      Float32 => MPI_REAL4,
                      Float64 => MPI_REAL8,
-                     Compat.ComplexF32 => MPI_COMPLEX8,
-                     Compat.ComplexF64 => MPI_COMPLEX16)
+                     ComplexF32 => MPI_COMPLEX8,
+                     ComplexF64 => MPI_COMPLEX16)
         mpitype_dict[T] = mpiT
         mpitype_dict_inverse[mpiT] = T
     end

@@ -1,6 +1,6 @@
 using Compat
 # tests for the various kinds of waits
-using Compat.Test
+using Test
 using MPI
 
 MPI.Init()

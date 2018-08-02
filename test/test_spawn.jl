@@ -1,12 +1,12 @@
 using Compat
-using Compat.Test
+using Test
 using MPI
 
 MPI.Init()
 
 const N = clamp(Sys.CPU_THREADS, 2, 4)
 
-exename = joinpath(Compat.Sys.BINDIR, Base.julia_exename())
+exename = joinpath(Sys.BINDIR, Base.julia_exename())
 @test isfile(exename)
 errors = Vector{Cint}(undef, N-1)
 intercomm = MPI.Comm_spawn(exename, ["spawned_worker.jl"], N-1, MPI.COMM_WORLD, errors)

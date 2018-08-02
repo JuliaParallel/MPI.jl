@@ -103,7 +103,7 @@ mutable struct Info
         newinfo = Ref{Cint}()
         ccall(MPI_INFO_CREATE, Nothing, (Ptr{Cint}, Ref{Cint}), newinfo, 0)
         info=new(newinfo[])
-        @compat finalizer(info) do x
+        finalizer(info) do x
           ccall(MPI_INFO_FREE, Nothing, (Ref{Cint}, Ref{Cint}), x.val, 0)
           x.val = MPI_INFO_NULL
         end
@@ -206,7 +206,7 @@ Indicate that MPI.Finalize() should be called automatically at exit, if not call
 The global variable `FINALIZE_ATEXIT` indicates if this function was called.
 """
 function finalize_atexit()
-    if Compat.Sys.iswindows()
+    if Sys.iswindows()
         error("finalize_atexit is not supported on Windows")
     end
     ret = ccall(:install_finalize_atexit_hook, Cint, ())
@@ -1078,5 +1078,5 @@ elseif sizeof(CComm) == sizeof(Cint)
       Win(reinterpret(Cint, cwin))
     end
 else
-    warn("No MPI_Comm_c2f found - conversion to/from MPI.CComm will not work")
+    @warn("No MPI_Comm_c2f found - conversion to/from MPI.CComm will not work")
 end

@@ -1,4 +1,4 @@
-using Compat.Test
+using Test
 using MPI
 using Compat
 using Compat.LinearAlgebra

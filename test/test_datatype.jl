@@ -1,5 +1,5 @@
 using Compat
-using Compat.Test
+using Test
 using MPI
 
 MPI.Init()

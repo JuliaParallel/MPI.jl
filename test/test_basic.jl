@@ -1,5 +1,5 @@
 using Compat
-using Compat.Test
+using Test
 using MPI
 
 @test !MPI.Initialized()
@@ -8,7 +8,7 @@ MPI.Init()
 
 @test MPI.Comm(MPI.CComm(MPI.COMM_WORLD)).val == MPI.COMM_WORLD.val
 
-if !Compat.Sys.iswindows()
+if !Sys.iswindows()
     MPI.finalize_atexit()
     @test MPI.FINALIZE_ATEXIT[]
 end

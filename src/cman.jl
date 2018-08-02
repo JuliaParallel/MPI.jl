@@ -344,7 +344,7 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
             # Send connection information to all workers
             # TODO: Use Bcast
             for j in 1:size-1
-                cookie = VERSION >= v"0.5.0-dev+4047" ? Distributed.cluster_cookie() : nothing
+                cookie = Distributed.cluster_cookie()
                 MPI.send((mgr.ip, mgr.port, cookie), j, 0, comm)
             end
             # Tell Base about the workers

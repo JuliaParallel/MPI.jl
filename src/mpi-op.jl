@@ -42,11 +42,7 @@ function user_op(opfunc::Function)
         # of some sort so that this initialization only occurs once.
         # To do when native threading in Julia stabilizes (and is documented).
         resize!(_user_functions, nthreads())
-        if VERSION < v"0.7.0-DEV.4762"
-          user_function = cfunction(_mpi_user_function, Nothing, (Ptr{Nothing}, Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}))
-        else
-          user_function = @cfunction(_mpi_user_function, Nothing, (Ptr{Nothing}, Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}))
-        end
+        user_function = @cfunction(_mpi_user_function, Nothing, (Ptr{Nothing}, Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}))
         opnum = Ref{Cint}()
         ccall(MPI_OP_CREATE, Nothing, (Ptr{Nothing}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
              user_function, false, opnum, 0)
