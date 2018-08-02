@@ -33,7 +33,7 @@ function __init__()
 
         # look up all symbols ahead of time
         for (jname, fname) in _mpi_functions
-            eval(:(const $jname = Libdl.dlsym(libmpi_handle, $fname)))
+            Core.eval(MPI, :(const $jname = Libdl.dlsym(libmpi_handle, $fname)))
         end
     end
 

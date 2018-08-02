@@ -5,7 +5,6 @@ os:
   - linux
   - osx
 julia:
-  - 0.6
   - 0.7
   - nightly
 notifications:
@@ -21,8 +20,6 @@ before_install:
 # Work around OpenMPI attempting to create overly long temporary
 # file names - and erroring as a result
   - export TMPDIR=/tmp
-script:
-    - julia -e 'if VERSION < v"0.7.0-DEV.5183"; Pkg.clone(pwd()) ; else; using Pkg; Pkg.up(); end; Pkg.build("MPI"); Pkg.test("MPI"; coverage=true)'
 after_success:
-  - julia -e 'VERSION < v"0.7.0-DEV.5183" || using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
-  - julia -e 'VERSION < v"0.7.0-DEV.5183" || using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+  - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'

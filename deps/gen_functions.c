@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include "jlmpi_f2c.h"
 #include "mpi.h"
-#include "version.h"
 
 // check that the size of MPI_Aint is consistent
 typedef int check_sizeof_MPI_Aint[sizeof(MPI_Aint) == sizeof(ptrdiff_t) ? 1 : -1];
@@ -14,7 +13,6 @@ int main(int argc, char *argv[]) {
   printf("using Compat\n");
   printf("import Compat.String\n");
   printf("\n");
-  printf("const WRAPPER_VERSION = \"%s\"\n", VERSION);
   printf("\n");
   printf("const _mpi_functions = Dict{Symbol, String}(\n");
   printf("    :MPI_ABORT              => \"%s\",\n", STRING(MPI_ABORT));

@@ -7,3 +7,5 @@ libjuliampi.so
 libjuliampi.dylib
 *.cov
 *.mem
+Manifest.toml
+deps/build.log

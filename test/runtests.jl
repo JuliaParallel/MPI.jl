@@ -30,13 +30,8 @@ if Compat.Sys.iswindows()
     end
 end
 
-if VERSION > v"0.7.0-DEV.2005"
-  push!(excludedfiles, "test_cman_julia.jl")
-  push!(excludedfiles, "test_cman_mpi.jl")
-  push!(excludedfiles, "test_cman_tcp.jl")
-end
 function runtests()
-    nprocs = clamp(Sys.CPU_CORES, 2, 4)
+    nprocs = clamp(Sys.CPU_THREADS, 2, 4)
     exename = joinpath(BINDIR, Base.julia_exename())
     testdir = dirname(@__FILE__)
     istest(f) = endswith(f, ".jl") && startswith(f, "test_")

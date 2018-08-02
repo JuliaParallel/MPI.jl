@@ -26,7 +26,7 @@ for id in ids
     @test id
 end
 
-s = @parallel (+) for i in 1:10
+s = @distributed (+) for i in 1:10
     i^2
 end
 @test s == 385

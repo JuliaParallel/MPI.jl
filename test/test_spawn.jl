@@ -4,7 +4,7 @@ using MPI
 
 MPI.Init()
 
-const N = clamp(Sys.CPU_CORES, 2, 4)
+const N = clamp(Sys.CPU_THREADS, 2, 4)
 
 exename = joinpath(Compat.Sys.BINDIR, Base.julia_exename())
 @test isfile(exename)

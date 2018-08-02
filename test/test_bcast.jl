@@ -1,5 +1,5 @@
-using Compat.Test
-using Compat.Random
+using Test
+using Random
 using MPI
 
 MPI.Init()
@@ -19,7 +19,11 @@ end
 
 root = 0
 
-srand(17)
+if VERSION >= v"0.7.0-rc1"
+    Random.seed!(17)
+else
+    srand(17)
+end
 
 matsize = (17,17)
 for typ in Base.uniontypes(MPI.MPIDatatype)
