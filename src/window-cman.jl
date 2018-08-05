@@ -1,4 +1,6 @@
-import Base: launch, kill, manage, connect
+import Base: kill
+using Distributed
+import Distributed: launch, kill, manage, connect
 export MPIWindowIOManager, launch, kill, manage, connect, @cluster
 
 """
@@ -12,8 +14,8 @@ mutable struct MPIWindowIOManager <: ClusterManager
 
     function MPIWindowIOManager(comm::MPI.Comm, workers_wait::Bool)
         nb_procs = MPI.Comm_size(comm)
-        connection_windows = Vector{WindowIO}(nb_procs)
-        stdio_windows = Vector{WindowIO}(nb_procs)
+        connection_windows = Vector{WindowIO}(undef,nb_procs)
+        stdio_windows = Vector{WindowIO}(undef,nb_procs)
 
         for i in 1:nb_procs
             connection_windows[i] = WindowIO(comm)
@@ -62,7 +64,7 @@ function connect(mgr::MPIWindowIOManager, pid::Int, config::WorkerConfig)
     myrank = MPI.Comm_rank(mgr.comm)
     if myrank == 0
         proc_stdio = mgr.stdio_windows[pid]
-        @schedule while !eof(proc_stdio)
+        @async while !eof(proc_stdio)
             try
                 println("\tFrom worker $(pid):\t$(readline(proc_stdio))")
             catch e
@@ -74,7 +76,7 @@ end
 
 function redirect_to_mpi(s::WindowWriter)
     (rd, wr) = redirect_stdout()
-    @schedule while !eof(rd) && isopen(s.winio)
+    @async while !eof(rd) && isopen(s.winio)
         av = readline(rd)
         if isopen(s.winio)
             println(s,av)
@@ -112,13 +114,13 @@ function start_window_worker(comm::Comm, workers_wait)
 
     manager = MPIWindowIOManager(comm, workers_wait)
     cookie = string(comm)
-    if length(cookie) > Base.Distributed.HDR_COOKIE_LEN
-        cookie = cookie[1:Base.Distributed.HDR_COOKIE_LEN]
+    if length(cookie) > Distributed.HDR_COOKIE_LEN
+        cookie = cookie[1:Distributed.HDR_COOKIE_LEN]
     end
 
     try
         if rank == 0
-            Base.cluster_cookie(cookie)
+            Distributed.cluster_cookie(cookie)
             MPI.Barrier(comm)
             addprocs(manager)
             @assert nprocs() == N
@@ -134,14 +136,14 @@ function start_window_worker(comm::Comm, workers_wait)
             redirect_to_mpi(WindowWriter(manager.stdio_windows[rank+1], 0))
             for i in vcat([1], (rank+2):N)
                 # Receiving end of connections to all higher workers and master
-                Base.process_messages(manager.connection_windows[i], WindowWriter(manager.connection_windows[rank+1], i-1))
+                Distributed.process_messages(manager.connection_windows[i], WindowWriter(manager.connection_windows[rank+1], i-1))
             end
 
             global _stop_requested = Condition()
             wait_for_events()
         end
     catch e
-        Base.display_error(STDERR,"exception $e on rank $rank",backtrace())
+        Base.display_error(stderr,"exception $e on rank $rank",backtrace())
     end
 
     if workers_wait && rank != 0

@@ -1,5 +1,6 @@
+using Distributed
 using MPI
-using Base.Test
+using Test
 
 mgr = MPI.start_main_loop(MPI_WINDOW_NOWAIT)
 

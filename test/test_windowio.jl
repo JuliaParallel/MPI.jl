@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 using MPI
 
 MPI.Init()
@@ -33,7 +33,7 @@ if rank == 1
     flush(writer) # Must flush to trigger communication
 elseif rank == 0
     @test MPI.wait_nb_available(winio) == 5
-    arr = Vector{UInt8}(5)
+    arr = Vector{UInt8}(undef,5)
     readbytes!(winio, arr)
     @test String(arr) == "hello"
     @test nb_available(winio) == 0
@@ -46,7 +46,7 @@ if rank == 1
     flush(writer) # Must flush to trigger communication
 elseif rank == 0
     @test MPI.wait_nb_available(winio) == 5
-    arr = Vector{UInt8}(5)
+    arr = Vector{UInt8}(undef,5)
     unsafe_read(winio, pointer(arr), 2)
     @test nb_available(winio) == 3
     unsafe_read(winio, pointer(arr,3), 3)
@@ -60,10 +60,10 @@ if rank == 1
     write(writer, "hello")
     flush(writer) # Must flush to trigger communication
 elseif rank == 0
-    arr = Vector{UInt8}(3)
+    arr = Vector{UInt8}(undef,3)
     readbytes!(winio, arr) # waits for data
     @test nb_available(winio) == 2
-    @test String(arr) == "hel"
+    @test String(copy(arr)) == "hel"
     fill!(arr, UInt8('a'))
     readbytes!(winio, arr, all=false) # reads what's available
     @test String(arr) == "loa"
@@ -121,7 +121,7 @@ if rank == 1
     @time flush(writer)
     MPI.Barrier(comm)
 elseif rank == 0
-    const recarr = Vector{UInt8}(100000)
+    const recarr = Vector{UInt8}(undef,100000)
     MPI.Barrier(comm)
 
     println("read timings:")
@@ -141,12 +141,12 @@ if rank != 0
     println(writer, message*string(rank))
     flush(writer) # Must flush to trigger communication
 else
-    nb_received = 0
+    global nb_received = 0
     while nb_received != N-1
         line = readline(winio)
         @test startswith(line, message)
         @test line[length(message)+1:end] ∈ string.(1:N)
-        nb_received += 1
+        global nb_received += 1
     end
 end
 
@@ -162,7 +162,7 @@ if rank != 0
     write(writer2, rank*ones(BS))
     flush(writer2) # Must flush to trigger communication
 else
-    result = Vector{Float64}(BS*(N-1))
+    result = Vector{Float64}(undef,BS*(N-1))
     read!(winio2, result)
     header = winio2.header
     @test nb_available(winio2) == 0

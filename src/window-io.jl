@@ -38,7 +38,7 @@ mutable struct WindowIO <: IO
     waiter
 
     function WindowIO(comm=MPI.COMM_WORLD, bufsize=1024^2)
-        buffer = Array{UInt8,1}(bufsize)
+        buffer = Array{UInt8,1}(undef, bufsize)
         header_win = MPI.Win()
         header = BufferHeader(0, MPI.Get_address(buffer), bufsize, bufsize)
         remote_header = BufferHeader(0, MPI.Get_address(buffer), bufsize, bufsize)
@@ -140,7 +140,7 @@ mutable struct WindowWriter <: IO
     nb_written::Int
 
     function WindowWriter(w::WindowIO, target::Integer)
-        return new(w, target, Vector{UInt8}(1024^2), ReentrantLock(), 0)
+        return new(w, target, Vector{UInt8}(undef,1024^2), ReentrantLock(), 0)
     end
 end
 
@@ -164,7 +164,7 @@ Base.isreadable(::WindowWriter) = false
 function Base.close(w::WindowIO)
     w.is_open = false
     notify(w.read_requested)
-    wait(w.waiter) # Wait for the data notification loop to finish
+    fetch(w.waiter) # Wait for the data notification loop to finish
     MPI.Win_lock(MPI.LOCK_EXCLUSIVE, w.myrank, 0, w.header_win)
     w.header.count = 0
     w.ptr = 0
@@ -211,18 +211,18 @@ function Base.readbytes!(w::WindowIO, b::AbstractVector{UInt8}, nb=length(b); al
     if nb_read == 0
         return 0
     end
-    copy!(b, 1, w.buffer, w.ptr+1, nb_read)
+    copyto!(b, 1, w.buffer, w.ptr+1, nb_read)
     w.ptr += nb_read
     complete_read(w)
     return nb_read
 end
 
-Base.readavailable(w::WindowIO) = read!(w, Vector{UInt8}(nb_available(w)))
+Base.readavailable(w::WindowIO) = read!(w, Vector{UInt8}(undef,nb_available(w)))
 
 @inline function Base.unsafe_read(w::WindowIO, p::Ptr{UInt8}, nb::UInt)
     nb_obtained = wait_nb_available(w,nb)
     nb_read = min(nb_obtained, nb)
-    unsafe_copy!(p, pointer(w.buffer, w.ptr+1), nb_read)
+    unsafe_copyto!(p, pointer(w.buffer, w.ptr+1), nb_read)
     w.ptr += nb_read
     complete_read(w)
     if nb_read != nb
@@ -232,7 +232,7 @@ Base.readavailable(w::WindowIO) = read!(w, Vector{UInt8}(nb_available(w)))
 end
 
 function Base.read(w::WindowIO, nb::Integer; all::Bool=true)
-    buf = Vector{UInt8}(nb)
+    buf = Vector{UInt8}(undef,nb)
     readbytes!(w, buf, nb, all=all)
     return buf
 end
@@ -253,7 +253,7 @@ function Base.unsafe_write(w::WindowWriter, p::Ptr{UInt8}, nb::UInt)
     offset = w.nb_written+1
     w.nb_written += nb
     ensureroom(w)
-    copy!(w.write_buffer, offset, unsafe_wrap(Array{UInt8}, p, nb), 1, nb)
+    copyto!(w.write_buffer, offset, unsafe_wrap(Array{UInt8}, p, nb), 1, nb)
     return nb
 end
 

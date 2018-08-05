@@ -1,15 +1,17 @@
+using Distributed
+
 const using_mpi = (nprocs() == 1)
 
 if using_mpi
     using MPI
-    using Base.Test
+    using Test
     transport_mode = MPI.MPI_WINDOW_IO # This test can run with MPPI_TRANSPORT_ALL and MPI_WINDOW_IO
     mgr = MPI.start_main_loop(transport_mode)
     @everywhere const comm = MPI.COMM_WORLD
     rank = MPI.Comm_rank(comm)
     size = MPI.Comm_size(comm)
 else
-    @everywhere using Base.Test
+    @everywhere using Test
 end
 
 @everywhere const N = nprocs()
@@ -23,7 +25,7 @@ if N > 1
     @test workers() == collect(2:N)
 end
 
-results = Vector{Any}(N)
+results = Vector{Any}(undef,N)
 for i in 1:N
     results[i] = remotecall(myid, i)
 end
@@ -52,7 +54,7 @@ has_arrays = true
 try
     @everywhere using DistributedArrays
 catch e
-    has_arrays = false
+    global has_arrays = false
 end
 
 if has_arrays
