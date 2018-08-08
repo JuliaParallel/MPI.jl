@@ -1,6 +1,7 @@
 # Note: Run this script without using `mpirun`
 
-using MPI
+using MPI, Distributed
+using LinearAlgebra: svd
 
 manager = MPIManager(np=4)
 addprocs(manager)

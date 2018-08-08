@@ -1,4 +1,4 @@
-import MPI
+import MPI, LinearAlgebra
 
 function montecarlo(mc_eval::Function, mc_monitor::Function,
                     comm::MPI.Comm, # MPI communicator
@@ -7,6 +7,8 @@ function montecarlo(mc_eval::Function, mc_monitor::Function,
                     batchsize::Integer=1) # transmission size
     rank = MPI.Comm_rank(comm)
     commsize = MPI.Comm_size(comm)
+
+    @assert commsize > 1
 
     # bookkeeping
     if mod(n_evals, commsize-1) != 0
@@ -40,7 +42,7 @@ function montecarlo(mc_eval::Function, mc_monitor::Function,
         @inbounds for i = 1:div(n_pernode, batchsize)
             # do work
             for j = 1:batchsize
-                contrib[j,:] = mc_eval()
+                contrib[j,:] .= mc_eval()
             end
             MPI.Send(contrib, 0, 0, comm)
         end
