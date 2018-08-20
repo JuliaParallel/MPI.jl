@@ -23,20 +23,13 @@ include("cman.jl")
 const mpitype_dict = Dict{DataType, Cint}()
 const mpitype_dict_inverse = Dict{Cint, DataType}()
 
-function __init__()
-    @static if Compat.Sys.isunix()
-        # need to open libmpi with RTLD_GLOBAL flag for Linux, before
-        # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
-        # at least on Ubuntu 15.10
-        @eval const libmpi_handle =
-            Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-
-        # look up all symbols ahead of time
-        for (jname, fname) in _mpi_functions
-            Core.eval(MPI, :(const $jname = Libdl.dlsym(libmpi_handle, $fname)))
-        end
+@static if Compat.Sys.isunix()
+    for (jname, fname) in _mpi_functions
+        Core.eval(MPI, :(const $jname = ($(QuoteNode(fname)),libmpi)))
     end
+end
 
+function __init__()
     # Note: older versions of OpenMPI (e.g. the version on Travis) do not
     # define MPI_CHAR and MPI_*INT*_T for Fortran, so we don't use them (yet).
     for (T,mpiT) in (Char => MPI_INTEGER4,   # => MPI_WCHAR, (note: wchar_t is 16 bits in Windows)

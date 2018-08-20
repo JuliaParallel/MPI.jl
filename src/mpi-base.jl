@@ -6,7 +6,7 @@ const MPIDatatype = Union{Char,
                             Float32, Float64, ComplexF32, ComplexF64}
 MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 
-fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:nfields(T)]
+fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fieldnames(T))]
 
 # Define a function mpitype(T) that returns the MPI datatype code for
 # a given type T. In the case the the type does not exist, it is created and
@@ -209,7 +209,7 @@ function finalize_atexit()
     if Sys.iswindows()
         error("finalize_atexit is not supported on Windows")
     end
-    ret = ccall(:install_finalize_atexit_hook, Cint, ())
+    ret = ccall((:install_finalize_atexit_hook, libmpi), Cint, ())
     if ret != 0
         error("Failed to set finalize_atexit")
     end
