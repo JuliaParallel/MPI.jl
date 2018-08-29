@@ -27,6 +27,7 @@ include(FortranCInterface)
 # Keep these function names sorted alphabetically
 FortranCInterface_HEADER(jlmpi_f2c.h MACRO_NAMESPACE "JLMPI_" SYMBOLS
   MPI_ABORT
+  MPI_ACCUMULATE
   MPI_ALLGATHER
   MPI_ALLGATHERV
   MPI_ALLREDUCE
@@ -38,19 +39,32 @@ FortranCInterface_HEADER(jlmpi_f2c.h MACRO_NAMESPACE "JLMPI_" SYMBOLS
   MPI_CANCEL
   MPI_COMM_DUP
   MPI_COMM_FREE
+  MPI_COMM_GET_PARENT
   MPI_COMM_RANK
   MPI_COMM_SIZE
   MPI_COMM_SPLIT
+  MPI_COMM_SPLIT_TYPE
   MPI_EXSCAN
+  MPI_FETCH_AND_OP
   MPI_FINALIZE
   MPI_FINALIZED
   MPI_GATHER
   MPI_GATHER
   MPI_GATHERV
+  MPI_GET
+  MPI_GET_ACCUMULATE
+  MPI_GET_ADDRESS
   MPI_GET_COUNT
   MPI_GET_PROCESSOR_NAME
+  MPI_INFO_CREATE
+  MPI_INFO_DELETE
+  MPI_INFO_FREE
+  MPI_INFO_GET
+  MPI_INFO_GET_VALUELEN
+  MPI_INFO_SET
   MPI_INIT
   MPI_INITIALIZED
+  MPI_INTERCOMM_MERGE
   MPI_IPROBE
   MPI_IRECV
   MPI_ISEND
@@ -59,6 +73,7 @@ FortranCInterface_HEADER(jlmpi_f2c.h MACRO_NAMESPACE "JLMPI_" SYMBOLS
   MPI_PACK
   MPI_PACK_SIZE
   MPI_PROBE
+  MPI_PUT
   MPI_RECV
   MPI_RECV_INIT
   MPI_REDUCE
@@ -81,6 +96,17 @@ FortranCInterface_HEADER(jlmpi_f2c.h MACRO_NAMESPACE "JLMPI_" SYMBOLS
   MPI_WAITALL
   MPI_WAITANY
   MPI_WAITSOME
+  MPI_WIN_ATTACH
+  MPI_WIN_CREATE
+  MPI_WIN_CREATE_DYNAMIC
+  MPI_WIN_DETACH
+  MPI_WIN_FENCE
+  MPI_WIN_FLUSH
+  MPI_WIN_FREE
+  MPI_WIN_LOCK
+  MPI_WIN_SYNC
+  MPI_WIN_UNLOCK
+  MPI_WTICK
   MPI_WTIME
 )
 
@@ -89,65 +115,14 @@ include_directories(${MPI_Fortran_INCLUDE_PATH})
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MPI_C_COMPILE_FLAG}")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${MPI_Fortran_COMPILE_FLAG}")
 
-file(WRITE ${CMAKE_BINARY_DIR}/version.h.in
-"\#define VERSION \"@VERSION@\"\n"
-"\#define INSTALL \"@CMAKE_INSTALL_PREFIX@\"\n"
-)
-
 if(GIT_FOUND)
   set(USE_GIT 1)
 else(GIT_FOUND)
   set(USE_GIT 0)
 endif(GIT_FOUND)
-file(WRITE ${CMAKE_BINARY_DIR}/Version.cmake
-"if(${USE_GIT} EQUAL 1)
-  execute_process(
-       COMMAND ${GIT_EXECUTABLE} describe --tags --dirty
-       WORKING_DIRECTORY \${WORKING_DIRECTORY}
-       OUTPUT_VARIABLE GIT_DESCRIBE_VERSION
-       RESULT_VARIABLE GIT_DESCRIBE_RESULT
-       ERROR_VARIABLE GIT_DESCRIBE_ERROR
-       OUTPUT_STRIP_TRAILING_WHITESPACE
-   )
-else(${USE_GIT} EQUAL 1)
-  set(GIT_DESCRIBE_RESULT -1)
-endif(${USE_GIT} EQUAL 1)
 
-if(GIT_DESCRIBE_RESULT EQUAL 0)
-  file(WRITE ${CMAKE_SOURCE_DIR}/VERSION \"\${GIT_DESCRIBE_VERSION}\")
-else(GIT_DESCRIBE_RESULT EQUAL 0)
-  FILE(READ  ${CMAKE_SOURCE_DIR}/VERSION GIT_DESCRIBE_VERSION)
-endif(GIT_DESCRIBE_RESULT EQUAL 0)
-
-string(REGEX REPLACE \"v([0-9]*)\\\\.([0-9]*)\\\\.(.*)\"
-       \"\\\\1.\\\\2.\\\\3\" VERSION \"\${GIT_DESCRIBE_VERSION}\" )
-
-string(REGEX REPLACE \"v([0-9]*)\\\\.([0-9]*)\\\\.(.*)\"
-       \"\\\\1\" VERSION_MAJOR \"\${GIT_DESCRIBE_VERSION}\")
-string(REGEX REPLACE \"v([0-9]*)\\\\.([0-9]*)\\\\.(.*)\"
-       \"\\\\2\" VERSION_MINOR \"\${GIT_DESCRIBE_VERSION}\")
-string(REGEX REPLACE \"v([0-9]*)\\\\.([0-9]*)\\\\.(.*)\"
-       \"\\\\3\" VERSION_PATCH \"\${GIT_DESCRIBE_VERSION}\")
-")
-
-file(WRITE ${CMAKE_BINARY_DIR}/FillVersion.cmake
-"include(Version.cmake)
-configure_file(\${SRC} \${DST} @ONLY)
-")
 include_directories(${CMAKE_BINARY_DIR})
-add_custom_target(
-    version
-    ${CMAKE_COMMAND} -D SRC=${CMAKE_BINARY_DIR}/version.h.in
-                     -D DST=${CMAKE_BINARY_DIR}/version.h
-                     -D WORKING_DIRECTORY=${CMAKE_SOURCE_DIR}
-                     -P ${CMAKE_BINARY_DIR}/FillVersion.cmake
-)
 set(WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-include(${CMAKE_BINARY_DIR}/Version.cmake)
-set(CPACK_PACKAGE_VERSION "${VERSION}")
-set(CPACK_PACKAGE_VERSION_MAJOR "${VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${VERSION_MINOR}")
-set(CPACK_PACKAGE_VERSION_PATCH "${VERSION_PATCH}")
 set(CPACK_SOURCE_IGNORE_FILES
 "~$"
 ".sw[a-z]$"
@@ -174,15 +149,13 @@ EXECUTE_PROCESS(COMMAND cpack -G TGZ --config CPackSourceConfig.cmake
     )
 endif(UNIX)
 
-add_dependencies(dist version)
-
-add_library(juliampi SHARED test_mpi.f90)
+add_library(juliampi SHARED juliampi.c test_mpi.f90)
 
 if(MPI_Fortran_LINK_FLAGS)
   set_target_properties(juliampi PROPERTIES LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})
 endif(MPI_Fortran_LINK_FLAGS)
 
-target_link_libraries(juliampi ${MPI_Fortran_LIBRARIES})
+target_link_libraries(juliampi ${MPI_C_LIBRARIES} ${MPI_Fortran_LIBRARIES})
 
 include(CheckFunctionExists)
 set(CMAKE_REQUIRED_LIBRARIES ${MPI_C_LIBRARIES})
@@ -195,7 +168,6 @@ else()
 endif()
 
 add_executable(gen_functions gen_functions.c)
-add_dependencies(gen_functions version)
 
 add_executable(gen_constants gen_constants.f90)
 

@@ -1,4 +1,4 @@
-using Base.Test
+using Test
 
 using MPI
 
@@ -9,11 +9,11 @@ size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
 # Not possible to PROD a Char (and neither Int8 with OpenMPI)
-typs = setdiff([MPI.MPIDatatype.types...], [Char, Int8, UInt8])
+typs = setdiff([(Base.uniontypes(MPI.MPIDatatype))...], [Char, Int8, UInt8])
 for typ in typs
     val = convert(typ,rank + 1)
     B = MPI.Scan(val, MPI.PROD, comm)
-    @test_approx_eq B[1] factorial(val)
+    @test B[1] ≈ convert(typ, prod(1:(rank+1)))
 end
 
 MPI.Finalize()

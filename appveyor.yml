@@ -1,12 +1,9 @@
 environment:
   matrix:
-  - JULIAVERSION: "julialang/bin/winnt/x86/0.4/julia-0.4-latest-win32.exe"
-  - JULIAVERSION: "julialang/bin/winnt/x64/0.4/julia-0.4-latest-win64.exe"
-  # The MPI tests with Julia 0.5 are currently broken. We don't quite
-  # know why; see <https://github.com/JuliaParallel/MPI.jl/issues/123>
-  # for the respective discussion.
-  # - JULIAVERSION: "julianightlies/bin/winnt/x86/julia-latest-win32.exe"
-  # - JULIAVERSION: "julianightlies/bin/winnt/x64/julia-latest-win64.exe"
+  - JULIA_URL: "https://julialangnightlies-s3.julialang.org/bin/winnt/x86/julia-latest-win32.exe"
+  - JULIA_URL: "https://julialangnightlies-s3.julialang.org/bin/winnt/x64/julia-latest-win64.exe"
+  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x86/0.7/julia-0.7-latest-win32.exe"
+  - JULIA_URL: "https://julialang-s3.julialang.org/bin/winnt/x64/0.7/julia-0.7-latest-win64.exe"
 
 branches:
   only:
@@ -20,12 +17,13 @@ notifications:
     on_build_status_changed: false
 
 install:
+  - ps: "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12"
 # Download most recent Julia Windows binary
   - ps: (new-object net.webclient).DownloadFile(
-        $("http://s3.amazonaws.com/"+$env:JULIAVERSION),
+        $env:JULIA_URL,
         "C:\projects\julia-binary.exe")
   - ps: (new-object net.webclient).DownloadFile(
-        "https://download.microsoft.com/download/D/7/B/D7BBA00F-71B7-436B-80BC-4D22F2EE9862/MSMpiSetup.exe",
+        "https://download.microsoft.com/download/2/E/C/2EC96D7F-687B-4613-80F6-E10F670A2D97/msmpisetup.exe",
         "C:\projects\MSMpiSetup.exe")
 # Run installer silently, output to C:\projects\julia
   - C:\projects\julia-binary.exe /S /D=C:\projects\julia
@@ -33,10 +31,7 @@ install:
   - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
 
 build_script:
-# Need to convert from shallow to complete for Pkg.clone to work
-  - IF EXIST .git\shallow (git fetch --unshallow)
-  - C:\projects\julia\bin\julia -e "versioninfo();
-      Pkg.clone(pwd(), \"MPI\"); Pkg.build(\"MPI\")"
+  - C:\projects\julia\bin\julia -e "using Pkg; pkg\"activate .\"; pkg\"build\""
 
 test_script:
-  - C:\projects\julia\bin\julia --check-bounds=yes -e "Pkg.test(\"MPI\")"
+  - C:\projects\julia\bin\julia --check-bounds=yes -e "using Pkg; pkg\"activate .\"; pkg\"test\""

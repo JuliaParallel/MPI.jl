@@ -5,7 +5,7 @@ os:
   - linux
   - osx
 julia:
-  - 0.4
+  - 0.7
   - nightly
 notifications:
   email: false
@@ -14,6 +14,12 @@ env:
   - MPI_IMPL=openmpi
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
-  - export PATH=$HOME/OpenMPI/bin:$PATH
+  - export PATH=$HOME/OpenMPI/bin:$HOME/MPICH/bin:$PATH
+  - export CC=mpicc
+  - export FC=mpif90
+# Work around OpenMPI attempting to create overly long temporary
+# file names - and erroring as a result
+  - export TMPDIR=/tmp
 after_success:
-  - if [ "$TRAVIS_JULIA_VERSION" = nightly ]; then julia -e 'cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder()); Codecov.submit(Coveralls.process_folder())'; fi
+  - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'

@@ -1,4 +1,4 @@
-using MPI
+using MPI, Distributed
 
 MPI.Init()
 rank = MPI.Comm_rank(MPI.COMM_WORLD)

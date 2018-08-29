@@ -1,4 +1,5 @@
-using Base.Test
+using Compat
+using Test
 using MPI
 
 MPI.Init()
@@ -12,9 +13,9 @@ src = mod(rank-1, size)
 
 N = 32
 
-send_mesg = Array(Float64, N)
-recv_mesg = Array(Float64, N)
-recv_mesg_expected = Array(Float64, N)
+send_mesg = Array{Float64}(undef,N)
+recv_mesg = Array{Float64}(undef,N)
+recv_mesg_expected = Array{Float64}(undef,N)
 fill!(send_mesg, Float64(rank))
 fill!(recv_mesg_expected, Float64(src))
 

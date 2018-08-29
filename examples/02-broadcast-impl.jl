@@ -1,3 +1,5 @@
+using Printf
+
 function do_broadcast()
     comm = MPI.COMM_WORLD
 
@@ -15,7 +17,7 @@ function do_broadcast()
     if MPI.Comm_rank(comm) == root
         A = [1:N;] * (1.0 + im*2.0)
     else
-        A = Array(Complex128, N)
+        A = Array{ComplexF64}(undef, N)
     end
 
     MPI.Bcast!(A,length(A), root, comm)

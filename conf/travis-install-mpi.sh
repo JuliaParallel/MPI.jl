@@ -7,12 +7,14 @@ set -x
 
 MPI_IMPL="$1"
 os=`uname`
+OMPIVER=openmpi-3.0.0
+MPICHVER=mpich-3.2.1
 
 case "$os" in
     Darwin)
         brew update
         brew upgrade cmake
-	    brew upgrade gcc
+        brew cask uninstall oclint # Prevent conflict with gcc
         case "$MPI_IMPL" in
             mpich|mpich3)
                 brew install mpich
@@ -37,16 +39,19 @@ case "$os" in
                 sudo apt-get install -y gfortran mpich2 libmpich2-3 libmpich2-dev
                 ;;
             mpich|mpich3)
-                sudo apt-get install -y gfortran libcr0 default-jdk hwloc libmpich10 libmpich-dev
-                wget -q http://de.archive.ubuntu.com/ubuntu/pool/universe/m/mpich/mpich_3.0.4-6ubuntu1_amd64.deb
-                sudo dpkg -i ./mpich_3.0.4-6ubuntu1_amd64.deb
-                # rm -f ./mpich_3.1-1ubuntu_amd64.deb
+                sudo apt-get install -y gfortran hwloc
+                wget http://www.mpich.org/static/downloads/3.2.1/$MPICHVER.tar.gz
+                tar -zxf $MPICHVER.tar.gz
+                cd $MPICHVER
+                sh ./configure --prefix=$HOME/MPICH --enable-shared > /dev/null
+                make -j > /dev/null
+                sudo make install > /dev/null
                 ;;
             openmpi)
                 sudo apt-get install -y gfortran
-                wget --no-check-certificate https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.2.tar.gz
-                tar -zxf openmpi-1.10.2.tar.gz
-                cd openmpi-1.10.2
+                wget --no-check-certificate https://www.open-mpi.org/software/ompi/v3.0/downloads/$OMPIVER.tar.gz
+                tar -zxf $OMPIVER.tar.gz
+                cd $OMPIVER
                 sh ./configure --prefix=$HOME/OpenMPI > /dev/null
                 make -j > /dev/null
                 sudo make install > /dev/null
