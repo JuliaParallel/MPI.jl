@@ -31,7 +31,7 @@ flags = ["MPI_C_COMPILER",
 for flag in flags
     try
         val = ENV["JULIA_$flag"]
-        configure = `$configure -D$flag=$val`
+        global configure = `$configure -D$flag=$val`
     catch
         nothing
     end
