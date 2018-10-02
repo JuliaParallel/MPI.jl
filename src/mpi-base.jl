@@ -915,6 +915,26 @@ function Win_create_dynamic(info::Info, comm::Comm, win::Win)
     win.val = out_win[]
 end
 
+function Win_allocate_shared(::Type{T}, len::Int, info::Info, comm::Comm, win::Win) where T
+    out_win = Ref(win.val)
+    out_baseptr = Ref{Ptr{T}}()
+    ccall(MPI_WIN_ALLOCATE_SHARED, Nothing,
+          (Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Ptr{T}}, Ref{Cint}, Ref{Cint}),
+          Cptrdiff_t(len*sizeof(T)), sizeof(T), info.val, comm.val, out_baseptr, out_win, 0)
+    win.val = out_win[]
+    out_baseptr[]
+end
+
+function Win_shared_query(win::Win, owner_rank::Int)
+    out_len = Ref{Cptrdiff_t}()
+    out_sizeT = Ref{Cint}()
+    out_baseptr = Ref{Ptr{Cvoid}}()
+    ccall(MPI_WIN_SHARED_QUERY, Nothing,
+          (Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Ptr{Cvoid}}, Ref{Cint}),
+          win.val, owner_rank, out_len, out_sizeT, out_baseptr, 0)
+    out_len[], out_sizeT[], out_baseptr[]
+end
+
 function Win_attach(win::Win, base::Array{T}) where T
     ccall(MPI_WIN_ATTACH, Nothing,
           (Ref{Cint}, Ptr{T}, Ref{Cptrdiff_t}, Ref{Cint}),

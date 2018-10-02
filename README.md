@@ -264,6 +264,8 @@ Julia Function (assuming `import MPI`) | Fortran Function
 ---------------------------------------|--------------------------------------------------------
  `MPI.Win_create`                      | [`MPI_Win_create`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_create.3.php)
  `MPI.Win_create_dynamic`              | [`MPI_Win_create_dynamic`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_create_dynamic.3.php)
+ `MPI.Win_allocate_shared`             | [`MPI_Win_allocate_shared`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_allocate_shared.3.php)
+ `MPI.Win_shared_query`                | [`MPI_Win_shared_query`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_shared_query.3.php)
  `MPI.Win_attach`                      | [`MPI_Win_attach`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_attach.3.php)
  `MPI.Win_detach`                      | [`MPI_Win_detach`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_detach.3.php)
  `MPI.Win_fence`                       | [`MPI_Win_fence`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_fence.3.php)
