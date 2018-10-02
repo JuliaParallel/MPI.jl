@@ -30,6 +30,13 @@ const mpitype_dict_inverse = Dict{Cint, DataType}()
 end
 
 function __init__()
+    @static if Compat.Sys.isunix()
+        # need to open libmpi with RTLD_GLOBAL flag for Linux, before
+        # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
+        # at least on Ubuntu 15.10
+        Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+    end
+
     # Note: older versions of OpenMPI (e.g. the version on Travis) do not
     # define MPI_CHAR and MPI_*INT*_T for Fortran, so we don't use them (yet).
     for (T,mpiT) in (Char => MPI_INTEGER4,   # => MPI_WCHAR, (note: wchar_t is 16 bits in Windows)
