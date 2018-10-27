@@ -129,6 +129,9 @@ The following lines will be typically required on the julia master process to su
 # to import MPIManager
 using MPI
 
+# need to also import Distributed to use addprocs()
+using Distributed
+
 # specify, number of mpi workers, launch cmd, etc.
 manager=MPIManager(np=4)
 
