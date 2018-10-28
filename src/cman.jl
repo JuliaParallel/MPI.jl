@@ -506,7 +506,7 @@ macro mpi_do(mgr, expr)
 end
 
 # All managed Julia processes
-Distributed.procs(mgr::MPIManager) = sort(keys(mgr.j2mpi))
+Distributed.procs(mgr::MPIManager) = sort(collect(keys(mgr.j2mpi)))
 
 # All managed MPI ranks
-mpiprocs(mgr::MPIManager) = sort(keys(mgr.mpi2j))
+mpiprocs(mgr::MPIManager) = sort(collect(keys(mgr.mpi2j)))
