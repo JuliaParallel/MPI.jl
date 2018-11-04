@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_WAITANY            => \"%s\",\n", STRING(MPI_WAITANY));
   printf("    :MPI_WAITSOME           => \"%s\",\n", STRING(MPI_WAITSOME));
   printf("    :MPI_WIN_ATTACH         => \"%s\",\n", STRING(MPI_WIN_ATTACH));
+  printf("    :MPI_WIN_ALLOCATE_SHARED=> \"%s\",\n", STRING(MPI_WIN_ALLOCATE_SHARED));
   printf("    :MPI_WIN_CREATE         => \"%s\",\n", STRING(MPI_WIN_CREATE));
   printf("    :MPI_WIN_CREATE_DYNAMIC => \"%s\",\n", STRING(MPI_WIN_CREATE_DYNAMIC));
   printf("    :MPI_WIN_DETACH         => \"%s\",\n", STRING(MPI_WIN_DETACH));
@@ -91,13 +92,14 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_WIN_FLUSH          => \"%s\",\n", STRING(MPI_WIN_FLUSH));
   printf("    :MPI_WIN_FREE           => \"%s\",\n", STRING(MPI_WIN_FREE));
   printf("    :MPI_WIN_LOCK           => \"%s\",\n", STRING(MPI_WIN_LOCK));
+  printf("    :MPI_WIN_SHARED_QUERY   => \"%s\",\n", STRING(MPI_WIN_SHARED_QUERY));
   printf("    :MPI_WIN_SYNC           => \"%s\",\n", STRING(MPI_WIN_SYNC));
   printf("    :MPI_WIN_UNLOCK         => \"%s\",\n", STRING(MPI_WIN_UNLOCK));
   printf("    :MPI_WTICK              => \"%s\",\n", STRING(MPI_WTICK));
   printf("    :MPI_WTIME              => \"%s\",\n", STRING(MPI_WTIME));
-  printf("    :MPI_TYPE_CREATE_STRUCT => \"%s\",\n", 
+  printf("    :MPI_TYPE_CREATE_STRUCT => \"%s\",\n",
          STRING(MPI_TYPE_CREATE_STRUCT));
-  printf("    :MPI_TYPE_COMMIT        => \"%s\",\n", 
+  printf("    :MPI_TYPE_COMMIT        => \"%s\",\n",
          STRING(MPI_TYPE_COMMIT));
   printf(")\n");
   printf("\n");
