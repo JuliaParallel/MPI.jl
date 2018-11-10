@@ -58,7 +58,8 @@ mutable struct MPIManager <: ClusterManager
     function MPIManager(; np::Integer = Sys.CPU_THREADS,
                           mpirun_cmd::Cmd = `mpiexec -n $np`,
                           launch_timeout::Real = 60.0,
-                          mode::TransportMode = MPI_ON_WORKERS)
+                          mode::TransportMode = MPI_ON_WORKERS,
+                          master_tcp_interface::String="" )
         mgr = new()
         mgr.np = np
         mgr.mpi2j = Dict{Int,Int}()
