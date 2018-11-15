@@ -3,7 +3,7 @@ export MPIManager, launch, manage, kill, procs, connect, mpiprocs, @mpi_do
 export TransportMode, MPI_ON_WORKERS, TCP_TRANSPORT_ALL, MPI_TRANSPORT_ALL
 using Compat
 using Compat.Distributed
-import Compat.Sockets: connect, listenany, accept, IPv4, getsockname
+import Compat.Sockets: connect, listenany, accept, IPv4, getsockname, getaddrinfo
 
 
 
@@ -58,7 +58,8 @@ mutable struct MPIManager <: ClusterManager
     function MPIManager(; np::Integer = Sys.CPU_THREADS,
                           mpirun_cmd::Cmd = `mpiexec -n $np`,
                           launch_timeout::Real = 60.0,
-                          mode::TransportMode = MPI_ON_WORKERS)
+                          mode::TransportMode = MPI_ON_WORKERS,
+                          master_tcp_interface::String="" )
         mgr = new()
         mgr.np = np
         mgr.mpi2j = Dict{Int,Int}()
@@ -86,7 +87,17 @@ mutable struct MPIManager <: ClusterManager
         # Listen to TCP sockets if necessary
         if mode != MPI_TRANSPORT_ALL
             # Start a listener for capturing stdout from the workers
-            port, server = listenany(11000)
+            if master_tcp_interface != ""
+               # Listen on specified server interface
+               # This allows direct connection from other hosts on same network as
+               # specified interface.
+               port, server = 
+                listenany(getaddrinfo(master_tcp_interface), 11000)
+            else
+               # Listen on default interface (localhost)
+               # This precludes direct connection from other hosts.
+               port, server = listenany(11000)
+            end
             ip = getsockname(server)[1].host
             @async begin
                 while true
