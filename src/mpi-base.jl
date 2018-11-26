@@ -30,14 +30,31 @@ function mpitype{T}(::Type{T})
     offsets = fieldoffsets(T)
     nfields = Cint(length(fieldtypes))
 
-    # put data in MPI format
-    blocklengths = ones(Cint, nfields)
-    displacements = zeros(Cptrdiff_t, nfields)  # size_t == MPI_Aint ?
-    types = zeros(Cint, nfields)
-    for i=1:nfields
-        displacements[i] = offsets[i]
-        # create an MPI_Datatype for the current field if it does not exist yet
-        types[i] = mpitype(fieldtypes[i])
+    if nfields == 0  # primitive type
+      # try to find a type that is the same size
+      # this is a little bit dangerous becuase reduction operations might try
+      # to do arithmetic on them
+      const PRIMITIVE_TYPES = [UInt8, UInt16, UInt32, UInt64]
+      for T2 in PRIMITIVE_TYPES
+        if sizeof(T) == sizeof(T2)
+          recordDataType(T, mpitype_dict[T2])
+          return mpitype_dict[T]
+        end
+      end
+
+      #TODO: try to factor the size T and create an equivalent struct
+      error("cannot find compatible primitive type for $T")
+
+    else  # struct
+      # put data in MPI format
+      blocklengths = ones(Cint, nfields)
+      displacements = zeros(Cptrdiff_t, nfields)  # size_t == MPI_Aint ?
+      types = zeros(Cint, nfields)
+      for i=1:nfields
+          displacements[i] = offsets[i]
+          # create an MPI_Datatype for the current field if it does not exist yet
+          types[i] = mpitype(fieldtypes[i])
+      end
     end
 
     # create the datatype

@@ -86,5 +86,15 @@ end
 
 
 
+
+# test a primitive type
+T = Ptr{Int}
+mpiT = MPI.mpitype(T)
+T2 = MPI.mpitype_dict_inverse[mpiT]
+@test sizeof(T) == sizeof(T2)
+
+primitive type MyPrimitive 24 end
+@test_throws ErrorException MPI.mpitype(MyPrimitive)
+
 MPI.Barrier(MPI.COMM_WORLD)
 MPI.Finalize()
