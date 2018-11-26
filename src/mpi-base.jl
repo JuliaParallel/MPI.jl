@@ -33,7 +33,7 @@ function mpitype(::Type{T}) where T
       # try to find a type that is the same size
       # this is a little bit dangerous becuase reduction operations might try
       # to do arithmetic on them
-      const PRIMITIVE_TYPES = [UInt8, UInt16, UInt32, UInt64]
+      PRIMITIVE_TYPES = [UInt8, UInt16, UInt32, UInt64]
       for T2 in PRIMITIVE_TYPES
         if sizeof(T) == sizeof(T2)
           recordDataType(T, mpitype_dict[T2])
@@ -1065,7 +1065,7 @@ function Type_Create_Struct(nfields::Integer, blocklengths::MPIBuffertype{Cint},
 
   newtype_ref = Ref{Cint}()
   flag = Ref{Cint}()
-  ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ref{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t},
+  ccall(MPI_TYPE_CREATE_STRUCT, Nothing, (Ref{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t},
         Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), nfields, blocklengths,
         displacements, types, newtype_ref, flag)
 
@@ -1079,7 +1079,7 @@ end
 function Type_Commit(newtype::Cint)
 
   flag = Ref{Cint}()
-  ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), Ref(newtype), flag)
+  ccall(MPI_TYPE_COMMIT, Nothing, (Ptr{Cint}, Ptr{Cint}), Ref(newtype), flag)
 
   if flag[] != 0
     throw(ErrorException("MPI_Type_commit returned non-zero exit status: $(flag[])"))

@@ -46,6 +46,7 @@ end
     for (jname, fname) in _mpi_functions
         Core.eval(MPI, :(const $jname = ($(QuoteNode(fname)),libmpi)))
     end
+end
 
 function __init__()
     @static if Compat.Sys.isunix()
