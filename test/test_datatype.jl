@@ -1,4 +1,5 @@
-using Base.Test
+using Compat
+using Test
 using MPI
 
 MPI.Init()
@@ -32,7 +33,7 @@ end
 
 MPI.mpitype(Boundary)
 
-arr = Array{Boundary}(3)
+arr = Array{Boundary}(undef, 3)
 for i=1:3
   arr[i] = Boundary( (comm_rank + i) % 127, i + comm_rank, i % 64)
 end
@@ -40,7 +41,7 @@ end
 req_send = MPI.Isend(arr, dest - 1, 1, MPI.COMM_WORLD)
 
 # receive the message
-arr_recv = Array{Boundary}(3)
+arr_recv = Array{Boundary}(undef, 3)
 req_recv = MPI.Irecv!(arr_recv, src - 1, 1, MPI.COMM_WORLD)
 
 MPI.Wait!(req_send)
@@ -63,8 +64,8 @@ end
 
 MPI.mpitype(Boundary2)
 
-arr = Array{Boundary2}(3)
-arr_recv = Array{Boundary2}(3)
+arr = Array{Boundary2}(undef,3)
+arr_recv = Array{Boundary2}(undef,3)
 
 for i=1:3
   arr[i] = Boundary2( (comm_rank + i) % 127, ( Int(i + comm_rank), UInt8(i % 64) ) )

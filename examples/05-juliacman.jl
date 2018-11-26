@@ -1,6 +1,7 @@
 # Note: Run this script without using `mpirun`
 
-using MPI
+using MPI, Distributed
+using LinearAlgebra: svd
 
 manager = MPIManager(np=4)
 addprocs(manager)
@@ -11,10 +12,10 @@ println("Running 01-hello as part of a Julia cluster")
 @mpi_do manager (include("01-hello-impl.jl"); do_hello())
 
 # Interspersed julia parallel call
-nheads = @parallel (+) for i=1:10^8
+nheads = @distributed (+) for i=1:10^8
   Int(rand(Bool))
 end
-println("@parallel nheads $nheads")
+println("@distributed nheads $nheads")
 
 println("Running 02-broadcast as part of a Julia cluster")
 @mpi_do manager (include("02-broadcast-impl.jl"); do_broadcast())

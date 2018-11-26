@@ -7,6 +7,8 @@ like to use, subject to  X-1 being an even divisor
 of 1e6, e.g., set X=5.
 =#
 
+using LinearAlgebra, Statistics
+
 include("montecarlo.jl")
 
 function pi_wrapper()
@@ -17,7 +19,7 @@ end
 function pi_monitor(sofar, results)
     # Examine results every 12.5*10^5 draws
     if mod(sofar, 10^6) == 0
-        m = mean(results[1:sofar,:],1)
+        m = mean(results[1:sofar,:],dims=1)
         println("reps: $sofar, pihat: $m")
     end
 end

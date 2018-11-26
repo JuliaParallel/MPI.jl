@@ -1,3 +1,5 @@
+using Printf
+
 function do_reduce()
     comm = MPI.COMM_WORLD
 

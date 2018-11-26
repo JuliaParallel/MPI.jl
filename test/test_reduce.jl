@@ -1,6 +1,7 @@
-using Base.Test
+using Test
 
 using MPI
+using Compat.LinearAlgebra
 
 MPI.Init()
 

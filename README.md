@@ -87,6 +87,12 @@ able to run the MPI job as expected, e.g., with
 
 `mpirun -np 3 julia 01-hello.jl`
 
+### Cleanup
+In Julia code building on this package, it may happen that you want to run MPI cleanup functions in a finalizer.
+This makes it impossible to manually call `MPI.Finalize()`, since the Julia finalizers may run after this call.
+To solve this, a C `atexit` hook to run `MPI.Finalize()` can be set using `MPI.finalize_atexit()`. It is possible
+to check if this function was called by checking the global `Ref` `MPI.FINALIZE_ATEXIT`.
+
 ## Usage : MPI and Julia parallel constructs together
 
 In order for MPI calls to be made from a Julia cluster, it requires the use of
@@ -112,16 +118,19 @@ The julia master process is NOT part of the MPI cluster. The main script should 
 launched directly, MPIManager internally calls `mpirun` to launch julia/mpi workers.
 All the workers started via MPIManager will be part of the MPI cluster.
 
-`MPIManager(;np=Sys.CPU_CORES, mpi_cmd=false, launch_timeout=60.0)`
+`MPIManager(;np=Sys.CPU_THREADS, mpi_cmd=false, launch_timeout=60.0)`
 
 If not specified, `mpi_cmd` defaults to `mpirun -np $np`
-STDOUT from the launched workers is redirected back to the julia session calling `addprocs` via a TCP connection.
+`stdout` from the launched workers is redirected back to the julia session calling `addprocs` via a TCP connection.
 Thus the workers must be able to freely connect via TCP to the host session.
 The following lines will be typically required on the julia master process to support both julia and mpi
 
 ```
 # to import MPIManager
 using MPI
+
+# need to also import Distributed to use addprocs()
+using Distributed
 
 # specify, number of mpi workers, launch cmd, etc.
 manager=MPIManager(np=4)
@@ -196,12 +205,16 @@ Julia Function (assuming `import MPI`) | Fortran Function
  `MPI.Abort`                           | [`MPI_Abort`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Abort.3.php)
  `MPI.Comm_dup`                        | [`MPI_Comm_dup`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Comm_dup.3.php)
  `MPI.Comm_free`                       | [`MPI_Comm_free`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Comm_free.3.php)
+ `MPI.Comm_get_parent`                 | [`MPI_Comm_get_parent`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Comm_get_parent.3.php)
  `MPI.Comm_rank`                       | [`MPI_Comm_rank`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Comm_rank.3.php)
  `MPI.Comm_size`                       | [`MPI_Comm_size`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Comm_size.3.php)
+ `MPI.Comm_spawn`                      | [`MPI_Comm_spawn`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Comm_spawn.3.php)
  `MPI.Finalize`                        | [`MPI_Finalize`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Finalize.3.php)
  `MPI.Finalized`                       | [`MPI_Finalized`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Finalized.3.php)
+ `MPI.Get_address`                     | [`MPI_Get_address`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Get_address.3.php)
  `MPI.Init`                            | [`MPI_Init`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Init.3.php)
  `MPI.Initialized`                     | [`MPI_Initialized`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Initialized.3.php)
+ `MPI.Intercomm_merge`                 | [`MPI_Intercomm_merge`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Intercomm_merge.3.php)
  `MPI.mpitype`                         | [`MPI_Type_create_struct`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Type_create_struct.3.php) and [`MPI_Type_commit`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Type_commit.3.php) (see: [mpitype note](#mpitypenote))
 
 <a name="mpitypenote">mpitype note</a>: This is not strictly a wrapper for
@@ -246,7 +259,26 @@ Julia Function (assuming `import MPI`) | Fortran Function
  `MPI.Scatter`                         | [`MPI_Scatter`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Scatter.3.php)
  `MPI.Scatterv`                        | [`MPI_Scatterv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Scatterv.3.php)
 
-
+#### One-sided communication
+Julia Function (assuming `import MPI`) | Fortran Function
+---------------------------------------|--------------------------------------------------------
+ `MPI.Win_create`                      | [`MPI_Win_create`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_create.3.php)
+ `MPI.Win_create_dynamic`              | [`MPI_Win_create_dynamic`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_create_dynamic.3.php)
+ `MPI.Win_allocate_shared`             | [`MPI_Win_allocate_shared`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_allocate_shared.3.php)
+ `MPI.Win_shared_query`                | [`MPI_Win_shared_query`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_shared_query.3.php)
+ `MPI.Win_attach`                      | [`MPI_Win_attach`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_attach.3.php)
+ `MPI.Win_detach`                      | [`MPI_Win_detach`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_detach.3.php)
+ `MPI.Win_fence`                       | [`MPI_Win_fence`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_fence.3.php)
+ `MPI.Win_flush`                       | [`MPI_Win_flush`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_flush.3.php)
+ `MPI.Win_free`                        | [`MPI_Win_free`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_free.3.php)
+ `MPI.Win_sync`                        | [`MPI_Win_sync`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_sync.3.php)
+ `MPI.Win_lock`                        | [`MPI_Win_lock`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_lock.3.php)
+ `MPI.Win_unlock`                      | [`MPI_Win_unlock`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_unlock.3.php)
+ `MPI.Get`                             | [`MPI_Get`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Get.3.php)
+ `MPI.Put`                             | [`MPI_Put`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Put.3.php)
+ `MPI.Fetch_and_op`                    | [`MPI_Fetch_and_op`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Fetch_and_op.3.php)
+ `MPI.Accumulate`                      | [`MPI_Accumulate`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Accumulate.3.php)
+ `MPI.Get_accumulate`                      | [`MPI_Get_accumulate`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Get_accumulate.3.php)
 
 [Julia]: http://julialang.org/
 [MPI]: http://www.mpi-forum.org/

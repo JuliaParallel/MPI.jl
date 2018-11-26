@@ -1,3 +1,5 @@
+using Compat
+
 # Implement user-defined MPI reduction operations, by passing Julia
 # functions as callbacks to MPI.
 
@@ -16,11 +18,11 @@ end
 # the reduction functions are barriers, being re-entrant is probably
 # not important in practice, fortunately.)   For MPI_THREAD_MULTIPLE
 # using Julia native threading, however, we do make this global thread-local
-const _user_functions = Array{Function}(1) # resized to nthreads() at runtime
+const _user_functions = Array{Function}(undef, 1) # resized to nthreads() at runtime
 const _user_op = Op(MPI_OP_NULL) # _mpi_user_function operation, initialized below
 
 # C callback function corresponding to MPI_User_function
-function _mpi_user_function(_a::Ptr{Void}, _b::Ptr{Void}, _len::Ptr{Cint}, t::Ptr{Cint})
+function _mpi_user_function(_a::Ptr{Nothing}, _b::Ptr{Nothing}, _len::Ptr{Cint}, t::Ptr{Cint})
     len = unsafe_load(_len)
     T = mpitype_dict_inverse[unsafe_load(t)]
     a = Ptr{T}(_a)
@@ -40,10 +42,10 @@ function user_op(opfunc::Function)
         # of some sort so that this initialization only occurs once.
         # To do when native threading in Julia stabilizes (and is documented).
         resize!(_user_functions, nthreads())
-        user_function = cfunction(_mpi_user_function, Void, (Ptr{Void}, Ptr{Void}, Ptr{Cint}, Ptr{Cint}))
+        user_function = @cfunction(_mpi_user_function, Nothing, (Ptr{Nothing}, Ptr{Nothing}, Ptr{Cint}, Ptr{Cint}))
         opnum = Ref{Cint}()
-        ccall(MPI_OP_CREATE, Void, (Ptr{Void}, Ref{Cint}, Ref{Cint}, Ptr{Cint}),
-             user_function, false, opnum, &0)
+        ccall(MPI_OP_CREATE, Nothing, (Ptr{Nothing}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+             user_function, false, opnum, 0)
         _user_op.val = opnum[]
     end
 
@@ -51,20 +53,18 @@ function user_op(opfunc::Function)
     return _user_op
 end
 
-# use function types in Julia 0.5 to automatically use built-in
+# use function types in Julia 0.7 to automatically use built-in
 # MPI operations for the corresponding Julia functions.
-if VERSION >= v"0.5.0-dev+2396"
-    for (f,op) in ((+,SUM), (*,PROD),
-                   (min,MIN), (max,MAX),
-                   (&, BAND), (|, BOR), ($, BXOR))
-        @eval user_op(::$(typeof(f))) = $op
-    end
+for (f,op) in ((+,SUM), (*,PROD),
+               (min,MIN), (max,MAX),
+               (&, BAND), (|, BOR), (⊻, BXOR))
+    @eval user_op(::$(typeof(f))) = $op
 end
 
-Allreduce!{T}(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
-              count::Integer, opfunc::Function, comm::Comm) =
+Allreduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+           count::Integer, opfunc::Function, comm::Comm) where {T} =
     Allreduce!(sendbuf, recvbuf, count, user_op(opfunc), comm)
 
-Reduce{T}(sendbuf::MPIBuffertype{T}, count::Integer,
-          opfunc::Function, root::Integer, comm::Comm) =
+Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
+       opfunc::Function, root::Integer, comm::Comm) where {T} =
     Reduce(sendbuf, count, user_op(opfunc), root, comm)

@@ -1,14 +1,16 @@
-__precompile__()
+VERSION < v"0.7.0-beta2.199" && __precompile__()
 
 module MPI
 
 using Compat
 
-@static if is_windows()
+using Libdl
+
+@static if Compat.Sys.iswindows()
     const depfile = "win_mpiconstants.jl"
 end
 
-@static if is_unix()
+@static if Compat.Sys.isunix()
     const depfile = joinpath(dirname(@__FILE__), "..", "deps", "src", "compile-time.jl")
     isfile(depfile) || error("MPI not properly installed. Please run Pkg.build(\"MPI\")")
 end
@@ -40,18 +42,17 @@ function recordDataType(T::DataType, mpiT::Cint; force=false)
   return nothing
 end
 
+@static if Compat.Sys.isunix()
+    for (jname, fname) in _mpi_functions
+        Core.eval(MPI, :(const $jname = ($(QuoteNode(fname)),libmpi)))
+    end
+
 function __init__()
-    @static if is_unix()
+    @static if Compat.Sys.isunix()
         # need to open libmpi with RTLD_GLOBAL flag for Linux, before
         # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
         # at least on Ubuntu 15.10
-        @eval const libmpi_handle =
-            Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-
-        # look up all symbols ahead of time
-        for (jname, fname) in _mpi_functions
-            eval(:(const $jname = Libdl.dlsym(libmpi_handle, $fname)))
-        end
+        Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
 
     # Note: older versions of OpenMPI (e.g. the version on Travis) do not
@@ -67,8 +68,9 @@ function __init__()
                      UInt64 => MPI_INTEGER8, # => MPI_UINT64_T,
                      Float32 => MPI_REAL4,
                      Float64 => MPI_REAL8,
-                     Complex64 => MPI_COMPLEX8,
-                     Complex128 => MPI_COMPLEX16)
+                     ComplexF32 => MPI_COMPLEX8,
+                     ComplexF64 => MPI_COMPLEX16)
+
         recordDataType(T, mpiT)
     end
 end

@@ -1,9 +1,15 @@
-using Base.Test
+using Compat
+using Test
 using MPI
+using Compat.Distributed
 
 # Start workers via `mpiexec` that communicate among themselves via MPI;
 # communicate with the workers via TCP
-mgr = MPI.MPIManager(np=4)
+if !Sys.iswindows() && Compat.occursin( "OpenRTE", Compat.open(f->read(f, String),`mpiexec --version`))
+    mgr = MPI.MPIManager(np=4, mpirun_cmd=`mpiexec --oversubscribe -n 4`)
+else
+    mgr = MPI.MPIManager(np=4)
+end
 addprocs(mgr)
 
 refs = []
@@ -20,7 +26,7 @@ for id in ids
     @test id
 end
 
-s = @parallel (+) for i in 1:10
+s = @distributed (+) for i in 1:10
     i^2
 end
 @test s == 385

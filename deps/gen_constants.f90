@@ -28,6 +28,8 @@ program gen_constants
   call output("MPI_COMM_SELF   ", MPI_COMM_SELF)
   call output("MPI_COMM_WORLD  ", MPI_COMM_WORLD)
 
+  call output("MPI_COMM_TYPE_SHARED", MPI_COMM_TYPE_SHARED)
+
   call output("MPI_OP_NULL     ", MPI_OP_NULL)
   call output("MPI_BAND        ", MPI_BAND)
   call output("MPI_BOR         ", MPI_BOR)
@@ -38,12 +40,15 @@ program gen_constants
   call output("MPI_MAX         ", MPI_MAX)
   call output("MPI_MAXLOC      ", MPI_MAXLOC)
   call output("MPI_MIN         ", MPI_MIN)
+  call output("MPI_NO_OP       ", MPI_NO_OP)
   call output("MPI_MINLOC      ", MPI_MINLOC)
   call output("MPI_PROD        ", MPI_PROD)
   call output("MPI_REPLACE     ", MPI_REPLACE)
   call output("MPI_SUM         ", MPI_SUM)
 
   call output("MPI_REQUEST_NULL", MPI_REQUEST_NULL)
+
+  call output("MPI_INFO_NULL   ", MPI_INFO_NULL)
 
   call output("MPI_STATUS_SIZE ", MPI_STATUS_SIZE)
   call output("MPI_ERROR       ", MPI_ERROR)
@@ -56,6 +61,9 @@ program gen_constants
   call output("MPI_TAG_UB      ", MPI_TAG_UB)
   call output("MPI_UNDEFINED   ", MPI_UNDEFINED)
 
+  call output("MPI_INFO_NULL   ", MPI_INFO_NULL)
+  call output("MPI_LOCK_EXCLUSIVE", MPI_LOCK_EXCLUSIVE)
+  call output("MPI_LOCK_SHARED ", MPI_LOCK_SHARED)
 contains
 
   subroutine output(name, value)
