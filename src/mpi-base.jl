@@ -41,27 +41,14 @@ function mpitype{T}(::Type{T})
     end
 
     # create the datatype
-    newtype_ref = Ref{Cint}()
-    flag = Ref{Cint}()
-    ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t},
-          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths,
-          displacements, types, newtype_ref, flag)
-
-    if flag[] != 0
-        throw(ErrorException("MPI_Type_create_struct returned non-zero exit status"))
-    end
+    newtype = Type_Create_Struct(nfields, blocklengths, displacements, types)
 
     # commit the datatatype
-    flag2 = Ref{Cint}()
-    ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
-
-    if flag2[] != 0
-        throw(ErrorException("MPI_Type_commit returned non-zero exit status"))
-    end
+    Type_Commit(newtype)
 
     # add it to the dictonary of known types
-    mpitype_dict[T] = newtype_ref[]
-    mpitype_dict_inverse[newtype_ref[]] = T
+    mpitype_dict[T] = newtype
+    mpitype_dict_inverse[newtype] = T
 
     return mpitype_dict[T]
 end
@@ -748,6 +735,38 @@ function Exscan{T}(object::T, op::Op, comm::Comm)
     sendbuf = T[object]
     Exscan(sendbuf,1,op,comm)
 end
+
+function Type_Create_Struct(nfields::Integer, blocklengths::MPIBuffertype{Cint},
+                            displacements::MPIBuffertype{Cptrdiff_t},
+                            types::MPIBuffertype{Cint})
+
+  newtype_ref = Ref{Cint}()
+  flag = Ref{Cint}()
+  ccall(MPI_TYPE_CREATE_STRUCT, Void, (Ptr{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t},
+        Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), &nfields, blocklengths,
+        displacements, types, newtype_ref, flag)
+
+  if flag[] != 0
+    throw(ErrorException("MPI_Type_create_struct returned non-zero exit status: $(flag[])"))
+  end
+
+  return newtype_ref[]
+end
+
+function Type_Commit(newtype::Cint)
+
+  flag = Ref{Cint}()
+  ccall(MPI_TYPE_COMMIT, Void, (Ptr{Cint}, Ptr{Cint}), Ref(newtype), flag)
+
+  if flag[] != 0
+    throw(ErrorException("MPI_Type_commit returned non-zero exit status: $(flag[])"))
+  end
+
+  return nothing
+end
+
+
+
 
 # Conversion between C and Fortran Comm handles:
 if HAVE_MPI_COMM_C2F

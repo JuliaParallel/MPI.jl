@@ -49,6 +49,7 @@ program gen_constants
   call output("MPI_ERROR       ", MPI_ERROR)
   call output("MPI_SOURCE      ", MPI_SOURCE)
   call output("MPI_TAG         ", MPI_TAG)
+  !call output("MPI_DATATYPE_SIZE ", SIZEOF(MPI_Datatype))
 
   call output("MPI_ANY_SOURCE  ", MPI_ANY_SOURCE)
   call output("MPI_ANY_TAG     ", MPI_ANY_TAG)
