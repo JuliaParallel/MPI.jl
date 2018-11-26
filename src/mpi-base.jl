@@ -47,8 +47,7 @@ function mpitype{T}(::Type{T})
     Type_Commit(newtype)
 
     # add it to the dictonary of known types
-    mpitype_dict[T] = newtype
-    mpitype_dict_inverse[newtype] = T
+    recordDataType(T, newtype)
 
     return mpitype_dict[T]
 end

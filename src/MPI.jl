@@ -21,6 +21,25 @@ include("cman.jl")
 const mpitype_dict = Dict{DataType, Cint}()
 const mpitype_dict_inverse = Dict{Cint, DataType}()
 
+"""
+  Setter function for mpitype_dict and mpitype_dict_inverse
+"""
+function recordDataType(T::DataType, mpiT::Cint; force=false)
+
+  if haskey(mpitype_dict, T) && !force
+    error("cannot add already-existing datatype $T to MPI dictionary")
+  end
+  mpitype_dict[T] = mpiT
+
+  # the inverse mapping is a problem: the mapping is not necessarily invertible
+  # only add the reverse entry if there isn't one already
+  if !haskey(mpitype_dict_inverse, mpiT)
+    mpitype_dict_inverse[mpiT] = T
+  end
+
+  return nothing
+end
+
 function __init__()
     @static if is_unix()
         # need to open libmpi with RTLD_GLOBAL flag for Linux, before
@@ -50,8 +69,7 @@ function __init__()
                      Float64 => MPI_REAL8,
                      Complex64 => MPI_COMPLEX8,
                      Complex128 => MPI_COMPLEX16)
-        mpitype_dict[T] = mpiT
-        mpitype_dict_inverse[mpiT] = T
+        recordDataType(T, mpiT)
     end
 end
 
