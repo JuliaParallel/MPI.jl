@@ -15,7 +15,6 @@ fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fiel
 
 # accessor and creation function for getting MPI datatypes
 function mpitype(::Type{T}) where T
-
     if haskey(mpitype_dict, T)  # if the datatype already exists
       return mpitype_dict[T]
     end
@@ -30,20 +29,10 @@ function mpitype(::Type{T}) where T
     nfields = Cint(length(fieldtypes))
 
     if nfields == 0  # primitive type
-      # try to find a type that is the same size
-      # this is a little bit dangerous becuase reduction operations might try
-      # to do arithmetic on them
-      PRIMITIVE_TYPES = [UInt8, UInt16, UInt32, UInt64]
-      for T2 in PRIMITIVE_TYPES
-        if sizeof(T) == sizeof(T2)
-          recordDataType(T, mpitype_dict[T2])
-          return mpitype_dict[T]
-        end
+      if sizeof(T) == 0
+        error("Can't convert 0-size type to MPI")
       end
-
-      #TODO: try to factor the size T and create an equivalent struct
-      error("cannot find compatible primitive type for $T")
-
+      newtype = Type_Contiguous(sizeof(T), MPI_INTEGER1)
     else  # struct
       # put data in MPI format
       blocklengths = ones(Cint, nfields)
@@ -54,10 +43,9 @@ function mpitype(::Type{T}) where T
           # create an MPI_Datatype for the current field if it does not exist yet
           types[i] = mpitype(fieldtypes[i])
       end
-    end
 
-    # create the datatype
-    newtype = Type_Create_Struct(nfields, blocklengths, displacements, types)
+      newtype = Type_Create_Struct(nfields, blocklengths, displacements, types)
+    end
 
     # commit the datatatype
     Type_Commit(newtype)
@@ -1071,6 +1059,18 @@ function Type_Create_Struct(nfields::Integer, blocklengths::MPIBuffertype{Cint},
 
   if flag[] != 0
     throw(ErrorException("MPI_Type_create_struct returned non-zero exit status: $(flag[])"))
+  end
+
+  return newtype_ref[]
+end
+
+function Type_Contiguous(count::Integer, oldtype)
+  newtype_ref = Ref{Cint}()
+  flag = Ref{Cint}()
+  ccall(MPI_TYPE_CONTIGUOUS, Nothing, (Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ptr{Cint}), count, oldtype, newtype_ref, flag)
+
+  if flag[] != 0
+    throw(ErrorException("MPI_Type_contiguous returned non-zero exit status: $(flag[])"))
   end
 
   return newtype_ref[]

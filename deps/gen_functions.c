@@ -97,6 +97,7 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_WIN_UNLOCK         => \"%s\",\n", STRING(MPI_WIN_UNLOCK));
   printf("    :MPI_WTICK              => \"%s\",\n", STRING(MPI_WTICK));
   printf("    :MPI_WTIME              => \"%s\",\n", STRING(MPI_WTIME));
+  printf("    :MPI_TYPE_CONTIGUOUS    => \"%s\",\n", STRING(MPI_TYPE_CONTIGUOUS));
   printf("    :MPI_TYPE_CREATE_STRUCT => \"%s\",\n",
          STRING(MPI_TYPE_CREATE_STRUCT));
   printf("    :MPI_TYPE_COMMIT        => \"%s\",\n",
