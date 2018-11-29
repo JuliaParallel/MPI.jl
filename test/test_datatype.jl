@@ -86,18 +86,36 @@ for i=1:3
 end
 
 
-
-
 # test a primitive type
-T = Ptr{Int}
-mpiT = MPI.mpitype(T)
-T2 = MPI.mpitype_dict_inverse[mpiT]
-@test sizeof(T) == sizeof(T2)
+primitive type Primitive16 16 end
+primitive type Primitive24 24 end
 
-primitive type MyPrimitive 24 end
-primmpiT = MPI.mpitype(MyPrimitive)
-T2 = MPI.mpitype_dict_inverse[primmpiT]
-@test sizeof(MyPrimitive) == sizeof(T2)
+nfields, blocklengths, displacements, types = MPI.factorPrimitiveType(Primitive16)
+@test nfields == 1
+@test displacements[1] == 0
+@test types[1] == MPI.MPI_INTEGER2
+@test blocklengths[1] == 1
+
+nfields, blocklengths, displacements, types = MPI.factorPrimitiveType(Primitive24)
+@test nfields == 2
+@test displacements[1] == 0
+@test displacements[2] == 2
+@test types[1] == MPI.MPI_INTEGER2
+@test types[2] == MPI.MPI_INTEGER1
+@test blocklengths[1] == 1
+@test blocklengths[2] == 1
+
+
+obj = [Ptr{Int}(comm_rank)]
+obj_recv = Array{Ptr{Int}}(undef, 1)
+recv_req = MPI.Irecv!(obj_recv, src - 1, 2, MPI.COMM_WORLD)
+send_req = MPI.Isend(obj, dest - 1, 2, MPI.COMM_WORLD)
+
+MPI.Wait!(recv_req)
+MPI.Wait!(send_req)
+
+@test obj_recv[1] == Ptr{Int}(src)
+
 
 MPI.Barrier(MPI.COMM_WORLD)
 MPI.Finalize()

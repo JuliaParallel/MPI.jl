@@ -32,7 +32,7 @@ function mpitype(::Type{T}) where T
       if sizeof(T) == 0
         error("Can't convert 0-size type to MPI")
       end
-      newtype = Type_Contiguous(sizeof(T), MPI_INTEGER1)
+      nfields, blocklengths, displacements, types = factorPrimitiveType(T)
     else  # struct
       # put data in MPI format
       blocklengths = ones(Cint, nfields)
@@ -44,8 +44,9 @@ function mpitype(::Type{T}) where T
           types[i] = mpitype(fieldtypes[i])
       end
 
-      newtype = Type_Create_Struct(nfields, blocklengths, displacements, types)
     end
+
+    newtype = Type_Create_Struct(nfields, blocklengths, displacements, types)
 
     # commit the datatatype
     Type_Commit(newtype)
@@ -54,6 +55,40 @@ function mpitype(::Type{T}) where T
     recordDataType(T, newtype)
 
     return mpitype_dict[T]
+end
+
+
+function factorPrimitiveType(::Type{T}) where {T}
+
+  tsize = sizeof(T)  # size in bytes
+  displacements = zeros(Cptrdiff_t, 0)  # size_t == MPI_Aint ?
+  types = zeros(Cint, 0)
+
+  # put largest sizes first
+  mpi_types = [MPI_INTEGER8, MPI_INTEGER4, MPI_INTEGER2, MPI_INTEGER1]
+  mpi_sizes = [8, 4, 2, 1]
+  curr_disp = 0
+
+  while curr_disp != tsize
+    remsize = tsize - curr_disp
+    for i=1:length(mpi_types)
+      size_i = mpi_sizes[i]
+      # because each size is a multiple of the smaller sizes, taking the largest
+      # size always results in the smallest number of types and doesn't result
+      # in avoidable small remainders
+      if remsize >= size_i
+        push!(types, mpi_types[i])
+        push!(displacements, curr_disp)
+        curr_disp += size_i
+        break
+      end
+    end
+  end
+  
+  nfields = length(types)
+  blocklengths = ones(Cint, nfields)
+
+  return nfields, blocklengths, displacements, types
 end
 
 
