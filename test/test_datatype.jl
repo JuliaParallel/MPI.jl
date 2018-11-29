@@ -23,7 +23,7 @@ mutable struct NotABits
   a::Any
 end
 
-@test_throws ArgumentError MPI.type_create(NotABits)
+@test_throws ArgumentError MPI.mpitype(NotABits)
 
 struct Boundary
   c::UInt16  # force some padding to be inserted
@@ -85,6 +85,36 @@ for i=1:3
   @test bndry_i.b[2] == (i % 64)
 end
 
+
+# test a primitive type
+primitive type Primitive16 16 end
+primitive type Primitive24 24 end
+
+nfields, blocklengths, displacements, types = MPI.factorPrimitiveType(Primitive16)
+@test nfields == 1
+@test displacements[1] == 0
+@test types[1] == MPI.MPI_INTEGER2
+@test blocklengths[1] == 1
+
+nfields, blocklengths, displacements, types = MPI.factorPrimitiveType(Primitive24)
+@test nfields == 2
+@test displacements[1] == 0
+@test displacements[2] == 2
+@test types[1] == MPI.MPI_INTEGER2
+@test types[2] == MPI.MPI_INTEGER1
+@test blocklengths[1] == 1
+@test blocklengths[2] == 1
+
+
+obj = [Ptr{Int}(comm_rank)]
+obj_recv = Array{Ptr{Int}}(undef, 1)
+recv_req = MPI.Irecv!(obj_recv, src - 1, 2, MPI.COMM_WORLD)
+send_req = MPI.Isend(obj, dest - 1, 2, MPI.COMM_WORLD)
+
+MPI.Wait!(recv_req)
+MPI.Wait!(send_req)
+
+@test obj_recv[1] == Ptr{Int}(src)
 
 
 MPI.Barrier(MPI.COMM_WORLD)

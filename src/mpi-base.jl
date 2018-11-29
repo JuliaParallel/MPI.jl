@@ -15,7 +15,6 @@ fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fiel
 
 # accessor and creation function for getting MPI datatypes
 function mpitype(::Type{T}) where T
-
     if haskey(mpitype_dict, T)  # if the datatype already exists
       return mpitype_dict[T]
     end
@@ -29,40 +28,67 @@ function mpitype(::Type{T}) where T
     offsets = fieldoffsets(T)
     nfields = Cint(length(fieldtypes))
 
-    # put data in MPI format
-    blocklengths = ones(Cint, nfields)
-    displacements = zeros(Cptrdiff_t, nfields)  # size_t == MPI_Aint ?
-    types = zeros(Cint, nfields)
-    for i=1:nfields
-        displacements[i] = offsets[i]
-        # create an MPI_Datatype for the current field if it does not exist yet
-        types[i] = mpitype(fieldtypes[i])
+    if nfields == 0  # primitive type
+      if sizeof(T) == 0
+        error("Can't convert 0-size type to MPI")
+      end
+      nfields, blocklengths, displacements, types = factorPrimitiveType(T)
+    else  # struct
+      # put data in MPI format
+      blocklengths = ones(Cint, nfields)
+      displacements = zeros(Cptrdiff_t, nfields)  # size_t == MPI_Aint ?
+      types = zeros(Cint, nfields)
+      for i=1:nfields
+          displacements[i] = offsets[i]
+          # create an MPI_Datatype for the current field if it does not exist yet
+          types[i] = mpitype(fieldtypes[i])
+      end
+
     end
 
-    # create the datatype
-    newtype_ref = Ref{Cint}()
-    flag = Ref{Cint}()
-    ccall(MPI_TYPE_CREATE_STRUCT, Nothing, (Ref{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t},
-          Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), nfields, blocklengths,
-          displacements, types, newtype_ref, flag)
-
-    if flag[] != 0
-        throw(ErrorException("MPI_Type_create_struct returned non-zero exit status"))
-    end
+    newtype = Type_Create_Struct(nfields, blocklengths, displacements, types)
 
     # commit the datatatype
-    flag2 = Ref{Cint}()
-    ccall(MPI_TYPE_COMMIT, Nothing, (Ptr{Cint}, Ptr{Cint}), newtype_ref, flag2)
-
-    if flag2[] != 0
-        throw(ErrorException("MPI_Type_commit returned non-zero exit status"))
-    end
+    Type_Commit(newtype)
 
     # add it to the dictonary of known types
-    mpitype_dict[T] = newtype_ref[]
-    mpitype_dict_inverse[newtype_ref[]] = T
+    recordDataType(T, newtype)
 
     return mpitype_dict[T]
+end
+
+
+function factorPrimitiveType(::Type{T}) where {T}
+
+  tsize = sizeof(T)  # size in bytes
+  displacements = zeros(Cptrdiff_t, 0)  # size_t == MPI_Aint ?
+  types = zeros(Cint, 0)
+
+  # put largest sizes first
+  mpi_types = [MPI_INTEGER8, MPI_INTEGER4, MPI_INTEGER2, MPI_INTEGER1]
+  mpi_sizes = [8, 4, 2, 1]
+  curr_disp = 0
+
+  while curr_disp != tsize
+    remsize = tsize - curr_disp
+    for i=1:length(mpi_types)
+      size_i = mpi_sizes[i]
+      # because each size is a multiple of the smaller sizes, taking the largest
+      # size always results in the smallest number of types and doesn't result
+      # in avoidable small remainders
+      if remsize >= size_i
+        push!(types, mpi_types[i])
+        push!(displacements, curr_disp)
+        curr_disp += size_i
+        break
+      end
+    end
+  end
+  
+  nfields = length(types)
+  blocklengths = ones(Cint, nfields)
+
+  return nfields, blocklengths, displacements, types
 end
 
 
@@ -282,6 +308,7 @@ function Wtime()
     ccall(MPI_WTIME, Cdouble, ())
 end
 
+#=
 function type_create(T::DataType)
     if !isbitstype(T)
         throw(ArgumentError("Type must be isbitstype()"))
@@ -333,6 +360,7 @@ function type_create(T::DataType)
 
     return nothing
 end
+=#
 
 # Point-to-point communication
 
@@ -1053,6 +1081,49 @@ function Intercomm_merge(intercomm::Comm, flag::Bool)
     ccall(MPI_INTERCOMM_MERGE, Nothing, (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}), intercomm.val, Cint(flag), comm_id, 0)
     return Comm(comm_id[])
 end
+
+function Type_Create_Struct(nfields::Integer, blocklengths::MPIBuffertype{Cint},
+                            displacements::MPIBuffertype{Cptrdiff_t},
+                            types::MPIBuffertype{Cint})
+
+  newtype_ref = Ref{Cint}()
+  flag = Ref{Cint}()
+  ccall(MPI_TYPE_CREATE_STRUCT, Nothing, (Ref{Cint}, Ptr{Cint}, Ptr{Cptrdiff_t},
+        Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), nfields, blocklengths,
+        displacements, types, newtype_ref, flag)
+
+  if flag[] != 0
+    throw(ErrorException("MPI_Type_create_struct returned non-zero exit status: $(flag[])"))
+  end
+
+  return newtype_ref[]
+end
+
+function Type_Contiguous(count::Integer, oldtype)
+  newtype_ref = Ref{Cint}()
+  flag = Ref{Cint}()
+  ccall(MPI_TYPE_CONTIGUOUS, Nothing, (Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ptr{Cint}), count, oldtype, newtype_ref, flag)
+
+  if flag[] != 0
+    throw(ErrorException("MPI_Type_contiguous returned non-zero exit status: $(flag[])"))
+  end
+
+  return newtype_ref[]
+end
+
+function Type_Commit(newtype::Cint)
+
+  flag = Ref{Cint}()
+  ccall(MPI_TYPE_COMMIT, Nothing, (Ptr{Cint}, Ptr{Cint}), Ref(newtype), flag)
+
+  if flag[] != 0
+    throw(ErrorException("MPI_Type_commit returned non-zero exit status: $(flag[])"))
+  end
+
+  return nothing
+end
+
+
 
 # Conversion between C and Fortran Comm handles:
 if HAVE_MPI_COMM_C2F
