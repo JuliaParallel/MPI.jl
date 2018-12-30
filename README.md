@@ -31,6 +31,12 @@ which will build and install the wrapper into `$HOME/.julia/vX.Y/MPI`.
 #### Platform specific notes:
 * If you are trying to build on OSX with Homebrew, the necessary Fortran headers are not included in the OpenMPI bottle.  To workaround this you can build OpenMPI from source: `brew install --build-from-source openmpi`
 
+#### Overriding compilers
+
+Currently, MPI.jl relies on CMake for building a few C/Fortran source files needed by the library. Unfortunately, CMake does not follow the `PATH` variable when determining which compiler to use, which could cause problem if the compiler you want to use does not reside in a standard directory like `/usr/bin`. You can override CMake's detection of the compiler by specifying the environment variables `CC`, `CXX`, and `FC` on the command line. The following example forces the compilation process to use the compilers found in the path:
+
+    CC=$(which gcc) CXX=$(which g++) FC=$(which gfortran) julia -e 'Pkg.add("MPI")'
+
 #### Overriding the auto-detected MPI version
 
 It may be that CMake selects the wrong MPI version, or that CMake
