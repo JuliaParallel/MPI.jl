@@ -15,9 +15,7 @@ MPI.Dims_create!(nnodes, ndims, cdims)
 @test cdims == Cint[1,nnodes,1]
 
 for dims in ([0,0,0], [0 0 0])
-    dims_t = typeof(dims)
     MPI.Dims_create!(nnodes, dims)
-    @test typeof(dims) == dims_t  #Ensure the type of dims is as before
     @test prod(dims) == nnodes
 end 
 

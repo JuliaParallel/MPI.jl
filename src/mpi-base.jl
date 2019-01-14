@@ -300,36 +300,36 @@ function Comm_split_type(comm::Comm,split_type::Integer,key::Integer;info::Info=
     MPI.Comm(newcomm[])
 end
 
-function Dims_create!(nnodes::Integer, ndims::Integer, dims::Vector{Cint})
-    ccall(MPI_DIMS_CREATE, Nothing, (Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ref{Cint}),
+function Dims_create!(nnodes::Integer, ndims::Integer, dims::MPIBuffertype{T}) where T <: Integer
+    ccall(MPI_DIMS_CREATE, Nothing, (Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}),
           nnodes, ndims, dims, 0)
 end
 
-function Dims_create!(nnodes::Integer, dims::Array{T,N}) where T <: Integer where N
+function Dims_create!(nnodes::Integer, dims::AbstractArray{T,N}) where T <: Integer where N
     cdims = Cint.(dims[:])
     ndims = length(cdims)
     Dims_create!(nnodes, ndims, cdims)
     dims[:] .= cdims
 end
 
-function Cart_create(comm_old::Comm, ndims::Integer, dims::Vector{Cint}, periods::Vector{Cint}, reorder::Integer)
+function Cart_create(comm_old::Comm, ndims::Integer, dims::MPIBuffertype{T}, periods::MPIBuffertype{T}, reorder::Integer) where T <: Integer
     comm_cart = Ref{Cint}()
     ccall(MPI_CART_CREATE, Nothing, 
-          (Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          (Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           comm_old.val, ndims, dims, periods, reorder, comm_cart, 0)
     MPI.Comm(comm_cart[])
 end
 
-function Cart_create(comm_old::Comm, dims::Array{T,N}, periods::Array{T,N}, reorder::Integer) where T <: Integer where N
+function Cart_create(comm_old::Comm, dims::AbstractArray{T,N}, periods::Array{T,N}, reorder::Integer) where T <: Integer where N
     cdims    = Cint.(dims[:])
     cperiods = Cint.(periods[:])
     ndims    = length(cdims)
     Cart_create(comm_old, ndims, cdims, cperiods, reorder)
 end
 
-function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::Vector{Cint})
+function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::MPIBuffertype{T}) where T <: Integer
     ccall(MPI_CART_COORDS, Nothing,
-          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ref{Cint}),
+          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}),
           comm.val, rank, maxdims, coords, 0)
 end
 
