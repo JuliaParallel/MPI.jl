@@ -16,8 +16,7 @@ disp = 1
 for i in 0:2
     neighbors = MPI.Cart_shift(comm_cart, i, disp)
     # TODO: replace -1 with MPI.PROC_NULL
-    @test all( ((neighbors .>= 0) .& (neighbors .< nnodes)) .| 
-               (neighbors .== -1) )
+    @test all( ((neighbors .>= 0) .& (neighbors .< nnodes)) .| (neighbors .== -1) )
 end
 
 MPI.Finalize()
