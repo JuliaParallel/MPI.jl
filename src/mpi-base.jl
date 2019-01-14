@@ -300,6 +300,55 @@ function Comm_split_type(comm::Comm,split_type::Integer,key::Integer;info::Info=
     MPI.Comm(newcomm[])
 end
 
+function Dims_create!(nnodes::Integer, ndims::Integer, dims::Vector{Cint})
+    ccall(MPI_DIMS_CREATE, Nothing, (Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ref{Cint}),
+          nnodes, ndims, dims, 0)
+end
+
+function Dims_create!(nnodes::Integer, dims::Array{T,N}) where T <: Integer where N
+    cdims = Cint.(dims[:])
+    ndims = length(cdims)
+    Dims_create!(nnodes, ndims, cdims)
+    dims[:] .= cdims
+end
+
+function Cart_create(comm_old::Comm, ndims::Integer, dims::Vector{Cint}, periods::Vector{Cint}, reorder::Integer)
+    comm_cart = Ref{Cint}()
+    ccall(MPI_CART_CREATE, Nothing, 
+          (Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          comm_old.val, ndims, dims, periods, reorder, comm_cart, 0)
+    MPI.Comm(comm_cart[])
+end
+
+function Cart_create(comm_old::Comm, dims::Array{T,N}, periods::Array{T,N}, reorder::Integer) where T <: Integer where N
+    cdims    = Cint.(dims[:])
+    cperiods = Cint.(periods[:])
+    ndims    = length(cdims)
+    Cart_create(comm_old, ndims, cdims, cperiods, reorder)
+end
+
+function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::Vector{Cint})
+    ccall(MPI_CART_COORDS, Nothing,
+          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ref{Cint}),
+          comm.val, rank, maxdims, coords, 0)
+end
+
+function Cart_coords!(comm::Comm, maxdims::Integer)
+    ccoords = Vector{Cint}(undef, maxdims)
+    rank    = Comm_rank(comm)
+    Cart_coords!(comm, rank, maxdims, ccoords)
+    Int.(ccoords)
+end
+
+function Cart_shift(comm::Comm, direction::Integer, disp::Integer)
+    rank_source = Ref{Cint}()
+    rank_dest   = Ref{Cint}()
+    ccall(MPI_CART_SHIFT, Nothing,
+          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          comm.val, direction, disp, rank_source, rank_dest, 0)
+    Int(rank_source[]), Int(rank_dest[])
+end
+
 function Wtick()
     ccall(MPI_WTICK, Cdouble, ())
 end

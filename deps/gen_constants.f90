@@ -50,6 +50,8 @@ program gen_constants
 
   call output("MPI_INFO_NULL   ", MPI_INFO_NULL)
 
+  call output("MPI_PROC_NULL   ", MPI_PROC_NULL)
+
   call output("MPI_STATUS_SIZE ", MPI_STATUS_SIZE)
   call output("MPI_ERROR       ", MPI_ERROR)
   call output("MPI_SOURCE      ", MPI_SOURCE)
