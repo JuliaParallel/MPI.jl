@@ -391,37 +391,75 @@ function Get_count(stat::Status, ::Type{T}) where T
     Int(count[])
 end
 
-function Send(buf::MPIBuffertype{T}, count::Integer,
-                           dest::Integer, tag::Integer, comm::Comm) where T
+"""
+    Send(buf::MPIBuffertype{T}, count::Integer, dest::Integer, tag::Integer,
+         comm::Comm) where T
+
+Complete a blocking send of `count` elements of `buf` to MPI rank `dest`
+of communicator `comm` using with the message tag `tag`
+"""
+function Send(buf::MPIBuffertype{T}, count::Integer, dest::Integer,
+              tag::Integer, comm::Comm) where T
     ccall(MPI_SEND, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
            Ref{Cint}),
           buf, count, mpitype(T), dest, tag, comm.val, 0)
 end
 
-function Send(buf::Array{T}, dest::Integer, tag::Integer,
-                           comm::Comm) where T
+"""
+    Send(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
+
+Complete a blocking send of `buf` to MPI rank `dest` of communicator `comm`
+using with the message tag `tag`
+"""
+function Send(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
     Send(buf, length(buf), dest, tag, comm)
 end
 
-function Send(buf::SubArray{T}, dest::Integer, tag::Integer,
-                           comm::Comm) where T
+"""
+    Send(buf::SubArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
+
+Complete a blocking send of `SubArray` `buf` to MPI rank `dest` of communicator
+`comm` using with the message tag `tag`. Note that the `buf` must be contiguous.
+"""
+function Send(buf::SubArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
     @assert Base.iscontiguous(buf)
     Send(buf, length(buf), dest, tag, comm)
 end
 
+"""
+    Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
+
+Complete s blocking send of `obj` to MPI rank `dest` of communicator `comm`
+using with the message tag `tag`.
+"""
 function Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
     buf = [obj]
     Send(buf, dest, tag, comm)
 end
 
+"""
+    send(obj, dest::Integer, tag::Integer, comm::Comm)
+
+Complete a blocking send of using a serialized version of `obj` to MPI rank
+`dest` of communicator `comm` using with the message tag `tag`.
+"""
 function send(obj, dest::Integer, tag::Integer, comm::Comm)
     buf = MPI.serialize(obj)
     Send(buf, dest, tag, comm)
 end
 
+"""
+    Isend(buf::MPIBuffertype{T}, count::Integer, dest::Integer, tag::Integer,
+          comm::Comm) where T
+
+Starts a nonblocking send of `count` elements of `buf` to MPI rank `dest`
+of communicator `comm` using with the message tag `tag`
+
+Returns the commication `Request` for the nonblocking send.
+"""
 function Isend(buf::MPIBuffertype{T}, count::Integer,
-                            dest::Integer, tag::Integer, comm::Comm) where T
+               dest::Integer, tag::Integer, comm::Comm) where T
     rval = Ref{Cint}()
     ccall(MPI_ISEND, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
@@ -430,29 +468,69 @@ function Isend(buf::MPIBuffertype{T}, count::Integer,
     Request(rval[], buf)
 end
 
-function Isend(buf::Array{T}, dest::Integer, tag::Integer,
-                            comm::Comm) where T
+"""
+    Isend(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking send of `buf` to MPI rank `dest` of communicator `comm`
+using with the message tag `tag`
+
+Returns the commication `Request` for the nonblocking send.
+"""
+function Isend(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
     Isend(buf, length(buf), dest, tag, comm)
 end
 
+"""
+    Isend(buf::SubArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking send of `SubArray` `buf` to MPI rank `dest` of communicator
+`comm` using with the message tag `tag`. Note that the `buf` must be contiguous.
+
+Returns the commication `Request` for the nonblocking send.
+"""
 function Isend(buf::SubArray{T}, dest::Integer, tag::Integer,
-                            comm::Comm) where T
+               comm::Comm) where T
     @assert Base.iscontiguous(buf)
     Isend(buf, length(buf), dest, tag, comm)
 end
 
+"""
+    Isend(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking send of `obj` to MPI rank `dest` of communicator `comm`
+using with the message tag `tag`.
+
+Returns the commication `Request` for the nonblocking send.
+"""
 function Isend(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
     buf = [obj]
     Isend(buf, dest, tag, comm)
 end
 
+"""
+    isend(obj, dest::Integer, tag::Integer, comm::Comm)
+
+Starts a nonblocking send of using a serialized version of `obj` to MPI rank
+`dest` of communicator `comm` using with the message tag `tag`.
+
+Returns the commication `Request` for the nonblocking send.
+"""
 function isend(obj, dest::Integer, tag::Integer, comm::Comm)
     buf = MPI.serialize(obj)
     Isend(buf, dest, tag, comm)
 end
 
-function Recv!(buf::MPIBuffertype{T}, count::Integer,
-                            src::Integer, tag::Integer, comm::Comm) where T
+"""
+    Recv!(buf::MPIBuffertype{T}, count::Integer, src::Integer, tag::Integer,
+          comm::Comm) where T
+
+Completes a blocking receive of up to `count` elements into `buf` from MPI rank
+`src` of communicator `comm` using with the message tag `tag`
+
+Returns the `Status` of the receive
+"""
+function Recv!(buf::MPIBuffertype{T}, count::Integer, src::Integer,
+               tag::Integer, comm::Comm) where T
     stat = Status()
     ccall(MPI_RECV, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
@@ -461,13 +539,29 @@ function Recv!(buf::MPIBuffertype{T}, count::Integer,
     stat
 end
 
-function Recv!(buf::Array{T}, src::Integer, tag::Integer,
-                            comm::Comm) where T
+
+"""
+    Recv!(buf::Array{T}, src::Integer, tag::Integer, comm::Comm) where T
+
+Completes a blocking receive into `buf` from MPI rank `src` of communicator
+`comm` using with the message tag `tag`
+
+Returns the `Status` of the receive
+"""
+function Recv!(buf::Array{T}, src::Integer, tag::Integer, comm::Comm) where T
     Recv!(buf, length(buf), src, tag, comm)
 end
 
-function Recv!(buf::SubArray{T}, src::Integer, tag::Integer,
-                            comm::Comm) where T
+"""
+    Recv!(buf::SubArray{T}, src::Integer, tag::Integer, comm::Comm) where T
+
+Completes a blocking receive into `SubArray` `buf` from MPI rank `src` of
+communicator `comm` using with the message tag `tag`. Note that `buf` must be
+contiguous.
+
+Returns the `Status` of the receive
+"""
+function Recv!(buf::SubArray{T}, src::Integer, tag::Integer, comm::Comm) where T
     @assert Base.iscontiguous(buf)
     Recv!(buf, length(buf), src, tag, comm)
 end
@@ -486,6 +580,15 @@ function recv(src::Integer, tag::Integer, comm::Comm)
     (MPI.deserialize(buf), stat)
 end
 
+"""
+    Irecv!(buf::MPIBuffertype{T}, count::Integer, src::Integer, tag::Integer,
+           comm::Comm) where T
+
+Starts a nonblocking receive of up to `count` elements into `buf` from MPI rank
+`src` of communicator `comm` using with the message tag `tag`
+
+Returns the communication `Request` for the nonblocking receive.
+"""
 function Irecv!(buf::MPIBuffertype{T}, count::Integer,
                              src::Integer, tag::Integer, comm::Comm) where T
     val = Ref{Cint}()
@@ -496,11 +599,28 @@ function Irecv!(buf::MPIBuffertype{T}, count::Integer,
     Request(val[], buf)
 end
 
+"""
+    Irecv!(buf::Array{T}, src::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking receive into `buf` from MPI rank `src` of communicator
+`comm` using with the message tag `tag`
+
+Returns the communication `Request` for the nonblocking receive.
+"""
 function Irecv!(buf::Array{T}, src::Integer, tag::Integer,
                              comm::Comm) where T
     Irecv!(buf, length(buf), src, tag, comm)
 end
 
+"""
+    Irecv!(buf::SubArray{T}, src::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking receive into `SubArray` `buf` from MPI rank `src` of
+communicator `comm` using with the message tag `tag`. Note that `buf` must be
+contiguous.
+
+Returns the communication `Request` for the nonblocking receive.
+"""
 function Irecv!(buf::SubArray{T}, src::Integer, tag::Integer,
                              comm::Comm) where T
     @assert Base.iscontiguous(buf)
@@ -518,6 +638,11 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
     (true, MPI.deserialize(buf), stat)
 end
 
+"""
+    Wait!(req::Request)
+
+Wait on the request `req` to be complete. Returns the `Status` of the request.
+"""
 function Wait!(req::Request)
     stat = Status()
     ccall(MPI_WAIT, Nothing, (Ref{Cint}, Ptr{Cint}, Ref{Cint}),
@@ -538,6 +663,12 @@ function Test!(req::Request)
     (true, stat)
 end
 
+"""
+    Waitall!(reqs::Array{Request,1})
+
+Wait on all the requests in the array `reqs` to be complete. Returns an arrays
+of the all the requests statuses.
+"""
 function Waitall!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
@@ -580,6 +711,13 @@ function Testall!(reqs::Array{Request,1})
     (true, stats)
 end
 
+
+"""
+    Waitany!(reqs::Array{Request,1})
+
+Wait on any the requests in the array `reqs` to be complete. Returns the index
+of the completed request and its `Status` as a tuple.
+"""
 function Waitany!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
