@@ -1,5 +1,5 @@
 # These constants were manually copied from the file mpi.h in the Microsoft
-# MPI SDK v7
+# MPI SDK v7; the value for MPI_PROC_NULL was obtained from v10.0
 
 const MPI_BYTE = Int32(0x4c00010d)
 const MPI_WCHAR = Int32(0x4c00020e)
@@ -47,6 +47,7 @@ const MPI_ERROR = Int32(5)
 const MPI_SOURCE = Int32(3)
 const MPI_TAG = Int32(4)
 const MPI_ANY_SOURCE = Int32(-2)
+const MPI_PROC_NULL = Int32(-1)
 const MPI_ANY_TAG = Int32(-1)
 const MPI_TAG_UB = Int32(1681915906)
 const MPI_UNDEFINED = Int32(-32766)
