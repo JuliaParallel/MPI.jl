@@ -26,6 +26,9 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_BCAST              => \"%s\",\n", STRING(MPI_BCAST));
   printf("    :MPI_BSEND              => \"%s\",\n", STRING(MPI_BSEND));
   printf("    :MPI_CANCEL             => \"%s\",\n", STRING(MPI_CANCEL));
+  printf("    :MPI_CART_CREATE        => \"%s\",\n", STRING(MPI_CART_CREATE));
+  printf("    :MPI_CART_COORDS        => \"%s\",\n", STRING(MPI_CART_COORDS));
+  printf("    :MPI_CART_SHIFT         => \"%s\",\n", STRING(MPI_CART_SHIFT));
   printf("    :MPI_COMM_DUP           => \"%s\",\n", STRING(MPI_COMM_DUP));
   printf("    :MPI_COMM_FREE          => \"%s\",\n", STRING(MPI_COMM_FREE));
   printf("    :MPI_COMM_GET_PARENT    => \"%s\",\n", STRING(MPI_COMM_GET_PARENT));
@@ -33,6 +36,7 @@ int main(int argc, char *argv[]) {
   printf("    :MPI_COMM_SIZE          => \"%s\",\n", STRING(MPI_COMM_SIZE));
   printf("    :MPI_COMM_SPLIT         => \"%s\",\n", STRING(MPI_COMM_SPLIT));
   printf("    :MPI_COMM_SPLIT_TYPE    => \"%s\",\n", STRING(MPI_COMM_SPLIT_TYPE));
+  printf("    :MPI_DIMS_CREATE        => \"%s\",\n", STRING(MPI_DIMS_CREATE));
   printf("    :MPI_EXSCAN             => \"%s\",\n", STRING(MPI_EXSCAN));
   printf("    :MPI_FETCH_AND_OP       => \"%s\",\n", STRING(MPI_FETCH_AND_OP));
   printf("    :MPI_FINALIZE           => \"%s\",\n", STRING(MPI_FINALIZE));
