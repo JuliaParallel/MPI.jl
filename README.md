@@ -175,14 +175,14 @@ Fields `j2mpi` and `mpi2j` of `MPIManager` are associative collections mapping j
 
 This launches a total of 5 processes, mpi rank 0 is the julia pid 1. mpi rank 1 is julia pid 2 and so on.
 
-The program must call `MPI.start(TCP_TRANSPORT_ALL)` with argument `TCP_TRANSPORT_ALL`.
+The program must call `MPI.start_main_loop(TCP_TRANSPORT_ALL)` with argument `TCP_TRANSPORT_ALL`.
 On mpi rank 0, it returns a `manager` which can be used with `@mpi_do`
 On other processes (i.e., the workers) the function does not return
 
 
 ### MPIManager
 ### (MPI transport - all processes execute MPI code)
-`MPI.start` must be called with option `MPI_TRANSPORT_ALL` to use MPI as transport.
+`MPI.start_main_loop` must be called with option `MPI_TRANSPORT_ALL` to use MPI as transport.
 `mpirun -np 5 julia 06-cman-transport.jl MPI` will run the example using MPI as transport.
 
 ## Julia MPI-only interface
@@ -197,6 +197,11 @@ communicator conversion:
 juliacomm = MPI.COMM_WORLD
 ccomm = MPI.CComm(juliacomm)
 ```
+
+### MPIWindowIOManager
+This manager is started using the `MPI_WINDOW_IO` or `MPI_WINDOW_NOWAIT` transports. It uses asynchronous IO
+based on MPI windows. The `MPI_WINDOW_NOWAIT` will only use the clustermanager for code preceeded by the `@cluster`
+macro. See `test_windowcman.jl` and `test_windowcman_nowait.jl` for examples.
 
 ### Currently wrapped MPI functions
 Convention: `MPI_Fun => MPI.Fun`

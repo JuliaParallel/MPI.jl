@@ -19,6 +19,8 @@ include(depfile)
 
 include("mpi-base.jl")
 include("cman.jl")
+include("window-io.jl")
+include("window-cman.jl")
 
 const mpitype_dict = Dict{DataType, Cint}()
 const mpitype_dict_inverse = Dict{Cint, DataType}()
