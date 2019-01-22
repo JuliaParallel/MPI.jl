@@ -74,6 +74,11 @@ function __init__()
 
         recordDataType(T, mpiT)
     end
+
+    # Initialize the void* MPI_IN_PLACE. As pointers are set to 0 at
+    # precompilation, this must be done in __init__
+    # MPI_IN_PLACE_VAL = (int)MPI_IN_PLACE
+    Core.eval(MPI, :(const IN_PLACE = Ptr{Cvoid}(MPI_IN_PLACE_VAL)))
 end
 
 end
