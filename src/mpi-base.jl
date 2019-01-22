@@ -1002,14 +1002,67 @@ end
 
 include("mpi-op.jl")
 
-function Scatter(sendbuf::MPIBuffertype{T},count::Integer, root::Integer,
-                 comm::Comm) where T
-    recvbuf = Array{T}(undef, count)
+"""
+    Scatter!(sendbuf, recvbuf, count, root, comm)
+
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
+and sends the j-th chunk to the process of rank j into the `recvbuf` buffer,
+which must be of length at least `count`.
+"""
+function Scatter!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                  count::Integer, root::Integer,
+                  comm::Comm) where T
+    @assert length(recvbuf) >= count
     ccall(MPI_SCATTER, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint},
            Ref{Cint}, Ref{Cint}, Ref{Cint}), sendbuf, count, mpitype(T),
            recvbuf, count, mpitype(T), root, comm.val, 0)
     recvbuf
+end
+
+"""
+    Scatter_in_place!(buf, count, root, comm)
+
+Splits the buffer `buf` in the `root` process into `Comm_size(comm)` chunks
+and sends the j-th chunk to the process of rank j. No data is sent to the `root`
+process.
+
+This is functionally equivalent to calling
+```
+if root == MPI.Comm_rank(comm)
+    Scatter!(buf, MPI.IN_PLACE, count, root, comm)
+else
+    Scatter!(C_NULL, buf, count, root, comm)
+end
+```
+"""
+function Scatter_in_place!(buf::MPIBuffertype{T},
+                  count::Integer, root::Integer,
+                  comm::Comm) where T
+    if Comm_rank(comm) == root
+        ccall(MPI_SCATTER, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{Cvoid}, Ref{Cint}, Ref{Cint},
+               Ref{Cint}, Ref{Cint}, Ref{Cint}), buf, count, mpitype(T),
+               MPI.IN_PLACE, count, mpitype(T), root, comm.val, 0)
+    else
+        ccall(MPI_SCATTER, Nothing,
+            (Ptr{Cvoid}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint},
+            Ref{Cint}, Ref{Cint}, Ref{Cint}), C_NULL, count, mpitype(T),
+            buf, count, mpitype(T), root, comm.val, 0)
+    end
+    buf
+end
+
+"""
+    Scatter!(sendbuf, recvbuf, count, root, comm)
+
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
+and sends the j-th chunk to the process of rank j, allocating the output buffer.
+"""
+function Scatter(sendbuf::MPIBuffertype{T}, count::Integer, root::Integer,
+                 comm::Comm) where T
+    recvbuf = Array{T}(undef, count)
+    Scatter!(sendbuf, recvbuf, count, root, comm)
 end
 
 function Scatterv(sendbuf::MPIBuffertype{T},
