@@ -18,7 +18,7 @@ for op in (MPI.SUM, +, (x,y) -> 2x+y-x)
 
   # Assertions when output buffer too small
   recv_arr = zeros(Int, 2)
-  @test_throws AssertionError MPI.Allreduce!(send_arr, recv_arr, op, MPI.COMM_WORLD)
+  @test_throws AssertionError MPI.Allreduce!(send_arr, recv_arr, 3, op, MPI.COMM_WORLD)
 
 
   # IN_PLACE 
