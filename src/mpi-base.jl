@@ -1174,14 +1174,23 @@ function Gatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
     isroot ? recvbuf : nothing
 end
 
+function Allgatherv!(sendbuf::MPIBuffertype{T1}, recvbuf::MPIBuffertype{T2},
+	                     counts::Vector{Cint}, comm::Comm) where {T2, T1<:Union{T2, Cvoid}}
+        @assert length(recvbuf) >= sum(counts)
+        displs = accumulate(+, counts) - counts
+        sendcnt = counts[Comm_rank(comm) + 1]
+        ccall(MPI_ALLGATHERV, Nothing,
+              (Ptr{T1}, Ref{Cint}, Ref{Cint}, Ptr{T2}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              sendbuf, sendcnt, mpitype(T2), recvbuf, counts, displs, mpitype(T2), comm.val, 0)
+        recvbuf
+end
+
 function Allgatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
                     comm::Comm) where T
-    displs = accumulate(+, counts) - counts
-    sendcnt = counts[Comm_rank(comm) + 1]
     recvbuf = Array{T}(undef, sum(counts))
-    ccall(MPI_ALLGATHERV, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          sendbuf, sendcnt, mpitype(T), recvbuf, counts, displs, mpitype(T), comm.val, 0)
+    Allgatherv!(sendbuf, recvbuf, counts, comm)
+end
+
     recvbuf
 end
 
