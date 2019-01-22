@@ -940,18 +940,49 @@ function Reduce(object::T, op::Union{Op,Function}, root::Integer, comm::Comm) wh
     isroot ? recvbuf[1] : nothing
 end
 
-function Allreduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
-                   count::Integer, op::Op, comm::Comm) where T
-    ccall(MPI_ALLREDUCE, Nothing, (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint},
-          Ref{Cint}, Ref{Cint}), sendbuf, recvbuf, count, mpitype(T),
-          op.val, comm.val, 0)
+"""
+  Allreduce!(sendbuf, recvbuf, count, op, comm)
 
+Performs `op` reduction on the first `count` elements of the buffer 
+`sendbuf` storing the result in `recvbuf`. 
+
+If `sendbuf==MPI.IN_PLACE` the data is read from `recvbuf` and then overwritten
+with the results. 
+"""
+function Allreduce!(sendbuf::MPIBuffertype{T1}, recvbuf::MPIBuffertype{T2},
+                   count::Integer, op::Op, comm::Comm) where {T2, T1<:Union{T2, Cvoid}}
+    @assert length(recvbuf) >= count
+    ccall(MPI_ALLREDUCE, Nothing, (Ptr{T1}, Ptr{T2}, Ref{Cint}, Ref{Cint}, Ref{Cint},
+          Ref{Cint}, Ref{Cint}), sendbuf, recvbuf, count, mpitype(T2),
+          op.val, comm.val, 0)
     recvbuf
 end
 
-function Allreduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
-                   op::Union{Op,Function}, comm::Comm) where T
+"""
+  Allreduce!(sendbuf, recvbuf, op, comm)
+
+Performs `op` reduction on the buffer `sendbuf`, storing the 
+result in `recvbuf`. 
+
+If `sendbuf==MPI.IN_PLACE` the data is read from `recvbuf` and then overwritten
+with the results. 
+"""
+function Allreduce!(sendbuf::MPIBuffertype{T1}, recvbuf::MPIBuffertype{T2},
+                   op::Union{Op,Function}, comm::Comm) where {T2, T1<:Union{T2, Cvoid}}
+    op = ( typeof(op)<:Function ? MPI.user_op(op) : op )
     Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
+end
+
+"""
+  Allreduce!(buf, op, comm)
+
+Performs `op` reduction in place on the buffer `sendbuf`, overwriting it with the 
+results.
+
+Equivalent to calling `Allreduce!(MPI.IN_PLACE, buf, op, comm)`
+"""
+function Allreduce!(buf::MPIBuffertype{T}, op::Union{Op, Function}, comm::Comm) where T
+    Allreduce!(MPI.IN_PLACE, buf, op, comm)
 end
 
 function Allreduce(obj::T, op::Union{Op,Function}, comm::Comm) where T
