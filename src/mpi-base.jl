@@ -1131,7 +1131,7 @@ Equivalent to `Allgather!(MPI.IN_PLACE, buf, count, comm)`.
 """
 function Allgather!(buf::MPIBuffertype{T}, count::Integer,
                    comm::Comm) where T
-    Allgather!(MPI.IN_PLACE, recvbuf, count, comm)
+    Allgather!(MPI.IN_PLACE, buf, count, comm)
 end
 
 """
@@ -1191,16 +1191,18 @@ function Allgatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
     Allgatherv!(sendbuf, recvbuf, counts, comm)
 end
 
+function Alltoall!(sendbuf::MPIBuffertype{T1}, recvbuf::MPIBuffertype{T2},
+                   count::Integer, comm::Comm) where {T2, T1<:Union{T2, Cvoid}}
+    ccall(MPI_ALLTOALL, Nothing,
+          (Ptr{T1}, Ref{Cint}, Ref{Cint}, Ptr{T2}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          sendbuf, count, mpitype(T2), recvbuf, count, mpitype(T2), comm.val, 0)
     recvbuf
 end
 
 function Alltoall(sendbuf::MPIBuffertype{T}, count::Integer,
                   comm::Comm) where T
     recvbuf = Array{T}(undef, Comm_size(comm)*count)
-    ccall(MPI_ALLTOALL, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          sendbuf, count, mpitype(T), recvbuf, count, mpitype(T), comm.val, 0)
-    recvbuf
+    Alltoall!(sendbuf, recvbuf, count, comm)
 end
 
 function Alltoallv(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
