@@ -985,6 +985,11 @@ function Allreduce!(buf::MPIBuffertype{T}, op::Union{Op, Function}, comm::Comm) 
     Allreduce!(MPI.IN_PLACE, buf, op, comm)
 end
 
+function Allreduce(sendbuf::Array{T, N}, op::Union{Op, Function}, comm::Comm) where {T, N}
+    recvbuf = Array{T,N}(undef, size(sendbuf))
+    Allreduce!(sendbuf, recvbuf, op, comm)
+end
+
 function Allreduce(obj::T, op::Union{Op,Function}, comm::Comm) where T
     objref = Ref(obj)
     outref = Ref{T}()
