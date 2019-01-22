@@ -1205,15 +1205,30 @@ function Alltoall(sendbuf::MPIBuffertype{T}, count::Integer,
     Alltoall!(sendbuf, recvbuf, count, comm)
 end
 
-function Alltoallv(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
-                   rcounts::Vector{Cint}, comm::Comm) where T
-    recvbuf = Array{T}(undef, sum(rcounts))
+"""
+    Alltoallv!(sendbuf::T, recvbuf::T, scounts, rcounts, comm)
+
+`MPI.IN_PLACE` is not supported for this operation.
+"""
+function Alltoallv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                   scounts::Vector{Cint}, rcounts::Vector{Cint},
+                   comm::Comm) where T
+    @assert length(recvbuf) == sum(rcounts)
+
     sdispls = accumulate(+, scounts) - scounts
     rdispls = accumulate(+, rcounts) - rcounts
     ccall(MPI_ALLTOALLV, Nothing,
-          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          sendbuf, scounts, sdispls, mpitype(T), recvbuf, rcounts, rdispls, mpitype(T), comm.val, 0)
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint},
+           Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          sendbuf, scounts, sdispls, mpitype(T), recvbuf, rcounts,
+          rdispls, mpitype(T), comm.val, 0)
     recvbuf
+end
+
+function Alltoallv(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
+                   rcounts::Vector{Cint}, comm::Comm) where T
+    recvbuf = Array{T}(undef, sum(rcounts))
+    Alltoallv!(sendbuf, recvbuf, scounts, rcounts, comm)
 end
 
 function Scan(sendbuf::MPIBuffertype{T}, count::Integer,
