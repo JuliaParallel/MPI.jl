@@ -1103,13 +1103,48 @@ function Gather(object::T, root::Integer, comm::Comm) where T
     isroot ? recvbuf : nothing
 end
 
+"""
+  Allgather!(sendbuf, recvbuf, count, comm)
+
+Each process sends the first `count` elements of `sendbuf` to the
+other processes, who store the results in rank order into 
+`recvbuf`.
+
+If `sendbuf==MPI.IN_PLACE` the input data is assumed to be in the 
+area of `recvbuf` where the process would receive it's own 
+contribution. 
+"""
+function Allgather!(sendbuf::MPIBuffertype{T1}, recvbuf::MPIBuffertype{T2},
+                    count::Integer, comm::Comm) where {T2, T1<:Union{T2, Cvoid}}
+    #FIXME enable the assert
+    #@assert length(recvbuf) == Comm_size(comm)*count
+    ccall(MPI_ALLGATHER, Nothing,
+          (Ptr{T1}, Ref{Cint}, Ref{Cint}, Ptr{T2}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          sendbuf, count, mpitype(T2), recvbuf, count, mpitype(T2), comm.val, 0)
+    recvbuf
+end
+
+"""
+  Allgather!(buf, count, comm)
+
+Equivalent to `Allgather!(MPI.IN_PLACE, buf, count, comm)`.
+"""
+function Allgather!(buf::MPIBuffertype{T}, count::Integer,
+                   comm::Comm) where T
+    Allgather!(MPI.IN_PLACE, recvbuf, count, comm)
+end
+
+"""
+  Allgather!(sendbuf, recvbuf, count, comm)
+
+Each process sends the first `count` elements of `sendbuf` to the
+other processes, who store the results in rank order allocating
+the output buffer.
+"""
 function Allgather(sendbuf::MPIBuffertype{T}, count::Integer,
                    comm::Comm) where T
     recvbuf = Array{T}(undef, Comm_size(comm) * count)
-    ccall(MPI_ALLGATHER, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          sendbuf, count, mpitype(T), recvbuf, count, mpitype(T), comm.val, 0)
-    recvbuf
+    Allgather!(sendbuf, recvbuf, count, comm)
 end
 
 function Allgather(sendbuf::Array{T}, comm::Comm) where T
