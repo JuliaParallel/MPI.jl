@@ -1,14 +1,16 @@
 using Compat
 
-# Type used to hold constant void pointers such as MPI_IN_PLACE and MPI_BOTTOM
-primitive type ConstantPtr sizeof(Ptr{Cvoid})*8 end
-Base.cconvert(::Type{Ptr{T}}, x::ConstantPtr) where {T} = reinterpret(Ptr{T}, x)
-
 const MPIDatatype = Union{Char,
                             Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64,
                             UInt64,
                             Float32, Float64, ComplexF32, ComplexF64}
-MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}, ConstantPtr}
+MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
+
+# Type used to hold constant void pointers such as MPI_IN_PLACE and MPI_BOTTOM
+primitive type ConstantPtr sizeof(Ptr{Cvoid})*8 end
+Base.cconvert(::Type{Ptr{T}}, x::ConstantPtr) where {T} = reinterpret(Ptr{T}, x)
+
+MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, ConstantPtr}
 
 fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fieldnames(T))]
 
@@ -953,7 +955,7 @@ Performs `op` reduction on the first `count` elements of the buffer
 If `sendbuf==MPI.IN_PLACE` the data is read from `recvbuf` and then overwritten
 with the results. 
 """
-function Allreduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                    count::Integer, op::Op, comm::Comm) where T
     @assert length(recvbuf) >= count
     ccall(MPI_ALLREDUCE, Nothing, (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint},
@@ -971,7 +973,7 @@ result in `recvbuf`.
 If `sendbuf==MPI.IN_PLACE` the data is read from `recvbuf` and then overwritten
 with the results. 
 """
-function Allreduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                    op::Union{Op,Function}, comm::Comm) where T
     Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
 end
@@ -1122,7 +1124,7 @@ If `sendbuf==MPI.IN_PLACE` the input data is assumed to be in the
 area of `recvbuf` where the process would receive it's own 
 contribution. 
 """
-function Allgather!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+function Allgather!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                     count::Integer, comm::Comm) where T
     #FIXME enable the assert
     #@assert length(recvbuf) == Comm_size(comm)*count
@@ -1182,7 +1184,7 @@ function Gatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
     isroot ? recvbuf : nothing
 end
 
-function Allgatherv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+function Allgatherv!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
 	                     counts::Vector{Cint}, comm::Comm) where T
         @assert length(recvbuf) >= sum(counts)
         displs = accumulate(+, counts) - counts
@@ -1199,7 +1201,7 @@ function Allgatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
     Allgatherv!(sendbuf, recvbuf, counts, comm)
 end
 
-function Alltoall!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+function Alltoall!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                    count::Integer, comm::Comm) where T
     ccall(MPI_ALLTOALL, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
