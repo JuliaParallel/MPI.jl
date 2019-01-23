@@ -23,6 +23,9 @@ include("cman.jl")
 const mpitype_dict = Dict{DataType, Cint}()
 const mpitype_dict_inverse = Dict{Cint, DataType}()
 
+# Initialize the void* IN_PLACE with the value extracted during the build phase. 
+const IN_PLACE = reinterpret(ConstantPtr, MPI_IN_PLACE_VAL)
+
 """
   Setter function for mpitype_dict and mpitype_dict_inverse
 """
@@ -74,11 +77,6 @@ function __init__()
 
         recordDataType(T, mpiT)
     end
-
-    # Initialize the void* MPI_IN_PLACE. As pointers are set to 0 at
-    # precompilation, this must be done in __init__
-    # MPI_IN_PLACE_VAL = (int)MPI_IN_PLACE
-    Core.eval(MPI, :(const IN_PLACE = Ptr{Cvoid}(MPI_IN_PLACE_VAL)))
 end
 
 end
