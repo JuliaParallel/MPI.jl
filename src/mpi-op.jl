@@ -61,10 +61,6 @@ for (f,op) in ((+,SUM), (*,PROD),
     @eval user_op(::$(typeof(f))) = $op
 end
 
-Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
-           count::Integer, opfunc::Function, comm::Comm) where {T} =
-    Allreduce!(sendbuf, recvbuf, count, user_op(opfunc), comm)
-
 Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
        opfunc::Function, root::Integer, comm::Comm) where {T} =
     Reduce(sendbuf, count, user_op(opfunc), root, comm)

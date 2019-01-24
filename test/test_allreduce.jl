@@ -39,7 +39,7 @@ for op in (MPI.SUM, +, (x,y) -> 2x+y-x)
   val = MPI.Allreduce(2, op, MPI.COMM_WORLD)
   @test val == comm_size*2
 
-  vals = MPI.allreduce(send_arr, op, MPI.COMM_WORLD)
+  vals = MPI.Allreduce(send_arr, op, MPI.COMM_WORLD)
   for i=1:3
     @test vals[i] == comm_size*send_arr[i]
     @test length(vals) == 3

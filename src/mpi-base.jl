@@ -964,6 +964,11 @@ function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
     recvbuf
 end
 
+# Convert user-provided functions to MPI.Op
+Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
+           count::Integer, opfunc::Function, comm::Comm) where {T} =
+    Allreduce!(sendbuf, recvbuf, count, user_op(opfunc), comm)
+
 """
   Allreduce!(sendbuf, recvbuf, op, comm)
 
@@ -990,6 +995,12 @@ function Allreduce!(buf::MPIBuffertype{T}, op::Union{Op, Function}, comm::Comm) 
     Allreduce!(MPI.IN_PLACE, buf, op, comm)
 end
 
+function Allreduce(sendbuf::MPIBuffertype{T}, op::Union{Op,Function}, comm::Comm) where T
+
+  recvbuf = similar(sendbuf)
+  Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
+end
+
 function Allreduce(sendbuf::Array{T, N}, op::Union{Op, Function}, comm::Comm) where {T, N}
     recvbuf = Array{T,N}(undef, size(sendbuf))
     Allreduce!(sendbuf, recvbuf, op, comm)
@@ -1003,12 +1014,6 @@ function Allreduce(obj::T, op::Union{Op,Function}, comm::Comm) where T
     outref[]
 end
 
-# allocate receive buffer automatically
-function allreduce(sendbuf::MPIBuffertype{T}, op::Union{Op,Function}, comm::Comm) where T
-
-  recvbuf = similar(sendbuf)
-  Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
-end
 
 include("mpi-op.jl")
 
