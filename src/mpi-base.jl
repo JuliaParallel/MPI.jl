@@ -1200,14 +1200,35 @@ function Scatterv(sendbuf::MPIBuffertype{T},
     recvbuf
 end
 
-function Gather(sendbuf::MPIBuffertype{T}, count::Integer,
-                root::Integer, comm::Comm) where T
+"""
+    Gather!(sendbuf, recvbuf, count, root, comm)
+
+Each process sends the first `count` elements of the buffer `sendbuf` to the
+`root` process. The `root` process stores elements in rank order in the buffer
+buffer `recvbuf`.
+"""
+function Gather!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                count::Integer, root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
-    recvbuf = Array{T}(undef, isroot ? Comm_size(comm) * count : 0)
+    isroot && @assert length(recvbuf) > count
     ccall(MPI_GATHER, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, count, mpitype(T), recvbuf, count, mpitype(T), root, comm.val, 0)
     isroot ? recvbuf : nothing
+end
+
+"""
+    Gather(sendbuf, count, root, comm)
+
+Each process sends the first `count` elements of the buffer `sendbuf` to the
+`root` process. The `root` allocates the output buffer and stores elements in
+rank order.
+"""
+function Gather(sendbuf::MPIBuffertype{T}, count::Integer,
+                root::Integer, comm::Comm) where T
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array{T}(undef, isroot ? Comm_size(comm) * count : 0)
+    Gather!(sendbuf, recvbuf, count, root, comm)
 end
 
 function Gather(sendbuf::Array{T}, root::Integer, comm::Comm) where T
