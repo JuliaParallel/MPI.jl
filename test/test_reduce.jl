@@ -54,6 +54,13 @@ for typ=[Int]
                                                                 op, root,
                                                                 MPI.COMM_WORLD)
 
+            # IN_PLACE
+            recv_arr = deepcopy(send_arr)
+            MPI.Reduce_in_place!(recv_arr, length(recv_arr), op, root, MPI.COMM_WORLD)
+            for i=1:length(recv_arr)
+                @test rank == root ? recv_arr[i] == comm_size*send_arr[i] : true
+            end
+
             # Allocating version
             val = MPI.Reduce(2, op, root, MPI.COMM_WORLD)
             @test rank == root ? val == comm_size*2 : true

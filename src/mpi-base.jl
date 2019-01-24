@@ -996,6 +996,45 @@ function Reduce(object::T, op::Union{Op,Function}, root::Integer, comm::Comm) wh
 end
 
 """
+    Reduce_in_place!(buf, count, op, root, comm)
+
+Performs `op` reduction on the first `count` elements of the buffer `buf` and
+stores the result on `buf` of the `root` process in the group.
+
+This is equivalent to calling
+```
+if root == MPI.Comm_rank(comm)
+    Reduce!(MPI.IN_PLACE, buf, count, root, comm)
+else
+    Reduce!(buf, C_NULL, count, root, comm)
+end
+```
+"""
+function Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer,
+                          op::Op, root::Integer,
+                          comm::Comm) where T
+    if Comm_rank(comm) == root
+        ccall(MPI_REDUCE, Nothing,
+              (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
+               Ref{Cint}, Ref{Cint}),
+               MPI.IN_PLACE, buf, count, mpitype(T), op.val, root, comm.val,
+               0)
+    else
+        ccall(MPI_REDUCE, Nothing,
+              (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
+               Ref{Cint}, Ref{Cint}),
+               buf, C_NULL, count, mpitype(T), op.val, root, comm.val,
+               0)
+    end
+    buf
+end
+
+# Convert to MPI.Op
+Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer, op::Function,
+                 root::Integer, comm::Comm) where T =
+                    Reduce_in_place(buf, count, user_op(op), root, comm)
+
+"""
     Allreduce!(sendbuf, recvbuf, count, op, comm)
 
 Performs `op` reduction on the first `count` elements of the buffer
