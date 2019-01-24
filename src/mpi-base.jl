@@ -1076,6 +1076,13 @@ function Allreduce(obj::T, op::Union{Op,Function}, comm::Comm) where T
     outref[]
 end
 
+# Deprecation warning for lowercase allreduce that was used until v. 0.7.2
+# Should be removed at some point in the future
+function allreduce(sendbuf::MPIBuffertype{T}, op::Union{Op,Function},
+                   comm::Comm) where T
+    @warn "`allreduce` is deprecated, use `Allreduce` instead."
+    Allreduce(sendbuf, op, comm)
+end
 
 include("mpi-op.jl")
 
