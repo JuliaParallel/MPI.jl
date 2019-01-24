@@ -918,10 +918,21 @@ function bcast(obj, root::Integer, comm::Comm)
     obj
 end
 
-function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
-                op::Op, root::Integer, comm::Comm) where T
+"""
+    Reduce!(sendbuf, recvbuf, count, op, root, comm)
+
+Performs `op` reduction on the first `count` elements of the  buffer `sendbuf`
+and stores the result in `recvbuf` on the process of rank `root`.
+
+On non-root processes recvbuf is ignored.
+
+To perform the reduction in place refer to Reduce_in_place!
+"""
+function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                 count::Integer, op::Op, root::Integer,
+                 comm::Comm) where T
     isroot = Comm_rank(comm) == root
-    recvbuf = Array{T}(undef, isroot ? count : 0)
+    isroot && @assert length(recvbuf) >= count
     ccall(MPI_REDUCE, Nothing,
           (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
            Ref{Cint}, Ref{Cint}),
@@ -930,7 +941,45 @@ function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
     isroot ? recvbuf : nothing
 end
 
-function Reduce(sendbuf::Array{T}, op::Union{Op,Function}, root::Integer, comm::Comm) where T
+# Convert user-provided functions to MPI.Op
+Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+        count::Integer, opfunc::Function, root::Integer,
+        comm::Comm) where {T} =
+    Reduce!(sendbuf, recvbuf, count, user_op(opfunc), root, comm)
+
+
+"""
+    Reduce!(sendbuf, recvbuf, count, op, root, comm)
+
+Performs `op` reduction on the buffer `sendbuf` and stores the result in
+`recvbuf` on the process of rank `root`.
+
+On non-root processes recvbuf is ignored.
+
+To perform the reduction in place refer to Reduce_in_place!
+"""
+function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                 op::Union{Op, Function}, root::Integer, comm::Comm) where T
+    Reduce!(sendbuf, recvbuf, length(sendbuf), op, root, comm)
+end
+
+"""
+    Reduce(sendbuf, count, op, root, comm)
+
+Performs `op` reduction on the buffer `sendbuf` and stores the result in
+an output buffer allocated on the process of rank `root`.
+"""
+function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
+                op::Union{Op, Function}, root::Integer, comm::Comm) where T
+    isroot = Comm_rank(comm) == root
+    recvbuf = typeof(sendbuf)(undef, isroot ? count : 0) #Array{T}(undef, isroot ? count : 0)
+    Reduce!(sendbuf, recvbuf, count, op, root, comm)
+end
+
+function Reduce(sendbuf::Array{T,N}, op::Union{Op,Function},
+    root::Integer, comm::Comm) where {T,N}
+    #isroot = Comm_rank(comm) == root
+    #recvbuf = Array{T,N}(undef, isroot ? count : 0)
     Reduce(sendbuf, length(sendbuf), op, root, comm)
 end
 

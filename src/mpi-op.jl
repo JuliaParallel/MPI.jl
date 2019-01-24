@@ -60,7 +60,3 @@ for (f,op) in ((+,SUM), (*,PROD),
                (&, BAND), (|, BOR), (⊻, BXOR))
     @eval user_op(::$(typeof(f))) = $op
 end
-
-Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
-       opfunc::Function, root::Integer, comm::Comm) where {T} =
-    Reduce(sendbuf, count, user_op(opfunc), root, comm)
