@@ -978,9 +978,9 @@ end
 
 function Reduce(sendbuf::Array{T,N}, op::Union{Op,Function},
     root::Integer, comm::Comm) where {T,N}
-    #isroot = Comm_rank(comm) == root
-    #recvbuf = Array{T,N}(undef, isroot ? count : 0)
-    Reduce(sendbuf, length(sendbuf), op, root, comm)
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array{T,N}(undef, isroot ? size(sendbuf) : Tuple(zeros(Int, ndims(sendbuf))))
+    Reduce!(sendbuf, recvbuf, length(sendbuf), op, root, comm)
 end
 
 function Reduce(sendbuf::SubArray{T}, op::Union{Op,Function}, root::Integer, comm::Comm) where T
