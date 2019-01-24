@@ -1032,7 +1032,7 @@ end
 # Convert to MPI.Op
 Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer, op::Function,
                  root::Integer, comm::Comm) where T =
-                    Reduce_in_place(buf, count, user_op(op), root, comm)
+                    Reduce_in_place!(buf, count, user_op(op), root, comm)
 
 """
     Allreduce!(sendbuf, recvbuf, count, op, comm)
@@ -1087,7 +1087,7 @@ the results on all the processes in the group.
 Equivalent to calling `Allreduce!(MPI.IN_PLACE, buf, op, comm)`
 """
 function Allreduce!(buf::MPIBuffertype{T}, op::Union{Op, Function}, comm::Comm) where T
-    Allreduce!(MPI.IN_PLACE, buf, op, comm)
+    Allreduce!(MPI.IN_PLACE, buf, length(buf), op, comm)
 end
 
 """
@@ -1104,7 +1104,7 @@ end
 
 function Allreduce(sendbuf::Array{T, N}, op::Union{Op, Function}, comm::Comm) where {T, N}
     recvbuf = Array{T,N}(undef, size(sendbuf))
-    Allreduce!(sendbuf, recvbuf, op, comm)
+    Allreduce!(sendbuf, recvbuf, length(sendbuf), op, comm)
 end
 
 function Allreduce(obj::T, op::Union{Op,Function}, comm::Comm) where T
@@ -1177,7 +1177,7 @@ function Scatter_in_place!(buf::MPIBuffertype{T},
 end
 
 """
-    Scatter!(sendbuf, recvbuf, count, root, comm)
+    Scatter(sendbuf, recvbuf, count, root, comm)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
 and sends the j-th chunk to the process of rank j, allocating the output buffer.
