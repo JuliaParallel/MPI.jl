@@ -1260,8 +1260,7 @@ contribution.
 """
 function Allgather!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                     count::Integer, comm::Comm) where T
-    #FIXME enable the assert
-    #@assert length(recvbuf) == Comm_size(comm)*count
+    @assert length(recvbuf) >= Comm_size(comm)*count
     ccall(MPI_ALLGATHER, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, count, mpitype(T), recvbuf, count, mpitype(T), comm.val, 0)

@@ -28,6 +28,10 @@ for typ in Base.uniontypes(MPI.MPIDatatype)
 	MPI.Allgather!(A, C, length(A), comm)
 	@test C == map(typ, collect(1:MPI.Comm_size(comm)))
 
+	# Test assertion error
+	C = fill(val, MPI.Comm_size(comm)-1)
+	@test_throws AssertionError MPI.Allgather!(A, C, length(A), comm)
+
 	# Test explicit IN_PLACE
 	A = typ[val]
 	C = fill(val, MPI.Comm_size(comm))
