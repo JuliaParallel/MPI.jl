@@ -8,7 +8,7 @@ environment:
 branches:
   only:
     - master
-    - philipvinc/in_place
+    - /release-.*/
 
 notifications:
   - provider: Email
