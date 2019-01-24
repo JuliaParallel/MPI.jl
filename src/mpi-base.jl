@@ -947,13 +947,17 @@ function Reduce(object::T, op::Union{Op,Function}, root::Integer, comm::Comm) wh
 end
 
 """
-  Allreduce!(sendbuf, recvbuf, count, op, comm)
+    Allreduce!(sendbuf, recvbuf, count, op, comm)
 
-Performs `op` reduction on the first `count` elements of the buffer 
-`sendbuf` storing the result in `recvbuf`. 
+Performs `op` reduction on the first `count` elements of the buffer
+`sendbuf` storing the result in the `recvbuf` of all processes in the
+group.
+
+All-reduce is equivalent to a Reduce operation followed by a Broadcast, but
+can lead to better performance.
 
 If `sendbuf==MPI.IN_PLACE` the data is read from `recvbuf` and then overwritten
-with the results. 
+with the results.
 """
 function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                    count::Integer, op::Op, comm::Comm) where T
@@ -970,13 +974,16 @@ Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
     Allreduce!(sendbuf, recvbuf, count, user_op(opfunc), comm)
 
 """
-  Allreduce!(sendbuf, recvbuf, op, comm)
+    Allreduce!(sendbuf, recvbuf, op, comm)
 
-Performs `op` reduction on the buffer `sendbuf`, storing the 
-result in `recvbuf`. 
+Performs `op` reduction on the buffer `sendbuf` storing the result in the
+`recvbuf` of all processes in the group.
+
+All-reduce is equivalent to a Reduce operation followed by a Broadcast, but
+can lead to better performance.
 
 If `sendbuf==MPI.IN_PLACE` the data is read from `recvbuf` and then overwritten
-with the results. 
+with the results.
 """
 function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                    op::Union{Op,Function}, comm::Comm) where T
@@ -984,10 +991,10 @@ function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
 end
 
 """
-  Allreduce!(buf, op, comm)
+    Allreduce!(buf, op, comm)
 
-Performs `op` reduction in place on the buffer `sendbuf`, overwriting it with the 
-results.
+Performs `op` reduction in place on the buffer `sendbuf`, overwriting it with
+the results on all the processes in the group.
 
 Equivalent to calling `Allreduce!(MPI.IN_PLACE, buf, op, comm)`
 """
@@ -995,6 +1002,12 @@ function Allreduce!(buf::MPIBuffertype{T}, op::Union{Op, Function}, comm::Comm) 
     Allreduce!(MPI.IN_PLACE, buf, op, comm)
 end
 
+"""
+    Allreduce(sendbuf, op, comm)
+
+Performs `op` reduction on the buffer `sendbuf`, allocating and returning the
+output buffer in all processes of the group.
+"""
 function Allreduce(sendbuf::MPIBuffertype{T}, op::Union{Op,Function}, comm::Comm) where T
 
   recvbuf = similar(sendbuf)
