@@ -1210,7 +1210,7 @@ buffer `recvbuf`.
 function Gather!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                 count::Integer, root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
-    isroot && @assert length(recvbuf) > count
+    isroot && @assert length(recvbuf) >= count*Comm_size(comm)
     ccall(MPI_GATHER, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, count, mpitype(T), recvbuf, count, mpitype(T), root, comm.val, 0)
