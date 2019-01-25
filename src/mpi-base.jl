@@ -1337,16 +1337,37 @@ function Allgather(object::T, comm::Comm) where T
     recvbuf
 end
 
-function Gatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
-                 root::Integer, comm::Comm) where T
+"""
+    Gatherv!(sendbuf, recvbuf, counts, root, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
+the `root` process. The `root` stores elements in rank order in the buffer
+`recvbuf`.
+"""
+function Gatherv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                  counts::Vector{Cint}, root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
     displs = accumulate(+, counts) - counts
     sendcnt = counts[Comm_rank(comm) + 1]
-    recvbuf = Array{T}(undef, isroot ? sum(counts) : 0)
+    isroot && @assert length(recvbuf) >= sum(counts)
     ccall(MPI_GATHERV, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, sendcnt, mpitype(T), recvbuf, counts, displs, mpitype(T), root, comm.val, 0)
     isroot ? recvbuf : nothing
+end
+
+"""
+    Gatherv(sendbuf, counts, root, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
+the `root` process. The `root` allocates the output buffer and stores elements
+in rank order.
+"""
+function Gatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
+                 root::Integer, comm::Comm) where T
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array{T}(undef, isroot ? sum(counts) : 0)
+    Gatherv!(sendbuf, recvbuf, counts, root, comm)
 end
 
 function Allgatherv!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
