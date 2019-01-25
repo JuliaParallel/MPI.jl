@@ -65,6 +65,11 @@ for typ=[Int]
             val = MPI.Reduce(2, op, root, MPI.COMM_WORLD)
             @test rank == root ? val == comm_size*2 : true
 
+            # Allocating, Subarray
+            A = typ[1,2]
+            val = MPI.Reduce(view(A, 2:2), op, root, MPI.COMM_WORLD)
+            @test rank == root ? val[1] == comm_size*2 : true
+
             vals = MPI.Reduce(send_arr, op, root, MPI.COMM_WORLD)
             for i=1:length(recv_arr)
                 @test rank == root ? vals[i] == comm_size*send_arr[i] : true

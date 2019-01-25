@@ -972,7 +972,7 @@ an output buffer allocated on the process of rank `root`.
 function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
                 op::Union{Op, Function}, root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
-    recvbuf = typeof(sendbuf)(undef, isroot ? count : 0) #Array{T}(undef, isroot ? count : 0)
+    recvbuf = Array{T}(undef, isroot ? count : 0)
     Reduce!(sendbuf, recvbuf, count, op, root, comm)
 end
 
