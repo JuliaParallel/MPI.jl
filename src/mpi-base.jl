@@ -1014,6 +1014,7 @@ function Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer,
                           op::Op, root::Integer,
                           comm::Comm) where T
     if Comm_rank(comm) == root
+        @assert length(buf) >= count
         ccall(MPI_REDUCE, Nothing,
               (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
                Ref{Cint}, Ref{Cint}),
