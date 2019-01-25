@@ -1248,6 +1248,38 @@ function Gather(object::T, root::Integer, comm::Comm) where T
 end
 
 """
+    Gather_in_place!(buf, count, root, comm)
+
+Each process sends the first `count` elements of the buffer `buf` to the
+`root` process. The `root` process stores elements in rank order in the buffer
+buffer `buf`, sending no data to itself.
+
+This is functionally equivalent to calling
+```
+if root == MPI.Comm_rank(comm)
+    Gather!(MPI.IN_PLACE, buf, count, root, comm)
+else
+    Gather!(buf, C_NULL, count, root, comm)
+end
+```
+"""
+function Gather_in_place!(buf::MPIBuffertype{T}, count::Integer, root::Integer,
+                          comm::Comm) where T
+    if Comm_rank(comm) == root
+        @assert length(buf) >= count*Comm_size(comm)
+        ccall(MPI_GATHER, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              IN_PLACE, count, mpitype(T), buf, count, mpitype(T), root, comm.val, 0)
+    else
+        ccall(MPI_GATHER, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              buf, count, mpitype(T), C_NULL, count, mpitype(T), root, comm.val, 0)
+    end
+    buf
+end
+
+
+"""
   Allgather!(sendbuf, recvbuf, count, comm)
 
 Each process sends the first `count` elements of `sendbuf` to the

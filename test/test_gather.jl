@@ -50,6 +50,17 @@ for typ in Base.uniontypes(MPI.MPIDatatype)
     if MPI.Comm_rank(comm) == root
         @test C == map(typ, collect(1:MPI.Comm_size(comm)))
     end
+
+    # In_place
+    A = typ[rank + 1]
+    B = Array{typ}(undef, sz);
+    B[rank+1] = rank+1
+    C = isroot ? B : A
+    MPI.Gather_in_place!(C, 1, root, comm)
+    if MPI.Comm_rank(comm) == root
+        @test C == map(typ, collect(1:MPI.Comm_size(comm)))
+    end
+
 end
 
 MPI.Finalize()
