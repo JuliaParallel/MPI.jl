@@ -1371,6 +1371,16 @@ function Gatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
     Gatherv!(sendbuf, recvbuf, counts, root, comm)
 end
 
+"""
+    Allgatherv!(sendbuf, recvbuf, counts, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
+all other process. Each process stores the received data in rank order in the
+buffer `recvbuf`.
+
+if `sendbuf==MPI.IN_PLACE` every process takes the data to be sent is taken from
+the interval of `recvbuf` where it would store it's own data.
+"""
 function Allgatherv!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
 	                     counts::Vector{Cint}, comm::Comm) where T
         @assert length(recvbuf) >= sum(counts)
@@ -1382,12 +1392,36 @@ function Allgatherv!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T}
         recvbuf
 end
 
+"""
+    Allgatherv(sendbuf, counts, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
+all other process. Each process allocates an output buffer and stores the
+received data in rank order.
+"""
 function Allgatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
                     comm::Comm) where T
     recvbuf = Array{T}(undef, sum(counts))
     Allgatherv!(sendbuf, recvbuf, counts, comm)
 end
 
+"""
+    Alltoall!(sendbuf, recvbuf, count, comm)
+
+Every process divides the buffer `sendbuf` into `Comm_size(comm)` chunks of
+length `count`, sending the `j`-th chunk to the `j`-th process.
+Every process stores the data received from the `j`-th process in the `j`-th
+chunk of the buffer `recvbuf`.
+
+`rank    send buf                        recv buf`\\
+`----    --------                        --------`\\
+` 0      a,b,c,d,e,f       Alltoall      a,b,A,B,α,β`\\
+` 1      A,B,C,D,E,F  ---------------->  c,d,C,D,γ,ψ`\\
+` 2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν`
+
+If `sendbuf==MPI.IN_PLACE`, data is sent from the `recvbuf` and then
+overwritten.
+"""
 function Alltoall!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                    count::Integer, comm::Comm) where T
     ccall(MPI_ALLTOALL, Nothing,
@@ -1396,6 +1430,20 @@ function Alltoall!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
     recvbuf
 end
 
+"""
+    Alltoall(sendbuf, count, comm)
+
+Every process divides the buffer `sendbuf` into `Comm_size(comm)` chunks of
+length `count`, sending the `j`-th chunk to the `j`-th process.
+Every process allocates the output buffer and stores the data received from the
+`j`-th process in the `j`-th chunk.
+
+`rank    send buf                        recv buf`\\
+`----    --------                        --------`\\
+` 0      a,b,c,d,e,f       Alltoall      a,b,A,B,α,β`\\
+` 1      A,B,C,D,E,F  ---------------->  c,d,C,D,γ,ψ`\\
+` 2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν`
+"""
 function Alltoall(sendbuf::MPIBuffertype{T}, count::Integer,
                   comm::Comm) where T
     recvbuf = Array{T}(undef, Comm_size(comm)*count)
