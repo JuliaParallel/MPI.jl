@@ -151,7 +151,7 @@ To execute code with MPI calls on all workers, use `@mpi_do`.
 `@mpi_do manager expr` executes `expr` on all processes that are part of `manager`
 
 For example:
-`@mpi_do manager (comm=MPI.COMM_WORLD; println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")`
+`@mpi_do manager (comm=MPI.COMM_WORLD; println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))"))`
 executes on all mpi workers belonging to `manager` only
 
 `examples/05-juliacman.jl` is a simple example of calling MPI functions on all workers
