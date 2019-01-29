@@ -44,10 +44,10 @@ for typ in Base.uniontypes(MPI.MPIDatatype)
     start = (cumsum(counts)-counts.+1)[MPI.Comm_rank(comm)+1]
     len   = counts[MPI.Comm_rank(comm)+1]
     B[start:(start+len-1)] .= A
-    #MPI.Gatherv!(MPI.IN_PLACE, B, counts, root, comm)
-    #if rank == root
-    #    @test B == ones(typ, 3 * div(size,2) + mod(size,2))
-    #end
+    MPI.Gatherv_in_place!(B, counts, root, comm)
+    if rank == root
+        @test B == ones(typ, 3 * div(size,2) + mod(size,2))
+    end
 end
 
 

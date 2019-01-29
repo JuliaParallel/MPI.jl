@@ -1344,6 +1344,8 @@ end
 Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
 the `root` process. The `root` stores elements in rank order in the buffer
 `recvbuf`.
+
+To perform the reduction in place refer to `Gatherv_in_place!`
 """
 function Gatherv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                   counts::Vector{Cint}, root::Integer, comm::Comm) where T
@@ -1370,6 +1372,42 @@ function Gatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
     recvbuf = Array{T}(undef, isroot ? sum(counts) : 0)
     Gatherv!(sendbuf, recvbuf, counts, root, comm)
 end
+
+"""
+    Gatherv_in_place!(buf, counts, root, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
+the `root` process. The `root` allocates the output buffer and stores elements
+in rank order.
+
+This is functionally equivalent to calling
+```
+if root == MPI.Comm_rank(comm)
+    Gatherv!(MPI.IN_PLACE, buf, counts, root, comm)
+else
+    Gatherv!(buf, C_NULL, counts, root, comm)
+end
+```
+"""
+function Gatherv_in_place!(buf::MPIBuffertype{T}, counts::Vector{Cint},
+                           root::Integer, comm::Comm) where T
+    isroot = Comm_rank(comm) == root
+    displs = accumulate(+, counts) - counts
+    sendcnt = counts[Comm_rank(comm) + 1]
+
+    if isroot
+        @assert length(buf) >= sum(counts)
+        ccall(MPI_GATHERV, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              IN_PLACE, sendcnt, mpitype(T), buf, counts, displs, mpitype(T), root, comm.val, 0)
+    else
+        ccall(MPI_GATHERV, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              buf, sendcnt, mpitype(T), C_NULL, counts, displs, mpitype(T), root, comm.val, 0)
+    end
+    buf
+end
+
 
 """
     Allgatherv!(sendbuf, recvbuf, counts, comm)
