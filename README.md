@@ -256,9 +256,9 @@ Julia Function (assuming `import MPI`) | Fortran Function
  `MPI.Allreduce!`                      | `MPI.Allreduce`                       | [`MPI_Allreduce`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Allreduce.3.php)		 | ✅
  `MPI.Alltoall!`                       | `MPI.Alltoall`                        | [`MPI_Alltoall`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Alltoall.3.php)		   | ✅
  `MPI.Alltoallv!`                      | `MPI.Alltoallv`                       | [`MPI_Alltoallv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Alltoallv.3.php)		 | ❌
- 	                                     | `MPI.Barrier`                         | [`MPI_Barrier`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Barrier.3.php)			   | ❌
+ --                                    | `MPI.Barrier`                         | [`MPI_Barrier`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Barrier.3.php)			   | ❌
  `MPI.Bcast!`                          | `MPI.Bcast!`                          | [`MPI_Bcast`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Bcast.3.php)				     | ❌
- 				                               | `MPI.Exscan`                          | [`MPI_Exscan`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Exscan.3.php)			     | ❌
+ --		                               | `MPI.Exscan`                          | [`MPI_Exscan`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Exscan.3.php)			     | ❌
  `MPI.Gather!`                         | `MPI.Gather`                          | [`MPI_Gather`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Gather.3.php)			     | `Gather_in_place!`
  `MPI.Gatherv!`                        | `MPI.Gatherv`                         | [`MPI_Gatherv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Gatherv.3.php)			   | `Gatherv_in_place!`
  `MPI.Reduce!`                         | `MPI.Reduce`                          | [`MPI_Reduce`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Reduce.3.php)			     | `Reduce_in_place!`
