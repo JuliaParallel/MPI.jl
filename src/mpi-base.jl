@@ -926,7 +926,7 @@ and stores the result in `recvbuf` on the process of rank `root`.
 
 On non-root processes recvbuf is ignored.
 
-To perform the reduction in place refer to Reduce_in_place!
+To perform the reduction in place refer to `Reduce_in_place!`
 """
 function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                  count::Integer, op::Op, root::Integer,
@@ -956,7 +956,7 @@ Performs `op` reduction on the buffer `sendbuf` and stores the result in
 
 On non-root processes recvbuf is ignored.
 
-To perform the reduction in place refer to Reduce_in_place!
+To perform the reduction in place refer to `Reduce_in_place!`
 """
 function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                  op::Union{Op, Function}, root::Integer, comm::Comm) where T
@@ -1132,6 +1132,8 @@ include("mpi-op.jl")
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
 and sends the j-th chunk to the process of rank j into the `recvbuf` buffer,
 which must be of length at least `count`.
+
+To perform the reduction in place refer to `Scatter_in_place!`
 """
 function Scatter!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                   count::Integer, root::Integer,
@@ -1264,6 +1266,8 @@ end
 Each process sends the first `count` elements of the buffer `sendbuf` to the
 `root` process. The `root` process stores elements in rank order in the buffer
 buffer `recvbuf`.
+
+To perform the reduction in place refer to `Gather_in_place!`
 """
 function Gather!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                 count::Integer, root::Integer, comm::Comm) where T
@@ -1336,17 +1340,16 @@ function Gather_in_place!(buf::MPIBuffertype{T}, count::Integer, root::Integer,
     buf
 end
 
-
 """
   Allgather!(sendbuf, recvbuf, count, comm)
 
 Each process sends the first `count` elements of `sendbuf` to the
-other processes, who store the results in rank order into 
+other processes, who store the results in rank order into
 `recvbuf`.
 
-If `sendbuf==MPI.IN_PLACE` the input data is assumed to be in the 
-area of `recvbuf` where the process would receive it's own 
-contribution. 
+If `sendbuf==MPI.IN_PLACE` the input data is assumed to be in the
+area of `recvbuf` where the process would receive it's own
+contribution.
 """
 function Allgather!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                     count::Integer, comm::Comm) where T
@@ -1368,7 +1371,7 @@ function Allgather!(buf::MPIBuffertype{T}, count::Integer,
 end
 
 """
-  Allgather!(sendbuf, recvbuf, count, comm)
+  Allgather(sendbuf, recvbuf, count, comm)
 
 Each process sends the first `count` elements of `sendbuf` to the
 other processes, who store the results in rank order allocating
