@@ -1189,16 +1189,73 @@ function Scatter(sendbuf::MPIBuffertype{T}, count::Integer, root::Integer,
     Scatter!(sendbuf, recvbuf, count, root, comm)
 end
 
-function Scatterv(sendbuf::MPIBuffertype{T},
-                  counts::Vector{Cint}, root::Integer,
-                  comm::Comm) where T
-    recvbuf = Array{T}(undef, counts[Comm_rank(comm) + 1])
+"""
+    Scatterv!(sendbuf, counts, root, comm)
+
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
+of length `counts[j]` and sends the j-th chunk to the process of rank j into the
+`recvbuf` buffer, which must be of length at least `count`.
+
+To perform the reduction in place refer to `Scatterv_in_place!`
+"""
+function Scatterv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                  counts::Vector{Cint}, root::Integer, comm::Comm) where T
     recvcnt = counts[Comm_rank(comm) + 1]
     disps = accumulate(+, counts) - counts
+    @assert length(recvbuf) >= recvcnt
     ccall(MPI_SCATTERV, Nothing,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, counts, disps, mpitype(T), recvbuf, recvcnt, mpitype(T), root, comm.val, 0)
     recvbuf
+end
+
+"""
+    Scatterv(sendbuf, counts, root, comm)
+
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
+of length `counts[j]` and sends the j-th chunk to the process of rank j, which
+allocates the output buffer
+"""
+function Scatterv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
+                   root::Integer, comm::Comm) where T
+    recvbuf = Array{T}(undef, counts[Comm_rank(comm) + 1])
+    Scatterv!(sendbuf, recvbuf, counts, root, comm)
+end
+
+"""
+    Scatterv_in_place(buf, counts, root, comm)
+
+Splits the buffer `buf` in the `root` process into `Comm_size(comm)` chunks
+of length `counts[j]` and sends the j-th chunk to the process of rank j into the
+`buf` buffer, which must be of length at least `count`. The `root` process sends
+nothing to itself.
+
+This is functionally equivalent to calling
+```
+if root == MPI.Comm_rank(comm)
+    Scatterv!(buf, MPI.IN_PLACE, counts, root, comm)
+else
+    Scatterv!(C_NULL, buf, counts, root, comm)
+end
+```
+"""
+function Scatterv_in_place!(buf::MPIBuffertype{T}, counts::Vector{Cint},
+                           root::Integer, comm::Comm) where T
+    recvcnt = counts[Comm_rank(comm) + 1]
+    disps = accumulate(+, counts) - counts
+    @assert length(buf) >= recvcnt
+
+    if Comm_rank(comm) == root
+        ccall(MPI_SCATTERV, Nothing,
+              (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              buf, counts, disps, mpitype(T), IN_PLACE, recvcnt, mpitype(T), root, comm.val, 0)
+
+    else
+        ccall(MPI_SCATTERV, Nothing,
+              (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              C_NULL, counts, disps, mpitype(T), buf, recvcnt, mpitype(T), root, comm.val, 0)
+    end
+    buf
 end
 
 """
