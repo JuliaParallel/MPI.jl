@@ -112,5 +112,9 @@ int main(int argc, char *argv[]) {
   printf("primitive type CInfo %d end\n", (int)(sizeof(MPI_Info) * 8));
   printf("primitive type CWin %d end\n", (int)(sizeof(MPI_Win) * 8));
 
+  printf("\n");
+  printf("\n");
+  printf("const MPI_IN_PLACE_VAL = %d\n", ((int)MPI_IN_PLACE));
+
   return 0;
 }
