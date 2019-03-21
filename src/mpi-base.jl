@@ -505,6 +505,23 @@ function send(obj, dest::Integer, tag::Integer, comm::Comm)
 end
 
 """
+    Sendrecv(obj::T, dest::Integer, desttag::Integer, src::Integer, srctag::Integer, comm::Comm) where T
+
+Complete a nonblocking Isend and Irecv, returning the received object.
+
+Sends `obj` to MPI rank `dest` of communicator `comm` with message tag `desttag`.
+Receives an object of the same type from rank `src` of `comm` with tag `srctag`.
+"""
+function Sendrecv(obj, dest, desttag, src, srctag, comm)
+    buf = [obj]
+    Waitall!([
+        Isend(obj, dest, desttag, comm),
+        Irecv!(buf, src, srctag, comm)])
+    buf[1]
+end
+
+
+"""
     Isend(buf::MPIBuffertype{T}, count::Integer, dest::Integer, tag::Integer,
           comm::Comm) where T
 
