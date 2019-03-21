@@ -738,8 +738,8 @@ end
 """
     Waitall!(reqs::Array{Request,1})
 
-Wait on all the requests in the array `reqs` to be complete. Returns an arrays
-of the all the requests statuses.
+Wait on all the requests in the array `reqs` to be complete. Returns an array
+of request statuses.
 """
 function Waitall!(reqs::Array{Request,1})
     count = length(reqs)
