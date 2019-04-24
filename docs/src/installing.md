@@ -66,7 +66,7 @@ MPI_LIBRARIES
 
 ## Windows
 
-You need to install the [Microsoft MPI](https://www.microsoft.com/en-us/download/details.aspx?id=49926) runtime on your system (the SDK is not required). Then simply add the MPI.jl package with
+You need to install the [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi) runtime on your system (the SDK is not required). Then simply add/build the MPI.jl package with
 
 ```julia
 Pkg.update()
