@@ -1341,7 +1341,7 @@ function Gather_in_place!(buf::MPIBuffertype{T}, count::Integer, root::Integer,
 end
 
 """
-  Allgather!(sendbuf, recvbuf, count, comm)
+    Allgather!(sendbuf, recvbuf, count, comm)
 
 Each process sends the first `count` elements of `sendbuf` to the
 other processes, who store the results in rank order into
@@ -1361,7 +1361,7 @@ function Allgather!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
 end
 
 """
-  Allgather!(buf, count, comm)
+    Allgather!(buf, count, comm)
 
 Equivalent to `Allgather!(MPI.IN_PLACE, buf, count, comm)`.
 """
@@ -1371,7 +1371,7 @@ function Allgather!(buf::MPIBuffertype{T}, count::Integer,
 end
 
 """
-  Allgather(sendbuf, recvbuf, count, comm)
+    Allgather(sendbuf, count, comm)
 
 Each process sends the first `count` elements of `sendbuf` to the
 other processes, who store the results in rank order allocating
@@ -1511,11 +1511,13 @@ length `count`, sending the `j`-th chunk to the `j`-th process.
 Every process stores the data received from the `j`-th process in the `j`-th
 chunk of the buffer `recvbuf`.
 
-`rank    send buf                        recv buf`\\
-`----    --------                        --------`\\
-` 0      a,b,c,d,e,f       Alltoall      a,b,A,B,α,β`\\
-` 1      A,B,C,D,E,F  ---------------->  c,d,C,D,γ,ψ`\\
-` 2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν`
+```
+rank    send buf                        recv buf
+----    --------                        --------
+ 0      a,b,c,d,e,f       Alltoall      a,b,A,B,α,β
+ 1      A,B,C,D,E,F  ---------------->  c,d,C,D,γ,ψ
+ 2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν
+```
 
 If `sendbuf==MPI.IN_PLACE`, data is sent from the `recvbuf` and then
 overwritten.
@@ -1536,11 +1538,13 @@ length `count`, sending the `j`-th chunk to the `j`-th process.
 Every process allocates the output buffer and stores the data received from the
 `j`-th process in the `j`-th chunk.
 
-`rank    send buf                        recv buf`\\
-`----    --------                        --------`\\
-` 0      a,b,c,d,e,f       Alltoall      a,b,A,B,α,β`\\
-` 1      A,B,C,D,E,F  ---------------->  c,d,C,D,γ,ψ`\\
-` 2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν`
+```
+rank    send buf                        recv buf
+----    --------                        --------
+ 0      a,b,c,d,e,f       Alltoall      a,b,A,B,α,β
+ 1      A,B,C,D,E,F  ---------------->  c,d,C,D,γ,ψ
+ 2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν
+```
 """
 function Alltoall(sendbuf::MPIBuffertype{T}, count::Integer,
                   comm::Comm) where T
