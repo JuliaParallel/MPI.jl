@@ -38,15 +38,17 @@ It has three modes of operation
 
 An example is provided in `examples/05-juliacman.jl`.
 The julia master process is NOT part of the MPI cluster. The main script should be
-launched directly, MPIManager internally calls `mpirun` to launch julia/mpi workers.
-All the workers started via MPIManager will be part of the MPI cluster.
+launched directly, `MPIManager` internally calls `mpirun` to launch julia/MPI workers.
+All the workers started via `MPIManager` will be part of the MPI cluster.
 
-`MPIManager(;np=Sys.CPU_THREADS, mpi_cmd=false, launch_timeout=60.0)`
+```
+MPIManager(;np=Sys.CPU_THREADS, mpi_cmd=false, launch_timeout=60.0)
+```
 
 If not specified, `mpi_cmd` defaults to `mpirun -np $np`
 `stdout` from the launched workers is redirected back to the julia session calling `addprocs` via a TCP connection.
 Thus the workers must be able to freely connect via TCP to the host session.
-The following lines will be typically required on the julia master process to support both julia and mpi
+The following lines will be typically required on the julia master process to support both julia and MPI:
 
 ```julia
 # to import MPIManager
@@ -64,11 +66,16 @@ addprocs(manager)
 
 To execute code with MPI calls on all workers, use `@mpi_do`.
 
-`@mpi_do manager expr` executes `expr` on all processes that are part of `manager`
+`@mpi_do manager expr` executes `expr` on all processes that are part of `manager`.
 
 For example:
-`@mpi_do manager (comm=MPI.COMM_WORLD; println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))"))`
-executes on all mpi workers belonging to `manager` only
+```
+@mpi_do manager begin
+  comm=MPI.COMM_WORLD
+  println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))"))
+end
+```
+executes on all MPI workers belonging to `manager` only
 
 [`examples/05-juliacman.jl`](https://github.com/JuliaParallel/MPI.jl/blob/master/examples/05-juliacman.jl) is a simple example of calling MPI functions on all workers interspersed with Julia parallel methods.
 
