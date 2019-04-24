@@ -220,22 +220,46 @@ function deserialize(x)
 end
 
 # Administrative functions
+"""
+    Init()
 
+Initialize MPI in the current process.
+
+All MPI programs must contain exactly one call to `MPI.Init()`.
+
+The only MPI functions that may be called before `MPI.Init()` are
+[`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
+"""
 function Init()
     ccall(MPI_INIT, Nothing, (Ref{Cint},), 0)
 end
 
+"""
+    Finalize()
+
+Cleans up all MPI state.
+
+If an MPI program terminates normally (i.e., not due to a call to [`MPI.Abort`](@ref) or an
+unrecoverable error) then each process must call `MPI.Finalize()` before it exits.
+
+See also [`MPI.finalize_atexit`](@ref).
+"""
 function Finalize()
     ccall(MPI_FINALIZE, Nothing, (Ref{Cint},), 0)
 end
 
+"""
+    FINALIZE_ATEXIT[]
+
+Determines whether [`finalize_atexit`](@ref) has been called.
+"""
 const FINALIZE_ATEXIT = Ref(false)
 
 """
     finalize_atexit()
 
-Indicate that MPI.Finalize() should be called automatically at exit, if not called manually already.
-The global variable `FINALIZE_ATEXIT` indicates if this function was called.
+Indicate that [`MPI.Finalize`](@ref) should be called automatically at exit, if not called manually already.
+The global variable [`FINALIZE_ATEXIT`](@ref) indicates if this function was called.
 """
 function finalize_atexit()
     if Sys.iswindows()
@@ -248,17 +272,39 @@ function finalize_atexit()
     FINALIZE_ATEXIT[] = true
 end
 
+"""
+    Abort(comm::Comm, errcode::Integer)
+
+Make a “best attempt” to abort all tasks in the group of `comm`. This function does not
+require that the invoking environment take any action with the error code. However, a Unix
+or POSIX environment should handle this as a return errorcode from the main program.
+"""
 function Abort(comm::Comm, errcode::Integer)
     ccall(MPI_ABORT, Nothing, (Ref{Cint}, Ref{Cint}, Ref{Cint}),
           comm.val, errcode, 0)
 end
 
+"""
+    Initialized()
+
+Returns `true` if [`MPI.Init`](@ref) has been called, `false` otherwise. 
+
+It is unaffected by [`MPI.Finalize`](@ref), and is one of the few functions that may be
+called before [`MPI.Init`](@ref).
+"""
 function Initialized()
     flag = Ref{Cint}()
     ccall(MPI_INITIALIZED, Nothing, (Ptr{Cint}, Ref{Cint}), flag, 0)
     flag[] != 0
 end
 
+"""
+    Finalized()
+
+Returns `true` if [`MPI.Finalize`](@ref) has completed, `false` otherwise. 
+
+It is safe to call before [`MPI.Init`](@ref) and after [`MPI.Finalize`](@ref).
+"""
 function Finalized()
     flag = Ref{Cint}()
     ccall(MPI_FINALIZED, Nothing, (Ptr{Cint}, Ref{Cint}), flag, 0)
@@ -276,6 +322,13 @@ function Comm_free(comm::Comm)
     ccall(MPI_COMM_FREE, Nothing, (Ref{Cint}, Ref{Cint}), comm.val, 0)
 end
 
+"""
+    Comm_rank(comm:Comm)
+
+The rank of the process in the particular communicator’s group. 
+
+Returns an integer in the range `0:MPI.Comm_size()-1`.
+"""
 function Comm_rank(comm::Comm)
     rank = Ref{Cint}()
     ccall(MPI_COMM_RANK, Nothing, (Ref{Cint}, Ptr{Cint}, Ref{Cint}),
@@ -283,6 +336,11 @@ function Comm_rank(comm::Comm)
     Int(rank[])
 end
 
+"""
+    Comm_size(comm:Comm)
+
+The number of processes involved in communicator.
+"""
 function Comm_size(comm::Comm)
     size = Ref{Cint}()
     ccall(MPI_COMM_SIZE, Nothing, (Ref{Cint}, Ptr{Cint}, Ref{Cint}),
