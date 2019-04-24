@@ -61,7 +61,7 @@ function __init__()
 
     # Note: older versions of OpenMPI (e.g. the version on Travis) do not
     # define MPI_CHAR and MPI_*INT*_T for Fortran, so we don't use them (yet).
-    for (T,mpiT) in (Char => MPI_INTEGER4,   # => MPI_WCHAR, (note: wchar_t is 16 bits in Windows)
+    for (T,mpiT) in (
                      Int8 => MPI_INTEGER1,   # => MPI_INT8_T,
                      UInt8 => MPI_INTEGER1,  # => MPI_UINT8_T,
                      Int16 => MPI_INTEGER2,  # => MPI_INT16_T,
@@ -73,7 +73,14 @@ function __init__()
                      Float32 => MPI_REAL4,
                      Float64 => MPI_REAL8,
                      ComplexF32 => MPI_COMPLEX8,
-                     ComplexF64 => MPI_COMPLEX16)
+                     ComplexF64 => MPI_COMPLEX16,
+                     Char => MPI_INTEGER4    # => MPI_WCHAR, (note: wchar_t is
+                                             #                16 bits in Windows)
+                                             # Place this last so this entry
+                                             # is no in the inverse map which
+                                             # seems to cause issues in 32 bit
+                                             # Windows.
+                    )
 
         recordDataType(T, mpiT)
     end
