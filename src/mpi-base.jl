@@ -1668,7 +1668,7 @@ function Win_create(base::Array{T}, info::Info, comm::Comm, win::Win) where T
     out_win = Ref(win.val)
     ccall(MPI_WIN_CREATE, Nothing,
           (Ptr{T}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          base, Cptrdiff_t(length(base)), sizeof(T), info.val, comm.val, out_win, 0)
+          base, Cptrdiff_t(length(base)*sizeof(T)), sizeof(T), info.val, comm.val, out_win, 0)
     win.val = out_win[]
 end
 

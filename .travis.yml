@@ -5,7 +5,8 @@ os:
   - linux
   - osx
 julia:
-  - 0.7
+  - 1.0
+  - 1.1
   - nightly
 notifications:
   email: false
@@ -20,6 +21,10 @@ before_install:
 # Work around OpenMPI attempting to create overly long temporary
 # file names - and erroring as a result
   - export TMPDIR=/tmp
+# Work around MacOS/OpenMPI issue:
+#   https://github.com/open-mpi/ompi/issues/6518
+#   https://github.com/open-mpi/ompi/issues/5798
+  - export OMPI_MCA_btl=self,tcp
 after_success:
   - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
