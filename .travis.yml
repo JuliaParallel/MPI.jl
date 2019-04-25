@@ -10,6 +10,10 @@ julia:
   - nightly
 notifications:
   email: false
+cache:
+  directories:
+  - $HOME/.ccache
+  - $HOME/.julia/registries # can we cache all of .julia?
 env:
   - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
