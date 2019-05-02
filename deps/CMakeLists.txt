@@ -105,16 +105,6 @@ add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/compile-time.jl
 add_custom_target(mpijl DEPENDS ${CMAKE_BINARY_DIR}/compile-time.jl)
 add_dependencies(juliampi mpijl)
 
-add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/mpi-build.jl
-    COMMAND ${CMAKE_COMMAND}
-                -DSRC=${CMAKE_SOURCE_DIR}/../src/mpi-base.jl
-                -DLIB=${CMAKE_LIB_INSTALL_PREFIX}/libmpi
-                -DDST=${CMAKE_BINARY_DIR}/mpi-build.jl
-                -P ${CMAKE_BINARY_DIR}/mpi.cmake
-    DEPENDS gen_functions gen_constants ${CMAKE_SOURCE_DIR}/../src/mpi-base.jl ${CMAKE_BINARY_DIR}/mpi.cmake)
-add_custom_target(mpijl-build DEPENDS ${CMAKE_BINARY_DIR}/mpi-build.jl)
-add_dependencies(juliampi mpijl-build)
-
 install(FILES ${CMAKE_BINARY_DIR}/compile-time.jl DESTINATION .)
 install(TARGETS juliampi LIBRARY DESTINATION ${CMAKE_LIB_INSTALL_PREFIX})
 set_property(TARGET juliampi PROPERTY INSTALL_RPATH_USE_LINK_PATH TRUE)
