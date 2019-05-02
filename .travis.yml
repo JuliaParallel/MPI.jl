@@ -8,6 +8,12 @@ julia:
   - 1.0
   - 1.1
   - nightly
+
+branches:
+  only:
+    - master
+    - /^release-.*/
+
 notifications:
   email: false
 env:
