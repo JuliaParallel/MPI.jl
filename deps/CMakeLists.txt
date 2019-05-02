@@ -122,12 +122,6 @@ include_directories(${MPI_Fortran_INCLUDE_PATH})
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MPI_C_COMPILE_FLAG}")
 set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${MPI_Fortran_COMPILE_FLAG}")
 
-if(GIT_FOUND)
-  set(USE_GIT 1)
-else(GIT_FOUND)
-  set(USE_GIT 0)
-endif(GIT_FOUND)
-
 include_directories(${CMAKE_BINARY_DIR})
 set(WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
 set(CPACK_SOURCE_IGNORE_FILES
