@@ -24,7 +24,7 @@ const mpitype_dict = Dict{DataType, Cint}()
 const mpitype_dict_inverse = Dict{Cint, DataType}()
 
 # Initialize the void* IN_PLACE with the value extracted during the build phase. 
-const IN_PLACE = reinterpret(ConstantPtr, MPI_IN_PLACE_VAL)
+const IN_PLACE = reinterpret(ConstantPtr, MPI_IN_PLACE)
 
 """
   Setter function for mpitype_dict and mpitype_dict_inverse
@@ -43,12 +43,6 @@ function recordDataType(T::DataType, mpiT::Cint; force=false)
   end
 
   return nothing
-end
-
-@static if Compat.Sys.isunix()
-    for (jname, fname) in _mpi_functions
-        Core.eval(MPI, :(const $jname = ($(QuoteNode(fname)),libmpi)))
-    end
 end
 
 function __init__()
