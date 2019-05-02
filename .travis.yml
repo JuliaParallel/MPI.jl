@@ -16,6 +16,10 @@ branches:
 
 notifications:
   email: false
+cache:
+  directories:
+  - $HOME/.ccache
+  - $HOME/.julia/registries # can we cache all of .julia?
 env:
   - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
@@ -31,12 +35,10 @@ before_install:
 #   https://github.com/open-mpi/ompi/issues/6518
 #   https://github.com/open-mpi/ompi/issues/5798
   - export OMPI_MCA_btl=self,tcp
-after_success:
-  - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
-  - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
 
 jobs:
   include:
+    - stage: "Tests" # implicit first stage
     - stage: "Documentation"
       julia: 1.0
       os: linux
@@ -47,4 +49,10 @@ jobs:
                                                       Pkg.develop(PackageSpec(path=pwd()));
                                                       Pkg.build()'
         - julia --color=yes --project=docs/ docs/make.jl
-      after_success: skip
+    - stage: "Coverage"
+      julia: 1.0
+      os: linux
+      after_success: # Intentionally rerun tests
+        - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage")'
+        - julia -e 'using Coverage; Coveralls.submit(Coveralls.process_folder())'
+        - julia -e 'using Coverage; Codecov.submit(Codecov.process_folder())'
