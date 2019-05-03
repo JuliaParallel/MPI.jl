@@ -134,10 +134,12 @@ mutable struct Info
     function Info()
         newinfo = Ref{Cint}()
         ccall(MPI_INFO_CREATE, Nothing, (Ptr{Cint}, Ref{Cint}), newinfo, 0)
-        info=new(newinfo[])
+        info = new(newinfo[])        
+        refcount_inc()        
         finalizer(info) do x
-          ccall(MPI_INFO_FREE, Nothing, (Ref{Cint}, Ref{Cint}), x.val, 0)
-          x.val = MPI_INFO_NULL
+            ccall(MPI_INFO_FREE, Nothing, (Ref{Cint}, Ref{Cint}), x.val, 0)
+            x.val = MPI_INFO_NULL
+            refcount_dec()
         end
         info
     end
@@ -219,6 +221,36 @@ function deserialize(x)
     Compat.Serialization.deserialize(s)
 end
 
+const REFCOUNT = Threads.Atomic{Int}(0)
+
+"""
+    refcount_inc()
+
+Increment the MPI reference counter. This should be called at initialization of any object
+which calls an MPI routine in its finalizer. A matching [`refcount_dec`](@ref) should be
+added to the finalizer.
+
+For more details, see [Finalizers](@ref).
+"""
+function refcount_inc()
+    Threads.atomic_add!(REFCOUNT, 1)
+end
+
+"""
+    refcount_dec()
+
+Decrement the MPI reference counter. This should be added after an MPI call in an object
+finalizer, with a matching [`refcount_inc`](@ref) when the object is initialized.
+
+For more details, see [Finalizers](@ref).
+"""
+function refcount_dec()
+    # refcount zero, all objects finalized, now finalize MPI
+    if Threads.atomic_sub!(REFCOUNT, 1) == 1
+        !Finalized() && Finalize()
+    end
+end
+
 # Administrative functions
 """
     Init()
@@ -231,7 +263,11 @@ The only MPI functions that may be called before `MPI.Init()` are
 [`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
 """
 function Init()
+    if Threads.atomic_cas!(REFCOUNT, 0, 1) != 0
+        error("MPI already Initialized, or REFCOUNT in incorrect state")
+    end
     ccall(MPI_INIT, Nothing, (Ref{Cint},), 0)
+    atexit(refcount_dec)
 end
 
 """
@@ -242,35 +278,15 @@ Cleans up all MPI state.
 If an MPI program terminates normally (i.e., not due to a call to [`MPI.Abort`](@ref) or an
 unrecoverable error) then each process must call `MPI.Finalize()` before it exits.
 
-See also [`MPI.finalize_atexit`](@ref).
+Julia will call this automatically at exit.
 """
 function Finalize()
     ccall(MPI_FINALIZE, Nothing, (Ref{Cint},), 0)
 end
 
-"""
-    FINALIZE_ATEXIT[]
-
-Determines whether [`finalize_atexit`](@ref) has been called.
-"""
-const FINALIZE_ATEXIT = Ref(false)
-
-"""
-    finalize_atexit()
-
-Indicate that [`MPI.Finalize`](@ref) should be called automatically at exit, if not called manually already.
-The global variable [`FINALIZE_ATEXIT`](@ref) indicates if this function was called.
-"""
-function finalize_atexit()
-    if Sys.iswindows()
-        error("finalize_atexit is not supported on Windows")
-    end
-    ret = ccall((:install_finalize_atexit_hook, libmpi), Cint, ())
-    if ret != 0
-        error("Failed to set finalize_atexit")
-    end
-    FINALIZE_ATEXIT[] = true
-end
+# to be deprecated
+const FINALIZE_ATEXIT = Ref(true)
+Base.@deprecate finalize_atexit() true
 
 """
     Abort(comm::Comm, errcode::Integer)

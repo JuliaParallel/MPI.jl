@@ -57,7 +57,8 @@ MPI.Init
 MPI.Initialized
 MPI.Intercomm_merge
 MPI.mpitype
-MPI.finalize_atexit
+MPI.refcount_inc()
+MPI.refcount_dec()
 ```
 
 ## Point-to-point communication
