@@ -1856,6 +1856,29 @@ function Type_Create_Struct(nfields::Integer, blocklengths::MPIBuffertype{Cint},
   return newtype_ref[]
 end
 
+function Type_Create_Subarray(ndims::Integer,
+                              array_of_sizes::MPIBuffertype{Cint},
+                              array_of_subsizes::MPIBuffertype{Cint},
+                              array_of_starts::MPIBuffertype{Cint},
+                              order::Integer,
+                              oldtype::DataType)
+
+    newtype_ref = Ref{Cint}()
+    flag = Ref{Cint}()
+
+    ccall(MPI_TYPE_CREATE_SUBARRAY, Nothing, 
+        (Ref{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, 
+         Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ptr{Cint}),
+        ndims, array_of_sizes, array_of_subsizes, array_of_starts,
+        order, mpitype(oldtype), newtype_ref, flag)
+
+    if flag[] != 0
+        throw(ErrorException("MPI_Type_create_subarray returned non-zero exit status"))
+    end
+
+    return newtype_ref[]
+end
+
 function Type_Contiguous(count::Integer, oldtype)
   newtype_ref = Ref{Cint}()
   flag = Ref{Cint}()
