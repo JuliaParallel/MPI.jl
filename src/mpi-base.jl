@@ -221,7 +221,7 @@ function deserialize(x)
     Compat.Serialization.deserialize(s)
 end
 
-const REFCOUNT = Threads.Atomic{Int}(0)
+const REFCOUNT = Threads.Atomic{Int}(1)
 
 """
     refcount_inc()
@@ -263,8 +263,8 @@ The only MPI functions that may be called before `MPI.Init()` are
 [`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
 """
 function Init()
-    if Threads.atomic_cas!(REFCOUNT, 0, 1) != 0
-        error("MPI already Initialized, or REFCOUNT in incorrect state")
+    if REFCOUNT[] != 1
+        error("MPI REFCOUNT in incorrect state")
     end
     ccall(MPI_INIT, Nothing, (Ref{Cint},), 0)
     atexit(refcount_dec)
