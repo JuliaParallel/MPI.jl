@@ -247,7 +247,7 @@ For more details, see [Finalizers](@ref).
 function refcount_dec()
     # refcount zero, all objects finalized, now finalize MPI
     if Threads.atomic_sub!(REFCOUNT, 1) == 1
-        !Finalized() && Finalize()
+        !Finalized() && _Finalize()
     end
 end
 
@@ -273,14 +273,40 @@ end
 """
     Finalize()
 
-Cleans up all MPI state.
+Marks MPI state for cleanup. This should be called after [`Init`](@ref), at most once, and
+no further MPI calls (other than [`Initialized`](@ref) or [`Finalized`](@ref)) should be
+made after it is called.
 
-If an MPI program terminates normally (i.e., not due to a call to [`MPI.Abort`](@ref) or an
-unrecoverable error) then each process must call `MPI.Finalize()` before it exits.
+Note that this does not correspond exactly to `MPI_FINALIZE` in the MPI specification. In
+particular:
 
-Julia will call this automatically at exit.
+- It may not finalize MPI immediately. Julia will wait until all MPI-related objects are
+  garbage collected before finalizing MPI. As a result, [`Finalized()`](@ref) may return
+  `false` after `Finalize()` has been called. See [Finalizers](@ref) for more details.
+
+- It is optional: [`Init`](@ref) will automatically insert a hook to finalize MPI when
+  Julia exits.
+
 """
 function Finalize()
+    # calling atexit here is a bit silly, but it's to avoid a case where MPI is finalized
+    # one object early, e.g.
+    #
+    # event         | REFCOUNT
+    # ---------------------
+    # Init()        |   1  : MPI_INIT
+    # new object    |   2  : MPI_X_CREATE
+    # Finalize()    |   1
+    # atexit        |
+    #  refcount_inc |   2  : relies on LIFO ordering
+    #  refcount_dec |   1  : MPI_FINALIZE would otherwise be called here
+    # finalizers    |
+    #  refcount_dec |   0  : MPI_X_FREE, MPI_FINALIZE
+    atexit(refcount_inc)    
+    refcount_dec()
+end
+
+function _Finalize()
     ccall(MPI_FINALIZE, Nothing, (Ref{Cint},), 0)
 end
 
