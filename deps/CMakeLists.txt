@@ -60,7 +60,7 @@ EXECUTE_PROCESS(COMMAND cpack -G TGZ --config CPackSourceConfig.cmake
     )
 endif(UNIX)
 
-add_library(juliampi SHARED juliampi.c test_mpi.f90)
+add_library(juliampi SHARED test_mpi.f90)
 
 if(MPI_Fortran_LINK_FLAGS)
   set_target_properties(juliampi PROPERTIES LINK_FLAGS ${MPI_Fortran_LINK_FLAGS})
