@@ -65,6 +65,10 @@ MPI_constants = [
     # proc
     "MPI_PROC_NULL",
 
+    # memory layout
+    "MPI_ORDER_C",
+    "MPI_ORDER_FORTRAN",
+
     # status
     "MPI_STATUS_SIZE", # size of Status array
     "MPI_SOURCE", # index in Status array
