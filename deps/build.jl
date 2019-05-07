@@ -71,6 +71,7 @@ MPI_constants = [
 
     # status
     "MPI_STATUS_SIZE", # size of Status array
+    "MPI_STATUS_IGNORE",
     "MPI_SOURCE", # index in Status array
     "MPI_TAG",    # index in Status array
     "MPI_ERROR",  # index in Status array
