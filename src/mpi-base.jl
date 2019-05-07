@@ -1915,7 +1915,7 @@ function Type_Create_Subarray(ndims::Integer,
                               array_of_subsizes::MPIBuffertype{Cint},
                               array_of_starts::MPIBuffertype{Cint},
                               order::Integer,
-                              oldtype::DataType)
+                              oldtype)
 
     newtype_ref = Ref{Cint}()
     flag = Ref{Cint}()
