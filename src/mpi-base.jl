@@ -575,6 +575,25 @@ function send(obj, dest::Integer, tag::Integer, comm::Comm)
 end
 
 """
+    Isend(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, dest::Integer, 
+          tag::Integer, comm::Comm) where T
+
+Starts a nonblocking send of `count` elements of type `datatype` from `buf` to 
+MPI rank `dest` of communicator `comm` using with the message tag `tag`
+
+Returns the commication `Request` for the nonblocking send.
+"""
+function Isend(buf::MPIBuffertype{T}, count::Integer, datatype::Cint,
+               dest::Integer, tag::Integer, comm::Comm) where T
+    rval = Ref{Cint}()
+    ccall(MPI_ISEND, Nothing,
+          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
+           Ptr{Cint}, Ref{Cint}),
+          buf, count, datatype, dest, tag, comm.val, rval, 0)
+    return Request(rval[], buf)
+end
+
+"""
     Isend(buf::MPIBuffertype{T}, count::Integer, dest::Integer, tag::Integer,
           comm::Comm) where T
 
@@ -585,12 +604,7 @@ Returns the commication `Request` for the nonblocking send.
 """
 function Isend(buf::MPIBuffertype{T}, count::Integer,
                dest::Integer, tag::Integer, comm::Comm) where T
-    rval = Ref{Cint}()
-    ccall(MPI_ISEND, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
-           Ptr{Cint}, Ref{Cint}),
-          buf, count, mpitype(T), dest, tag, comm.val, rval, 0)
-    Request(rval[], buf)
+    Isend(buf, count, T, dest, tag, comm)
 end
 
 """
@@ -720,22 +734,36 @@ function recv(src::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Irecv!(buf::MPIBuffertype{T}, count::Integer, src::Integer, tag::Integer,
+    Irecv!(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, src::Integer, tag::Integer,
            comm::Comm) where T
 
-Starts a nonblocking receive of up to `count` elements into `buf` from MPI rank
-`src` of communicator `comm` using with the message tag `tag`
+Starts a nonblocking receive of up to `count` elements of type `datatype` into `buf` 
+from MPI rank `src` of communicator `comm` using with the message tag `tag`
 
 Returns the communication `Request` for the nonblocking receive.
 """
-function Irecv!(buf::MPIBuffertype{T}, count::Integer,
-                             src::Integer, tag::Integer, comm::Comm) where T
+function Irecv!(buf::MPIBuffertype{T}, count::Integer, datatype::Cint,
+                    src::Integer, tag::Integer, comm::Comm) where T
     val = Ref{Cint}()
     ccall(MPI_IRECV, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
            Ptr{Cint}, Ref{Cint}),
-          buf, count, mpitype(T), src, tag, comm.val, val, 0)
+          buf, count, datatype, src, tag, comm.val, val, 0)
     Request(val[], buf)
+end
+
+"""
+    Irecv!(buf::MPIBuffertype{T}, count::Integer, src::Integer, tag::Integer,
+           comm::Comm) where T
+
+Starts a nonblocking receive of up to `count` elements into `buf` 
+from MPI rank `src` of communicator `comm` using with the message tag `tag`
+
+Returns the communication `Request` for the nonblocking receive.
+"""
+function Irecv!(buf::MPIBuffertype{T}, count::Integer,
+                    src::Integer, tag::Integer, comm::Comm) where T
+    Irecv!(buf, count, T, src, tag, comm)
 end
 
 """

@@ -30,4 +30,17 @@ elseif rank == 1
                 0 0 0 0]
 end
 
+# test non blocking send
+if rank == 0
+    MPI.Isend(x, 1, subarray, 1, 0, comm)
+elseif rank == 1
+    req = MPI.Irecv!(x, 1, subarray, 0, 0, comm)
+    MPI.Wait!(req)
+    @test x == [1 5 0 0;
+                2 6 0 0;
+                0 0 0 0;
+                0 0 0 0]
+    println(x)
+end
+
 MPI.Finalize()
