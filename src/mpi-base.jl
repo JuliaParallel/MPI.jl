@@ -505,6 +505,21 @@ function Get_count(stat::Status, ::Type{T}) where T
 end
 
 """
+    Send(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, dest::Integer, 
+        tag::Integer, comm::Comm) where T
+
+Complete a blocking send of `count` elements of type `datatype` from `buf` to MPI 
+rank `dest` of communicator `comm` using the message tag `tag`
+"""
+function Send(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, dest::Integer,
+              tag::Integer, comm::Comm) where T
+    ccall(MPI_SEND, Nothing,
+          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
+           Ref{Cint}),
+          buf, count, datatype, dest, tag, comm.val, 0)
+end
+
+"""
     Send(buf::MPIBuffertype{T}, count::Integer, dest::Integer, tag::Integer,
          comm::Comm) where T
 
@@ -513,10 +528,7 @@ of communicator `comm` using with the message tag `tag`
 """
 function Send(buf::MPIBuffertype{T}, count::Integer, dest::Integer,
               tag::Integer, comm::Comm) where T
-    ccall(MPI_SEND, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
-           Ref{Cint}),
-          buf, count, mpitype(T), dest, tag, comm.val, 0)
+    Send(buf, count, T, dest, tag, comm)
 end
 
 """
@@ -634,6 +646,25 @@ function isend(obj, dest::Integer, tag::Integer, comm::Comm)
 end
 
 """
+    Recv!(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, src::Integer, 
+          tag::Integer, comm::Comm) where T
+
+Completes a blocking receive of up to `count` elements of type `datatype` into `buf` 
+from MPI rank `src` of communicator `comm` using with the message tag `tag`
+
+Returns the `Status` of the receive
+"""
+function Recv!(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, src::Integer,
+               tag::Integer, comm::Comm) where T
+    stat = Status()
+    ccall(MPI_RECV, Nothing,
+          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
+           Ptr{Cint}, Ref{Cint}),
+          buf, count, datatype, src, tag, comm.val, stat.val, 0)
+    return stat
+end
+
+"""
     Recv!(buf::MPIBuffertype{T}, count::Integer, src::Integer, tag::Integer,
           comm::Comm) where T
 
@@ -644,12 +675,7 @@ Returns the `Status` of the receive
 """
 function Recv!(buf::MPIBuffertype{T}, count::Integer, src::Integer,
                tag::Integer, comm::Comm) where T
-    stat = Status()
-    ccall(MPI_RECV, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
-           Ptr{Cint}, Ref{Cint}),
-          buf, count, mpitype(T), src, tag, comm.val, stat.val, 0)
-    stat
+    Recv!(buf, count, T, src, tag, comm)
 end
 
 
