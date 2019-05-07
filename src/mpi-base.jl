@@ -134,10 +134,12 @@ mutable struct Info
     function Info()
         newinfo = Ref{Cint}()
         ccall(MPI_INFO_CREATE, Nothing, (Ptr{Cint}, Ref{Cint}), newinfo, 0)
-        info=new(newinfo[])
+        info = new(newinfo[])        
+        refcount_inc()        
         finalizer(info) do x
-          ccall(MPI_INFO_FREE, Nothing, (Ref{Cint}, Ref{Cint}), x.val, 0)
-          x.val = MPI_INFO_NULL
+            ccall(MPI_INFO_FREE, Nothing, (Ref{Cint}, Ref{Cint}), x.val, 0)
+            x.val = MPI_INFO_NULL
+            refcount_dec()
         end
         info
     end
@@ -219,6 +221,36 @@ function deserialize(x)
     Compat.Serialization.deserialize(s)
 end
 
+const REFCOUNT = Threads.Atomic{Int}(1)
+
+"""
+    refcount_inc()
+
+Increment the MPI reference counter. This should be called at initialization of any object
+which calls an MPI routine in its finalizer. A matching [`refcount_dec`](@ref) should be
+added to the finalizer.
+
+For more details, see [Finalizers](@ref).
+"""
+function refcount_inc()
+    Threads.atomic_add!(REFCOUNT, 1)
+end
+
+"""
+    refcount_dec()
+
+Decrement the MPI reference counter. This should be added after an MPI call in an object
+finalizer, with a matching [`refcount_inc`](@ref) when the object is initialized.
+
+For more details, see [Finalizers](@ref).
+"""
+function refcount_dec()
+    # refcount zero, all objects finalized, now finalize MPI
+    if Threads.atomic_sub!(REFCOUNT, 1) == 1
+        !Finalized() && _Finalize()
+    end
+end
+
 # Administrative functions
 """
     Init()
@@ -231,46 +263,56 @@ The only MPI functions that may be called before `MPI.Init()` are
 [`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
 """
 function Init()
+    if REFCOUNT[] != 1
+        error("MPI REFCOUNT in incorrect state")
+    end
     ccall(MPI_INIT, Nothing, (Ref{Cint},), 0)
+    atexit(refcount_dec)
 end
 
 """
     Finalize()
 
-Cleans up all MPI state.
+Marks MPI state for cleanup. This should be called after [`Init`](@ref), at most once, and
+no further MPI calls (other than [`Initialized`](@ref) or [`Finalized`](@ref)) should be
+made after it is called.
 
-If an MPI program terminates normally (i.e., not due to a call to [`MPI.Abort`](@ref) or an
-unrecoverable error) then each process must call `MPI.Finalize()` before it exits.
+Note that this does not correspond exactly to `MPI_FINALIZE` in the MPI specification. In
+particular:
 
-See also [`MPI.finalize_atexit`](@ref).
+- It may not finalize MPI immediately. Julia will wait until all MPI-related objects are
+  garbage collected before finalizing MPI. As a result, [`Finalized()`](@ref) may return
+  `false` after `Finalize()` has been called. See [Finalizers](@ref) for more details.
+
+- It is optional: [`Init`](@ref) will automatically insert a hook to finalize MPI when
+  Julia exits.
+
 """
 function Finalize()
+    # calling atexit here is a bit silly, but it's to avoid a case where MPI is finalized
+    # one object early, e.g.
+    #
+    # event         | REFCOUNT
+    # ---------------------
+    # Init()        |   1  : MPI_INIT
+    # new object    |   2  : MPI_X_CREATE
+    # Finalize()    |   1
+    # atexit        |
+    #  refcount_inc |   2  : relies on LIFO ordering
+    #  refcount_dec |   1  : MPI_FINALIZE would otherwise be called here
+    # finalizers    |
+    #  refcount_dec |   0  : MPI_X_FREE, MPI_FINALIZE
+    atexit(refcount_inc)    
+    refcount_dec()
+end
+
+function _Finalize()
     ccall(MPI_FINALIZE, Nothing, (Ref{Cint},), 0)
 end
 
-"""
-    FINALIZE_ATEXIT[]
-
-Determines whether [`finalize_atexit`](@ref) has been called.
-"""
-const FINALIZE_ATEXIT = Ref(false)
-
-"""
-    finalize_atexit()
-
-Indicate that [`MPI.Finalize`](@ref) should be called automatically at exit, if not called manually already.
-The global variable [`FINALIZE_ATEXIT`](@ref) indicates if this function was called.
-"""
-function finalize_atexit()
-    if Sys.iswindows()
-        error("finalize_atexit is not supported on Windows")
-    end
-    ret = ccall((:install_finalize_atexit_hook, libmpi), Cint, ())
-    if ret != 0
-        error("Failed to set finalize_atexit")
-    end
-    FINALIZE_ATEXIT[] = true
-end
+# to be deprecated
+const FINALIZE_ATEXIT = Ref(true)
+Base.@deprecate finalize_atexit() true
 
 """
     Abort(comm::Comm, errcode::Integer)

@@ -10,12 +10,6 @@ able to run the MPI job as expected, e.g. to run [`examples/01-hello.jl`](https:
 mpirun -np 3 julia 01-hello.jl
 ```
 
-### Cleanup
-In Julia code building on this package, it may happen that you want to run MPI cleanup functions in a finalizer.
-This makes it impossible to manually call [`MPI.Finalize()`](@ref), since the Julia finalizers may run after this call.
-To solve this, a C `atexit` hook to run `MPI.Finalize()` can be set using [`MPI.finalize_atexit()`](@ref). It is possible
-to check if this function was called by checking the global `Ref` `MPI.FINALIZE_ATEXIT`.
-
 ## MPI and Julia parallel constructs together
 
 In order for MPI calls to be made from a Julia cluster, it requires the use of
@@ -115,3 +109,30 @@ On other processes (i.e., the workers) the function does not return
 mpirun -np 5 julia 06-cman-transport.jl MPI
 ```
 will run the example using MPI as transport.
+
+
+## Finalizers
+
+In order to ensure MPI routines are called in the correct order at finalization time,
+MPI.jl maintains a reference count. If you define an object that needs to call an MPI
+routine during its finalization, you should call [`MPI.refcount_inc()`](@ref) when it is
+initialized, and [`MPI.refcount_dec()`](@ref) in its finalizer (after the relevant MPI
+call).
+
+For example
+```julia
+mutable struct MyObject
+    ...
+    function MyObject(args...)
+        obj = new(args...)
+        # MPI call to create object
+        refcount_inc()
+        finalizer(obj) do x
+            # MPI call to free object
+            refcount_dec()
+        end
+        return obj
+    end
+end
+```
+    
