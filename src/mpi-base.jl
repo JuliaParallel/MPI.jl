@@ -163,20 +163,20 @@ end
 
 function Info_get(info::Info,key::AbstractString)
     @assert isascii(key)
-    keyexists=Ref{Bool}()
+    keyexists=Ref{Cint}()
     len=Ref{Cint}()
     ccall(MPI_INFO_GET_VALUELEN, Nothing,
-          (Ref{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{Bool}, Ref{Cint}, Csize_t),
+          (Ref{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Csize_t),
            info.val, key, len, keyexists, 0, sizeof(key))
-    if keyexists[]
-        value=" "^(len[])
+    if keyexists[] != 0
+        buffer = Vector{UInt8}(undef, len[])
         ccall(MPI_INFO_GET, Nothing,
-              (Ref{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{UInt8}, Ptr{Bool}, Ref{Cint}, Csize_t, Csize_t),
-               info.val, key, len, value, keyexists, 0, sizeof(key), sizeof(value))
+              (Ref{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Ref{Cint}, Csize_t, Csize_t),
+              info.val, key, len, buffer, keyexists, 0, sizeof(key), sizeof(buffer))
+        return String(buffer)
     else
-        value=""
+        return ""
     end
-    value
 end
 
 function Info_delete(info::Info,key::AbstractString)
