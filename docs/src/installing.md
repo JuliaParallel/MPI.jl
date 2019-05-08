@@ -43,7 +43,7 @@ You can set these variables either in your shell startup file, or e.g. via your
 `~/.juliarc` file. Here is an example:
 ```Julia
 ENV["JULIA_MPI_C_LIBRARIES"] = "-L/opt/local/lib/openmpi-gcc5 -lmpi"
-ENV["JULIA_MPI_Fortran_INCLUDE_PATH"] = "-I/opt/local/include"
+ENV["JULIA_MPI_Fortran_INCLUDE_PATH"] = "/opt/local/include"
 ENV["JULIA_MPI_Fortran_LIBRARIES"] = "-L/opt/local/lib/openmpi-gcc5 -lmpi_usempif08 -lmpi_mpifh -lmpi"
 ```
 
