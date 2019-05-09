@@ -60,6 +60,8 @@ MPI_constants = [
     "MPI_REQUEST_NULL",
 
     # info
+    "MPI_MAX_INFO_KEY",
+    "MPI_MAX_INFO_VAL",
     "MPI_INFO_NULL",
 
     # proc
@@ -120,6 +122,8 @@ MPI_functions = [
     "MPI_INFO_DELETE",
     "MPI_INFO_FREE",
     "MPI_INFO_GET",
+    "MPI_INFO_GET_NKEYS",
+    "MPI_INFO_GET_NTHKEY",
     "MPI_INFO_GET_VALUELEN",
     "MPI_INFO_SET",
     "MPI_INIT",

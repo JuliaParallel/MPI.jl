@@ -205,3 +205,10 @@ MPI.Fetch_and_op
 MPI.Accumulate
 MPI.Get_accumulate
 ```
+
+# Info objects
+
+```@docs
+MPI.Info
+MPI.infoval
+```
