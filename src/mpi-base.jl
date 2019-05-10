@@ -129,62 +129,7 @@ mutable struct Request
 end
 const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
 
-mutable struct Info
-    val::Cint
-    function Info()
-        newinfo = Ref{Cint}()
-        ccall(MPI_INFO_CREATE, Nothing, (Ptr{Cint}, Ref{Cint}), newinfo, 0)
-        info = new(newinfo[])        
-        refcount_inc()        
-        finalizer(info) do x
-            ccall(MPI_INFO_FREE, Nothing, (Ref{Cint}, Ref{Cint}), x.val, 0)
-            x.val = MPI_INFO_NULL
-            refcount_dec()
-        end
-        info
-    end
-
-    function Info(val::Cint)
-        if val != MPI_INFO_NULL
-            error("Info can only be created using Info()")
-        end
-        return new(MPI_INFO_NULL)
-    end
-end
-const INFO_NULL = Info(MPI_INFO_NULL)
-
-# the info functions assume that Fortran hidden arguments are placed at the end of the argument list
-function Info_set(info::Info,key::AbstractString,value::AbstractString)
-    @assert isascii(key) && isascii(value)
-    ccall(MPI_INFO_SET, Nothing,
-          (Ref{Cint}, Ptr{UInt8}, Ptr{UInt8}, Ref{Cint}, Csize_t, Csize_t),
-           info.val, key, value, 0, sizeof(key), sizeof(value))
-end
-
-function Info_get(info::Info,key::AbstractString)
-    @assert isascii(key)
-    keyexists=Ref{Bool}()
-    len=Ref{Cint}()
-    ccall(MPI_INFO_GET_VALUELEN, Nothing,
-          (Ref{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{Bool}, Ref{Cint}, Csize_t),
-           info.val, key, len, keyexists, 0, sizeof(key))
-    if keyexists[]
-        value=" "^(len[])
-        ccall(MPI_INFO_GET, Nothing,
-              (Ref{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{UInt8}, Ptr{Bool}, Ref{Cint}, Csize_t, Csize_t),
-               info.val, key, len, value, keyexists, 0, sizeof(key), sizeof(value))
-    else
-        value=""
-    end
-    value
-end
-
-function Info_delete(info::Info,key::AbstractString)
-    @assert isascii(key)
-    ccall(MPI_INFO_DELETE, Nothing,
-          (Ref{Cint}, Ptr{UInt8}, Ref{Cint}, Csize_t), info.val, key, 0, sizeof(key))
-end
-Info_free(info::Info) = finalize(info)
+include("mpi-info.jl")
 
 mutable struct Status
     val::Array{Cint,1}
@@ -310,10 +255,6 @@ function _Finalize()
     ccall(MPI_FINALIZE, Nothing, (Ref{Cint},), 0)
 end
 
-# to be deprecated
-const FINALIZE_ATEXIT = Ref(true)
-Base.@deprecate finalize_atexit() true
-
 """
     Abort(comm::Comm, errcode::Integer)
 
@@ -398,11 +339,11 @@ function Comm_split(comm::Comm,color::Integer,key::Integer)
     MPI.Comm(newcomm[])
 end
 
-function Comm_split_type(comm::Comm,split_type::Integer,key::Integer;info::Info=INFO_NULL)
+function Comm_split_type(comm::Comm,split_type::Integer,key::Integer; kwargs...)
     newcomm = Ref{Cint}()
     ccall(MPI_COMM_SPLIT_TYPE, Nothing,
           (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ref{Cint}),
-          comm.val, split_type, key, info.val, newcomm, 0)
+          comm.val, split_type, key, Info(kwargs...), newcomm, 0)
     MPI.Comm(newcomm[])
 end
 

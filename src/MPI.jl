@@ -19,6 +19,7 @@ include(depfile)
 
 include("mpi-base.jl")
 include("cman.jl")
+include("deprecated.jl")
 
 const mpitype_dict = Dict{DataType, Cint}()
 const mpitype_dict_inverse = Dict{Cint, DataType}()
