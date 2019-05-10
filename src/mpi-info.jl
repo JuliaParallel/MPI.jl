@@ -17,7 +17,7 @@ end
 For manual usage, `Info` objects act like Julia `Dict` objects:
 ```julia
 info = Info(init=true) # keyword argument is required
-info[key] = value     
+info[key] = value
 x = info[key]
 delete!(info, key)
 ```
@@ -95,11 +95,11 @@ function Base.getindex(info::Info, key::Symbol)
     ccall(MPI_INFO_GET_VALUELEN, Nothing,
           (Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Csize_t),
           info, skey, len, keyexists, 0, sizeof(skey))
-    
+
     if keyexists[] == 0
         throw(KeyError(key))
     end
-    
+
     buffer = Vector{UInt8}(undef, len[])
     ccall(MPI_INFO_GET, Nothing,
           (Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Ref{Cint}, Csize_t, Csize_t),
@@ -125,7 +125,7 @@ function Base.length(info::Info)
           info, nkeys, 0)
     return Int(nkeys[])
 end
-    
+
 function nthkey(info::Info, n::Integer)
     buffer = Vector{UInt8}(undef, MPI_MAX_INFO_KEY)
     ccall(MPI_INFO_GET_NTHKEY, Nothing,
@@ -155,4 +155,3 @@ function Base.iterate(info::Info, i=0)
         return nothing
     end
 end
-

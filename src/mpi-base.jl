@@ -255,10 +255,6 @@ function _Finalize()
     ccall(MPI_FINALIZE, Nothing, (Ref{Cint},), 0)
 end
 
-# to be deprecated
-const FINALIZE_ATEXIT = Ref(true)
-Base.@deprecate finalize_atexit() true
-
 """
     Abort(comm::Comm, errcode::Integer)
 
