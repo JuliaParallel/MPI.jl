@@ -18,6 +18,7 @@ end
 include(depfile)
 
 include("mpi-base.jl")
+include("mpi-window.jl")
 include("cman.jl")
 include("deprecated.jl")
 

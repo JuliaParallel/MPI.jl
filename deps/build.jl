@@ -42,7 +42,7 @@ MPI_constants = [
     # reductions operations
     "MPI_OP_NULL",
     "MPI_BAND",
-    "MPI_BOR", 
+    "MPI_BOR",
     "MPI_BXOR",
     "MPI_LAND",
     "MPI_LOR",
@@ -64,6 +64,7 @@ MPI_constants = [
     "MPI_MAX_INFO_VAL",
     "MPI_INFO_NULL",
 
+
     # proc
     "MPI_PROC_NULL",
 
@@ -76,6 +77,9 @@ MPI_constants = [
     # lock_type
     "MPI_LOCK_EXCLUSIVE",
     "MPI_LOCK_SHARED",
+
+    # window
+    "MPI_WIN_NULL",
 
     # misc constants
     "MPI_ANY_SOURCE",
