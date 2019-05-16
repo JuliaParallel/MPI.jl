@@ -40,7 +40,6 @@ elseif rank == 1
                 2 6 0 0;
                 0 0 0 0;
                 0 0 0 0]
-    println(x)
 end
 
 MPI.Finalize()
