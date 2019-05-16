@@ -528,7 +528,7 @@ of communicator `comm` using with the message tag `tag`
 """
 function Send(buf::MPIBuffertype{T}, count::Integer, dest::Integer,
               tag::Integer, comm::Comm) where T
-    Send(buf, count, T, dest, tag, comm)
+    Send(buf, count, mpitype(T), dest, tag, comm)
 end
 
 """
@@ -604,7 +604,7 @@ Returns the commication `Request` for the nonblocking send.
 """
 function Isend(buf::MPIBuffertype{T}, count::Integer,
                dest::Integer, tag::Integer, comm::Comm) where T
-    Isend(buf, count, T, dest, tag, comm)
+    Isend(buf, count, mpitype(T), dest, tag, comm)
 end
 
 """
@@ -689,7 +689,7 @@ Returns the `Status` of the receive
 """
 function Recv!(buf::MPIBuffertype{T}, count::Integer, src::Integer,
                tag::Integer, comm::Comm) where T
-    Recv!(buf, count, T, src, tag, comm)
+    Recv!(buf, count, mpitype(T), src, tag, comm)
 end
 
 
@@ -763,7 +763,7 @@ Returns the communication `Request` for the nonblocking receive.
 """
 function Irecv!(buf::MPIBuffertype{T}, count::Integer,
                     src::Integer, tag::Integer, comm::Comm) where T
-    Irecv!(buf, count, T, src, tag, comm)
+    Irecv!(buf, count, mpitype(T), src, tag, comm)
 end
 
 """
