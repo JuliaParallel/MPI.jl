@@ -53,6 +53,7 @@ const MPI_PROC_NULL = Int32(-1)
 const MPI_ANY_TAG = Int32(-1)
 const MPI_TAG_UB = Int32(1681915906)
 const MPI_UNDEFINED = Int32(-32766)
+const MPI_WIN_NULL = Int32(536870912)
 const HAVE_MPI_COMM_C2F = false
 
 const MPI_IN_PLACE = -1

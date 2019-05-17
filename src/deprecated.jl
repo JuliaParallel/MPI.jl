@@ -11,3 +11,14 @@ const FINALIZE_ATEXIT = Ref(true)
 @deprecate Info_free(info::Info) free(info) false
 
 
+# window functions
+@deprecate(Win_create(base::Array{T}, info::Info, comm::Comm, win::Win) where {T},
+           (win = Win_create(base, comm; info...)), false)
+    
+@deprecate(Win_create_dynamic(info::Info, comm::Comm, win::Win),
+           (win = Win_create_dynamic(comm; info...)), false)
+
+@deprecate(Win_allocate_shared(::Type{T}, len::Int, info::Info, comm::Comm, win::Win) where T,
+           ((win, ptr) = Win_allocate_shared(T, len, comm; info...); ptr), false)
+
+@deprecate Win_free(win::Win) free(win) false
