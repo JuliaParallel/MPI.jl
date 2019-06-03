@@ -14,3 +14,4 @@ MPI.Barrier(comm3)
 # Don't free comm2
 
 MPI.Finalize()
+@test MPI.Finalized()

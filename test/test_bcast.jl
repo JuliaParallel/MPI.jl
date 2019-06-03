@@ -59,3 +59,4 @@ B = MPI.bcast(B, root, comm)
 @test B["foo"] == "bar"
 
 MPI.Finalize()
+@test MPI.Finalized()

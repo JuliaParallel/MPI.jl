@@ -19,3 +19,4 @@ comm_cart2 = MPI.Cart_create(comm, dims, periods, reorder)
 @test MPI.Comm_size(comm_cart2) == nnodes
 
 MPI.Finalize()
+@test MPI.Finalized()

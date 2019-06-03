@@ -49,3 +49,4 @@ end
 
 MPI.Barrier(MPI.COMM_WORLD)
 MPI.Finalize()
+@test MPI.Finalized()

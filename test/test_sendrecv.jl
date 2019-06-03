@@ -115,3 +115,4 @@ MPI.Cancel!(sreq)
 Compat.GC.gc()
 
 MPI.Finalize()
+@test MPI.Finalized()

@@ -17,3 +17,4 @@ for typ in typs
 end
 
 MPI.Finalize()
+@test MPI.Finalized()

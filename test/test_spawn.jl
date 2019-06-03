@@ -23,3 +23,4 @@ val = rank == root ? size : nothing
 MPI.Comm_free(world_comm)
 MPI.Comm_free(intercomm)
 MPI.Finalize()
+@test MPI.Finalized()

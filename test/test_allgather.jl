@@ -51,3 +51,4 @@ for typ in Base.uniontypes(MPI.MPIDatatype)
 end
 
 MPI.Finalize()
+@test MPI.Finalized()

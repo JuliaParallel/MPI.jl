@@ -31,3 +31,4 @@ if done
 end
 
 MPI.Finalize()
+@test MPI.Finalized()
