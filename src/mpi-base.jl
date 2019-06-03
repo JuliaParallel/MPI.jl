@@ -1916,10 +1916,10 @@ end
                          array_of_starts::MPIBuffertype{Cint}, order::Integer, oldtype)
 
 Creates a data type describing an `ndims`-dimensional subarray of size `array_of_subsizes`
-of an `ndims-dimensional` array of size `array_of_sizes` and element type `oldtype`, 
-starting at the top-left location `array_of_starts`. The parameter `order` refers to 
+of an `ndims-dimensional` array of size `array_of_sizes` and element type `oldtype`,
+starting at the top-left location `array_of_starts`. The parameter `order` refers to
 the memory layout of the parent array, and can be either `MPI_ORDER_C` or
-`MPI_ORDER_FORTRAN`. Note that, like other MPI data types, the type returned by this 
+`MPI_ORDER_FORTRAN`. Note that, like other MPI data types, the type returned by this
 function should be committed with `MPI_Type_commit`.
 """
 function Type_Create_Subarray(ndims::Integer,
@@ -1932,8 +1932,8 @@ function Type_Create_Subarray(ndims::Integer,
     newtype_ref = Ref{Cint}()
     flag = Ref{Cint}()
 
-    ccall(MPI_TYPE_CREATE_SUBARRAY, Nothing, 
-        (Ref{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, 
+    ccall(MPI_TYPE_CREATE_SUBARRAY, Nothing,
+        (Ref{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
          Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ptr{Cint}),
         ndims, array_of_sizes, array_of_subsizes, array_of_starts,
         order, mpitype(oldtype), newtype_ref, flag)
