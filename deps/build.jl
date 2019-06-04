@@ -68,8 +68,13 @@ MPI_constants = [
     # proc
     "MPI_PROC_NULL",
 
+    # memory layout
+    "MPI_ORDER_C",
+    "MPI_ORDER_FORTRAN",
+
     # status
     "MPI_STATUS_SIZE", # size of Status array
+    "MPI_STATUS_IGNORE",
     "MPI_SOURCE", # index in Status array
     "MPI_TAG",    # index in Status array
     "MPI_ERROR",  # index in Status array
@@ -159,6 +164,7 @@ MPI_functions = [
     "MPI_TESTSOME",
     "MPI_TYPE_CONTIGUOUS",
     "MPI_TYPE_CREATE_STRUCT",
+    "MPI_TYPE_CREATE_SUBARRAY",
     "MPI_TYPE_COMMIT",
     "MPI_UNPACK",
     "MPI_WAIT",
