@@ -1,5 +1,3 @@
-using Compat
-
 const MPIDatatype = Union{Char,
                             Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64,
                             UInt64,
@@ -152,13 +150,13 @@ const UNDEFINED  = Int(MPI_UNDEFINED)
 
 function serialize(x)
     s = IOBuffer()
-    Compat.Serialization.serialize(s, x)
+    Serialization.serialize(s, x)
     take!(s)
 end
 
 function deserialize(x)
     s = IOBuffer(x)
-    Compat.Serialization.deserialize(s)
+    Serialization.deserialize(s)
 end
 
 const REFCOUNT = Threads.Atomic{Int}(1)

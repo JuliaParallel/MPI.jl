@@ -1,7 +1,6 @@
 using Test
 using MPI
-using Compat
-using Compat.LinearAlgebra
+using LinearAlgebra
 
 MPI.Init()
 
@@ -35,7 +34,7 @@ global (done, stats) = MPI.Testall!([sreq, rreq])
 @test done
 rreq = nothing
 sreq = nothing
-Compat.GC.gc()
+GC.gc()
 
 if rank == 0
     MPI.send(send_mesg, dst, rank+32, comm)
@@ -51,7 +50,7 @@ end
 
 rreq = nothing
 sreq = nothing
-Compat.GC.gc()
+GC.gc()
 
 if rank == 0
     MPI.send(send_mesg, dst, rank+32, comm)
@@ -71,7 +70,7 @@ fill!(recv_mesg_expected, Float64(src))
 
 rreq = nothing
 sreq = nothing
-Compat.GC.gc()
+GC.gc()
 
 send_mesg = Float64(rank)
 recv_mesg = Array{Float64}(undef,N)
@@ -91,7 +90,7 @@ end
 
 rreq = nothing
 sreq = nothing
-Compat.GC.gc()
+GC.gc()
 
 recv_mesg = Array{Float64}(undef,N)
 rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
@@ -106,12 +105,12 @@ end
 
 rreq = nothing
 sreq = nothing
-Compat.GC.gc()
+GC.gc()
 
 recv_mesg = Array{Float64}(undef,N)
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 MPI.Cancel!(sreq)
 @test sreq.buffer == nothing
-Compat.GC.gc()
+GC.gc()
 
 MPI.Finalize()
