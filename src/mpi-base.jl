@@ -206,6 +206,9 @@ function Init()
     end
     ccall(MPI_INIT, Nothing, (Ref{Cint},), 0)
     atexit(refcount_dec)
+
+    # initialise constants
+    INFO_NULL.cinfo = CInfo(MPI_INFO_NULL)
 end
 
 """
@@ -1830,11 +1833,8 @@ if HAVE_MPI_COMM_C2F
       Comm(ccall((:MPI_Comm_c2f, libmpi), Cint, (CComm,), ccomm))
     end
     # Assume info is treated the same way
-    function CInfo(info::Info)
-      ccall((:MPI_Info_f2c, libmpi), CInfo, (Cint,), info.val)
-    end
-    function Info(cinfo::CInfo)
-      Info(ccall((:MPI_Info_c2f, libmpi), Cint, (CInfo,), cinfo))
+    function CInfo(finfo::Cint)
+      ccall((:MPI_Info_f2c, libmpi), CInfo, (Cint,), finfo)
     end
 elseif sizeof(CComm) == sizeof(Cint)
     # in MPICH, both C and Fortran use identical Cint comm handles
@@ -1845,11 +1845,8 @@ elseif sizeof(CComm) == sizeof(Cint)
     function Comm(ccomm::CComm)
       Comm(reinterpret(Cint, ccomm))
     end
-    function CInfo(info::Info)
-      reinterpret(CInfo, info.val)
-    end
-    function Info(cinfo::CInfo)
-      Info(reinterpret(Cint, cinfo))
+    function CInfo(finfo::Cint)
+      reinterpret(CInfo, finfo)
     end
 else
     @warn("No MPI_Comm_c2f found - conversion to/from MPI.CComm will not work")

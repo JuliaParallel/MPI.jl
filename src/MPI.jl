@@ -11,6 +11,11 @@ end
     isfile(depfile) || error("MPI not properly installed. Please run Pkg.build(\"MPI\")")
 end
 
+macro mpichk(expr)
+    esc(expr)
+end
+
+
 include(depfile)
 
 include("mpi-base.jl")

@@ -26,11 +26,15 @@ If `init=false` is used in the costructor (the default), a "null" `Info` object 
 returned: no keys can be added to such an object.
 """
 mutable struct Info <: AbstractDict{Symbol,String}
-    val::Cint
+    cinfo::CInfo
+
+    function Info(cinfo::CInfo)
+        new(cinfo)
+    end
     function Info(;init=false)
-        info = new(MPI_INFO_NULL)
+        info = Info(INFO_NULL.cinfo)
         if init
-            ccall(MPI_INFO_CREATE, Nothing, (Ptr{Cint}, Ref{Cint}), info, 0)
+            @mpichk ccall((:MPI_Info_create, libmpi), Cint, (Ptr{CInfo},), info)
             refcount_inc()
             finalizer(free, info)
         end
@@ -38,29 +42,31 @@ mutable struct Info <: AbstractDict{Symbol,String}
     end
 end
 
-# allows us to pass Info objects directly into Ptr{Cint} ccall signatures
-function Base.unsafe_convert(::Type{Ptr{Cint}}, info::Info)
-    convert(Ptr{Cint}, pointer_from_objref(info))
+# allows us to pass Info objects directly into CInfo ccall signatures
+function Base.cconvert(::Type{CInfo}, info::Info)
+    info.cinfo
+end
+# allows us to pass Info objects directly into Ptr{CInfo} ccall signatures
+function Base.unsafe_convert(::Type{Ptr{CInfo}}, info::Info)
+    convert(Ptr{CInfo}, pointer_from_objref(info))
 end
 
+const INFO_NULL = Info(Ref{CInfo}()[]) # get an arbitrary bit-pattern: this will be set correctly at Init time
+
 function free(info::Info)
-    if info.val != MPI_INFO_NULL
-        ccall(MPI_INFO_FREE, Nothing, (Ptr{Cint}, Ref{Cint}), info, 0)
+    if info.cinfo != INFO_NULL.cinfo
+        @mpichk ccall((:MPI_Info_free, libmpi), Cint, (Ptr{CInfo},), info)
         refcount_dec()
     end
     return nothing
 end
 
-const INFO_NULL = Info(init=false)
-
-# the info functions assume that Fortran hidden arguments are placed at the end of the argument list
 function Base.setindex!(info::Info, value::AbstractString, key::Symbol)
     skey = String(key)
     @assert isascii(skey) && isascii(value) &&
         length(skey) <= MPI_MAX_INFO_KEY && length(value) <= MPI_MAX_INFO_VAL
-    ccall(MPI_INFO_SET, Nothing,
-          (Ptr{Cint}, Ptr{UInt8}, Ptr{UInt8}, Ref{Cint}, Csize_t, Csize_t),
-          info, skey, value, 0, sizeof(skey), sizeof(value))
+    @mpichk ccall((:MPI_Info_set, libmpi), Cint,
+          (CInfo, Cstring, Cstring), info, skey, value)
 end
 
 Base.setindex!(info::Info, value::Any, key::Symbol) = info[key] = infoval(value)
@@ -90,49 +96,49 @@ end
 function Base.getindex(info::Info, key::Symbol)
     skey = String(key)
     @assert isascii(skey) && length(skey) <= MPI_MAX_INFO_KEY
-    keyexists = Ref{Cint}()
-    len       = Ref{Cint}()
-    ccall(MPI_INFO_GET_VALUELEN, Nothing,
-          (Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Csize_t),
-          info, skey, len, keyexists, 0, sizeof(skey))
+    valuelen = Ref{Cint}()
+    flag = Ref{Cint}()
+    @mpichk ccall((:MPI_Info_get_valuelen, libmpi), Cint,
+          (CInfo, Cstring, Ptr{Cint}, Ptr{Cint}),
+          info, skey, valuelen, flag)
 
-    if keyexists[] == 0
+    if flag[] == 0
         throw(KeyError(key))
     end
 
-    buffer = Vector{UInt8}(undef, len[])
-    ccall(MPI_INFO_GET, Nothing,
-          (Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{UInt8}, Ptr{Cint}, Ref{Cint}, Csize_t, Csize_t),
-          info, skey, len, buffer, keyexists, 0, sizeof(skey), sizeof(buffer))
+    n = valuelen[]
+    buffer = Vector{UInt8}(undef, n)
+    @mpichk ccall((:MPI_Info_get, libmpi), Cint,
+          (CInfo, Cstring, Cint, Ptr{UInt8}, Ptr{Cint}),
+          info, skey, n, buffer, flag)
     return String(buffer)
 end
 
 function Base.delete!(info::Info,key::Symbol)
     skey = String(key)
     @assert isascii(skey) && length(skey) <= MPI_MAX_INFO_KEY
-    ccall(MPI_INFO_DELETE, Nothing,
-          (Ptr{Cint}, Ptr{UInt8}, Ref{Cint}, Csize_t),
-          info, skey, 0, sizeof(skey))
+    @mpichk ccall((:MPI_Info_delete, libmpi), Cint,
+          (CInfo, Cstring), info, skey)
 end
 
 function Base.length(info::Info)
-    if info.val == MPI_INFO_NULL
+    if info.cinfo == INFO_NULL.cinfo
         return 0
     end
     nkeys = Ref{Cint}()
-    ccall(MPI_INFO_GET_NKEYS, Nothing,
-          (Ptr{Cint}, Ptr{Cint}, Ref{Cint}),
-          info, nkeys, 0)
+    @mpichk ccall((:MPI_Info_get_nkeys, libmpi), Cint,
+                   (CInfo, Ptr{Cint}), info, nkeys)
     return Int(nkeys[])
 end
 
 function nthkey(info::Info, n::Integer)
     buffer = Vector{UInt8}(undef, MPI_MAX_INFO_KEY)
-    ccall(MPI_INFO_GET_NTHKEY, Nothing,
-          (Ptr{Cint}, Ref{Cint}, Ptr{UInt8}, Ref{Cint}, Csize_t),
-          info, n, buffer, 0, length(buffer))
-    i = findlast(!isequal(UInt8(' ')), buffer)
-    resize!(buffer, i)
+    @mpichk ccall((:MPI_Info_get_nthkey, libmpi), Cint,
+                  (CInfo, Cint, Ptr{UInt8}), info, n, buffer)
+    i = findfirst(isequal(UInt8(0)), buffer)
+    if i !== nothing
+        resize!(buffer, i-1)
+    end
     Symbol(buffer)
 end
 
