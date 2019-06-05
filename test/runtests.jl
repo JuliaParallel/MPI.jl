@@ -1,10 +1,6 @@
 using MPI
 using Test
 
-using Compat
-import Compat.String
-import Compat.Sys: BINDIR
-
 # Code coverage command line options; must correspond to src/julia.h
 # and src/ui/repl.c
 const JL_LOG_NONE = 0
@@ -32,20 +28,20 @@ end
 
 function runtests()
     nprocs = clamp(Sys.CPU_THREADS, 2, 4)
-    exename = joinpath(BINDIR, Base.julia_exename())
+    exename = joinpath(Sys.BINDIR, Base.julia_exename())
     testdir = dirname(@__FILE__)
     istest(f) = endswith(f, ".jl") && startswith(f, "test_")
     testfiles = sort(filter(istest, readdir(testdir)))
 
     extra_args = []
-    @static if !Compat.Sys.iswindows()
-      if Compat.occursin( "OpenRTE", Compat.open(f->read(f, String),`mpiexec --version`))
+    @static if !Sys.iswindows()
+      if occursin( "OpenRTE", open(f->read(f, String),`mpiexec --version`))
             push!(extra_args,"--oversubscribe")
         end
     end
 
     nfail = 0
-    Compat.printstyled("Running MPI.jl tests\n"; color=:white)
+    printstyled("Running MPI.jl tests\n"; color=:white)
     for f in testfiles
         if f ∈ excludedfiles
             println("Skipping disabled test $f")

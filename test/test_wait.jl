@@ -1,4 +1,3 @@
-using Compat
 # tests for the various kinds of waits
 using Test
 using MPI

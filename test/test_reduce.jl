@@ -1,7 +1,7 @@
 using Test
 
 using MPI
-using Compat.LinearAlgebra
+using LinearAlgebra
 
 MPI.Init()
 

@@ -1,9 +1,8 @@
 import Base: kill
 export MPIManager, launch, manage, kill, procs, connect, mpiprocs, @mpi_do
 export TransportMode, MPI_ON_WORKERS, TCP_TRANSPORT_ALL, MPI_TRANSPORT_ALL
-using Compat
-using Compat.Distributed
-import Compat.Sockets: connect, listenany, accept, IPv4, getsockname, getaddrinfo
+using Distributed
+import Sockets: connect, listenany, accept, IPv4, getsockname, getaddrinfo
 
 
 
@@ -173,7 +172,7 @@ function Distributed.launch(mgr::MPIManager, params::Dict,
                         config.io = io
                         # Add config to the correct slot so that MPI ranks and
                         # Julia pids are in the same order
-                        rank = Compat.Serialization.deserialize(io)
+                        rank = Serialization.deserialize(io)
                         idx = mgr.mode == MPI_ON_WORKERS ? rank+1 : rank
                         configs[idx] = config
                     end
@@ -209,7 +208,7 @@ function setup_worker(host, port, cookie)
 
     # Send our MPI rank to the manager
     rank = MPI.Comm_rank(MPI.COMM_WORLD)
-    Compat.Serialization.serialize(io, rank)
+    Serialization.serialize(io, rank)
 
     # Hand over control to Base
     if cookie == nothing
