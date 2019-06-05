@@ -126,3 +126,4 @@ MPI.free(win)
 MPI.free(address_win)
 
 MPI.Finalize()
+@test MPI.Finalized()

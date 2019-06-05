@@ -20,3 +20,4 @@ for dims in ([0,0,0], [0 0 0])
 end 
 
 MPI.Finalize()
+@test MPI.Finalized()

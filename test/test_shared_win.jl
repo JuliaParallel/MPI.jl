@@ -58,3 +58,4 @@ end
 
 # run with `mpirun -np 3 julia --project test_shared_win.jl`
 main()
+@test MPI.Finalized()

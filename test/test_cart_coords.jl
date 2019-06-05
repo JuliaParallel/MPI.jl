@@ -22,3 +22,4 @@ coords = MPI.Cart_coords!(comm_cart, ndims)
 @test all(coords .< dims)
 
 MPI.Finalize()
+@test MPI.Finalized()

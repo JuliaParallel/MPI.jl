@@ -118,3 +118,4 @@ MPI.Wait!(send_req)
 
 MPI.Barrier(MPI.COMM_WORLD)
 MPI.Finalize()
+@test MPI.Finalized()
