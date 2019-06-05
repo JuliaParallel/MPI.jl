@@ -531,7 +531,7 @@ end
 """
     Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
 
-Complete s blocking send of `obj` to MPI rank `dest` of communicator `comm`
+Complete a blocking send of `obj` to MPI rank `dest` of communicator `comm`
 using with the message tag `tag`.
 """
 function Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
