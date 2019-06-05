@@ -1,6 +1,7 @@
 module MPI
 
 using Libdl, Serialization
+using Requires
 
 @static if Sys.iswindows()
     const depfile = "win_mpiconstants.jl"
@@ -76,6 +77,8 @@ function __init__()
 
         recordDataType(T, mpiT)
     end
+
+    @require CuArrays="3a865a2d-5b23-5a0f-bc46-62713ec82fae" include("mpi-cuda.jl")
 end
 
 end
