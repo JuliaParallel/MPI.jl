@@ -206,6 +206,9 @@ function Init()
     end
     ccall(MPI_INIT, Nothing, (Ref{Cint},), 0)
     atexit(refcount_dec)
+
+    # initialise constants
+    INFO_NULL.cinfo = CInfo(MPI_INFO_NULL)
 end
 
 """
@@ -1728,11 +1731,11 @@ function Comm_get_parent()
 end
 
 function Comm_spawn(command::String, argv::Vector{String}, nprocs::Integer,
-                    comm::Comm, errors = Vector{Cint}(undef, nprocs))
+                    comm::Comm, errors = Vector{Cint}(undef, nprocs); kwargs...)
     c_intercomm = Ref{CComm}()
     ccall((:MPI_Comm_spawn, libmpi), Nothing,
          (Cstring, Ptr{Ptr{Cchar}}, Cint, CInfo, Cint, CComm, Ref{CComm}, Ptr{Cint}),
-         command, argv, nprocs, CInfo(INFO_NULL), 0, CComm(comm), c_intercomm, errors)
+         command, argv, nprocs, Info(kwargs...), 0, CComm(comm), c_intercomm, errors)
     return Comm(c_intercomm[])
 end
 
@@ -1829,13 +1832,6 @@ if HAVE_MPI_COMM_C2F
     function Comm(ccomm::CComm)
       Comm(ccall((:MPI_Comm_c2f, libmpi), Cint, (CComm,), ccomm))
     end
-    # Assume info is treated the same way
-    function CInfo(info::Info)
-      ccall((:MPI_Info_f2c, libmpi), CInfo, (Cint,), info.val)
-    end
-    function Info(cinfo::CInfo)
-      Info(ccall((:MPI_Info_c2f, libmpi), Cint, (CInfo,), cinfo))
-    end
 elseif sizeof(CComm) == sizeof(Cint)
     # in MPICH, both C and Fortran use identical Cint comm handles
     # and MPI_Comm_c2f is not provided.
@@ -1844,12 +1840,6 @@ elseif sizeof(CComm) == sizeof(Cint)
     end
     function Comm(ccomm::CComm)
       Comm(reinterpret(Cint, ccomm))
-    end
-    function CInfo(info::Info)
-      reinterpret(CInfo, info.val)
-    end
-    function Info(cinfo::CInfo)
-      Info(reinterpret(Cint, cinfo))
     end
 else
     @warn("No MPI_Comm_c2f found - conversion to/from MPI.CComm will not work")
