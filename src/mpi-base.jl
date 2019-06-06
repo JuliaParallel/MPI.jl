@@ -1731,11 +1731,11 @@ function Comm_get_parent()
 end
 
 function Comm_spawn(command::String, argv::Vector{String}, nprocs::Integer,
-                    comm::Comm, errors = Vector{Cint}(undef, nprocs))
+                    comm::Comm, errors = Vector{Cint}(undef, nprocs); kwargs...)
     c_intercomm = Ref{CComm}()
     ccall((:MPI_Comm_spawn, libmpi), Nothing,
          (Cstring, Ptr{Ptr{Cchar}}, Cint, CInfo, Cint, CComm, Ref{CComm}, Ptr{Cint}),
-         command, argv, nprocs, CInfo(INFO_NULL), 0, CComm(comm), c_intercomm, errors)
+         command, argv, nprocs, Info(kwargs...), 0, CComm(comm), c_intercomm, errors)
     return Comm(c_intercomm[])
 end
 
