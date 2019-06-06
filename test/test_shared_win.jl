@@ -15,7 +15,7 @@ function mpi_shared_array(node_comm::Comm, ::Type{T}, sz::Tuple{Vararg{Int}}; ow
     node_rank = MPI.Comm_rank(node_comm)
     len_to_alloc = MPI.Comm_rank(node_comm) == owner_rank ? prod(sz) : 0
     win, bufptr = MPI.Win_allocate_shared(T, len_to_alloc, node_comm)
-    
+
     if node_rank != owner_rank
         len, sizofT, bufvoidptr = MPI.Win_shared_query(win, owner_rank)
         bufptr = convert(Ptr{T}, bufvoidptr)
@@ -51,11 +51,13 @@ function main()
         @test len == prod(size(shared_arr))*elsize_bytes
         @test baseptr == pointer(shared_arr)
     end
+    MPI.free(win)
 
-    MPI.free(win)    
     MPI.Finalize()
 end
 
 # run with `mpirun -np 3 julia --project test_shared_win.jl`
 main()
+GC.gc()
+
 @test MPI.Finalized()

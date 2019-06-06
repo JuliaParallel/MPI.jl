@@ -19,4 +19,4 @@ for i in 0:2
 end
 
 MPI.Finalize()
-@test MPI.Finalized()
+#@test MPI.Finalized()

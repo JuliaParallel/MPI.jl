@@ -10,11 +10,14 @@ const FINALIZE_ATEXIT = Ref(true)
 @deprecate Info_delete(info::Info,key::AbstractString) delete!(info, Symbol(key)) false
 @deprecate Info_free(info::Info) free(info) false
 
+@deprecate Comm_free(comm::Comm) free(comm) false
+
+@deprecate Type_Commit(dtyp) Type_Commit!(dtyp) false
 
 # window functions
 @deprecate(Win_create(base::Array{T}, info::Info, comm::Comm, win::Win) where {T},
            (win = Win_create(base, comm; info...)), false)
-    
+
 @deprecate(Win_create_dynamic(info::Info, comm::Comm, win::Win),
            (win = Win_create_dynamic(comm; info...)), false)
 

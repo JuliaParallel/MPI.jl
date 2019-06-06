@@ -16,7 +16,7 @@ juliafiles = ["test_cman_julia.jl"]
 # Files to run with mpiexec -n 1
 singlefiles = ["test_spawn.jl"]
 
-excludedfiles = []
+excludedfiles = String[]
 if Sys.iswindows()
     push!(excludedfiles, "test_info.jl")
     push!(excludedfiles, "test_onesided.jl")
@@ -35,7 +35,7 @@ function runtests()
 
     extra_args = []
     @static if !Sys.iswindows()
-      if occursin( "OpenRTE", open(f->read(f, String),`mpiexec --version`))
+      if occursin( "OpenRTE", read(`mpiexec --version`, String))
             push!(extra_args,"--oversubscribe")
         end
     end
@@ -47,7 +47,7 @@ function runtests()
             println("Skipping disabled test $f")
             continue
         end
-        try
+        # try
             coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
             if f ∈ singlefiles
                 run(`mpiexec $extra_args -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
@@ -59,13 +59,13 @@ function runtests()
             Base.with_output_color(:green,stdout) do io
                 println(io,"\tSUCCESS: $f")
             end
-        catch ex
-            Base.with_output_color(:red,stderr) do io
-                println(io,"\tError: $(joinpath(testdir, f))")
-                showerror(io,ex,backtrace())
-            end
-            nfail += 1
-        end
+        # catch ex
+        #     Base.with_output_color(:red,stderr) do io
+        #         println(io,"\tError: $(joinpath(testdir, f))")
+        #         showerror(io,ex,backtrace())
+        #     end
+        #     nfail += 1
+        # end
     end
     return nfail
 end

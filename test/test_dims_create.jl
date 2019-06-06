@@ -17,7 +17,7 @@ MPI.Dims_create!(nnodes, ndims, cdims)
 for dims in ([0,0,0], [0 0 0])
     MPI.Dims_create!(nnodes, dims)
     @test prod(dims) == nnodes
-end 
+end
 
 MPI.Finalize()
 @test MPI.Finalized()
