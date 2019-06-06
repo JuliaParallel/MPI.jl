@@ -51,6 +51,26 @@ function Base.unsafe_convert(::Type{Ptr{CInfo}}, info::Info)
     convert(Ptr{CInfo}, pointer_from_objref(info))
 end
 
+if HAVE_MPI_COMM_C2F
+    # Assume info is treated the same way
+    function CInfo(finfo::Cint)
+        ccall((:MPI_Info_f2c, libmpi), CInfo, (Cint,), finfo)
+    end
+
+    # only used for use with Fortran API
+    # can be removed once we have switched to C API
+    function Base.cconvert(::Type{Ptr{Cint}}, info::Info)
+        Ref(ccall((:MPI_Info_c2f, libmpi), Cint, (CInfo,), info.cinfo))
+    end
+else
+    function CInfo(finfo::Cint)
+        reinterpret(CInfo, finfo)
+    end
+    function Base.cconvert(::Type{Ptr{Cint}}, info::Info)
+        Ref(reinterpret(Cint, info.cinfo))
+    end
+end
+
 const INFO_NULL = Info(Ref{CInfo}()[]) # get an arbitrary bit-pattern: this will be set correctly at Init time
 
 function free(info::Info)
