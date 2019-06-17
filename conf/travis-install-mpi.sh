@@ -44,7 +44,7 @@ case "$os" in
                 wget http://www.mpich.org/static/downloads/3.2.1/$MPICHVER.tar.gz
                 tar -zxf $MPICHVER.tar.gz
                 cd $MPICHVER
-                sh ./configure --prefix=$HOME/MPICH --enable-shared > /dev/null
+                sh ./configure --prefix=$HOME/mpich --enable-shared > /dev/null
                 make -j > /dev/null
                 sudo make install > /dev/null
                 ;;
@@ -55,7 +55,7 @@ case "$os" in
                 wget --no-check-certificate https://www.open-mpi.org/software/ompi/v3.0/downloads/$OMPIVER.tar.gz
                 tar -zxf $OMPIVER.tar.gz
                 cd $OMPIVER
-                sh ./configure --prefix=$HOME/OpenMPI > /dev/null
+                sh ./configure --prefix=$HOME/openmpi > /dev/null
                 make -j > /dev/null
                 sudo make install > /dev/null
                 ;;

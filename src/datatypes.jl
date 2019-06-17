@@ -169,7 +169,7 @@ const mpitype_dict = Dict{DataType, MPI_Datatype}()
 const mpitype_dict_inverse = Dict{MPI_Datatype, DataType}()
 
 function init_datatypes()
-    if MPI_VERSION >= v"2.2"
+    if Sys.iswindows() || MPI_VERSION >= v"2.2"
         # use specific-width types if available
         for (T, c) in [
             Int8 => MPI_INT8_T,
