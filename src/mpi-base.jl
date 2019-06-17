@@ -376,7 +376,7 @@ function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::MPIBu
           comm.val, rank, maxdims, coords, 0)
 end
 
-function Cart_coords!(comm::Comm, maxdims::Integer)
+function Cart_coords(comm::Comm, maxdims::Integer)
     ccoords = Vector{Cint}(undef, maxdims)
     rank    = Comm_rank(comm)
     Cart_coords!(comm, rank, maxdims, ccoords)
