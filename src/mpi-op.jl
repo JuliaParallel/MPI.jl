@@ -1,16 +1,7 @@
-using Compat
+import Base.Threads: nthreads, threadid
 
 # Implement user-defined MPI reduction operations, by passing Julia
 # functions as callbacks to MPI.
-
-# for defining thread-local variables; can use Compat
-# once JuliaLang/Compat.jl#223 is resolved.
-if isdefined(Base, :Threads)
-    import Base.Threads: nthreads, threadid
-else
-    nthreads() = 1
-    threadid() = 1
-end
 
 # Unfortunately, MPI_Op_create takes a function that does not accept
 # a void* "thunk" parameter, making it impossible to fully simulate
@@ -60,11 +51,3 @@ for (f,op) in ((+,SUM), (*,PROD),
                (&, BAND), (|, BOR), (⊻, BXOR))
     @eval user_op(::$(typeof(f))) = $op
 end
-
-Allreduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
-           count::Integer, opfunc::Function, comm::Comm) where {T} =
-    Allreduce!(sendbuf, recvbuf, count, user_op(opfunc), comm)
-
-Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
-       opfunc::Function, root::Integer, comm::Comm) where {T} =
-    Reduce(sendbuf, count, user_op(opfunc), root, comm)

@@ -1,4 +1,3 @@
-using Compat
 using Test
 using MPI
 
@@ -9,12 +8,11 @@ comm = MPI.COMM_WORLD
 const rank = MPI.Comm_rank(comm)
 const N = MPI.Comm_size(comm)
 
-win = MPI.Win()
 buf = fill(Int(rank),N)
 received = fill(-1,N)
 
 # Test Get using fence
-MPI.Win_create(buf, MPI.INFO_NULL, comm, win)
+win = MPI.Win_create(buf, comm)
 MPI.Win_fence(0, win)
 MPI.Get(received, (rank+1)%N, win)
 MPI.Win_fence(0, win)
@@ -82,16 +80,15 @@ if rank == 0
 end
 
 MPI.Barrier(comm)
-MPI.Win_free(win)
+MPI.free(win)
 MPI.Barrier(comm)
 
 # Try a dynamic window
-MPI.Win_create_dynamic(MPI.INFO_NULL, comm, win)
+win = MPI.Win_create_dynamic(comm)
 MPI.Win_attach(win, buf)
 
-address_win = MPI.Win()
 address_buf = Vector{Cptrdiff_t}(undef, 1)
-MPI.Win_create(address_buf, MPI.INFO_NULL, comm, address_win)
+address_win = MPI.Win_create(address_buf, comm)
 
 # Address for dynamic window is global instead of relative to the start of the buffer, so we need to share it
 MPI.Win_lock(MPI.LOCK_EXCLUSIVE, rank, 0, address_win)
@@ -125,5 +122,8 @@ MPI.Barrier(comm)
 
 MPI.Barrier(comm)
 MPI.Win_detach(win, buf)
-MPI.Win_free(win)
+MPI.free(win)
+MPI.free(address_win)
+
 MPI.Finalize()
+@test MPI.Finalized()

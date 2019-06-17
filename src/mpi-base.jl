@@ -1,10 +1,14 @@
-using Compat
-
 const MPIDatatype = Union{Char,
                             Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64,
                             UInt64,
                             Float32, Float64, ComplexF32, ComplexF64}
 MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
+
+# Type used to hold constant void pointers such as MPI_IN_PLACE and MPI_BOTTOM
+primitive type ConstantPtr sizeof(Ptr{Cvoid})*8 end
+Base.cconvert(::Type{Ptr{T}}, x::ConstantPtr) where {T} = reinterpret(Ptr{T}, x)
+
+MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, ConstantPtr}
 
 fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fieldnames(T))]
 
@@ -123,60 +127,7 @@ mutable struct Request
 end
 const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
 
-mutable struct Info
-    val::Cint
-    function Info()
-        newinfo = Ref{Cint}()
-        ccall(MPI_INFO_CREATE, Nothing, (Ptr{Cint}, Ref{Cint}), newinfo, 0)
-        info=new(newinfo[])
-        finalizer(info) do x
-          ccall(MPI_INFO_FREE, Nothing, (Ref{Cint}, Ref{Cint}), x.val, 0)
-          x.val = MPI_INFO_NULL
-        end
-        info
-    end
-
-    function Info(val::Cint)
-        if val != MPI_INFO_NULL
-            error("Info can only be created using Info()")
-        end
-        return new(MPI_INFO_NULL)
-    end
-end
-const INFO_NULL = Info(MPI_INFO_NULL)
-
-# the info functions assume that Fortran hidden arguments are placed at the end of the argument list
-function Info_set(info::Info,key::AbstractString,value::AbstractString)
-    @assert isascii(key) && isascii(value)
-    ccall(MPI_INFO_SET, Nothing,
-          (Ref{Cint}, Ptr{UInt8}, Ptr{UInt8}, Ref{Cint}, Csize_t, Csize_t),
-           info.val, key, value, 0, sizeof(key), sizeof(value))
-end
-
-function Info_get(info::Info,key::AbstractString)
-    @assert isascii(key)
-    keyexists=Ref{Bool}()
-    len=Ref{Cint}()
-    ccall(MPI_INFO_GET_VALUELEN, Nothing,
-          (Ref{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{Bool}, Ref{Cint}, Csize_t),
-           info.val, key, len, keyexists, 0, sizeof(key))
-    if keyexists[]
-        value=" "^(len[])
-        ccall(MPI_INFO_GET, Nothing,
-              (Ref{Cint}, Ptr{UInt8}, Ptr{Cint}, Ptr{UInt8}, Ptr{Bool}, Ref{Cint}, Csize_t, Csize_t),
-               info.val, key, len, value, keyexists, 0, sizeof(key), sizeof(value))
-    else
-        value=""
-    end
-    value
-end
-
-function Info_delete(info::Info,key::AbstractString)
-    @assert isascii(key)
-    ccall(MPI_INFO_DELETE, Nothing,
-          (Ref{Cint}, Ptr{UInt8}, Ref{Cint}, Csize_t), info.val, key, 0, sizeof(key))
-end
-Info_free(info::Info) = finalize(info)
+include("mpi-info.jl")
 
 mutable struct Status
     val::Array{Cint,1}
@@ -185,11 +136,6 @@ end
 Get_error(stat::Status) = Int(stat.val[MPI_ERROR])
 Get_source(stat::Status) = Int(stat.val[MPI_SOURCE])
 Get_tag(stat::Status) = Int(stat.val[MPI_TAG])
-
-mutable struct Win
-    val::Cint
-    Win() = new(0)
-end
 
 struct LockType
     val::Cint
@@ -204,55 +150,140 @@ const UNDEFINED  = Int(MPI_UNDEFINED)
 
 function serialize(x)
     s = IOBuffer()
-    Compat.Serialization.serialize(s, x)
+    Serialization.serialize(s, x)
     take!(s)
 end
 
 function deserialize(x)
     s = IOBuffer(x)
-    Compat.Serialization.deserialize(s)
+    Serialization.deserialize(s)
+end
+
+const REFCOUNT = Threads.Atomic{Int}(1)
+
+"""
+    refcount_inc()
+
+Increment the MPI reference counter. This should be called at initialization of any object
+which calls an MPI routine in its finalizer. A matching [`refcount_dec`](@ref) should be
+added to the finalizer.
+
+For more details, see [Finalizers](@ref).
+"""
+function refcount_inc()
+    Threads.atomic_add!(REFCOUNT, 1)
+end
+
+"""
+    refcount_dec()
+
+Decrement the MPI reference counter. This should be added after an MPI call in an object
+finalizer, with a matching [`refcount_inc`](@ref) when the object is initialized.
+
+For more details, see [Finalizers](@ref).
+"""
+function refcount_dec()
+    # refcount zero, all objects finalized, now finalize MPI
+    if Threads.atomic_sub!(REFCOUNT, 1) == 1
+        !Finalized() && _Finalize()
+    end
 end
 
 # Administrative functions
+"""
+    Init()
 
+Initialize MPI in the current process.
+
+All MPI programs must contain exactly one call to `MPI.Init()`.
+
+The only MPI functions that may be called before `MPI.Init()` are
+[`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
+"""
 function Init()
+    if REFCOUNT[] != 1
+        error("MPI REFCOUNT in incorrect state")
+    end
     ccall(MPI_INIT, Nothing, (Ref{Cint},), 0)
+    atexit(refcount_dec)
+
+    # initialise constants
+    INFO_NULL.cinfo = CInfo(MPI_INFO_NULL)
 end
 
+"""
+    Finalize()
+
+Marks MPI state for cleanup. This should be called after [`Init`](@ref), at most once, and
+no further MPI calls (other than [`Initialized`](@ref) or [`Finalized`](@ref)) should be
+made after it is called.
+
+Note that this does not correspond exactly to `MPI_FINALIZE` in the MPI specification. In
+particular:
+
+- It may not finalize MPI immediately. Julia will wait until all MPI-related objects are
+  garbage collected before finalizing MPI. As a result, [`Finalized()`](@ref) may return
+  `false` after `Finalize()` has been called. See [Finalizers](@ref) for more details.
+
+- It is optional: [`Init`](@ref) will automatically insert a hook to finalize MPI when
+  Julia exits.
+
+"""
 function Finalize()
+    # calling atexit here is a bit silly, but it's to avoid a case where MPI is finalized
+    # one object early, e.g.
+    #
+    # event         | REFCOUNT
+    # ---------------------
+    # Init()        |   1  : MPI_INIT
+    # new object    |   2  : MPI_X_CREATE
+    # Finalize()    |   1
+    # atexit        |
+    #  refcount_inc |   2  : relies on LIFO ordering
+    #  refcount_dec |   1  : MPI_FINALIZE would otherwise be called here
+    # finalizers    |
+    #  refcount_dec |   0  : MPI_X_FREE, MPI_FINALIZE
+    atexit(refcount_inc)    
+    refcount_dec()
+end
+
+function _Finalize()
     ccall(MPI_FINALIZE, Nothing, (Ref{Cint},), 0)
 end
 
-const FINALIZE_ATEXIT = Ref(false)
-
 """
-    finalize_atexit()
+    Abort(comm::Comm, errcode::Integer)
 
-Indicate that MPI.Finalize() should be called automatically at exit, if not called manually already.
-The global variable `FINALIZE_ATEXIT` indicates if this function was called.
+Make a “best attempt” to abort all tasks in the group of `comm`. This function does not
+require that the invoking environment take any action with the error code. However, a Unix
+or POSIX environment should handle this as a return errorcode from the main program.
 """
-function finalize_atexit()
-    if Sys.iswindows()
-        error("finalize_atexit is not supported on Windows")
-    end
-    ret = ccall((:install_finalize_atexit_hook, libmpi), Cint, ())
-    if ret != 0
-        error("Failed to set finalize_atexit")
-    end
-    FINALIZE_ATEXIT[] = true
-end
-
 function Abort(comm::Comm, errcode::Integer)
     ccall(MPI_ABORT, Nothing, (Ref{Cint}, Ref{Cint}, Ref{Cint}),
           comm.val, errcode, 0)
 end
 
+"""
+    Initialized()
+
+Returns `true` if [`MPI.Init`](@ref) has been called, `false` otherwise. 
+
+It is unaffected by [`MPI.Finalize`](@ref), and is one of the few functions that may be
+called before [`MPI.Init`](@ref).
+"""
 function Initialized()
     flag = Ref{Cint}()
     ccall(MPI_INITIALIZED, Nothing, (Ptr{Cint}, Ref{Cint}), flag, 0)
     flag[] != 0
 end
 
+"""
+    Finalized()
+
+Returns `true` if [`MPI.Finalize`](@ref) has completed, `false` otherwise. 
+
+It is safe to call before [`MPI.Init`](@ref) and after [`MPI.Finalize`](@ref).
+"""
 function Finalized()
     flag = Ref{Cint}()
     ccall(MPI_FINALIZED, Nothing, (Ptr{Cint}, Ref{Cint}), flag, 0)
@@ -270,6 +301,13 @@ function Comm_free(comm::Comm)
     ccall(MPI_COMM_FREE, Nothing, (Ref{Cint}, Ref{Cint}), comm.val, 0)
 end
 
+"""
+    Comm_rank(comm:Comm)
+
+The rank of the process in the particular communicator’s group. 
+
+Returns an integer in the range `0:MPI.Comm_size()-1`.
+"""
 function Comm_rank(comm::Comm)
     rank = Ref{Cint}()
     ccall(MPI_COMM_RANK, Nothing, (Ref{Cint}, Ptr{Cint}, Ref{Cint}),
@@ -277,6 +315,11 @@ function Comm_rank(comm::Comm)
     Int(rank[])
 end
 
+"""
+    Comm_size(comm:Comm)
+
+The number of processes involved in communicator.
+"""
 function Comm_size(comm::Comm)
     size = Ref{Cint}()
     ccall(MPI_COMM_SIZE, Nothing, (Ref{Cint}, Ptr{Cint}, Ref{Cint}),
@@ -292,12 +335,61 @@ function Comm_split(comm::Comm,color::Integer,key::Integer)
     MPI.Comm(newcomm[])
 end
 
-function Comm_split_type(comm::Comm,split_type::Integer,key::Integer;info::Info=INFO_NULL)
+function Comm_split_type(comm::Comm,split_type::Integer,key::Integer; kwargs...)
     newcomm = Ref{Cint}()
     ccall(MPI_COMM_SPLIT_TYPE, Nothing,
           (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ref{Cint}),
-          comm.val, split_type, key, info.val, newcomm, 0)
+          comm.val, split_type, key, Info(kwargs...), newcomm, 0)
     MPI.Comm(newcomm[])
+end
+
+function Dims_create!(nnodes::Integer, ndims::Integer, dims::MPIBuffertype{T}) where T <: Integer
+    ccall(MPI_DIMS_CREATE, Nothing, (Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}),
+          nnodes, ndims, dims, 0)
+end
+
+function Dims_create!(nnodes::Integer, dims::AbstractArray{T,N}) where T <: Integer where N
+    cdims = Cint.(dims[:])
+    ndims = length(cdims)
+    Dims_create!(nnodes, ndims, cdims)
+    dims[:] .= cdims
+end
+
+function Cart_create(comm_old::Comm, ndims::Integer, dims::MPIBuffertype{T}, periods::MPIBuffertype{T}, reorder::Integer) where T <: Integer
+    comm_cart = Ref{Cint}()
+    ccall(MPI_CART_CREATE, Nothing, 
+          (Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          comm_old.val, ndims, dims, periods, reorder, comm_cart, 0)
+    MPI.Comm(comm_cart[])
+end
+
+function Cart_create(comm_old::Comm, dims::AbstractArray{T,N}, periods::Array{T,N}, reorder::Integer) where T <: Integer where N
+    cdims    = Cint.(dims[:])
+    cperiods = Cint.(periods[:])
+    ndims    = length(cdims)
+    Cart_create(comm_old, ndims, cdims, cperiods, reorder)
+end
+
+function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::MPIBuffertype{T}) where T <: Integer
+    ccall(MPI_CART_COORDS, Nothing,
+          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}),
+          comm.val, rank, maxdims, coords, 0)
+end
+
+function Cart_coords!(comm::Comm, maxdims::Integer)
+    ccoords = Vector{Cint}(undef, maxdims)
+    rank    = Comm_rank(comm)
+    Cart_coords!(comm, rank, maxdims, ccoords)
+    Int.(ccoords)
+end
+
+function Cart_shift(comm::Comm, direction::Integer, disp::Integer)
+    rank_source = Ref{Cint}()
+    rank_dest   = Ref{Cint}()
+    ccall(MPI_CART_SHIFT, Nothing,
+          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          comm.val, direction, disp, rank_source, rank_dest, 0)
+    Int(rank_source[]), Int(rank_dest[])
 end
 
 function Wtick()
@@ -391,83 +483,217 @@ function Get_count(stat::Status, ::Type{T}) where T
     Int(count[])
 end
 
-function Send(buf::MPIBuffertype{T}, count::Integer,
-                           dest::Integer, tag::Integer, comm::Comm) where T
+"""
+    Send(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, dest::Integer, 
+        tag::Integer, comm::Comm) where T
+
+Complete a blocking send of `count` elements of type `datatype` from `buf` to MPI 
+rank `dest` of communicator `comm` using the message tag `tag`
+"""
+function Send(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, dest::Integer,
+              tag::Integer, comm::Comm) where T
     ccall(MPI_SEND, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
            Ref{Cint}),
-          buf, count, mpitype(T), dest, tag, comm.val, 0)
+          buf, count, datatype, dest, tag, comm.val, 0)
 end
 
-function Send(buf::Array{T}, dest::Integer, tag::Integer,
-                           comm::Comm) where T
+"""
+    Send(buf::MPIBuffertype{T}, count::Integer, dest::Integer, tag::Integer,
+         comm::Comm) where T
+
+Complete a blocking send of `count` elements of `buf` to MPI rank `dest`
+of communicator `comm` using with the message tag `tag`
+"""
+function Send(buf::MPIBuffertype{T}, count::Integer, dest::Integer,
+              tag::Integer, comm::Comm) where T
+    Send(buf, count, mpitype(T), dest, tag, comm)
+end
+
+"""
+    Send(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
+
+Complete a blocking send of `buf` to MPI rank `dest` of communicator `comm`
+using with the message tag `tag`
+"""
+function Send(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
     Send(buf, length(buf), dest, tag, comm)
 end
 
-function Send(buf::SubArray{T}, dest::Integer, tag::Integer,
-                           comm::Comm) where T
+"""
+    Send(buf::SubArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
+
+Complete a blocking send of `SubArray` `buf` to MPI rank `dest` of communicator
+`comm` using with the message tag `tag`. Note that the `buf` must be contiguous.
+"""
+function Send(buf::SubArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
     @assert Base.iscontiguous(buf)
     Send(buf, length(buf), dest, tag, comm)
 end
 
+"""
+    Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
+
+Complete a blocking send of `obj` to MPI rank `dest` of communicator `comm`
+using with the message tag `tag`.
+"""
 function Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
     buf = [obj]
     Send(buf, dest, tag, comm)
 end
 
+"""
+    send(obj, dest::Integer, tag::Integer, comm::Comm)
+
+Complete a blocking send of using a serialized version of `obj` to MPI rank
+`dest` of communicator `comm` using with the message tag `tag`.
+"""
 function send(obj, dest::Integer, tag::Integer, comm::Comm)
     buf = MPI.serialize(obj)
     Send(buf, dest, tag, comm)
 end
 
-function Isend(buf::MPIBuffertype{T}, count::Integer,
-                            dest::Integer, tag::Integer, comm::Comm) where T
+"""
+    Isend(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, dest::Integer, 
+          tag::Integer, comm::Comm) where T
+
+Starts a nonblocking send of `count` elements of type `datatype` from `buf` to 
+MPI rank `dest` of communicator `comm` using with the message tag `tag`
+
+Returns the commication `Request` for the nonblocking send.
+"""
+function Isend(buf::MPIBuffertype{T}, count::Integer, datatype::Cint,
+               dest::Integer, tag::Integer, comm::Comm) where T
     rval = Ref{Cint}()
     ccall(MPI_ISEND, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
            Ptr{Cint}, Ref{Cint}),
-          buf, count, mpitype(T), dest, tag, comm.val, rval, 0)
-    Request(rval[], buf)
+          buf, count, datatype, dest, tag, comm.val, rval, 0)
+    return Request(rval[], buf)
 end
 
-function Isend(buf::Array{T}, dest::Integer, tag::Integer,
-                            comm::Comm) where T
+"""
+    Isend(buf::MPIBuffertype{T}, count::Integer, dest::Integer, tag::Integer,
+          comm::Comm) where T
+
+Starts a nonblocking send of `count` elements of `buf` to MPI rank `dest`
+of communicator `comm` using with the message tag `tag`
+
+Returns the commication `Request` for the nonblocking send.
+"""
+function Isend(buf::MPIBuffertype{T}, count::Integer,
+               dest::Integer, tag::Integer, comm::Comm) where T
+    Isend(buf, count, mpitype(T), dest, tag, comm)
+end
+
+"""
+    Isend(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking send of `buf` to MPI rank `dest` of communicator `comm`
+using with the message tag `tag`
+
+Returns the commication `Request` for the nonblocking send.
+"""
+function Isend(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
     Isend(buf, length(buf), dest, tag, comm)
 end
 
+"""
+    Isend(buf::SubArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking send of `SubArray` `buf` to MPI rank `dest` of communicator
+`comm` using with the message tag `tag`. Note that the `buf` must be contiguous.
+
+Returns the commication `Request` for the nonblocking send.
+"""
 function Isend(buf::SubArray{T}, dest::Integer, tag::Integer,
-                            comm::Comm) where T
+               comm::Comm) where T
     @assert Base.iscontiguous(buf)
     Isend(buf, length(buf), dest, tag, comm)
 end
 
+"""
+    Isend(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking send of `obj` to MPI rank `dest` of communicator `comm`
+using with the message tag `tag`.
+
+Returns the commication `Request` for the nonblocking send.
+"""
 function Isend(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
     buf = [obj]
     Isend(buf, dest, tag, comm)
 end
 
+"""
+    isend(obj, dest::Integer, tag::Integer, comm::Comm)
+
+Starts a nonblocking send of using a serialized version of `obj` to MPI rank
+`dest` of communicator `comm` using with the message tag `tag`.
+
+Returns the commication `Request` for the nonblocking send.
+"""
 function isend(obj, dest::Integer, tag::Integer, comm::Comm)
     buf = MPI.serialize(obj)
     Isend(buf, dest, tag, comm)
 end
 
-function Recv!(buf::MPIBuffertype{T}, count::Integer,
-                            src::Integer, tag::Integer, comm::Comm) where T
+"""
+    Recv!(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, src::Integer, 
+          tag::Integer, comm::Comm) where T
+
+Completes a blocking receive of up to `count` elements of type `datatype` into `buf` 
+from MPI rank `src` of communicator `comm` using with the message tag `tag`
+
+Returns the `Status` of the receive
+"""
+function Recv!(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, src::Integer,
+               tag::Integer, comm::Comm) where T
     stat = Status()
     ccall(MPI_RECV, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
            Ptr{Cint}, Ref{Cint}),
-          buf, count, mpitype(T), src, tag, comm.val, stat.val, 0)
-    stat
+          buf, count, datatype, src, tag, comm.val, stat.val, 0)
+    return stat
 end
 
-function Recv!(buf::Array{T}, src::Integer, tag::Integer,
-                            comm::Comm) where T
+"""
+    Recv!(buf::MPIBuffertype{T}, count::Integer, src::Integer, tag::Integer,
+          comm::Comm) where T
+
+Completes a blocking receive of up to `count` elements into `buf` from MPI rank
+`src` of communicator `comm` using with the message tag `tag`
+
+Returns the `Status` of the receive
+"""
+function Recv!(buf::MPIBuffertype{T}, count::Integer, src::Integer,
+               tag::Integer, comm::Comm) where T
+    Recv!(buf, count, mpitype(T), src, tag, comm)
+end
+
+
+"""
+    Recv!(buf::Array{T}, src::Integer, tag::Integer, comm::Comm) where T
+
+Completes a blocking receive into `buf` from MPI rank `src` of communicator
+`comm` using with the message tag `tag`
+
+Returns the `Status` of the receive
+"""
+function Recv!(buf::Array{T}, src::Integer, tag::Integer, comm::Comm) where T
     Recv!(buf, length(buf), src, tag, comm)
 end
 
-function Recv!(buf::SubArray{T}, src::Integer, tag::Integer,
-                            comm::Comm) where T
+"""
+    Recv!(buf::SubArray{T}, src::Integer, tag::Integer, comm::Comm) where T
+
+Completes a blocking receive into `SubArray` `buf` from MPI rank `src` of
+communicator `comm` using with the message tag `tag`. Note that `buf` must be
+contiguous.
+
+Returns the `Status` of the receive
+"""
+function Recv!(buf::SubArray{T}, src::Integer, tag::Integer, comm::Comm) where T
     @assert Base.iscontiguous(buf)
     Recv!(buf, length(buf), src, tag, comm)
 end
@@ -486,21 +712,61 @@ function recv(src::Integer, tag::Integer, comm::Comm)
     (MPI.deserialize(buf), stat)
 end
 
-function Irecv!(buf::MPIBuffertype{T}, count::Integer,
-                             src::Integer, tag::Integer, comm::Comm) where T
+"""
+    Irecv!(buf::MPIBuffertype{T}, count::Integer, datatype::Cint, src::Integer, tag::Integer,
+           comm::Comm) where T
+
+Starts a nonblocking receive of up to `count` elements of type `datatype` into `buf` 
+from MPI rank `src` of communicator `comm` using with the message tag `tag`
+
+Returns the communication `Request` for the nonblocking receive.
+"""
+function Irecv!(buf::MPIBuffertype{T}, count::Integer, datatype::Cint,
+                    src::Integer, tag::Integer, comm::Comm) where T
     val = Ref{Cint}()
     ccall(MPI_IRECV, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
            Ptr{Cint}, Ref{Cint}),
-          buf, count, mpitype(T), src, tag, comm.val, val, 0)
+          buf, count, datatype, src, tag, comm.val, val, 0)
     Request(val[], buf)
 end
 
+"""
+    Irecv!(buf::MPIBuffertype{T}, count::Integer, src::Integer, tag::Integer,
+           comm::Comm) where T
+
+Starts a nonblocking receive of up to `count` elements into `buf` 
+from MPI rank `src` of communicator `comm` using with the message tag `tag`
+
+Returns the communication `Request` for the nonblocking receive.
+"""
+function Irecv!(buf::MPIBuffertype{T}, count::Integer,
+                    src::Integer, tag::Integer, comm::Comm) where T
+    Irecv!(buf, count, mpitype(T), src, tag, comm)
+end
+
+"""
+    Irecv!(buf::Array{T}, src::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking receive into `buf` from MPI rank `src` of communicator
+`comm` using with the message tag `tag`
+
+Returns the communication `Request` for the nonblocking receive.
+"""
 function Irecv!(buf::Array{T}, src::Integer, tag::Integer,
                              comm::Comm) where T
     Irecv!(buf, length(buf), src, tag, comm)
 end
 
+"""
+    Irecv!(buf::SubArray{T}, src::Integer, tag::Integer, comm::Comm) where T
+
+Starts a nonblocking receive into `SubArray` `buf` from MPI rank `src` of
+communicator `comm` using with the message tag `tag`. Note that `buf` must be
+contiguous.
+
+Returns the communication `Request` for the nonblocking receive.
+"""
 function Irecv!(buf::SubArray{T}, src::Integer, tag::Integer,
                              comm::Comm) where T
     @assert Base.iscontiguous(buf)
@@ -518,6 +784,11 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
     (true, MPI.deserialize(buf), stat)
 end
 
+"""
+    Wait!(req::Request)
+
+Wait on the request `req` to be complete. Returns the `Status` of the request.
+"""
 function Wait!(req::Request)
     stat = Status()
     ccall(MPI_WAIT, Nothing, (Ref{Cint}, Ptr{Cint}, Ref{Cint}),
@@ -538,6 +809,12 @@ function Test!(req::Request)
     (true, stat)
 end
 
+"""
+    Waitall!(reqs::Array{Request,1})
+
+Wait on all the requests in the array `reqs` to be complete. Returns an arrays
+of the all the requests statuses.
+"""
 function Waitall!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
@@ -580,6 +857,13 @@ function Testall!(reqs::Array{Request,1})
     (true, stats)
 end
 
+
+"""
+    Waitany!(reqs::Array{Request,1})
+
+Wait on any the requests in the array `reqs` to be complete. Returns the index
+of the completed request and its `Status` as a tuple.
+"""
 function Waitany!(reqs::Array{Request,1})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
@@ -677,11 +961,24 @@ function Cancel!(req::Request)
 end
 
 # Collective communication
+"""
+    Barrier(comm::Comm)
 
+Blocks until `comm` is synchronized.
+
+If `comm` is an intracommunicator, then it blocks until all members of the group have called it.
+
+If `comm` is an intercommunicator, then it blocks until all members of the other group have called it.
+"""
 function Barrier(comm::Comm)
     ccall(MPI_BARRIER, Nothing, (Ref{Cint},Ref{Cint}), comm.val, 0)
 end
 
+"""
+    Bcast!(buf[, count=length(buf)], root, comm::Comm)
+
+Broadcast the first `count` elements of the buffer `buf` from `root` to all processes.
+"""
 function Bcast!(buffer::MPIBuffertype{T}, count::Integer,
                 root::Integer, comm::Comm) where T
     ccall(MPI_BCAST, Nothing,
@@ -725,10 +1022,23 @@ function bcast(obj, root::Integer, comm::Comm)
     obj
 end
 
-function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
-                op::Op, root::Integer, comm::Comm) where T
+"""
+    Reduce!(sendbuf, recvbuf[, count=length(sendbuf)], op, root, comm)
+
+Performs `op` reduction on the first `count` elements of the  buffer `sendbuf`
+and stores the result in `recvbuf` on the process of rank `root`.
+
+On non-root processes `recvbuf` is ignored.
+
+To perform the reduction in place, see [`Reduce_in_place!`](@ref).
+
+To handle allocation of the output buffer, see [`Reduce`](@ref).
+"""
+function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                 count::Integer, op::Op, root::Integer,
+                 comm::Comm) where T
     isroot = Comm_rank(comm) == root
-    recvbuf = Array{T}(undef, isroot ? count : 0)
+    isroot && @assert length(recvbuf) >= count
     ccall(MPI_REDUCE, Nothing,
           (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
            Ref{Cint}, Ref{Cint}),
@@ -737,8 +1047,40 @@ function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
     isroot ? recvbuf : nothing
 end
 
-function Reduce(sendbuf::Array{T}, op::Union{Op,Function}, root::Integer, comm::Comm) where T
-    Reduce(sendbuf, length(sendbuf), op, root, comm)
+# Convert user-provided functions to MPI.Op
+Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+        count::Integer, opfunc::Function, root::Integer,
+        comm::Comm) where {T} =
+    Reduce!(sendbuf, recvbuf, count, user_op(opfunc), root, comm)
+
+function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                 op::Union{Op, Function}, root::Integer, comm::Comm) where T
+    Reduce!(sendbuf, recvbuf, length(sendbuf), op, root, comm)
+end
+
+"""
+    Reduce(sendbuf, count, op, root, comm)
+
+Performs `op` reduction on the buffer `sendbuf` and stores the result in
+an output buffer allocated on the process of rank `root`. An empty array
+will be returned on all other processes.
+
+To specify the output buffer, see [`Reduce!`](@ref).
+
+To perform the reduction in place, see [`Reduce_in_place!`](@ref).
+"""
+function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
+                op::Union{Op, Function}, root::Integer, comm::Comm) where T
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array{T}(undef, isroot ? count : 0)
+    Reduce!(sendbuf, recvbuf, count, op, root, comm)
+end
+
+function Reduce(sendbuf::Array{T,N}, op::Union{Op,Function},
+    root::Integer, comm::Comm) where {T,N}
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array{T,N}(undef, isroot ? size(sendbuf) : Tuple(zeros(Int, ndims(sendbuf))))
+    Reduce!(sendbuf, recvbuf, length(sendbuf), op, root, comm)
 end
 
 function Reduce(sendbuf::SubArray{T}, op::Union{Op,Function}, root::Integer, comm::Comm) where T
@@ -753,18 +1095,113 @@ function Reduce(object::T, op::Union{Op,Function}, root::Integer, comm::Comm) wh
     isroot ? recvbuf[1] : nothing
 end
 
-function Allreduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+"""
+    Reduce_in_place!(buf, count, op, root, comm)
+
+Performs `op` reduction on the first `count` elements of the buffer `buf` and
+stores the result on `buf` of the `root` process in the group.
+
+This is equivalent to calling
+```julia
+if root == MPI.Comm_rank(comm)
+    Reduce!(MPI.IN_PLACE, buf, count, root, comm)
+else
+    Reduce!(buf, C_NULL, count, root, comm)
+end
+```
+
+To handle allocation of the output buffer, see [`Reduce`](@ref).
+
+To specify a separate output buffer, see [`Reduce!`](@ref).
+"""
+function Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer,
+                          op::Op, root::Integer,
+                          comm::Comm) where T
+    if Comm_rank(comm) == root
+        @assert length(buf) >= count
+        ccall(MPI_REDUCE, Nothing,
+              (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
+               Ref{Cint}, Ref{Cint}),
+               MPI.IN_PLACE, buf, count, mpitype(T), op.val, root, comm.val,
+               0)
+    else
+        ccall(MPI_REDUCE, Nothing,
+              (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint},
+               Ref{Cint}, Ref{Cint}),
+               buf, C_NULL, count, mpitype(T), op.val, root, comm.val,
+               0)
+    end
+    buf
+end
+
+# Convert to MPI.Op
+Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer, op::Function,
+                 root::Integer, comm::Comm) where T =
+                    Reduce_in_place!(buf, count, user_op(op), root, comm)
+
+"""
+    Allreduce!(sendbuf, recvbuf[, count=length(sendbuf)], op, comm)
+
+Performs `op` reduction on the first `count` elements of the buffer
+`sendbuf` storing the result in the `recvbuf` of all processes in the
+group.
+
+All-reduce is equivalent to a [`Reduce!`](@ref) operation followed by
+a [`Bcast!`](@ref), but can lead to better performance.
+
+If `sendbuf==MPI.IN_PLACE` the data is read from `recvbuf` and then overwritten
+with the results.
+
+To handle allocation of the output buffer, see [`Allreduce`](@ref).
+"""
+function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                    count::Integer, op::Op, comm::Comm) where T
+    @assert length(recvbuf) >= count
     ccall(MPI_ALLREDUCE, Nothing, (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint},
           Ref{Cint}, Ref{Cint}), sendbuf, recvbuf, count, mpitype(T),
           op.val, comm.val, 0)
-
     recvbuf
 end
 
-function Allreduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+# Convert user-provided functions to MPI.Op
+Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
+           count::Integer, opfunc::Function, comm::Comm) where {T} =
+    Allreduce!(sendbuf, recvbuf, count, user_op(opfunc), comm)
+
+function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                    op::Union{Op,Function}, comm::Comm) where T
     Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
+end
+
+"""
+    Allreduce!(buf, op, comm)
+
+Performs `op` reduction in place on the buffer `sendbuf`, overwriting it with
+the results on all the processes in the group.
+
+Equivalent to calling `Allreduce!(MPI.IN_PLACE, buf, op, comm)`
+"""
+function Allreduce!(buf::MPIBuffertype{T}, op::Union{Op, Function}, comm::Comm) where T
+    Allreduce!(MPI.IN_PLACE, buf, length(buf), op, comm)
+end
+
+"""
+    Allreduce(sendbuf, op, comm)
+
+Performs `op` reduction on the buffer `sendbuf`, allocating and returning the
+output buffer in all processes of the group.
+
+To specify the output buffer or perform the operation in pace, see [`Allreduce!`](@ref).
+"""
+function Allreduce(sendbuf::MPIBuffertype{T}, op::Union{Op,Function}, comm::Comm) where T
+
+  recvbuf = similar(sendbuf)
+  Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
+end
+
+function Allreduce(sendbuf::Array{T, N}, op::Union{Op, Function}, comm::Comm) where {T, N}
+    recvbuf = Array{T,N}(undef, size(sendbuf))
+    Allreduce!(sendbuf, recvbuf, length(sendbuf), op, comm)
 end
 
 function Allreduce(obj::T, op::Union{Op,Function}, comm::Comm) where T
@@ -775,18 +1212,36 @@ function Allreduce(obj::T, op::Union{Op,Function}, comm::Comm) where T
     outref[]
 end
 
-# allocate receive buffer automatically
-function allreduce(sendbuf::MPIBuffertype{T}, op::Union{Op,Function}, comm::Comm) where T
-
-  recvbuf = similar(sendbuf)
-  Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
+# Deprecation warning for lowercase allreduce that was used until v. 0.7.2
+# Should be removed at some point in the future
+function allreduce(sendbuf::MPIBuffertype{T}, op::Union{Op,Function},
+                   comm::Comm) where T
+    @warn "`allreduce` is deprecated, use `Allreduce` instead."
+    Allreduce(sendbuf, op, comm)
 end
 
 include("mpi-op.jl")
 
-function Scatter(sendbuf::MPIBuffertype{T},count::Integer, root::Integer,
-                 comm::Comm) where T
-    recvbuf = Array{T}(undef, count)
+"""
+    Scatter!(sendbuf, recvbuf, count, root, comm)
+
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
+and sends the j-th chunk to the process of rank j into the `recvbuf` buffer,
+which must be of length at least `count`.
+
+`count` should be the same for all processes. If the number of elements varies between
+processes, use [`Scatter!`](@ref) instead.
+
+To perform the reduction in place, see [`Scatter_in_place!`](@ref).
+
+To handle allocation of the output buffer, see [`Scatter`](@ref).
+"""
+function Scatter!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                  count::Integer, root::Integer,
+                  comm::Comm) where T
+    @assert length(recvbuf) >= count
+    isroot = Comm_rank(comm) == root
+    isroot && @assert length(sendbuf) >= count*Comm_size(comm)
     ccall(MPI_SCATTER, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint},
            Ref{Cint}, Ref{Cint}, Ref{Cint}), sendbuf, count, mpitype(T),
@@ -794,26 +1249,159 @@ function Scatter(sendbuf::MPIBuffertype{T},count::Integer, root::Integer,
     recvbuf
 end
 
-function Scatterv(sendbuf::MPIBuffertype{T},
-                  counts::Vector{Cint}, root::Integer,
+"""
+    Scatter_in_place!(buf, count, root, comm)
+
+Splits the buffer `buf` in the `root` process into `Comm_size(comm)` chunks
+and sends the j-th chunk to the process of rank j. No data is sent to the `root`
+process.
+
+This is functionally equivalent to calling
+```
+if root == MPI.Comm_rank(comm)
+    Scatter!(buf, MPI.IN_PLACE, count, root, comm)
+else
+    Scatter!(C_NULL, buf, count, root, comm)
+end
+```
+
+To specify a separate output buffer, see [`Scatter!`](@ref).
+
+To handle allocation of the output buffer, see [`Scatter`](@ref).
+"""
+function Scatter_in_place!(buf::MPIBuffertype{T},
+                  count::Integer, root::Integer,
                   comm::Comm) where T
-    recvbuf = Array{T}(undef, counts[Comm_rank(comm) + 1])
+    if Comm_rank(comm) == root
+        ccall(MPI_SCATTER, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{Cvoid}, Ref{Cint}, Ref{Cint},
+               Ref{Cint}, Ref{Cint}, Ref{Cint}), buf, count, mpitype(T),
+               MPI.IN_PLACE, count, mpitype(T), root, comm.val, 0)
+    else
+        ccall(MPI_SCATTER, Nothing,
+            (Ptr{Cvoid}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint},
+            Ref{Cint}, Ref{Cint}, Ref{Cint}), C_NULL, count, mpitype(T),
+            buf, count, mpitype(T), root, comm.val, 0)
+    end
+    buf
+end
+
+"""
+    Scatter(sendbuf, count, root, comm)
+
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
+and sends the j-th chunk to the process of rank j, allocating the output buffer.
+"""
+function Scatter(sendbuf::MPIBuffertype{T}, count::Integer, root::Integer,
+                 comm::Comm) where T
+    recvbuf = Array{T}(undef, count)
+    Scatter!(sendbuf, recvbuf, count, root, comm)
+end
+
+"""
+    Scatterv!(sendbuf, recvbuf, counts, root, comm)
+
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
+of length `counts[j]` and sends the j-th chunk to the process of rank j into the
+`recvbuf` buffer, which must be of length at least `count`.
+
+To perform the reduction in place refer to [`Scatterv_in_place!`](@ref).
+"""
+function Scatterv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                  counts::Vector{Cint}, root::Integer, comm::Comm) where T
     recvcnt = counts[Comm_rank(comm) + 1]
     disps = accumulate(+, counts) - counts
+    @assert length(recvbuf) >= recvcnt
     ccall(MPI_SCATTERV, Nothing,
           (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, counts, disps, mpitype(T), recvbuf, recvcnt, mpitype(T), root, comm.val, 0)
     recvbuf
 end
 
-function Gather(sendbuf::MPIBuffertype{T}, count::Integer,
-                root::Integer, comm::Comm) where T
+"""
+    Scatterv(sendbuf, counts, root, comm)
+
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
+of length `counts[j]` and sends the j-th chunk to the process of rank j, which
+allocates the output buffer
+"""
+function Scatterv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
+                   root::Integer, comm::Comm) where T
+    recvbuf = Array{T}(undef, counts[Comm_rank(comm) + 1])
+    Scatterv!(sendbuf, recvbuf, counts, root, comm)
+end
+
+"""
+    Scatterv_in_place(buf, counts, root, comm)
+
+Splits the buffer `buf` in the `root` process into `Comm_size(comm)` chunks
+of length `counts[j]` and sends the j-th chunk to the process of rank j into the
+`buf` buffer, which must be of length at least `count`. The `root` process sends
+nothing to itself.
+
+This is functionally equivalent to calling
+```
+if root == MPI.Comm_rank(comm)
+    Scatterv!(buf, MPI.IN_PLACE, counts, root, comm)
+else
+    Scatterv!(C_NULL, buf, counts, root, comm)
+end
+```
+"""
+function Scatterv_in_place!(buf::MPIBuffertype{T}, counts::Vector{Cint},
+                           root::Integer, comm::Comm) where T
+    recvcnt = counts[Comm_rank(comm) + 1]
+    disps = accumulate(+, counts) - counts
+    @assert length(buf) >= recvcnt
+
+    if Comm_rank(comm) == root
+        ccall(MPI_SCATTERV, Nothing,
+              (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              buf, counts, disps, mpitype(T), IN_PLACE, recvcnt, mpitype(T), root, comm.val, 0)
+
+    else
+        ccall(MPI_SCATTERV, Nothing,
+              (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              C_NULL, counts, disps, mpitype(T), buf, recvcnt, mpitype(T), root, comm.val, 0)
+    end
+    buf
+end
+
+"""
+    Gather!(sendbuf, recvbuf, count, root, comm)
+
+Each process sends the first `count` elements of the buffer `sendbuf` to the
+`root` process. The `root` process stores elements in rank order in the buffer
+buffer `recvbuf`.
+
+`count` should be the same for all processes. If the number of elements varies between
+processes, use [`Gatherv!`](@ref) instead.
+
+To perform the reduction in place refer to [`Gather_in_place!`](@ref).
+"""
+function Gather!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                count::Integer, root::Integer, comm::Comm) where T
+    @assert length(sendbuf) >= count
     isroot = Comm_rank(comm) == root
-    recvbuf = Array{T}(undef, isroot ? Comm_size(comm) * count : 0)
+    isroot && @assert length(recvbuf) >= count*Comm_size(comm)
     ccall(MPI_GATHER, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, count, mpitype(T), recvbuf, count, mpitype(T), root, comm.val, 0)
     isroot ? recvbuf : nothing
+end
+
+"""
+    Gather(sendbuf[, count=length(sendbuf)], root, comm)
+
+Each process sends the first `count` elements of the buffer `sendbuf` to the
+`root` process. The `root` allocates the output buffer and stores elements in
+rank order.
+"""
+function Gather(sendbuf::MPIBuffertype{T}, count::Integer,
+                root::Integer, comm::Comm) where T
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array{T}(undef, isroot ? Comm_size(comm) * count : 0)
+    Gather!(sendbuf, recvbuf, count, root, comm)
 end
 
 function Gather(sendbuf::Array{T}, root::Integer, comm::Comm) where T
@@ -832,13 +1420,78 @@ function Gather(object::T, root::Integer, comm::Comm) where T
     isroot ? recvbuf : nothing
 end
 
-function Allgather(sendbuf::MPIBuffertype{T}, count::Integer,
-                   comm::Comm) where T
-    recvbuf = Array{T}(undef, Comm_size(comm) * count)
+"""
+    Gather_in_place!(buf, count, root, comm)
+
+Each process sends the first `count` elements of the buffer `buf` to the
+`root` process. The `root` process stores elements in rank order in the buffer
+buffer `buf`, sending no data to itself.
+
+This is functionally equivalent to calling
+```
+if root == MPI.Comm_rank(comm)
+    Gather!(MPI.IN_PLACE, buf, count, root, comm)
+else
+    Gather!(buf, C_NULL, count, root, comm)
+end
+```
+"""
+function Gather_in_place!(buf::MPIBuffertype{T}, count::Integer, root::Integer,
+                          comm::Comm) where T
+    if Comm_rank(comm) == root
+        @assert length(buf) >= count*Comm_size(comm)
+        ccall(MPI_GATHER, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              IN_PLACE, count, mpitype(T), buf, count, mpitype(T), root, comm.val, 0)
+    else
+        ccall(MPI_GATHER, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              buf, count, mpitype(T), C_NULL, count, mpitype(T), root, comm.val, 0)
+    end
+    buf
+end
+
+"""
+    Allgather!(sendbuf, recvbuf, count, comm)
+
+Each process sends the first `count` elements of `sendbuf` to the
+other processes, who store the results in rank order into
+`recvbuf`.
+
+If `sendbuf==MPI.IN_PLACE` the input data is assumed to be in the
+area of `recvbuf` where the process would receive it's own
+contribution.
+"""
+function Allgather!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
+                    count::Integer, comm::Comm) where T
+    @assert length(recvbuf) >= Comm_size(comm)*count
     ccall(MPI_ALLGATHER, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, count, mpitype(T), recvbuf, count, mpitype(T), comm.val, 0)
     recvbuf
+end
+
+"""
+    Allgather!(buf, count, comm)
+
+Equivalent to `Allgather!(MPI.IN_PLACE, buf, count, comm)`.
+"""
+function Allgather!(buf::MPIBuffertype{T}, count::Integer,
+                   comm::Comm) where T
+    Allgather!(MPI.IN_PLACE, buf, count, comm)
+end
+
+"""
+    Allgather(sendbuf, count, comm)
+
+Each process sends the first `count` elements of `sendbuf` to the
+other processes, who store the results in rank order allocating
+the output buffer.
+"""
+function Allgather(sendbuf::MPIBuffertype{T}, count::Integer,
+                   comm::Comm) where T
+    recvbuf = Array{T}(undef, Comm_size(comm) * count)
+    Allgather!(sendbuf, recvbuf, count, comm)
 end
 
 function Allgather(sendbuf::Array{T}, comm::Comm) where T
@@ -856,47 +1509,184 @@ function Allgather(object::T, comm::Comm) where T
     recvbuf
 end
 
-function Gatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
-                 root::Integer, comm::Comm) where T
+"""
+    Gatherv!(sendbuf, recvbuf, counts, root, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
+the `root` process. The `root` stores elements in rank order in the buffer
+`recvbuf`.
+
+To perform the reduction in place refer to [`Gatherv_in_place!`](@ref).
+"""
+function Gatherv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                  counts::Vector{Cint}, root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
     displs = accumulate(+, counts) - counts
     sendcnt = counts[Comm_rank(comm) + 1]
-    recvbuf = Array{T}(undef, isroot ? sum(counts) : 0)
+    isroot && @assert length(recvbuf) >= sum(counts)
     ccall(MPI_GATHERV, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, sendcnt, mpitype(T), recvbuf, counts, displs, mpitype(T), root, comm.val, 0)
     isroot ? recvbuf : nothing
 end
 
-function Allgatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
-                    comm::Comm) where T
-    displs = accumulate(+, counts) - counts
-    sendcnt = counts[Comm_rank(comm) + 1]
-    recvbuf = Array{T}(undef, sum(counts))
-    ccall(MPI_ALLGATHERV, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          sendbuf, sendcnt, mpitype(T), recvbuf, counts, displs, mpitype(T), comm.val, 0)
-    recvbuf
+"""
+    Gatherv(sendbuf, counts, root, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
+the `root` process. The `root` allocates the output buffer and stores elements
+in rank order.
+"""
+function Gatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
+                 root::Integer, comm::Comm) where T
+    isroot = Comm_rank(comm) == root
+    recvbuf = Array{T}(undef, isroot ? sum(counts) : 0)
+    Gatherv!(sendbuf, recvbuf, counts, root, comm)
 end
 
-function Alltoall(sendbuf::MPIBuffertype{T}, count::Integer,
-                  comm::Comm) where T
-    recvbuf = Array{T}(undef, Comm_size(comm)*count)
+"""
+    Gatherv_in_place!(buf, counts, root, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `buf` to
+the `root` process. The `root` allocates the output buffer and stores elements
+in rank order.
+
+This is functionally equivalent to calling
+```
+if root == MPI.Comm_rank(comm)
+    Gatherv!(MPI.IN_PLACE, buf, counts, root, comm)
+else
+    Gatherv!(buf, C_NULL, counts, root, comm)
+end
+```
+"""
+function Gatherv_in_place!(buf::MPIBuffertype{T}, counts::Vector{Cint},
+                           root::Integer, comm::Comm) where T
+    isroot = Comm_rank(comm) == root
+    displs = accumulate(+, counts) - counts
+    sendcnt = counts[Comm_rank(comm) + 1]
+
+    if isroot
+        @assert length(buf) >= sum(counts)
+        ccall(MPI_GATHERV, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              IN_PLACE, sendcnt, mpitype(T), buf, counts, displs, mpitype(T), root, comm.val, 0)
+    else
+        ccall(MPI_GATHERV, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              buf, sendcnt, mpitype(T), C_NULL, counts, displs, mpitype(T), root, comm.val, 0)
+    end
+    buf
+end
+
+
+"""
+    Allgatherv!(sendbuf, recvbuf, counts, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
+all other process. Each process stores the received data in rank order in the
+buffer `recvbuf`.
+
+if `sendbuf==MPI.IN_PLACE` every process takes the data to be sent is taken from
+the interval of `recvbuf` where it would store it's own data.
+"""
+function Allgatherv!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
+	                     counts::Vector{Cint}, comm::Comm) where T
+        @assert length(recvbuf) >= sum(counts)
+        displs = accumulate(+, counts) - counts
+        sendcnt = counts[Comm_rank(comm) + 1]
+        ccall(MPI_ALLGATHERV, Nothing,
+              (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+              sendbuf, sendcnt, mpitype(T), recvbuf, counts, displs, mpitype(T), comm.val, 0)
+        recvbuf
+end
+
+"""
+    Allgatherv(sendbuf, counts, comm)
+
+Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
+all other process. Each process allocates an output buffer and stores the
+received data in rank order.
+"""
+function Allgatherv(sendbuf::MPIBuffertype{T}, counts::Vector{Cint},
+                    comm::Comm) where T
+    recvbuf = Array{T}(undef, sum(counts))
+    Allgatherv!(sendbuf, recvbuf, counts, comm)
+end
+
+"""
+    Alltoall!(sendbuf, recvbuf, count, comm)
+
+Every process divides the buffer `sendbuf` into `Comm_size(comm)` chunks of
+length `count`, sending the `j`-th chunk to the `j`-th process.
+Every process stores the data received from the `j`-th process in the `j`-th
+chunk of the buffer `recvbuf`.
+
+```
+rank    send buf                        recv buf
+----    --------                        --------
+ 0      a,b,c,d,e,f       Alltoall      a,b,A,B,α,β
+ 1      A,B,C,D,E,F  ---------------->  c,d,C,D,γ,ψ
+ 2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν
+```
+
+If `sendbuf==MPI.IN_PLACE`, data is sent from the `recvbuf` and then
+overwritten.
+"""
+function Alltoall!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
+                   count::Integer, comm::Comm) where T
     ccall(MPI_ALLTOALL, Nothing,
           (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
           sendbuf, count, mpitype(T), recvbuf, count, mpitype(T), comm.val, 0)
     recvbuf
 end
 
-function Alltoallv(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
-                   rcounts::Vector{Cint}, comm::Comm) where T
-    recvbuf = Array{T}(undef, sum(rcounts))
+"""
+    Alltoall(sendbuf, count, comm)
+
+Every process divides the buffer `sendbuf` into `Comm_size(comm)` chunks of
+length `count`, sending the `j`-th chunk to the `j`-th process.
+Every process allocates the output buffer and stores the data received from the
+`j`-th process in the `j`-th chunk.
+
+```
+rank    send buf                        recv buf
+----    --------                        --------
+ 0      a,b,c,d,e,f       Alltoall      a,b,A,B,α,β
+ 1      A,B,C,D,E,F  ---------------->  c,d,C,D,γ,ψ
+ 2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν
+```
+"""
+function Alltoall(sendbuf::MPIBuffertype{T}, count::Integer,
+                  comm::Comm) where T
+    recvbuf = Array{T}(undef, Comm_size(comm)*count)
+    Alltoall!(sendbuf, recvbuf, count, comm)
+end
+
+"""
+    Alltoallv!(sendbuf::T, recvbuf::T, scounts, rcounts, comm)
+
+`MPI.IN_PLACE` is not supported for this operation.
+"""
+function Alltoallv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+                   scounts::Vector{Cint}, rcounts::Vector{Cint},
+                   comm::Comm) where T
+    @assert length(recvbuf) == sum(rcounts)
+
     sdispls = accumulate(+, scounts) - scounts
     rdispls = accumulate(+, rcounts) - rcounts
     ccall(MPI_ALLTOALLV, Nothing,
-          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          sendbuf, scounts, sdispls, mpitype(T), recvbuf, rcounts, rdispls, mpitype(T), comm.val, 0)
+          (Ptr{T}, Ptr{Cint}, Ptr{Cint}, Ref{Cint}, Ptr{T}, Ptr{Cint},
+           Ptr{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
+          sendbuf, scounts, sdispls, mpitype(T), recvbuf, rcounts,
+          rdispls, mpitype(T), comm.val, 0)
     recvbuf
+end
+
+function Alltoallv(sendbuf::MPIBuffertype{T}, scounts::Vector{Cint},
+                   rcounts::Vector{Cint}, comm::Comm) where T
+    recvbuf = Array{T}(undef, sum(rcounts))
+    Alltoallv!(sendbuf, recvbuf, scounts, rcounts, comm)
 end
 
 function Scan(sendbuf::MPIBuffertype{T}, count::Integer,
@@ -927,133 +1717,6 @@ function Exscan(object::T, op::Op, comm::Comm) where T
     Exscan(sendbuf,1,op,comm)
 end
 
-function Win_create(base::Array{T}, info::Info, comm::Comm, win::Win) where T
-    out_win = Ref(win.val)
-    ccall(MPI_WIN_CREATE, Nothing,
-          (Ptr{T}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          base, Cptrdiff_t(length(base)), sizeof(T), info.val, comm.val, out_win, 0)
-    win.val = out_win[]
-end
-
-function Win_create_dynamic(info::Info, comm::Comm, win::Win)
-    out_win = Ref(win.val)
-    ccall(MPI_WIN_CREATE_DYNAMIC, Nothing,
-          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          info.val, comm.val, out_win, 0)
-    win.val = out_win[]
-end
-
-function Win_allocate_shared(::Type{T}, len::Int, info::Info, comm::Comm, win::Win) where T
-    out_win = Ref(win.val)
-    out_baseptr = Ref{Ptr{T}}()
-    ccall(MPI_WIN_ALLOCATE_SHARED, Nothing,
-          (Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Ptr{T}}, Ref{Cint}, Ref{Cint}),
-          Cptrdiff_t(len*sizeof(T)), sizeof(T), info.val, comm.val, out_baseptr, out_win, 0)
-    win.val = out_win[]
-    out_baseptr[]
-end
-
-function Win_shared_query(win::Win, owner_rank::Int)
-    out_len = Ref{Cptrdiff_t}()
-    out_sizeT = Ref{Cint}()
-    out_baseptr = Ref{Ptr{Cvoid}}()
-    ccall(MPI_WIN_SHARED_QUERY, Nothing,
-          (Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Ptr{Cvoid}}, Ref{Cint}),
-          win.val, owner_rank, out_len, out_sizeT, out_baseptr, 0)
-    out_len[], out_sizeT[], out_baseptr[]
-end
-
-function Win_attach(win::Win, base::Array{T}) where T
-    ccall(MPI_WIN_ATTACH, Nothing,
-          (Ref{Cint}, Ptr{T}, Ref{Cptrdiff_t}, Ref{Cint}),
-          win.val, base, Cptrdiff_t(sizeof(base)), 0)
-end
-
-function Win_detach(win::Win, base::Array{T}) where T
-    ccall(MPI_WIN_DETACH, Nothing,
-          (Ref{Cint}, Ptr{T}, Ref{Cint}),
-          win.val, base, 0)
-end
-
-function Win_fence(assert::Integer, win::Win)
-    ccall(MPI_WIN_FENCE, Nothing, (Ref{Cint}, Ref{Cint}, Ref{Cint}), assert, win.val, 0)
-end
-
-function Win_flush(rank::Integer, win::Win)
-    ccall(MPI_WIN_FLUSH, Nothing, (Ref{Cint}, Ref{Cint}, Ref{Cint}), rank, win.val, 0)
-end
-
-function Win_free(win::Win)
-    ccall(MPI_WIN_FREE, Nothing, (Ref{Cint}, Ref{Cint}), win.val, 0)
-end
-
-function Win_sync(win::Win)
-    ccall(MPI_WIN_SYNC, Nothing, (Ref{Cint}, Ref{Cint}), win.val, 0)
-end
-
-function Win_sync(win::CWin)
-    ccall((:MPI_Win_sync, libmpi), Nothing, (CWin,), win)
-end
-
-function Win_lock(lock_type::LockType, rank::Integer, assert::Integer, win::Win)
-    ccall(MPI_WIN_LOCK, Nothing,
-          (Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          lock_type.val, rank, assert, win.val, 0)
-end
-
-function Win_unlock(rank::Integer, win::Win)
-    ccall(MPI_WIN_UNLOCK, Nothing, (Ref{Cint}, Ref{Cint}, Ref{Cint}), rank, win.val, 0)
-end
-
-function Get(origin_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, win::Win) where T
-    ccall(MPI_GET, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), win.val, 0)
-end
-function Get(origin_buffer::Array{T}, target_rank::Integer, win::Win) where T
-    count = length(origin_buffer)
-    Get(origin_buffer, count, target_rank, 0, win)
-end
-function Get(origin_value::Ref{T}, target_rank::Integer, win::Win) where T
-    Get(origin_value, 1, target_rank, 0, win)
-end
-
-function Put(origin_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, win::Win) where T
-    ccall(MPI_PUT, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), win.val, 0)
-end
-function Put(origin_buffer::Array{T}, target_rank::Integer, win::Win) where T
-    count = length(origin_buffer)
-    Put(origin_buffer, count, target_rank, 0, win)
-end
-function Put(origin_value::Ref{T}, target_rank::Integer, win::Win) where T
-    Put(origin_value, 1, target_rank, 0, win)
-end
-
-function Fetch_and_op(sourceval::MPIBuffertype{T}, returnval::MPIBuffertype{T}, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where T
-    ccall(MPI_FETCH_AND_OP, Nothing,
-          (Ptr{T}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          sourceval, returnval, mpitype(T), target_rank, Cptrdiff_t(target_disp), op.val, win.val, 0)
-end
-
-function Fetch_and_op(sourceval::MPIBuffertype{T}, returnval::MPIBuffertype{T}, target_rank::Integer, target_disp::Integer, op::Op, win::CWin) where T
-    ccall((:MPI_Fetch_and_op, libmpi), Nothing,
-          (Ptr{T}, Ptr{T}, Cint, Cint, Cptrdiff_t, Cint, CWin),
-          sourceval, returnval, mpitype(T), target_rank, target_disp, op.val, win)
-end
-
-function Accumulate(origin_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where T
-    ccall(MPI_ACCUMULATE, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), op.val, win.val, 0)
-end
-
-function Get_accumulate(origin_buffer::MPIBuffertype{T}, result_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where T
-    ccall(MPI_GET_ACCUMULATE, Nothing,
-          (Ptr{T}, Ref{Cint}, Ref{Cint}, Ptr{T}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}, Ref{Cint}),
-          origin_buffer, count, mpitype(T), result_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), op.val, win.val, 0)
-end
 
 function Get_address(location::MPIBuffertype{T}) where T
     addr = Ref{Cptrdiff_t}(0)
@@ -1068,11 +1731,11 @@ function Comm_get_parent()
 end
 
 function Comm_spawn(command::String, argv::Vector{String}, nprocs::Integer,
-                    comm::Comm, errors = Vector{Cint}(undef, nprocs))
+                    comm::Comm, errors = Vector{Cint}(undef, nprocs); kwargs...)
     c_intercomm = Ref{CComm}()
     ccall((:MPI_Comm_spawn, libmpi), Nothing,
          (Cstring, Ptr{Ptr{Cchar}}, Cint, CInfo, Cint, CComm, Ref{CComm}, Ptr{Cint}),
-         command, argv, nprocs, CInfo(INFO_NULL), 0, CComm(comm), c_intercomm, errors)
+         command, argv, nprocs, Info(kwargs...), 0, CComm(comm), c_intercomm, errors)
     return Comm(c_intercomm[])
 end
 
@@ -1097,6 +1760,41 @@ function Type_Create_Struct(nfields::Integer, blocklengths::MPIBuffertype{Cint},
   end
 
   return newtype_ref[]
+end
+
+"""
+    Type_Create_Subarray(ndims::Integer, array_of_sizes::MPIBuffertype{Cint},
+                         array_of_subsizes::MPIBuffertype{Cint},
+                         array_of_starts::MPIBuffertype{Cint}, order::Integer, oldtype)
+
+Creates a data type describing an `ndims`-dimensional subarray of size `array_of_subsizes`
+of an `ndims-dimensional` array of size `array_of_sizes` and element type `oldtype`,
+starting at the top-left location `array_of_starts`. The parameter `order` refers to
+the memory layout of the parent array, and can be either `MPI_ORDER_C` or
+`MPI_ORDER_FORTRAN`. Note that, like other MPI data types, the type returned by this
+function should be committed with `MPI_Type_commit`.
+"""
+function Type_Create_Subarray(ndims::Integer,
+                              array_of_sizes::MPIBuffertype{Cint},
+                              array_of_subsizes::MPIBuffertype{Cint},
+                              array_of_starts::MPIBuffertype{Cint},
+                              order::Integer,
+                              oldtype)
+
+    newtype_ref = Ref{Cint}()
+    flag = Ref{Cint}()
+
+    ccall(MPI_TYPE_CREATE_SUBARRAY, Nothing,
+        (Ref{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint},
+         Ref{Cint}, Ref{Cint}, Ptr{Cint}, Ptr{Cint}),
+        ndims, array_of_sizes, array_of_subsizes, array_of_starts,
+        order, mpitype(oldtype), newtype_ref, flag)
+
+    if flag[] != 0
+        throw(ErrorException("MPI_Type_create_subarray returned non-zero exit status"))
+    end
+
+    return newtype_ref[]
 end
 
 function Type_Contiguous(count::Integer, oldtype)
@@ -1134,19 +1832,6 @@ if HAVE_MPI_COMM_C2F
     function Comm(ccomm::CComm)
       Comm(ccall((:MPI_Comm_c2f, libmpi), Cint, (CComm,), ccomm))
     end
-    # Assume info is treated the same way
-    function CInfo(info::Info)
-      ccall((:MPI_Info_f2c, libmpi), CInfo, (Cint,), info.val)
-    end
-    function Info(cinfo::CInfo)
-      Info(ccall((:MPI_Info_c2f, libmpi), Cint, (CInfo,), cinfo))
-    end
-    function CWin(win::Win)
-      ccall((:MPI_Win_f2c, libmpi), CWin, (Cint,), win.val)
-    end
-    function Win(cwin::CWin)
-      Win(ccall((:MPI_Win_c2f, libmpi), Cint, (CWin,), cwin))
-    end
 elseif sizeof(CComm) == sizeof(Cint)
     # in MPICH, both C and Fortran use identical Cint comm handles
     # and MPI_Comm_c2f is not provided.
@@ -1155,18 +1840,6 @@ elseif sizeof(CComm) == sizeof(Cint)
     end
     function Comm(ccomm::CComm)
       Comm(reinterpret(Cint, ccomm))
-    end
-    function CInfo(info::Info)
-      reinterpret(CInfo, info.val)
-    end
-    function Info(cinfo::CInfo)
-      Info(reinterpret(Cint, cinfo))
-    end
-    function CWin(win::Win)
-      reinterpret(CWin, win.val)
-    end
-    function Win(cwin::CWin)
-      Win(reinterpret(Cint, cwin))
     end
 else
     @warn("No MPI_Comm_c2f found - conversion to/from MPI.CComm will not work")

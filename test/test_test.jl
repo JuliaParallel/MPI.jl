@@ -1,4 +1,3 @@
-using Compat
 using Test
 using MPI
 
@@ -31,3 +30,4 @@ if done
 end
 
 MPI.Finalize()
+@test MPI.Finalized()

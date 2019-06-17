@@ -11,16 +11,16 @@ usage:
 nrows, ncols = 100, 11
 const arr = mpi_shared_array(MPI.COMM_WORLD, Int, (nrows, nworkers_node), owner_rank=0)
 """
-function mpi_shared_array(node_comm::Comm, ::Type{T}, sz::Tuple{Vararg{Int}},
-                          win::Win=MPI.Win(); owner_rank=0) where T
+function mpi_shared_array(node_comm::Comm, ::Type{T}, sz::Tuple{Vararg{Int}}; owner_rank=0) where T
     node_rank = MPI.Comm_rank(node_comm)
     len_to_alloc = MPI.Comm_rank(node_comm) == owner_rank ? prod(sz) : 0
-    bufptr = MPI.Win_allocate_shared(T, len_to_alloc, MPI.INFO_NULL, node_comm, win)
+    win, bufptr = MPI.Win_allocate_shared(T, len_to_alloc, node_comm)
+    
     if node_rank != owner_rank
         len, sizofT, bufvoidptr = MPI.Win_shared_query(win, owner_rank)
         bufptr = convert(Ptr{T}, bufvoidptr)
     end
-    unsafe_wrap(Array, bufptr, sz)
+    win, unsafe_wrap(Array, bufptr, sz)
 end
 
 function main()
@@ -31,13 +31,9 @@ function main()
     node_rank = MPI.Comm_rank(global_comm) # do this differently in real code
     node_comm = MPI.Comm_split(global_comm, group_comm_id, node_rank)
     owner_rank = 1
-    if node_rank <= 1
-        win = MPI.Win()
-        shared_arr =
-          mpi_shared_array(node_comm, Float32, (100, 2), win; owner_rank=owner_rank)
-    else
-        shared_arr = mpi_shared_array(node_comm, Float32, (100, 2); owner_rank=owner_rank)
-    end
+
+    win, shared_arr =
+        mpi_shared_array(node_comm, Float32, (100, 2); owner_rank=owner_rank)
 
     if node_rank == 0
         (@view shared_arr[:, 1]) .= 1:100
@@ -56,8 +52,10 @@ function main()
         @test baseptr == pointer(shared_arr)
     end
 
+    MPI.free(win)    
     MPI.Finalize()
 end
 
 # run with `mpirun -np 3 julia --project test_shared_win.jl`
 main()
+@test MPI.Finalized()

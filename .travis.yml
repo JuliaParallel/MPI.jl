@@ -1,17 +1,38 @@
 language: julia
 sudo: required
 dist: trusty
+
 os:
   - linux
   - osx
+  
 julia:
-  - 0.7
+  - 1.0
+  - 1.1
   - nightly
+
+branches:
+  only:
+    - master
+    - /^release-.*/
+
 notifications:
   email: false
+
+cache:
+  directories:
+  - $HOME/.ccache
+  - $HOME/.julia/registries # can we cache all of .julia?
+
 env:
   - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
+
+matrix:
+  allow_failures: # issue 262
+  - os: osx
+    env: MPI_IMPL=openmpi
+
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - export PATH=$HOME/OpenMPI/bin:$HOME/MPICH/bin:$PATH
@@ -20,6 +41,28 @@ before_install:
 # Work around OpenMPI attempting to create overly long temporary
 # file names - and erroring as a result
   - export TMPDIR=/tmp
-after_success:
-  - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
-  - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
+# Work around MacOS/OpenMPI issue:
+#   https://github.com/open-mpi/ompi/issues/6518
+#   https://github.com/open-mpi/ompi/issues/5798
+  - export OMPI_MCA_btl=self,tcp
+
+jobs:
+  include:
+    - stage: "Tests" # implicit first stage
+    - stage: "Documentation"
+      julia: 1.0
+      os: linux
+      script:
+        - export DOCUMENTER_DEBUG="true"
+        - julia --color=yes --project=docs/ -e 'using Pkg;
+                                                      Pkg.instantiate();
+                                                      Pkg.develop(PackageSpec(path=pwd()));
+                                                      Pkg.build()'
+        - julia --color=yes --project=docs/ docs/make.jl
+    - stage: "Coverage"
+      julia: 1.0
+      os: linux
+      after_success: # Intentionally rerun tests
+        - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage")'
+        - julia -e 'using Coverage; Coveralls.submit(Coveralls.process_folder())'
+        - julia -e 'using Coverage; Codecov.submit(Codecov.process_folder())'

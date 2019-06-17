@@ -38,7 +38,9 @@ case "$os" in
                 sudo apt-get install -y gfortran mpich2 libmpich2-3 libmpich2-dev
                 ;;
             mpich|mpich3)
-                sudo apt-get install -y gfortran hwloc
+                sudo apt-get install -y gfortran hwloc ccache
+                sudo /usr/sbin/update-ccache-symlinks
+                export PATH="/usr/lib/ccache:$PATH"
                 wget http://www.mpich.org/static/downloads/3.2.1/$MPICHVER.tar.gz
                 tar -zxf $MPICHVER.tar.gz
                 cd $MPICHVER
@@ -47,7 +49,9 @@ case "$os" in
                 sudo make install > /dev/null
                 ;;
             openmpi)
-                sudo apt-get install -y gfortran
+                sudo apt-get install -y gfortran ccache
+                sudo /usr/sbin/update-ccache-symlinks
+                export PATH="/usr/lib/ccache:$PATH"
                 wget --no-check-certificate https://www.open-mpi.org/software/ompi/v3.0/downloads/$OMPIVER.tar.gz
                 tar -zxf $OMPIVER.tar.gz
                 cd $OMPIVER

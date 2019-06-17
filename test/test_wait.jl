@@ -1,4 +1,3 @@
-using Compat
 # tests for the various kinds of waits
 using Test
 using MPI
@@ -49,3 +48,4 @@ end
 
 MPI.Barrier(MPI.COMM_WORLD)
 MPI.Finalize()
+@test MPI.Finalized()
