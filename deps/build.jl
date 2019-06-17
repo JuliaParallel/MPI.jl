@@ -1,10 +1,34 @@
 using Libdl
 
-@static if Sys.iswindows()
-    const libmpi = "msmpi.dll"
-else
-    const libmpi = "libmpi"
+MPI_PATH = get(ENV, "JULIA_MPI_PATH", nothing)
+MPI_LIBRARY_PATH = get(ENV, "JULIA_MPI_LIBRARY_PATH") do
+    MPI_PATH !== nothing ? joinpath(MPI_PATH,"lib") : nothing
 end
+MPI_INCLUDE_PATH = get(ENV, "JULIA_MPI_INCLUDE_PATH") do
+    MPI_PATH !== nothing ? joinpath(MPI_PATH,"include") : nothing
+end
+MPICC = get(ENV, "JULIA_MPICC") do
+    if MPI_PATH !== nothing
+        joinpath(MPI_PATH,"bin","mpicc")
+    else
+        "mpicc"
+    end
+end
+
+if haskey(ENV, "JULIA_MPI_CFLAGS")
+    CFLAGS = split(ENV["JULIA_MPI_CFLAGS"])
+else
+    CFLAGS = ["-lmpi"]
+    if MPI_LIBRARY_PATH !== nothing
+        push!(CFLAGS, "-L$(MPI_LIBRARY_PATH)")
+    end
+    if MPI_INCLUDE_PATH !== nothing
+        push!(CFLAGS, "-I$(MPI_INCLUDE_PATH)")
+    end
+end
+
+const libmpi = find_library(Sys.iswindows() ? "msmpi.dll" : "libmpi",
+                            MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
 
 libptr = dlopen_e(libmpi)
 if libptr == C_NULL
@@ -40,4 +64,10 @@ if Sys.iswindows()
     end
 else
     include("gen_consts.jl")
+
+    run(`$MPICC gen_consts.c -o gen_consts $CFLAGS`)
+
+    open("deps.jl","a") do f
+        run(pipeline(`./gen_consts`, stdout = f))
+    end
 end

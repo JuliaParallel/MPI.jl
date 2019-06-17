@@ -26,7 +26,9 @@ cache:
 
 env:
   - MPI_IMPL=mpich
+    JULIA_MPI_PATH=$HOME/MPICH
   - MPI_IMPL=openmpi
+    JULIA_MPI_PATH=$HOME/OpenMPI
 
 matrix:
   allow_failures: # issue 262
@@ -36,8 +38,6 @@ matrix:
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - export PATH=$HOME/OpenMPI/bin:$HOME/MPICH/bin:$PATH
-  - export CC=mpicc
-  - export FC=mpif90
 # Work around OpenMPI attempting to create overly long temporary
 # file names - and erroring as a result
   - export TMPDIR=/tmp

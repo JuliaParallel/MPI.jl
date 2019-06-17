@@ -158,9 +158,3 @@ int main(int argc, char *argv[]) {
 }
 """)
 end
-
-run(`mpicc gen_consts.c -o gen_consts -lmpi`)
-
-open("deps.jl","a") do f
-    run(pipeline(`./gen_consts`, stdout = f))
-end
