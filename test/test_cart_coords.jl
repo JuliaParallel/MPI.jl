@@ -17,7 +17,7 @@ MPI.Cart_coords!(comm_cart, rank, ndims, ccoords)
 @test all(ccoords .>= 0)
 @test all(ccoords .< dims)
 
-coords = MPI.Cart_coords!(comm_cart, ndims)
+coords = MPI.Cart_coords(comm_cart, ndims)
 @test all(coords .>= 0)
 @test all(coords .< dims)
 

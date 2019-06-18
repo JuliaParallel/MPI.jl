@@ -11,8 +11,9 @@ const FINALIZE_ATEXIT = Ref(true)
 @deprecate Info_free(info::Info) free(info) false
 
 @deprecate Comm_free(comm::Comm) free(comm) false
-
 @deprecate Type_Commit(dtyp) Type_Commit!(dtyp) false
+
+@deprecate Cart_coords!(comm::Comm, maxdims::Integer) Cart_coords(comm, maxdims) false
 
 # window functions
 @deprecate(Win_create(base::Array{T}, info::Info, comm::Comm, win::Win) where {T},
