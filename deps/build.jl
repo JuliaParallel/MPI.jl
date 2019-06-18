@@ -41,8 +41,13 @@ libsize = filesize(libpath)
 function Get_version()
     major = Ref{Cint}()
     minor = Ref{Cint}()
-    ccall((:MPI_Get_version, libmpi), Cint,
-          (Ptr{Cint}, Ptr{Cint}), major, minor)
+    if Sys.iswindows()
+        ccall((:MPI_Get_version, libmpi), stdcall, Cint,
+              (Ptr{Cint}, Ptr{Cint}), major, minor)
+    else
+        ccall((:MPI_Get_version, libmpi), Cint,
+              (Ptr{Cint}, Ptr{Cint}), major, minor)
+    end
     VersionNumber(major[], minor[])
 end
 

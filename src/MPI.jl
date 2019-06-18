@@ -3,6 +3,10 @@ module MPI
 using Libdl, Serialization
 
 macro mpichk(expr)
+    @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
+    if Sys.iswindows()
+        insert!(expr.args, 3, :stdcall)
+    end
     esc(expr)
 end
 
