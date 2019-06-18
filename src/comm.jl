@@ -68,7 +68,7 @@ end
 
 function Comm_get_parent()
     comm = Comm()
-    ccall((:MPI_Comm_get_parent, libmpi), Cint, (Ptr{MPI_Comm},), comm)
+    @mpichk ccall((:MPI_Comm_get_parent, libmpi), Cint, (Ptr{MPI_Comm},), comm)
     comm
 end
 

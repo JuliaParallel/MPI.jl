@@ -130,10 +130,18 @@ function Finalized()
 end
 
 function Wtick()
-    ccall((:MPI_Wtick, libmpi), Cdouble, ())
+    @static if Sys.iswindows()
+        ccall((:MPI_Wtick, libmpi), stdcall, Cdouble, ())
+    else
+        ccall((:MPI_Wtick, libmpi), Cdouble, ())
+    end        
 end
 
 function Wtime()
-    ccall((:MPI_Wtime, libmpi), Cdouble, ())
+    @static if Sys.iswindows()
+        ccall((:MPI_Wtime, libmpi), stdcall, Cdouble, ())
+    else
+        ccall((:MPI_Wtime, libmpi), Cdouble, ())
+    end
 end
 
