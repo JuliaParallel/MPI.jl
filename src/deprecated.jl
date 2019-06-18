@@ -9,7 +9,7 @@ const FINALIZE_ATEXIT = Ref(true)
 @deprecate Info_get(info::Info,key::AbstractString) info[Symbol(key)] false
 @deprecate Info_delete(info::Info,key::AbstractString) delete!(info, Symbol(key)) false
 @deprecate Info_free(info::Info) free(info) false
-
+@deprecate Cart_coords!(comm::Comm, maxdims::Integer) Cart_coords(comm, maxdims) false
 
 # window functions
 @deprecate(Win_create(base::Array{T}, info::Info, comm::Comm, win::Win) where {T},
