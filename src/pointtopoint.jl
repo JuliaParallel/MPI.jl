@@ -9,31 +9,31 @@ if !@isdefined(Status)
 
         while offset < MPI_Status_Source_offset
             push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            offset += 32
+            offset += 4
         end
         @assert offset == MPI_Status_Source_offset
         push!(struct_fields, :(source::Cint))
-        offset += 32
+        offset += 4
 
         while offset < MPI_Status_Tag_offset
             push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            offset += 32
+            offset += 4
         end
         @assert offset == MPI_Status_Tag_offset
         push!(struct_fields, :(tag::Cint))
-        offset += 32
+        offset += 4
 
         while offset < MPI_Status_Error_offset
             push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            offset += 32
+            offset += 4
         end
         @assert offset == MPI_Status_Error_offset
         push!(struct_fields, :(error::Cint))
-        offset += 32
+        offset += 4
 
         while offset < MPI_Status_size
             push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            offset += 32
+            offset += 4
         end
 
         @eval struct Status
@@ -41,10 +41,10 @@ if !@isdefined(Status)
         end
     end
 
-    @assert fieldoffset(Status, findfirst(isequal(:source), fieldnames(Status)))*8 == MPI_Status_Source_offset
-    @assert fieldoffset(Status, findfirst(isequal(:tag), fieldnames(Status)))*8 == MPI_Status_Tag_offset
-    @assert fieldoffset(Status, findfirst(isequal(:error), fieldnames(Status)))*8 == MPI_Status_Error_offset
-    @assert sizeof(Status)*8 == MPI_Status_size
+    @assert fieldoffset(Status, findfirst(isequal(:source), fieldnames(Status))) == MPI_Status_Source_offset
+    @assert fieldoffset(Status, findfirst(isequal(:tag), fieldnames(Status))) == MPI_Status_Tag_offset
+    @assert fieldoffset(Status, findfirst(isequal(:error), fieldnames(Status))) == MPI_Status_Error_offset
+    @assert sizeof(Status) == MPI_Status_size
 end
 
 Get_source(status::Status) = Int(status.source)

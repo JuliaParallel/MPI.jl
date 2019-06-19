@@ -117,10 +117,10 @@ int main(int argc, char *argv[]) {
 
 """)
 
-    println(f,"  printf(\"const MPI_Status_size = %d\\n\", (int)(sizeof(MPI_Status) * 8));")
-    println(f,"  printf(\"const MPI_Status_Source_offset = %d\\n\", (int)(offsetof(MPI_Status, MPI_SOURCE) * 8));")
-    println(f,"  printf(\"const MPI_Status_Tag_offset = %d\\n\", (int)(offsetof(MPI_Status, MPI_TAG) * 8));")
-    println(f,"  printf(\"const MPI_Status_Error_offset = %d\\n\", (int)(offsetof(MPI_Status, MPI_ERROR) * 8));")
+    println(f,"  printf(\"const MPI_Status_size = %d\\n\", (int)sizeof(MPI_Status));")
+    println(f,"  printf(\"const MPI_Status_Source_offset = %d\\n\", (int)offsetof(MPI_Status, MPI_SOURCE));")
+    println(f,"  printf(\"const MPI_Status_Tag_offset = %d\\n\", (int)offsetof(MPI_Status, MPI_TAG));")
+    println(f,"  printf(\"const MPI_Status_Error_offset = %d\\n\", (int)offsetof(MPI_Status, MPI_ERROR));")
 
     for (T,constants) in MPI_handle
         println(f,"  printf(\"primitive type $T %d end\\n\", (int)(sizeof($T) * 8));")
