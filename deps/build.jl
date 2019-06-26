@@ -7,11 +7,19 @@ end
 MPI_INCLUDE_PATH = get(ENV, "JULIA_MPI_INCLUDE_PATH") do
     MPI_PATH !== nothing ? joinpath(MPI_PATH,"include") : nothing
 end
-MPICC = get(ENV, "JULIA_MPICC") do
+mpicc = get(ENV, "JULIA_MPICC") do
     if MPI_PATH !== nothing
         joinpath(MPI_PATH,"bin","mpicc")
     else
         "mpicc"
+    end
+end
+
+mpiexec = get(ENV, "JULIA_MPIEXEC") do
+    if MPI_PATH !== nothing
+        joinpath(MPI_PATH,"bin","mpiexec")
+    else
+        "mpiexec"
     end
 end
 
@@ -61,6 +69,7 @@ open("deps.jl","w") do f
     println(f, :(const libmpi = $libmpi))
     println(f, :(const libmpi_size = $libsize))
     println(f, :(const MPI_VERSION = $MPI_VERSION))
+    println(f, :(const mpiexec = $mpiexec))
 end
 
 if Sys.iswindows()
@@ -70,7 +79,7 @@ if Sys.iswindows()
 else
     include("gen_consts.jl")
 
-    run(`$MPICC gen_consts.c -o gen_consts $CFLAGS`)
+    run(`$mpicc gen_consts.c -o gen_consts $CFLAGS`)
 
     open("deps.jl","a") do f
         run(pipeline(`./gen_consts`, stdout = f))

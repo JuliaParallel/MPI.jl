@@ -25,7 +25,9 @@ install:
         "https://download.microsoft.com/download/A/E/0/AE002626-9D9D-448D-8197-1EA510E297CE/msmpisetup.exe",
         "C:\projects\MSMpiSetup.exe")
   - C:\projects\MSMpiSetup.exe -unattend -minimal
-  - set PATH=C:\Program Files\Microsoft MPI\Bin;%PATH%
+  # This shouldn't typicallybe needed: the installer adds the directory to
+  # the PATH. For some reason this doesn't work on Appveyor
+  - set JULIA_MPIEXEC=C:\Program Files\Microsoft MPI\Bin\mpiexec.exe
 
 build_script:
   - echo "%JL_BUILD_SCRIPT%"
