@@ -1,0 +1,10 @@
+deps.jl
+build.log
+gen_consts.c
+gen_consts
+
+# no longer used
+VERSION
+build/
+usr/
+src/

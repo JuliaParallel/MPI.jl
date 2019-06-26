@@ -19,7 +19,7 @@ root = 0
 val = rank == root ? size : nothing
 @test MPI.Reduce(1, +, root, world_comm) == val
 
-MPI.Comm_free(world_comm)
-MPI.Comm_free(intercomm)
+MPI.free(world_comm)
+MPI.free(intercomm)
 MPI.Finalize()
 @test MPI.Finalized()

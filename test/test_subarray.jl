@@ -16,7 +16,7 @@ subarray = MPI.Type_Create_Subarray(2,
                                     Cint[0, 0],
                                     MPI.MPI_ORDER_FORTRAN,
                                     Float64)
-MPI.Type_Commit(subarray)
+MPI.Type_Commit!(subarray)
 
 # test blocking send
 if rank == 0

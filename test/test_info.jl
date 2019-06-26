@@ -5,12 +5,12 @@ MPI.Init()
 
 info = MPI.Info()
 @test typeof(info) == MPI.Info
-@test info.cinfo == MPI.CInfo(MPI.MPI_INFO_NULL)
+@test info.val == MPI.INFO_NULL.val
 
 testinfo(;kwargs...) = MPI.Info(kwargs...)
 
 info = testinfo(foo="fast", bar=true, baz=[10, -2])
-@test info.cinfo !=  MPI.CInfo(MPI.MPI_INFO_NULL)
+@test info.val != MPI.INFO_NULL.val
 
 @test length(info) == 3
 @test info[:foo] == "fast"
@@ -22,7 +22,7 @@ delete!(info, :bar)
 @test_throws KeyError info[:bar]
 
 MPI.free(info)
-@test info.cinfo ==  MPI.CInfo(MPI.MPI_INFO_NULL)
+@test info.val == MPI.INFO_NULL.val
 
 MPI.Finalize()
 @test MPI.Finalized()

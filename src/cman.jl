@@ -90,7 +90,7 @@ mutable struct MPIManager <: ClusterManager
                # Listen on specified server interface
                # This allows direct connection from other hosts on same network as
                # specified interface.
-               port, server = 
+               port, server =
                 listenany(getaddrinfo(master_tcp_interface), 11000)
             else
                # Listen on default interface (localhost)
@@ -114,10 +114,8 @@ mutable struct MPIManager <: ClusterManager
         end
 
         if mode == MPI_TRANSPORT_ALL
-            mgr.initiate_shutdown = Channel{Nothing}(1)
             mgr.sending_done = Channel{Nothing}(np)
             mgr.receiving_done = Channel{Nothing}(1)
-            global initiate_shutdown = mgr.initiate_shutdown
         end
         mgr.initiate_shutdown = Channel{Nothing}(1)
         global initiate_shutdown = mgr.initiate_shutdown
@@ -290,7 +288,7 @@ end
 
 # Event loop for sending data to one other process, for the MPI_TRANSPORT_ALL
 # case
-function start_send_event_loop(mgr::MPIManager, rank::Int)
+function start_send_event_loop(mgr::MPIManager, rank::Integer)
     try
         r_s = Base.BufferStream()
         w_s = Base.BufferStream()
@@ -380,9 +378,7 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
 
             # Send the cookie over. Introduced in v"0.5.0-dev+4047". Irrelevant under MPI
             # transport, but need it to satisfy the changed protocol.
-            if isdefined(Distributed, :init_multi)
-                Distributed.init_multi()
-            end
+            Distributed.init_multi()
             MPI.bcast(Distributed.cluster_cookie(), 0, comm)
             # Start event loop for the workers
             @async receive_event_loop(mgr)
@@ -399,6 +395,7 @@ function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
             Distributed.init_worker(cookie, mgr)
             # Start a worker event loop
             receive_event_loop(mgr)
+            MPI.free(comm)
             MPI.Finalize()
             exit()
         end
@@ -411,7 +408,7 @@ end
 function receive_event_loop(mgr::MPIManager)
     num_send_loops = 0
     while !isready(mgr.initiate_shutdown)
-        (hasdata, stat) = MPI.Iprobe(MPI.ANY_SOURCE, 0, mgr.comm)
+        (hasdata, stat) = MPI.Iprobe(MPI.MPI_ANY_SOURCE, 0, mgr.comm)
         if hasdata
             count = Get_count(stat, UInt8)
             buf = Array{UInt8}(undef, count)
@@ -434,6 +431,7 @@ function receive_event_loop(mgr::MPIManager)
             yield()
         end
     end
+
     for i in 1:num_send_loops
         fetch(mgr.sending_done)
     end

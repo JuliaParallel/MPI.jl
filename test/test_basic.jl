@@ -5,7 +5,7 @@ using MPI
 MPI.Init()
 @test MPI.Initialized()
 
-@test MPI.Comm(MPI.CComm(MPI.COMM_WORLD)).val == MPI.COMM_WORLD.val
+@test 0 <= MPI.Comm_rank(MPI.COMM_WORLD) < MPI.Comm_size(MPI.COMM_WORLD)
 
 @test !MPI.Finalized()
 MPI.Finalize()

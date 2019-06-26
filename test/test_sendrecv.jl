@@ -100,7 +100,7 @@ sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 req_arr = [sreq,rreq]
 for i in inds
     global (done, status) = MPI.Test!( req_arr[i] )
-    @test done 
+    @test done
 end
 
 rreq = nothing

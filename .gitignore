@@ -1,11 +1,5 @@
-/deps/VERSION
-/deps/build/
-/deps/deps.jl
-/deps/usr/
-/deps/src/
 libjuliampi.so
 libjuliampi.dylib
 *.cov
 *.mem
 Manifest.toml
-deps/build.log

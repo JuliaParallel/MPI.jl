@@ -16,7 +16,7 @@ else
 end
 
 
-# test simple type 
+# test simple type
 
 mutable struct NotABits
   a::Any
@@ -32,11 +32,7 @@ end
 
 MPI.mpitype(Boundary)
 
-arr = Array{Boundary}(undef, 3)
-for i=1:3
-  arr[i] = Boundary( (comm_rank + i) % 127, i + comm_rank, i % 64)
-end
-
+arr = [Boundary( (comm_rank + i) % 127, i + comm_rank, i % 64) for i = 1:3]
 req_send = MPI.Isend(arr, dest - 1, 1, MPI.COMM_WORLD)
 
 # receive the message
@@ -92,15 +88,15 @@ primitive type Primitive24 24 end
 nfields, blocklengths, displacements, types = MPI.factorPrimitiveType(Primitive16)
 @test nfields == 1
 @test displacements[1] == 0
-@test types[1] == MPI.MPI_INTEGER2
+@test types[1] == MPI.mpitype(Int16)
 @test blocklengths[1] == 1
 
 nfields, blocklengths, displacements, types = MPI.factorPrimitiveType(Primitive24)
 @test nfields == 2
 @test displacements[1] == 0
 @test displacements[2] == 2
-@test types[1] == MPI.MPI_INTEGER2
-@test types[2] == MPI.MPI_INTEGER1
+@test types[1] == MPI.mpitype(Int16)
+@test types[2] == MPI.mpitype(Int8)
 @test blocklengths[1] == 1
 @test blocklengths[2] == 1
 
