@@ -2,7 +2,7 @@ import Base: kill
 export MPIManager, launch, manage, kill, procs, connect, mpiprocs, @mpi_do
 export TransportMode, MPI_ON_WORKERS, TCP_TRANSPORT_ALL, MPI_TRANSPORT_ALL
 using Distributed
-import Sockets: connect, listenany, accept, IPv4, getsockname, getaddrinfo
+import Sockets: connect, listenany, accept, IPv4, getsockname, getaddrinfo, wait_connected
 
 
 
@@ -200,7 +200,7 @@ function setup_worker(host, port, cookie)
     !MPI.Initialized() && MPI.Init()
     # Connect to the manager
     io = connect(IPv4(host), port)
-    Base.wait_connected(io)
+    wait_connected(io)
     redirect_stdout(io)
     redirect_stderr(io)
 

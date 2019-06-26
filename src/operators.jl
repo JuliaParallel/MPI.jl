@@ -44,6 +44,10 @@ function _mpi_user_function(_a::Ptr{Nothing}, _b::Ptr{Nothing}, _len::Ptr{Cint},
 end
 
 function user_op(opfunc::Function)
+    if Sys.iswindows() && Sys.WORD_SIZE == 32
+        error("Custom reduction operators are not supported on 32-bit Windows.\nSee https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.")
+    end
+    
     # we must initialize these at runtime, but it can't be done in __init__
     # since MPI.Init is not called yet.  So we do it lazily here:
     if _user_op.val == OP_NULL.val

@@ -32,12 +32,18 @@ comm_size = MPI.Comm_size(MPI.COMM_WORLD)
 
 send_arr = Int[1, 2, 3]
 
+if Sys.iswindows() && Sys.WORD_SIZE == 32
+    operators = [MPI.SUM, +]
+else
+    operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
+end    
+
 for typ=[Int]
     for dims = [1, 2, 3]
         send_arr = zeros(typ, Tuple(3 for i in 1:dims))
         send_arr[:] .= 1:length(send_arr)
 
-        for op in (MPI.SUM, +, (x,y) -> 2x+y-x)
+        for op in operators
 
             # Non allocating version
             recv_arr = zeros(typ, size(send_arr))

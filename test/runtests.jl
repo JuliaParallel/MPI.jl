@@ -16,16 +16,6 @@ juliafiles = ["test_cman_julia.jl"]
 # Files to run with mpiexec -n 1
 singlefiles = ["test_spawn.jl"]
 
-excludedfiles = String[]
-if Sys.iswindows()
-    push!(excludedfiles, "test_info.jl")
-    push!(excludedfiles, "test_onesided.jl")
-    push!(excludedfiles, "test_finalize_atexit.jl")
-    if Sys.WORD_SIZE == 32
-        push!(excludedfiles, "test_spawn.jl")
-    end
-end
-
 function runtests()
     nprocs = clamp(Sys.CPU_THREADS, 2, 4)
     exename = joinpath(Sys.BINDIR, Base.julia_exename())
@@ -35,7 +25,7 @@ function runtests()
 
     extra_args = []
     @static if !Sys.iswindows()
-      if occursin( "OpenRTE", read(`mpiexec --version`, String))
+        if occursin( "OpenRTE", read(`mpiexec --version`, String))
             push!(extra_args,"--oversubscribe")
         end
     end
@@ -43,29 +33,17 @@ function runtests()
     nfail = 0
     printstyled("Running MPI.jl tests\n"; color=:white)
     for f in testfiles
-        if f ∈ excludedfiles
-            println("Skipping disabled test $f")
-            continue
+        coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
+        if f ∈ singlefiles
+            run(`mpiexec $extra_args -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+        elseif f ∈ juliafiles
+            run(`$exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+        else
+            run(`mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
         end
-        # try
-            coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
-            if f ∈ singlefiles
-                run(`mpiexec $extra_args -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
-            elseif f ∈ juliafiles
-                run(`$exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
-            else
-                run(`mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
-            end
-            Base.with_output_color(:green,stdout) do io
-                println(io,"\tSUCCESS: $f")
-            end
-        # catch ex
-        #     Base.with_output_color(:red,stderr) do io
-        #         println(io,"\tError: $(joinpath(testdir, f))")
-        #         showerror(io,ex,backtrace())
-        #     end
-        #     nfail += 1
-        # end
+        Base.with_output_color(:green,stdout) do io
+            println(io,"\tSUCCESS: $f")
+        end
     end
     return nfail
 end
