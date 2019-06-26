@@ -84,6 +84,7 @@ function Base.getindex(info::Info, key::Symbol)
     @assert isascii(skey) && length(skey) <= MPI_MAX_INFO_KEY
     valuelen = Ref{Cint}()
     flag = Ref{Cint}()
+    # int MPI_Info_get_valuelen(MPI_Info info, const char *key, int *valuelen, int *flag)
     @mpichk ccall((:MPI_Info_get_valuelen, libmpi), Cint,
           (MPI_Info, Cstring, Ptr{Cint}, Ptr{Cint}),
           info, skey, valuelen, flag)
@@ -92,12 +93,18 @@ function Base.getindex(info::Info, key::Symbol)
         throw(KeyError(key))
     end
 
+    # According to the MPI standard:
+    #   "`valuelen` should be one less than the amount of allocated
+    #   space to allow for the null terminator."
+    # But MS-MPI will insists on setting the `n`th character as NUL,
+    # so we simply pad both to avoid problems.
     n = valuelen[]
-    buffer = Vector{UInt8}(undef, n)
+    buffer = Vector{UInt8}(undef, n+2)
+    # int MPI_Info_get(MPI_Info info, const char *key, int valuelen, char *value, int *flag)
     @mpichk ccall((:MPI_Info_get, libmpi), Cint,
           (MPI_Info, Cstring, Cint, Ptr{UInt8}, Ptr{Cint}),
-          info, skey, n, buffer, flag)
-    return String(buffer)
+          info, skey, n+1, buffer, flag)
+    return String(resize!(buffer,n))
 end
 
 function Base.delete!(info::Info,key::Symbol)
@@ -118,7 +125,7 @@ function Base.length(info::Info)
 end
 
 function nthkey(info::Info, n::Integer)
-    buffer = Vector{UInt8}(undef, MPI_MAX_INFO_KEY)
+    buffer = Vector{UInt8}(undef, MPI_MAX_INFO_KEY+1)
     @mpichk ccall((:MPI_Info_get_nthkey, libmpi), Cint,
                   (MPI_Info, Cint, Ptr{UInt8}), info, n, buffer)
     i = findfirst(isequal(UInt8(0)), buffer)
