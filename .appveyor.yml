@@ -8,10 +8,6 @@ platform:
   - x86 # 32-bit
   - x64 # 64-bit
 
-matrix:
-  allow_failures:
-  - platform: x86
-
 branches:
   only:
     - master

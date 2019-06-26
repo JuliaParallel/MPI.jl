@@ -18,12 +18,6 @@ singlefiles = ["test_spawn.jl"]
 
 excludedfiles = String[]
 if Sys.iswindows()
-    push!(excludedfiles, "test_info.jl")
-    push!(excludedfiles, "test_onesided.jl")
-    push!(excludedfiles, "test_finalize_atexit.jl")
-    if Sys.WORD_SIZE == 32
-        push!(excludedfiles, "test_spawn.jl")
-    end
 end
 
 function runtests()
