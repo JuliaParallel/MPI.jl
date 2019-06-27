@@ -25,9 +25,9 @@ cache:
   - $HOME/.julia/registries # can we cache all of .julia?
 
 env:
-  - MPI_IMPL=intelmpi
   - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
+  - MPI_IMPL=intelmpi
 
 matrix:
   allow_failures: # issue 262
@@ -39,7 +39,14 @@ matrix:
 
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export JULIA_MPI_PATH=$HOME/$MPI_IMPL; fi
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      if [ "$MPI_IMPL" == "intelmpi" ]; then
+        source $HOME/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+      else
+        export JULIA_MPI_PATH=$HOME/$MPI_IMPL;
+      fi
+    fi
 # Work around OpenMPI attempting to create overly long temporary
 # file names - and erroring as a result
   - export TMPDIR=/tmp

@@ -73,9 +73,6 @@ ARCH_SELECTED=ALL
 COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-psxe-common-doc__noarch;intel-compxe-pset
 EOF
                 ./install.sh --silent intel.conf
-                ln -s $HOME/intel/compilers_and_libraries/linux/mpi/intel64 $HOME/intelmpi
-                ln -s $HOME/intelmpi/lib/release/libmpi.so $HOME/intelmpi/lib/libmpi.so
-                ls -l $HOME/intelmpi/lib
                 ;;
 
             *)
