@@ -8,7 +8,7 @@ struct Status
     error::Cint
 end
 
-for T in [:MPI_Comm, :MPI_Info, :MPI_Win, :MPI_Request, :MPI_Op, :MPI_Datatype]
+for T in [:MPI_Comm, :MPI_Info, :MPI_Win, :MPI_Request, :MPI_Op, :MPI_Datatype, :MPI_Group]
     @eval begin
         primitive type $T 32 end
         $T(c::Cint) = reinterpret($T, c)
@@ -22,6 +22,9 @@ const MPI_COMM_WORLD = reinterpret(Cint, 0x44000000)
 const MPI_INFO_NULL = reinterpret(Cint, 0x1c000000)
 
 const MPI_WIN_NULL = reinterpret(Cint, 0x20000000)
+
+const MPI_GROUP_NULL  = reinterpret(Cint, 0x08000000)
+const MPI_GROUP_EMPTY = reinterpret(Cint, 0x48000000)
 
 const MPI_OP_NULL = reinterpret(Cint, 0x18000000)
 const MPI_MAX     = reinterpret(Cint, 0x58000001)
