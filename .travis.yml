@@ -36,7 +36,6 @@ matrix:
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export JULIA_MPI_PATH=$HOME/$MPI_IMPL; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export PATH=$HOME/$MPI_IMPL/bin:$PATH; fi
 # Work around OpenMPI attempting to create overly long temporary
 # file names - and erroring as a result
   - export TMPDIR=/tmp
