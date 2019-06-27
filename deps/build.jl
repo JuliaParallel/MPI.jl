@@ -39,9 +39,10 @@ const libmpi = find_library(Sys.iswindows() ? "msmpi.dll" : "libmpi",
                             MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
 
 libptr = dlopen_e(libmpi)
-if libptr == C_NULL
+if libmpi == "" || libptr == C_NULL
     error("No MPI library found")
 end
+@info "Using MPI library $libmpi"
 
 libpath = dlpath(libptr)
 libsize = filesize(libpath)
