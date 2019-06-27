@@ -95,3 +95,10 @@ function Intercomm_merge(intercomm::Comm, flag::Bool)
     return newcomm
 end
 
+function Universe_size(comm::Comm)
+    rank = Ref{Cint}()
+    result = Ref(Ptr{Cvoid}(C_NULL))
+    @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
+        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), comm, MPI_UNIVERSE_SIZE, result, rank)
+    unsafe_load(reinterpret(Ptr{Cint}, result[]))
+end

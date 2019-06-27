@@ -95,6 +95,7 @@ MPI_Cints = [
     :MPI_COMM_TYPE_SHARED,
     :MPI_ORDER_C,
     :MPI_ORDER_FORTRAN,
+    :MPI_UNIVERSE_SIZE
 ]
 
 MPI_pointers = [
