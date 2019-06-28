@@ -96,7 +96,7 @@ function Intercomm_merge(intercomm::Comm, flag::Bool)
 end
 
 function Universe_size(comm::Comm)
-    rank = Ref{Cint}()
+    flag = Ref{Cint}()
     result = Ref(Ptr{Cvoid}(C_NULL))
     # int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void *attribute_val, int *flag)
     @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
