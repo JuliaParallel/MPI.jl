@@ -100,6 +100,6 @@ function Universe_size(comm::Comm)
     result = Ref(Ptr{Cvoid}(C_NULL))
     # int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void *attribute_val, int *flag)
     @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), comm, MPI_UNIVERSE_SIZE, result, rank)
+        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), comm, MPI_UNIVERSE_SIZE, result, flag)
     unsafe_load(reinterpret(Ptr{Cint}, result[]))
 end
