@@ -101,5 +101,8 @@ function Universe_size(comm::Comm)
     # int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void *attribute_val, int *flag)
     @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
         (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), comm, MPI_UNIVERSE_SIZE, result, flag)
+    if flag[] == 0
+        error("Attribute MPI_UNIVERSE_SIZE is not attached")
+    end
     unsafe_load(reinterpret(Ptr{Cint}, result[]))
 end
