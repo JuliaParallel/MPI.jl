@@ -41,7 +41,8 @@ function runtests()
         elseif f ∈ juliafiles
             run(`$exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
         else
-            run(`$mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            run(Cmd(`$mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`,
+                    env=Dict("MPI_UNIVERSE_SIZE"=>"4")))
         end
         Base.with_output_color(:green,stdout) do io
             println(io,"\tSUCCESS: $f")
