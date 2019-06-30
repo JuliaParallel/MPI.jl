@@ -95,14 +95,21 @@ function Intercomm_merge(intercomm::Comm, flag::Bool)
     return newcomm
 end
 
-function universe_size(comm::Comm)
+"""
+    universe_size()
+
+The total number of available slots, or `nothing` if it is not defined. This is determined by the `MPI_UNIVERSE_SIZE` attribute of `COMM_WORLD`.
+
+This is typically dependent on the MPI implementation: for MPICH-based implementations, this is specified by the `-usize` argument. OpenMPI defines a default value based on the number of processes available.
+"""
+function universe_size()
     flag = Ref{Cint}()
-    result = Ref(Ptr{Cvoid}(C_NULL))
+    result = Ref(Ptr{Cint}(C_NULL))
     # int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void *attribute_val, int *flag)
     @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), comm, MPI_UNIVERSE_SIZE, result, flag)
+        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), MPI.COMM_WORLD, MPI_UNIVERSE_SIZE, result, flag)
     if flag[] == 0
-        error("Attribute MPI_UNIVERSE_SIZE is not attached")
+        return nothing
     end
-    unsafe_load(reinterpret(Ptr{Cint}, result[]))
+    Int(unsafe_load(result[]))
 end

@@ -3,8 +3,7 @@ using MPI
 
 MPI.Init()
 
-universe_size = MPI.universe_size(MPI.COMM_WORLD)
-
-@test universe_size >= 1
+usize = MPI.universe_size()
+@test usize === nothing || usize >= 1
 
 MPI.Finalize()
