@@ -82,6 +82,7 @@ const MPI_TAG_UB = reinterpret(Cint, 0x64400001)
 const MPI_COMM_TYPE_SHARED = Cint(1)
 const MPI_ORDER_C = Cint(56)
 const MPI_ORDER_FORTRAN = Cint(57)
+const MPI_UNIVERSE_SIZE = reinterpret(Cint, 0x64400009)
 
 const MPI_BOTTOM = reinterpret(SentinelPtr, 0)
 const MPI_IN_PLACE = reinterpret(SentinelPtr, -1)
