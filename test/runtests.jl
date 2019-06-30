@@ -34,6 +34,11 @@ function runtests()
 
     nfail = 0
     printstyled("Running MPI.jl tests\n"; color=:white)
+
+    # MPICH doesn't define a MPI_UNIVERSE_SIZE by default
+    env = copy(ENV)
+    env["MPI_UNIVERSE_SIZE"]="4"
+    
     for f in testfiles
         coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
         if f ∈ singlefiles
@@ -41,8 +46,7 @@ function runtests()
         elseif f ∈ juliafiles
             run(`$exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
         else
-            run(Cmd(`$mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`,
-                    env=Dict("MPI_UNIVERSE_SIZE"=>"4")))
+            run(Cmd(`$mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`, env=env))
         end
         Base.with_output_color(:green,stdout) do io
             println(io,"\tSUCCESS: $f")
