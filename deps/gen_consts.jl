@@ -104,6 +104,7 @@ MPI_pointers = [
     :MPI_STATUSES_IGNORE,
     ]
 
+const libptr = dlopen_e(libmpi)
 
 open("gen_consts.c","w") do f
     print(f,"""

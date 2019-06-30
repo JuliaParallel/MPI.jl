@@ -38,14 +38,17 @@ end
 const libmpi = find_library(Sys.iswindows() ? "msmpi.dll" : "libmpi",
                             MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
 
-libptr = dlopen_e(libmpi)
-if libmpi == "" || libptr == C_NULL
-    error("No MPI library found")
+if libmpi == ""
+    error("No MPI library found.\nEnsure an MPI implementation is loaded, or set the `JULIA_MPI_PATH` variable.")
 end
-@info "Using MPI library $libmpi"
 
-libpath = dlpath(libptr)
-libsize = filesize(libpath)
+# expand paths
+libmpi = dlpath(libmpi)
+libsize = filesize(libmpi)
+
+mpiexec = Sys.which(mpiexec)
+
+@info "Using MPI library $libmpi"
 
 function Get_version()
     major = Ref{Cint}()
