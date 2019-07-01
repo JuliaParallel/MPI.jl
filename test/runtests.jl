@@ -24,7 +24,6 @@ function runtests()
     testdir = dirname(@__FILE__)
     istest(f) = endswith(f, ".jl") && startswith(f, "test_")
     testfiles = sort(filter(istest, readdir(testdir)))
-
     extra_args = []
     @static if !Sys.iswindows()
         if occursin( "OpenRTE", read(`$mpiexec --version`, String))
@@ -34,6 +33,7 @@ function runtests()
 
     nfail = 0
     printstyled("Running MPI.jl tests\n"; color=:white)
+    
     for f in testfiles
         coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
         if f ∈ singlefiles
