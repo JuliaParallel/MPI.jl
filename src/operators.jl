@@ -1,81 +1,87 @@
-@mpi_handle Op
+"""
+    Op
 
-const OP_NULL = _Op(MPI_OP_NULL)
-const BAND    = _Op(MPI_BAND)
-const BOR     = _Op(MPI_BOR)
-const BXOR    = _Op(MPI_BXOR)
-const LAND    = _Op(MPI_LAND)
-const LOR     = _Op(MPI_LOR)
-const LXOR    = _Op(MPI_LXOR)
-const MAX     = _Op(MPI_MAX)
-const MIN     = _Op(MPI_MIN)
-const NO_OP   = _Op(MPI_NO_OP)
-const PROD    = _Op(MPI_PROD)
-const REPLACE = _Op(MPI_REPLACE)
-const SUM     = _Op(MPI_SUM)
+An MPI reduction operator, for use with [`Reduce!`](@ref)/[`Reduce`](@ref),
+[`Reduce_in_place!`](@ref), [`Allreduce!`](@ref)/[`Allreduce`](@ref), [`Scan`](@ref) or [`Exscan`](@ref).
+
+## Usage
+
+    Op(op, T=Any; iscommutative=false)
+
+Wrap the Julia reduction function `op` for arguments of type `T`. `op` is assumed to be
+associative, and if `iscommutative` is true, assumed to be commutative as well.
+"""
+@mpi_handle Op fptr
+
+const OP_NULL = _Op(MPI_OP_NULL, nothing)
+const BAND    = _Op(MPI_BAND, nothing)
+const BOR     = _Op(MPI_BOR, nothing)
+const BXOR    = _Op(MPI_BXOR, nothing)
+const LAND    = _Op(MPI_LAND, nothing)
+const LOR     = _Op(MPI_LOR, nothing)
+const LXOR    = _Op(MPI_LXOR, nothing)
+const MAX     = _Op(MPI_MAX, nothing)
+const MIN     = _Op(MPI_MIN, nothing)
+const PROD    = _Op(MPI_PROD, nothing)
+const REPLACE = _Op(MPI_REPLACE, nothing)
+const SUM     = _Op(MPI_SUM, nothing)
+
+if @isdefined(MPI_NO_OP)
+    const NO_OP   = _Op(MPI_NO_OP, nothing)
+end
+
+Op(::typeof(min), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MIN
+Op(::typeof(max), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MAX
+Op(::typeof(+), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint,MPIComplex}} = SUM
+Op(::typeof(*), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint,MPIComplex}} = PROD
+Op(::typeof(&), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BAND
+Op(::typeof(|), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BOR
+Op(::typeof(⊻), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BXOR
 
 
-
-import Base.Threads: nthreads, threadid
-
-# Implement user-defined MPI reduction operations, by passing Julia
-# functions as callbacks to MPI.
-
-# Unfortunately, MPI_Op_create takes a function that does not accept
-# a void* "thunk" parameter, making it impossible to fully simulate
-# a closure.  So, we have to use a global variable instead.   (Since
-# the reduction functions are barriers, being re-entrant is probably
-# not important in practice, fortunately.)   For MPI_THREAD_MULTIPLE
-# using Julia native threading, however, we do make this global thread-local
-const _user_functions = Array{Function}(undef, 1) # resized to nthreads() at runtime
-const _user_op = _Op(MPI_OP_NULL)
-
-# C callback function corresponding to MPI_User_function
-function _mpi_user_function(_a::Ptr{Nothing}, _b::Ptr{Nothing}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype})
-    len = unsafe_load(_len)
-    T = mpitype_dict_inverse[unsafe_load(t)]
-    a = Ptr{T}(_a)
-    b = Ptr{T}(_b)
-    f = _user_functions[threadid()]
-    for i = 1:len
-        unsafe_store!(b, f(unsafe_load(a,i), unsafe_load(b,i)), i)
+function free(op::Op)
+    if op.val != OP_NULL.val
+        @mpichk ccall((:MPI_Op_free, libmpi), Cint, (Ptr{MPI_Op},), op)
+        refcount_dec()
     end
     return nothing
 end
 
-function user_op(opfunc::Function)
+struct OpWrapper{F,T}
+    f::F
+end
+
+function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype}) where {F,T}
+    len = unsafe_load(_len)
+    if isconcretetype(T)
+        S = T
+    else
+        S = mpitype_dict_inverse[unsafe_load(t)]
+    end
+    a = Ptr{S}(_a)
+    b = Ptr{S}(_b)
+    for i = 1:len
+        unsafe_store!(b, w.f(unsafe_load(a,i), unsafe_load(b,i)), i)
+    end
+    return nothing
+end
+
+
+function Op(f, T=Any; iscommutative=false)
     if Sys.iswindows() && Sys.WORD_SIZE == 32
-        error("Custom reduction operators are not supported on 32-bit Windows.\nSee https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.")
+        error("User-defined reduction operators are not supported on 32-bit Windows.\nSee https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.")
     end
+    w = OpWrapper{typeof(f),T}(f)
+    fptr = @cfunction($w, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype}))
     
-    # we must initialize these at runtime, but it can't be done in __init__
-    # since MPI.Init is not called yet.  So we do it lazily here:
-    if _user_op.val == OP_NULL.val
-        # FIXME: to be thread-safe, there should really be a mutex lock
-        # of some sort so that this initialization only occurs once.
-        # To do when native threading in Julia stabilizes (and is documented).
-        resize!(_user_functions, nthreads())
-        user_function = @cfunction(_mpi_user_function, Nothing, (Ptr{Nothing}, Ptr{Nothing}, Ptr{Cint}, Ptr{MPI_Datatype}))
-        @mpichk ccall((:MPI_Op_create, libmpi), Cint,
-             (Ptr{Cvoid}, Ref{Cint}, Ptr{MPI_Op}),
-             user_function, false, _user_op)
-    end
+    op = Op(OP_NULL.val, fptr)
+    # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
+    @mpichk ccall((:MPI_Op_create, libmpi), Cint,
+                  (Ptr{Cvoid}, Cint, Ptr{MPI_Op}),
+                  fptr, iscommutative, op)
 
-    _user_functions[threadid()] = opfunc
-    return _user_op
+    refcount_inc()
+    finalizer(free, op)
+    return op
 end
 
-
-
-# Match predefined ops to Julia functions
-for (f,op) in [
-    (+, :SUM),
-    (*, :PROD),
-    (min, :MIN),
-    (max, :MAX),
-    (&, :BAND),
-    (|, :BOR),
-    (⊻, :BXOR),
-]
-    @eval user_op(::$(typeof(f))) = $op.val
-end

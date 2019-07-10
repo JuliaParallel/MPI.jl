@@ -92,12 +92,11 @@ end
 
 # Convert user-provided functions to MPI.Op
 Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
-        count::Integer, opfunc::Function, root::Integer,
-        comm::Comm) where {T} =
-    Reduce!(sendbuf, recvbuf, count, user_op(opfunc), root, comm)
+        count::Integer, opfunc, root::Integer, comm::Comm) where {T} =
+    Reduce!(sendbuf, recvbuf, count, Op(opfunc, T), root, comm)
 
 function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
-                 op::Union{Op, Function}, root::Integer, comm::Comm) where T
+                 op, root::Integer, comm::Comm) where T
     Reduce!(sendbuf, recvbuf, length(sendbuf), op, root, comm)
 end
 
@@ -113,25 +112,26 @@ To specify the output buffer, see [`Reduce!`](@ref).
 To perform the reduction in place, see [`Reduce_in_place!`](@ref).
 """
 function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
-                op::Union{Op, Function}, root::Integer, comm::Comm) where T
+                op, root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
     recvbuf = Array{T}(undef, isroot ? count : 0)
     Reduce!(sendbuf, recvbuf, count, op, root, comm)
 end
 
-function Reduce(sendbuf::Array{T,N}, op::Union{Op,Function},
+function Reduce(sendbuf::Array{T,N}, op,
     root::Integer, comm::Comm) where {T,N}
     isroot = Comm_rank(comm) == root
     recvbuf = Array{T,N}(undef, isroot ? size(sendbuf) : Tuple(zeros(Int, ndims(sendbuf))))
     Reduce!(sendbuf, recvbuf, length(sendbuf), op, root, comm)
 end
 
-function Reduce(sendbuf::SubArray{T}, op::Union{Op,Function}, root::Integer, comm::Comm) where T
+function Reduce(sendbuf::SubArray{T}, op, root::Integer, comm::Comm) where T
     @assert Base.iscontiguous(sendbuf)
     Reduce(sendbuf, length(sendbuf), op, root, comm)
 end
 
-function Reduce(object::T, op::Union{Op,Function}, root::Integer, comm::Comm) where T
+function Reduce(object::T, op
+                , root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
     sendbuf = T[object]
     recvbuf = Reduce(sendbuf, op, root, comm)
@@ -174,9 +174,9 @@ function Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer,
 end
 
 # Convert to MPI.Op
-Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer, op::Function,
+Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer, op,
                  root::Integer, comm::Comm) where T =
-                    Reduce_in_place!(buf, count, user_op(op), root, comm)
+                    Reduce_in_place!(buf, count, Op(op,T), root, comm)
 
 """
     Allreduce!(sendbuf, recvbuf[, count=length(sendbuf)], op, comm)
@@ -206,11 +206,11 @@ end
 
 # Convert user-provided functions to MPI.Op
 Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
-           count::Integer, opfunc::Function, comm::Comm) where {T} =
-    Allreduce!(sendbuf, recvbuf, count, user_op(opfunc), comm)
+           count::Integer, opfunc, comm::Comm) where {T} =
+    Allreduce!(sendbuf, recvbuf, count, Op(opfunc,T), comm)
 
 function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
-                   op::Union{Op,Function}, comm::Comm) where T
+                   op, comm::Comm) where T
     Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
 end
 
@@ -222,7 +222,7 @@ the results on all the processes in the group.
 
 Equivalent to calling `Allreduce!(MPI.IN_PLACE, buf, op, comm)`
 """
-function Allreduce!(buf::MPIBuffertype{T}, op::Union{Op, Function}, comm::Comm) where T
+function Allreduce!(buf::MPIBuffertype{T}, op, comm::Comm) where T
     Allreduce!(MPI.IN_PLACE, buf, length(buf), op, comm)
 end
 
@@ -234,18 +234,18 @@ output buffer in all processes of the group.
 
 To specify the output buffer or perform the operation in pace, see [`Allreduce!`](@ref).
 """
-function Allreduce(sendbuf::MPIBuffertype{T}, op::Union{Op,Function}, comm::Comm) where T
+function Allreduce(sendbuf::MPIBuffertype{T}, op, comm::Comm) where T
 
   recvbuf = similar(sendbuf)
   Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
 end
 
-function Allreduce(sendbuf::Array{T, N}, op::Union{Op, Function}, comm::Comm) where {T, N}
+function Allreduce(sendbuf::Array{T, N}, op, comm::Comm) where {T, N}
     recvbuf = Array{T,N}(undef, size(sendbuf))
     Allreduce!(sendbuf, recvbuf, length(sendbuf), op, comm)
 end
 
-function Allreduce(obj::T, op::Union{Op,Function}, comm::Comm) where T
+function Allreduce(obj::T, op, comm::Comm) where T
     objref = Ref(obj)
     outref = Ref{T}()
     Allreduce!(objref, outref, 1, op, comm)
@@ -255,7 +255,7 @@ end
 
 # Deprecation warning for lowercase allreduce that was used until v. 0.7.2
 # Should be removed at some point in the future
-function allreduce(sendbuf::MPIBuffertype{T}, op::Union{Op,Function},
+function allreduce(sendbuf::MPIBuffertype{T}, op,
                    comm::Comm) where T
     @warn "`allreduce` is deprecated, use `Allreduce` instead."
     Allreduce(sendbuf, op, comm)

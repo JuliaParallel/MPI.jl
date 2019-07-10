@@ -1,3 +1,6 @@
+using Pkg
+pkg"precompile"
+
 using MPI
 using Test
 
