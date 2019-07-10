@@ -81,7 +81,7 @@ function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                  count::Integer, op::Union{Op,MPI_Op}, root::Integer,
                  comm::Comm) where T
     isroot = Comm_rank(comm) == root
-    isroot && @assert length(recvbuf) >= count
+    isroot && typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= count
     # int MPI_Reduce(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
     @mpichk ccall((:MPI_Reduce, libmpi), Cint,
@@ -161,7 +161,7 @@ function Reduce_in_place!(buf::MPIBuffertype{T}, count::Integer,
                           op::Union{Op,MPI_Op}, root::Integer,
                           comm::Comm) where T
     if Comm_rank(comm) == root
-        @assert length(buf) >= count
+        typeof(buf) <: AbstractArray && @assert length(buf) >= count
         @mpichk ccall((:MPI_Reduce, libmpi), Cint,
                       (Ptr{T}, Ptr{T}, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm),
                       MPI_IN_PLACE, buf, count, mpitype(T), op, root, comm)
@@ -195,7 +195,7 @@ To handle allocation of the output buffer, see [`Allreduce`](@ref).
 """
 function Allreduce!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                    count::Integer, op::Union{Op,MPI_Op}, comm::Comm) where T
-    @assert length(recvbuf) >= count
+    typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= count
     # int MPI_Allreduce(const void* sendbuf, void* recvbuf, int count,
     #                   MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
     @mpichk ccall((:MPI_Allreduce, libmpi), Cint,
@@ -279,9 +279,9 @@ To handle allocation of the output buffer, see [`Scatter`](@ref).
 function Scatter!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                   count::Integer, root::Integer,
                   comm::Comm) where T
-    @assert length(recvbuf) >= count
+    typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= count
     isroot = Comm_rank(comm) == root
-    isroot && @assert length(sendbuf) >= count*Comm_size(comm)
+    isroot && typeof(sendbuf) <: AbstractArray && @assert length(sendbuf) >= count*Comm_size(comm)
 
     # int MPI_Scatter(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                 void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
@@ -352,7 +352,7 @@ function Scatterv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                   counts::Vector{Cint}, root::Integer, comm::Comm) where T
     recvcnt = counts[Comm_rank(comm) + 1]
     disps = accumulate(+, counts) - counts
-    @assert length(recvbuf) >= recvcnt
+    typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= recvcnt
     # int MPI_Scatterv(const void* sendbuf, const int sendcounts[],
     #                  const int displs[], MPI_Datatype sendtype, void* recvbuf,
     #                  int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
@@ -396,7 +396,7 @@ function Scatterv_in_place!(buf::MPIBuffertype{T}, counts::Vector{Cint},
                            root::Integer, comm::Comm) where T
     recvcnt = counts[Comm_rank(comm) + 1]
     disps = accumulate(+, counts) - counts
-    @assert length(buf) >= recvcnt
+    typeof(buf) <: AbstractArray && @assert length(buf) >= recvcnt
 
     if Comm_rank(comm) == root
         @mpichk ccall((:MPI_Scatterv, libmpi), Cint,
@@ -424,9 +424,9 @@ To perform the reduction in place refer to [`Gather_in_place!`](@ref).
 """
 function Gather!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                 count::Integer, root::Integer, comm::Comm) where T
-    @assert length(sendbuf) >= count
+    typeof(sendbuf) <: AbstractArray && @assert length(sendbuf) >= count
     isroot = Comm_rank(comm) == root
-    isroot && @assert length(recvbuf) >= count*Comm_size(comm)
+    isroot && typoef(recvbuf) <: AbstractArray && @assert length(recvbuf) >= count*Comm_size(comm)
 
     # int MPI_Gather(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
@@ -486,7 +486,7 @@ end
 function Gather_in_place!(buf::MPIBuffertype{T}, count::Integer, root::Integer,
                           comm::Comm) where T
     if Comm_rank(comm) == root
-        @assert length(buf) >= count*Comm_size(comm)
+        typeof(buf) <: AbstractArray && @assert length(buf) >= count*Comm_size(comm)
         @mpichk ccall((:MPI_Gather, libmpi), Cint,
                       (Ptr{T}, Cint, MPI_Datatype, Ptr{T}, Cint, MPI_Datatype, Cint, MPI_Comm),
                       MPI_IN_PLACE, count, mpitype(T), buf, count, mpitype(T), root, comm)
@@ -511,7 +511,7 @@ contribution.
 """
 function Allgather!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
                     count::Integer, comm::Comm) where T
-    @assert length(recvbuf) >= Comm_size(comm)*count
+    typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= Comm_size(comm)*count
     # int MPI_Allgather(const void* sendbuf, int sendcount,
     #                   MPI_Datatype sendtype, void* recvbuf, int recvcount,
     #                   MPI_Datatype recvtype, MPI_Comm comm)
@@ -573,7 +573,7 @@ function Gatherv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
     isroot = Comm_rank(comm) == root
     displs = accumulate(+, counts) - counts
     sendcnt = counts[Comm_rank(comm) + 1]
-    isroot && @assert length(recvbuf) >= sum(counts)
+    isroot && typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= sum(counts)
     # int MPI_Gatherv(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                 void* recvbuf, const int recvcounts[], const int displs[],
     #                 MPI_Datatype recvtype, int root, MPI_Comm comm)
@@ -620,7 +620,7 @@ function Gatherv_in_place!(buf::MPIBuffertype{T}, counts::Vector{Cint},
     sendcnt = counts[Comm_rank(comm) + 1]
 
     if isroot
-        @assert length(buf) >= sum(counts)
+        typeof(buf) <: AbstractArray && @assert length(buf) >= sum(counts)
         @mpichk ccall((:MPI_Gatherv, libmpi), Cint,
                       (Ptr{T}, Cint, MPI_Datatype, Ptr{T}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm),
                       MPI_IN_PLACE, sendcnt, mpitype(T), buf, counts, displs, mpitype(T), root, comm)
@@ -645,7 +645,7 @@ the interval of `recvbuf` where it would store it's own data.
 """
 function Allgatherv!(sendbuf::MPIBuffertypeOrConst{T}, recvbuf::MPIBuffertype{T},
 	                     counts::Vector{Cint}, comm::Comm) where T
-    @assert length(recvbuf) >= sum(counts)
+    typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= sum(counts)
     displs = accumulate(+, counts) - counts
     sendcnt = counts[Comm_rank(comm) + 1]
     # int MPI_Allgatherv(const void* sendbuf, int sendcount,
@@ -731,7 +731,7 @@ end
 function Alltoallv!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                    scounts::Vector{Cint}, rcounts::Vector{Cint},
                    comm::Comm) where T
-    @assert length(recvbuf) == sum(rcounts)
+    typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) == sum(rcounts)
 
     sdispls = accumulate(+, scounts) - scounts
     rdispls = accumulate(+, rcounts) - rcounts
