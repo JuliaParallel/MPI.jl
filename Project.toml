@@ -14,8 +14,9 @@ Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 julia = "1"
 
 [extras]
+DoubleFloats = "497a8b3b-efae-58df-a0af-a86822472b78"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["LinearAlgebra", "Test"]
+test = ["DoubleFloats", "LinearAlgebra", "Test"]

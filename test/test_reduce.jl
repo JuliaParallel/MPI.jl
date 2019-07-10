@@ -1,7 +1,7 @@
 using Test
 
 using MPI
-using LinearAlgebra
+using LinearAlgebra, DoubleFloats
 
 MPI.Init()
 
@@ -86,6 +86,15 @@ for typ=[Int]
     end
 end
 
+MPI.Barrier( MPI.COMM_WORLD )
+
+send_arr = [Double64(i)/10 for i = 1:10]
+
+if rank == root
+    @test MPI.Reduce(send_arr, +, root, MPI.COMM_WORLD) ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
+else
+    @test MPI.Reduce(send_arr, +, root, MPI.COMM_WORLD) === nothing
+end
 
 MPI.Barrier( MPI.COMM_WORLD )
 
