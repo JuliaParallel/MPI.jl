@@ -426,7 +426,7 @@ function Gather!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
                 count::Integer, root::Integer, comm::Comm) where T
     typeof(sendbuf) <: AbstractArray && @assert length(sendbuf) >= count
     isroot = Comm_rank(comm) == root
-    isroot && typoef(recvbuf) <: AbstractArray && @assert length(recvbuf) >= count*Comm_size(comm)
+    isroot && typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= count*Comm_size(comm)
 
     # int MPI_Gather(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
