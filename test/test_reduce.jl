@@ -88,5 +88,7 @@ end
 
 
 MPI.Barrier( MPI.COMM_WORLD )
+
+GC.gc()
 MPI.Finalize()
 @test MPI.Finalized()
