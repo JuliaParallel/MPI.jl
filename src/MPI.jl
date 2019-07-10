@@ -1,6 +1,7 @@
 module MPI
 
 using Libdl, Serialization
+using Requires
 
 macro mpichk(expr)
     @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
@@ -52,6 +53,8 @@ function __init__()
     if filesize(dlpath(libmpi)) != libmpi_size
         error("MPI library has changed, re-run Pkg.build(\"MPI\")")
     end
+
+    @require CuArrays="3a865a2d-5b23-5a0f-bc46-62713ec82fae" include("cuda.jl")
 end
 
 end
