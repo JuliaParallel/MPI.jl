@@ -1,16 +1,17 @@
 import MPI
-MPI.Init()
-comm = MPI.COMM_WORLD
 using CuArrays
 using CuArrays.CUDAdrv
 using CUDAnative
-CUDAnative.device!(MPI.Comm_rank(comm) % length(devices()))
+
+MPI.Init()
+comm = MPI.COMM_WORLD
+lcomm = MPI.Comm_split_type(comm, MPI.MPI_COMM_TYPE_SHARED, MPI.Comm_rank(comm))
+CUDAnative.device!(MPI.Comm_rank(lcomm) % length(devices()))
+
 include("02-broadcast-impl.jl")
 function main()
     do_broadcast()
 end
-
-
 
 main()
 
