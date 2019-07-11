@@ -17,7 +17,8 @@ function do_sendrecv()
     send_mesg = CuArrays.CuArray{Float64}(undef, N)
     recv_mesg = CuArrays.CuArray{Float64}(undef, N)
 
-    fill!(send_mesg, Float64(rank))
+    @sync fill!(send_mesg, Float64(rank))
+    # CUDA streams should be synchronized before calling MPI.
 
     rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 

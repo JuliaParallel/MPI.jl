@@ -41,7 +41,7 @@ end
 
 function Bcast!(buf::CuArray{T}, root::Integer, comm::MPI.Comm) where T
     GC.@preserve buf begin
-        ptr = get_ptr(buf, Comm_rank(comm) == root)
+        ptr = get_ptr(buf)
         MPI.Bcast!(ptr, length(buf), root, comm)
     end
 end

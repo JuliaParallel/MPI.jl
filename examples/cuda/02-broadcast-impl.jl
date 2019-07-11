@@ -21,7 +21,9 @@ function do_broadcast()
     
     A = CuArrays.CuArray{Float64}(undef, 10, 10)
     if MPI.Comm_rank(comm) == root
-        copyto!(A, reshape(collect(1:N)*1.0,  (10, 10)))
+        @sync copyto!(A, reshape(collect(1:N)*1.0,  (10, 10)))
+        # CUDA streams should be synchronized before calling MPI functions, 
+        # implicitly or explicitly.
     end
     
 
