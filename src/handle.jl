@@ -8,6 +8,8 @@ macro mpi_handle(def, extrafields...)
         Base.@__doc__ mutable struct $(esc(def))
             val::$mpiname
             $(extrafields...)
+            
+            $(esc(name))(val::$mpiname, $(extrafields...)) = new(val, $(extrafields...))
         end
 
         # const initializer
@@ -29,6 +31,5 @@ macro mpi_handle(def, extrafields...)
         function Base.unsafe_convert(::Type{Ptr{$mpiname}}, obj::$name)
             convert(Ptr{$mpiname}, pointer_from_objref(obj))
         end
-
     end
 end
