@@ -11,6 +11,26 @@ MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 
 MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
 
+if sizeof(Ptr{Cvoid}) == 8
+    primitive type MPIPtr 64 end
+else
+    primitive type MPIPtr 32 end
+end
+
+MPIPtr(x::Cint) where T = reinterpret(MPIPtr, x)
+
+
+MPIPtr(x::MPIBuffertype{T}) where {T} = reinterpret(MPIPtr, Base.unsafe_convert(Ptr{T}, x))
+
+# Base.convert(::Type{MPIPtr{T}}, p::MPIPtr) where T = reinterpret(MPIPtr{T}, p)
+
+Base.cconvert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T = Base.cconvert(Ptr{T}, x)
+
+function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
+    ptr = Base.unsafe_convert(Ptr{T}, x)
+    reinterpret(MPIPtr, ptr)
+end
+
 fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fieldnames(T))]
 
 # Define a function mpitype(T) that returns the MPI datatype code for

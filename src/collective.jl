@@ -19,18 +19,18 @@ end
 
 Broadcast the first `count` elements of the buffer `buf` from `root` to all processes.
 """
-function Bcast!(buffer::MPIBuffertype{T}, count::Integer,
-                root::Integer, comm::Comm) where T
+function Bcast!(buffer, count::Integer,
+                root::Integer, comm::Comm)
 
     # int MPI_Bcast(void* buffer, int count, MPI_Datatype datatype, int root,
     #               MPI_Comm comm)
     @mpichk ccall((:MPI_Bcast, libmpi), Cint,
-                  (Ptr{T}, Cint, MPI_Datatype, Cint, MPI_Comm),
-                  buffer, count, mpitype(T), root, comm)
+                  (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
+                  buffer, count, mpitype(Base.eltype(buffer)), root, comm)
     buffer
 end
 
-function Bcast!(buffer::Array{T}, root::Integer, comm::Comm) where T
+function Bcast!(buffer::AbstractArray{T}, root::Integer, comm::Comm) where T
     Bcast!(buffer, length(buffer), root, comm)
 end
 
@@ -77,27 +77,27 @@ To perform the reduction in place, see [`Reduce_in_place!`](@ref).
 
 To handle allocation of the output buffer, see [`Reduce`](@ref).
 """
-function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+function Reduce!(sendbuf, recvbuf,
                  count::Integer, op::Union{Op,MPI_Op}, root::Integer,
-                 comm::Comm) where T
+                 comm::Comm)
     isroot = Comm_rank(comm) == root
-    isroot && typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= count
+    isroot && typeof(recvbuf) <: AbstractArray && @assert length(recvbuf) >= count 
     # int MPI_Reduce(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
     @mpichk ccall((:MPI_Reduce, libmpi), Cint,
-                  (Ptr{T}, Ptr{T}, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm),
-                  sendbuf, recvbuf, count, mpitype(T), op, root, comm)
+                  (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm),
+                  sendbuf, recvbuf, count, mpitype(Base.eltype(sendbuf)), op, root, comm)
     isroot ? recvbuf : nothing
 end
 
 # Convert user-provided functions to MPI.Op
-Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
+Reduce!(sendbuf, recvbuf,
         count::Integer, opfunc::Function, root::Integer,
         comm::Comm) where {T} =
     Reduce!(sendbuf, recvbuf, count, user_op(opfunc), root, comm)
 
-function Reduce!(sendbuf::MPIBuffertype{T}, recvbuf::MPIBuffertype{T},
-                 op::Union{Op, Function}, root::Integer, comm::Comm) where T
+function Reduce!(sendbuf::AbstractArray{T}, recvbuf::AbstractArray{T},
+                 op::Union{Op, MPI_Op, Function}, root::Integer, comm::Comm) where T
     Reduce!(sendbuf, recvbuf, length(sendbuf), op, root, comm)
 end
 

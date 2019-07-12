@@ -22,7 +22,7 @@ function do_reduce()
     
     
 
-    sr = MPI.Reduce!(A, B, +, root, comm) 
+    sr = MPI.Reduce!(A, B, MPI.SUM, root, comm) 
 
     if(MPI.Comm_rank(comm) == root)
         @printf("sum: %s\n", B)

@@ -167,13 +167,13 @@ MPI rank `dest` of communicator `comm` using with the message tag `tag`
 
 Returns the commication `Request` for the nonblocking send.
 """
-function Isend(buf::MPIBuffertype{T}, count::Integer, datatype::Union{Datatype, MPI_Datatype},
-               dest::Integer, tag::Integer, comm::Comm) where T
+function Isend(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
+               dest::Integer, tag::Integer, comm::Comm)
     req = Request()
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     @mpichk ccall((:MPI_Isend, libmpi), Cint,
-          (Ptr{T}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
+          (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf, count, datatype, dest, tag, comm, req)
     req.buffer = buf
     return req
@@ -188,9 +188,9 @@ of communicator `comm` using with the message tag `tag`
 
 Returns the commication `Request` for the nonblocking send.
 """
-function Isend(buf::MPIBuffertype{T}, count::Integer,
-               dest::Integer, tag::Integer, comm::Comm) where T
-    Isend(buf, count, mpitype(T), dest, tag, comm)
+function Isend(buf, count::Integer,
+               dest::Integer, tag::Integer, comm::Comm)
+    Isend(buf, count, mpitype(Base.eltype(buf)), dest, tag, comm)
 end
 
 """
@@ -201,7 +201,7 @@ using with the message tag `tag`
 
 Returns the commication `Request` for the nonblocking send.
 """
-function Isend(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
+function Isend(buf::AbstractArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
     Isend(buf, length(buf), dest, tag, comm)
 end
 
@@ -329,13 +329,13 @@ from MPI rank `src` of communicator `comm` using with the message tag `tag`
 
 Returns the communication `Request` for the nonblocking receive.
 """
-function Irecv!(buf::MPIBuffertype{T}, count::Integer, datatype::Union{Datatype, MPI_Datatype},
+function Irecv!(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
                     src::Integer, tag::Integer, comm::Comm) where T
     req = Request()
     # int MPI_Irecv(void* buf, int count, MPI_Datatype datatype, int source,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     @mpichk ccall((:MPI_Irecv, libmpi), Cint,
-                  (Ptr{T}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
+                  (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf, count, datatype, src, tag, comm, req)
     req.buffer = buf
     return req
@@ -350,9 +350,9 @@ from MPI rank `src` of communicator `comm` using with the message tag `tag`
 
 Returns the communication `Request` for the nonblocking receive.
 """
-function Irecv!(buf::MPIBuffertype{T}, count::Integer,
-                    src::Integer, tag::Integer, comm::Comm) where T
-    Irecv!(buf, count, mpitype(T), src, tag, comm)
+function Irecv!(buf, count::Integer,
+                    src::Integer, tag::Integer, comm::Comm) 
+    Irecv!(buf, count, mpitype(Base.eltype(buf)), src, tag, comm)
 end
 
 """
@@ -363,7 +363,7 @@ Starts a nonblocking receive into `buf` from MPI rank `src` of communicator
 
 Returns the communication `Request` for the nonblocking receive.
 """
-function Irecv!(buf::Array{T}, src::Integer, tag::Integer,
+function Irecv!(buf::AbstractArray{T}, src::Integer, tag::Integer,
                              comm::Comm) where T
     Irecv!(buf, length(buf), src, tag, comm)
 end

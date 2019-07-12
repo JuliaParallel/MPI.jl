@@ -1,28 +1,19 @@
 import .CuArrays: CuArray
 import .CuArrays.CUDAdrv: CuPtr, synchronize
+import .CuArrays.CUDAdrv.Mem: DeviceBuffer
 
-function get_ptr(buf::CuArray{T}) where T
-    _buf = Base.cconvert(CuPtr{T}, buf)
-    cuptr = Base.unsafe_convert(CuPtr{T}, _buf)
-    reinterpret(Ptr{T}, cuptr)
+MPIPtr(x::CuArray{T}) where T = reinterpret(MPIPtr, Base.unsafe_convert(x))
+
+function Base.cconvert(::Type{MPIPtr}, buf::CuArray{T}) where T
+    Base.cconvert(CuPtr{T}, buf) # returns DeviceBuffer
 end
 
-function Isend(buf::CuArray{T}, dest::Integer, tag::Integer, 
-                comm::MPI.Comm) where T
-    GC.@preserve buf begin
-        ptr = get_ptr(buf)
-        MPI.Isend(ptr, length(buf), dest, tag, comm)
-    end
+function Base.unsafe_convert(::Type{MPIPtr}, buf::DeviceBuffer)
+    reinterpret(MPIPtr, buf.ptr)
 end
 
-function Irecv!(buf::CuArray{T}, src::Integer, tag::Integer, 
-                comm::MPI.Comm) where T
-    GC.@preserve buf begin
-        ptr = get_ptr(buf)
-        MPI.Irecv!(ptr, length(buf), src, tag, comm)
-    end
-end
 
+#=
 function Send(buf::CuArray{T}, dest::Integer, tag::Integer, 
                 comm::MPI.Comm) where T
     GC.@preserve buf begin
@@ -38,23 +29,6 @@ function Recv!(buf::CuArray{T}, src::Integer, tag::Integer,
         MPI.Recv!(ptr, length(buf), src, tag, comm)
     end
 end
-
-function Bcast!(buf::CuArray{T}, root::Integer, comm::MPI.Comm) where T
-    GC.@preserve buf begin
-        ptr = get_ptr(buf)
-        MPI.Bcast!(ptr, length(buf), root, comm)
-    end
-end
-
-function Reduce!(sendbuf::CuArray{T,N}, recvbuf::CuArray{T,N},
-                    op::Union{Op, Function}, root::Integer, comm::Comm) where {T, N}
-    GC.@preserve sendbuf recvbuf begin
-        sendptr = get_ptr(sendbuf)
-        recvptr = get_ptr(recvbuf)
-        MPI.Reduce!(sendptr, recvptr, length(recvbuf), op, root, comm)
-    end
-end
-
 function Reduce(sendbuf::CuArray{T,N}, op::Union{Op, Function}, 
                     root::Integer, comm::Comm) where {T,N}
     GC.@preserve sendbuf begin
@@ -169,3 +143,4 @@ function Allgatherv!(sendbuf::CuArray{T}, recvbuf::CuArray{T},
         Allgatherv!(sendptr, recvptr, counts, comm)
     end
 end
+=#
