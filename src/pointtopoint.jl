@@ -202,7 +202,7 @@ using with the message tag `tag`
 Returns the commication `Request` for the nonblocking send.
 """
 function Isend(buf::AbstractArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
-    Isend(buf, length(buf), dest, tag, comm)
+    Isend(buf, length(buf), mpitype(T), dest, tag, comm)
 end
 
 """
@@ -216,7 +216,7 @@ Returns the commication `Request` for the nonblocking send.
 function Isend(buf::SubArray{T}, dest::Integer, tag::Integer,
                comm::Comm) where T
     @assert Base.iscontiguous(buf)
-    Isend(buf, length(buf), dest, tag, comm)
+    Isend(buf, length(buf), mpitype(T), dest, tag, comm)
 end
 
 """
@@ -365,7 +365,7 @@ Returns the communication `Request` for the nonblocking receive.
 """
 function Irecv!(buf::AbstractArray{T}, src::Integer, tag::Integer,
                              comm::Comm) where T
-    Irecv!(buf, length(buf), src, tag, comm)
+    Irecv!(buf, length(buf), mpitype(T), src, tag, comm)
 end
 
 """
@@ -380,7 +380,7 @@ Returns the communication `Request` for the nonblocking receive.
 function Irecv!(buf::SubArray{T}, src::Integer, tag::Integer,
                              comm::Comm) where T
     @assert Base.iscontiguous(buf)
-    Irecv!(buf, length(buf), src, tag, comm)
+    Irecv!(buf, length(buf), mpitype(T), src, tag, comm)
 end
 
 function irecv(src::Integer, tag::Integer, comm::Comm)
