@@ -28,9 +28,9 @@ MPIPtr(x::MPIBuffertype{T}) where {T} = reinterpret(MPIPtr, Base.unsafe_convert(
 
 # Base.convert(::Type{MPIPtr{T}}, p::MPIPtr) where T = reinterpret(MPIPtr{T}, p)
 
-Base.cconvert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T = Base.cconvert(Ptr{T}, x)
+Base.cconvert(::Type{MPIPtr}, x::MPIBuffertypeOrConst{T}) where T = Base.cconvert(Ptr{T}, x)
 
-function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
+function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertypeOrConst{T}) where T
     ptr = Base.unsafe_convert(Ptr{T}, x)
     reinterpret(MPIPtr, ptr)
 end
