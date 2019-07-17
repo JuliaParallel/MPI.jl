@@ -1,3 +1,4 @@
+import Base: eltype
 
 # definition of the `Status` struct.
 # TODO: this bakes in a lot of assumptions about ordering and padding
@@ -94,12 +95,12 @@ end
 Complete a blocking send of `count` elements of type `datatype` from `buf` to MPI
 rank `dest` of communicator `comm` using the message tag `tag`
 """
-function Send(buf::MPIBuffertype{T}, count::Integer, datatype::Union{Datatype, MPI_Datatype},
-              dest::Integer, tag::Integer, comm::Comm) where T
+function Send(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
+              dest::Integer, tag::Integer, comm::Comm)
     # int MPI_Send(const void* buf, int count, MPI_Datatype datatype, int dest,
     #              int tag, MPI_Comm comm)
     @mpichk ccall((:MPI_Send, libmpi), Cint,
-          (Ptr{T}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm),
+          (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm),
           buf, count, datatype, dest, tag, comm)
 end
 
@@ -110,18 +111,18 @@ end
 Complete a blocking send of `count` elements of `buf` to MPI rank `dest`
 of communicator `comm` using with the message tag `tag`
 """
-function Send(buf::MPIBuffertype{T}, count::Integer, dest::Integer,
-              tag::Integer, comm::Comm) where T
-    Send(buf, count, mpitype(T), dest, tag, comm)
+function Send(buf, count::Integer, dest::Integer,
+              tag::Integer, comm::Comm)
+    Send(buf, count, mpitype(eltype(buf)), dest, tag, comm)
 end
 
 """
-    Send(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
+    Send(buf::AbstractArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
 
 Complete a blocking send of `buf` to MPI rank `dest` of communicator `comm`
 using with the message tag `tag`
 """
-function Send(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
+function Send(buf::AbstractArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
     Send(buf, length(buf), dest, tag, comm)
 end
 
@@ -190,7 +191,7 @@ Returns the commication `Request` for the nonblocking send.
 """
 function Isend(buf, count::Integer,
                dest::Integer, tag::Integer, comm::Comm)
-    Isend(buf, count, mpitype(Base.eltype(buf)), dest, tag, comm)
+    Isend(buf, count, mpitype(eltype(buf)), dest, tag, comm)
 end
 
 """
@@ -254,13 +255,13 @@ from MPI rank `src` of communicator `comm` using with the message tag `tag`
 
 Returns the `Status` of the receive
 """
-function Recv!(buf::MPIBuffertype{T}, count::Integer, datatype::Union{Datatype,MPI_Datatype}, src::Integer,
-               tag::Integer, comm::Comm) where T
+function Recv!(buf, count::Integer, datatype::Union{Datatype,MPI_Datatype}, src::Integer,
+               tag::Integer, comm::Comm)
     stat_ref = Ref{Status}()
     # int MPI_Recv(void* buf, int count, MPI_Datatype datatype, int source,
     #              int tag, MPI_Comm comm, MPI_Status *status)
     @mpichk ccall((:MPI_Recv, libmpi), Cint,
-                  (Ptr{T}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{Status}),
+                  (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{Status}),
                   buf, count, datatype, src, tag, comm, stat_ref)
     return stat_ref[]
 end
@@ -274,9 +275,9 @@ Completes a blocking receive of up to `count` elements into `buf` from MPI rank
 
 Returns the `Status` of the receive
 """
-function Recv!(buf::MPIBuffertype{T}, count::Integer, src::Integer,
-               tag::Integer, comm::Comm) where T
-    Recv!(buf, count, mpitype(T), src, tag, comm)
+function Recv!(buf, count::Integer, src::Integer,
+               tag::Integer, comm::Comm)
+    Recv!(buf, count, mpitype(eltype(buf)), src, tag, comm)
 end
 
 
@@ -288,7 +289,7 @@ Completes a blocking receive into `buf` from MPI rank `src` of communicator
 
 Returns the `Status` of the receive
 """
-function Recv!(buf::Array{T}, src::Integer, tag::Integer, comm::Comm) where T
+function Recv!(buf::AbstractArray{T}, src::Integer, tag::Integer, comm::Comm) where T
     Recv!(buf, length(buf), src, tag, comm)
 end
 
@@ -352,7 +353,7 @@ Returns the communication `Request` for the nonblocking receive.
 """
 function Irecv!(buf, count::Integer,
                     src::Integer, tag::Integer, comm::Comm) 
-    Irecv!(buf, count, mpitype(Base.eltype(buf)), src, tag, comm)
+    Irecv!(buf, count, mpitype(eltype(buf)), src, tag, comm)
 end
 
 """

@@ -23,21 +23,15 @@ end
 
 MPIPtr(x::Cint) where T = reinterpret(MPIPtr, x)
 
+Base.cconvert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T = Base.cconvert(Ptr{T}, x)
 
-function MPIPtr(x::MPIBuffertype{T}) where {T}
-    GC.@preserve x begin
-        reinterpret(MPIPtr, Base.unsafe_convert(Ptr{T}, x))
-    end
-end
-
-# Base.convert(::Type{MPIPtr{T}}, p::MPIPtr) where T = reinterpret(MPIPtr{T}, p)
-
-Base.cconvert(::Type{MPIPtr}, x::MPIBuffertypeOrConst{T}) where T = Base.cconvert(Ptr{T}, x)
-
-function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertypeOrConst{T}) where T
+function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
     ptr = Base.unsafe_convert(Ptr{T}, x)
     reinterpret(MPIPtr, ptr)
 end
+
+Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
+Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
 
 fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fieldnames(T))]
 
