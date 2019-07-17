@@ -24,7 +24,11 @@ end
 MPIPtr(x::Cint) where T = reinterpret(MPIPtr, x)
 
 
-MPIPtr(x::MPIBuffertype{T}) where {T} = reinterpret(MPIPtr, Base.unsafe_convert(Ptr{T}, x))
+function MPIPtr(x::MPIBuffertype{T}) where {T}
+    GC.@preserve x begin
+        reinterpret(MPIPtr, Base.unsafe_convert(Ptr{T}, x))
+    end
+end
 
 # Base.convert(::Type{MPIPtr{T}}, p::MPIPtr) where T = reinterpret(MPIPtr{T}, p)
 

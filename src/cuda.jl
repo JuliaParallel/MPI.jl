@@ -2,7 +2,11 @@ import .CuArrays: CuArray
 import .CuArrays.CUDAdrv: CuPtr, synchronize
 import .CuArrays.CUDAdrv.Mem: DeviceBuffer
 
-MPIPtr(x::CuArray{T}) where T = reinterpret(MPIPtr, Base.unsafe_convert(x))
+function MPIPtr(x::CuArray{T}) where T
+    GC.@preserve x begin
+        reinterpret(MPIPtr, Base.unsafe_convert(x))
+    end
+end
 
 function Base.cconvert(::Type{MPIPtr}, buf::CuArray{T}) where T
     Base.cconvert(CuPtr{T}, buf) # returns DeviceBuffer
