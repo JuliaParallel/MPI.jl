@@ -25,7 +25,6 @@ end
 primitive type SentinelPtr
     Sys.WORD_SIZE
 end
-Base.cconvert(::Type{Ptr{T}}, sptr::SentinelPtr) where {T} = reinterpret(Ptr{T}, sptr)
 
 include(joinpath(@__DIR__, "..", "deps", "deps.jl"))
 include("handle.jl")
