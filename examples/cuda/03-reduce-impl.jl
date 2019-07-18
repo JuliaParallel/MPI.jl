@@ -10,21 +10,20 @@ function do_reduce()
     MPI.Barrier(comm)
 
     root = 0
-    r = MPI.Comm_rank(comm)
+    rank = MPI.Comm_rank(comm)
 
-    N = 100
+    N = 9
 
-    A = CuArray{Float64}(undef,10, 10)
-    @sync copyto!(A, r * reshape(collect(1:N)*1.0, (10, 10)))
+    A = CuArray{Float64}(undef,3, 3)
+    @sync copyto!(A, rank * reshape(collect(1:N)*1.0, (3, 3)))
     # CUDA streams should be synchronized before MPI call.
 
-    B = CuArray{Float64}(undef, 10, 10)
-    
+    B = CuArray{Float64}(undef, 3, 3)
     
 
     sr = MPI.Reduce!(A, B, MPI.SUM, root, comm) 
 
     if(MPI.Comm_rank(comm) == root)
-        @printf("sum: %s\n", B)
+        println("sum: $B")
     end
 end

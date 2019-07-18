@@ -15,13 +15,13 @@ function do_broadcast()
 
     MPI.Barrier(comm)
 
-    N = 100
+    N = 9
     
     root = 0
     
-    A = CuArrays.CuArray{Float64}(undef, 10, 10)
+    A = CuArrays.CuArray{Float64}(undef, 3, 3)
     if MPI.Comm_rank(comm) == root
-        @sync copyto!(A, reshape(collect(1:N)*1.0,  (10, 10)))
+        @sync copyto!(A, reshape(collect(1:N)*1.0,  (3, 3)))
         # CUDA streams should be synchronized before calling MPI functions, 
         # implicitly or explicitly.
     end
@@ -31,7 +31,5 @@ function do_broadcast()
     
 
     @printf("[%02d] A:%s, device:%s\n", MPI.Comm_rank(comm), A, GPUArrays.device(A))
-    #map(println, CUDAdrv.devices())
-
 
 end
