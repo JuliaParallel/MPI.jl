@@ -30,4 +30,12 @@ s = @distributed (+) for i in 1:10
 end
 @test s == 385
 
+# Communication between workers
+@fetchfrom 2 begin
+    @fetchfrom workers()[end] begin
+        # This call should be allowed to occur
+        @test true
+    end
+end
+
 MPI.stop_main_loop(mgr)

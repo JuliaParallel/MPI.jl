@@ -282,7 +282,7 @@ function connect(mgr::MPIManager, pid::Int, config::WorkerConfig)
         config.connect_at = to_rank
         return start_send_event_loop(mgr, to_rank)
     else
-        return start_send_event_loop(mgr, get(config.connect_at))
+        return start_send_event_loop(mgr, config.connect_at)
     end
 end
 
