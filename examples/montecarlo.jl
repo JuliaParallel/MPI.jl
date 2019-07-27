@@ -51,7 +51,7 @@ function montecarlo(mc_eval::Function, mc_monitor::Function,
         results = zeros(n_evals, n_returns)
         contrib = zeros(batchsize, n_returns)
         for nresults = 1:div(n_evals, batchsize)
-            MPI.Recv!(contrib, MPI.ANY_SOURCE, 0, comm)
+            MPI.Recv!(contrib, MPI.MPI_ANY_SOURCE, 0, comm)
             results[nresults*batchsize-batchsize+1:nresults*batchsize,:] = contrib
             mc_monitor(nresults*batchsize, results)
         end
