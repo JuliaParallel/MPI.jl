@@ -36,8 +36,18 @@ if !@isdefined(Status)
             offset += 4
         end
 
-        @eval struct Status
-            $(struct_fields...)
+        @eval begin
+            """
+    Status
+
+Represents the status of an MPI operation. This has 3 documented fields
+  - `source`
+  - `tag`
+  - `error`
+"""
+            struct Status
+                $(struct_fields...)
+            end
         end
     end
 
@@ -51,6 +61,18 @@ Get_source(status::Status) = Int(status.source)
 Get_tag(status::Status) = Int(status.tag)
 Get_error(status::Status) = Int(status.error)
 
+"""
+    Get_count(status::Status, T)
+
+Get the number of entries received.
+"""
+function Get_count(stat::Status, ::Type{T}) where T
+    count = Ref{Cint}()
+    @mpichk ccall((:MPI_Get_count, libmpi), Cint,
+                  (Ptr{Status}, MPI_Datatype, Ptr{Cint}),
+                  Ref(stat), mpitype(T), count)
+    Int(count[])
+end
 
 @mpi_handle Request buffer
 
@@ -77,13 +99,6 @@ function Iprobe(src::Integer, tag::Integer, comm::Comm)
     true, stat_ref[]
 end
 
-function Get_count(stat::Status, ::Type{T}) where T
-    count = Ref{Cint}()
-    @mpichk ccall((:MPI_Get_count, libmpi), Cint,
-                  (Ptr{Status}, MPI_Datatype, Ptr{Cint}),
-                  Ref(stat), mpitype(T), count)
-    Int(count[])
-end
 
 
 
@@ -409,6 +424,12 @@ function Wait!(req::Request)
     stat
 end
 
+"""
+    status | nothing = Test!(req::Request)
+
+Check if the request `req` has completed. If so, returns the corresponding
+[`Status`](@ref) object, otherwise returns `nothing`.
+"""
 function Test!(req::Request)
     flag = Ref{Cint}()
     stat_ref = Ref{Status}()
@@ -417,17 +438,17 @@ function Test!(req::Request)
                   (Ptr{MPI_Request}, Ptr{Cint}, Ptr{Status}),
                   req, flag, stat_ref)
     if flag[] == 0
-        return (false, nothing)
+        return nothing
     end
     req.buffer = nothing
-    (true, stat_ref[])
+    stat_ref[]
 end
 
 """
-    Waitall!(reqs::Vector{Request})
+    statuses = Waitall!(reqs::Vector{Request})
 
-Wait on all the requests in the array `reqs` to be complete. Returns an arrays
-of the all the requests statuses.
+Wait on all the requests in the array `reqs` to complete. Returns an array of the
+[`Status`](@ref) objects.
 """
 function Waitall!(reqs::Vector{Request})
     count = length(reqs)
@@ -445,6 +466,12 @@ function Waitall!(reqs::Vector{Request})
     return stats
 end
 
+"""
+    statuses | nothing = Testall!(reqs::Vector{Request})
+
+Check if all the requests in the array `reqs` have completed. If so, returns the vector of
+[`Status`](Ref) objects, otherwise returns `nothing`.
+"""
 function Testall!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
@@ -456,21 +483,22 @@ function Testall!(reqs::Vector{Request})
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Status}),
                   count, reqvals, flag, stats)
     if flag[] == 0
-        return (false, nothing)
+        return nothing
     end
     for i in 1:count
         reqs[i].val = reqvals[i]
         reqs[i].buffer = nothing
     end
-    (true, stats)
+    stats
 end
 
 
 """
-    Waitany!(reqs::Vector{Request})
+    (index, status) = Waitany!(reqs::Vector{Request})
 
-Wait on any the requests in the array `reqs` to be complete. Returns the index
-of the completed request and its `Status` as a tuple.
+Blocks until at least one of the requests in `reqs` has completed. Returns the index of
+the completed request in `reqs` and its [`Status`](@ref) (if multiple requests have
+completed, then one is chosen arbitrarily).
 """
 function Waitany!(reqs::Vector{Request})
     count = length(reqs)
@@ -488,6 +516,13 @@ function Waitany!(reqs::Vector{Request})
     (index, stat_ref[])
 end
 
+"""
+    (index, status) | nothing = Testany!(reqs::Vector{Request})
+
+Check if at least one of the requests`reqs` have completed. If so, returns the index of
+the completed request in `reqs` and its [`Status`](@ref) (if multiple requests have
+completed, then one is chosen arbitrarily), otherwise returns `nothing`.
+"""
 function Testany!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [req.val for req in reqs]
@@ -500,14 +535,20 @@ function Testany!(reqs::Vector{Request})
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{Status}),
                   count, reqvals, ind, flag, stat_ref)
     if flag[] == 0 || ind[] == MPI_UNDEFINED
-        return (false, 0, nothing)
+        return nothing
     end
     index = Int(ind[]) + 1
     reqs[index].val = reqvals[index]
     reqs[index].buffer = nothing
-    (true, index, stat_ref[])
+    (index, stat_ref[])
 end
 
+"""
+    (indices, statuses) = Waitsome!(reqs::Vector{Request})
+
+Blocks until at least one of the requests in `reqs` has completed. Returns the indices of
+the completed requests in `reqs`, and their corresponding [`Status`](@ref)'s.
+"""
 function Waitsome!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
@@ -532,9 +573,17 @@ function Waitsome!(reqs::Vector{Request})
         reqs[ind].buffer = nothing
         indices[i] = ind
     end
+    resize!(stats, outcount)
     (indices, stats)
 end
 
+"""
+    (indices, statuses) = Testsome!(reqs::Vector{Request})
+
+Check if the requests in `reqs` have completed. Returns the indices of the completed
+requests in `reqs`, and their corresponding [`Status`](@ref)'s. If none of the requests
+have completed, then both arrays will be empty.
+"""
 function Testsome!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [req.val for req in reqs]
@@ -559,9 +608,15 @@ function Testsome!(reqs::Vector{Request})
         reqs[ind].buffer = nothing
         indices[i] = ind
     end
+    resize!(stats, outcount)
     (indices, stats)
 end
 
+"""
+    Cancel!(req::Request)
+
+Marks for cancellation a pending, nonblocking communication.
+"""
 function Cancel!(req::Request)
     # int MPI_Cancel(MPI_Request *request)
     @mpichk ccall((:MPI_Cancel, libmpi), Cint, (Ptr{MPI_Request},), req)
