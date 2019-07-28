@@ -38,7 +38,6 @@ include("collective.jl")
 include("topology.jl")
 include("window.jl")
 
-include("cman.jl")
 include("deprecated.jl")
 
 function __init__()
