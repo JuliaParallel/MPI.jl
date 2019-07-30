@@ -19,13 +19,13 @@ for (example_title, example_md) in EXAMPLES
          println(mdfile)
          println(mdfile, "`$example_jl`")
          println(mdfile, "```julia")
-         write(mdfile, read(example_jl))
+         write(mdfile, read(joinpath(@__DIR__,example_jl)))
          println(mdfile, "```")
          println(mdfile)
 
          println(mdfile, "```")
          println(mdfile, "> mpiexec -n 3 julia $example_jl")
-         write(mdfile, read(`$(MPI.mpiexec) -n 3 $(joinpath(Sys.BINDIR, Base.julia_exename())) --project $example_jl`))
+         write(mdfile, read(`$(MPI.mpiexec) -n 3 $(joinpath(Sys.BINDIR, Base.julia_exename())) --project $(joinpath(@__DIR__,example_jl))`))
          println(mdfile, "```")
     end
 end
