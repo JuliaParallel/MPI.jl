@@ -7,11 +7,11 @@ include:
     - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
     - tar xf openmpi.tar.gz
     - pushd openmpi-${OPENMPI_VER_FULL}
-    - ./configure --with-cuda
-    - make -j all
-    - sudo make all install
+    - ./configure --with-cuda --prefix=${HOME}/mpi
+    - make -j all install
     - popd
   script:
+    - export JULIA_MPI_PATH="${HOME}/mpi"
     - julia -e 'using InteractiveUtils;
                 versioninfo()'
     - julia --project -e 'using Pkg;
