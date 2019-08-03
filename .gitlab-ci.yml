@@ -8,7 +8,8 @@ include:
     - tar xf openmpi.tar.gz
     - pushd openmpi-${OPENMPI_VER_FULL}
     - ./configure --with-cuda --prefix=${HOME}/mpi
-    - make -j all install
+    - make -j
+    - make install
     - popd
   script:
     - export JULIA_MPI_PATH="${HOME}/mpi"
