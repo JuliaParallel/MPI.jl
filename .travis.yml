@@ -9,6 +9,7 @@ os:
 julia:
   - 1.0
   - 1.1
+  - 1.2
   - nightly
 
 branches:
@@ -31,6 +32,7 @@ env:
 
 matrix:
   allow_failures: # issue 262
+  - julia: nightly
   - os: osx
     env: MPI_IMPL=openmpi
   exclude:
