@@ -6,7 +6,7 @@ include:
   before_script:
     - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
     - tar xf openmpi.tar.gz
-    - pushd openmpi-{OPENMPI_VER_FULL}
+    - pushd openmpi-${OPENMPI_VER_FULL}
     - ./configure --with-cuda
     - make -j all
     - sudo make all install
