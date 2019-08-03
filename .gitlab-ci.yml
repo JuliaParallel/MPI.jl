@@ -3,6 +3,13 @@ include:
 
 .projecttest:
   extends: .test
+  before_script:
+    - wget https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz
+    - tar xf openmpi-{OPENMPI_VER_FULL}.tar.gz
+    - pushd openmpi-{OPENMPI_VER_FULL}
+    - ./configure --with-cuda
+    - make -j all
+    - sudo make all install
   script:
     - julia -e 'using InteractiveUtils;
                 versioninfo()'
@@ -13,6 +20,8 @@ include:
   extends: .projecttest
   variables:
     CI_IMAGE_TAG:     'cuda'
+    OPENMPI_VER:      '4.0'
+    OPENMPI_VER_FULL: '4.0.1'
   tags:
     - cuda
 
