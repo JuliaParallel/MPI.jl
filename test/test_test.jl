@@ -22,11 +22,12 @@ rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
 (ind,stats) = MPI.Waitsome!([sreq, rreq])
-(done, ind, stats) = MPI.Testany!([sreq, rreq])
+testanyval = MPI.Testany!([sreq, rreq])
 arr = [sreq,rreq]
-if done
-    (onedone,stats) = MPI.Test!(arr[ind])
-    @test onedone
+if testanyval !== nothing
+    ind,stat = testanyval
+    stats = MPI.Test!(arr[ind])
+    @test stats !== nothing
 end
 
 MPI.Finalize()
