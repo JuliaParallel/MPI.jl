@@ -11,6 +11,7 @@ include:
     - apt-get install --yes --no-install-recommends ssh
     - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
     - tar xf openmpi.tar.gz
+    - patch -p1 -d openmpi-${OPENMPI_VER_FULL} < conf/ompi_rootenv.patch
     - pushd openmpi-${OPENMPI_VER_FULL}
     - ./configure --with-cuda --prefix=${HOME}/mpi
     - make -j
