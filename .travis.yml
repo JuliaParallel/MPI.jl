@@ -1,6 +1,5 @@
 language: julia
-sudo: required
-dist: trusty
+dist: xenial
 
 os:
   - linux
@@ -66,8 +65,8 @@ jobs:
       script:
         - export DOCUMENTER_DEBUG="true"
         - julia --color=yes --project=docs/ -e 'using Pkg;
-                                                      Pkg.instantiate();
                                                       Pkg.develop(PackageSpec(path=pwd()));
+                                                      Pkg.instantiate();
                                                       Pkg.build()'
         - julia --color=yes --project=docs/ docs/make.jl
     - stage: "Coverage"

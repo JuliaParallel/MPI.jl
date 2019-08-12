@@ -16,8 +16,6 @@ const coverage_opts =
                       JL_LOG_USER => "user",
                       JL_LOG_ALL => "all")
 
-# Files to run without mpiexec
-juliafiles = ["test_cman_julia.jl"]
 # Files to run with mpiexec -n 1
 singlefiles = ["test_spawn.jl"]
 
@@ -41,8 +39,6 @@ function runtests()
         coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
         if f ∈ singlefiles
             run(`$mpiexec $extra_args -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
-        elseif f ∈ juliafiles
-            run(`$exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
         else
             run(`$mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
         end

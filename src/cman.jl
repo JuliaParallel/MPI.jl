@@ -58,7 +58,9 @@ mutable struct MPIManager <: ClusterManager
                           mpirun_cmd::Cmd = `$mpiexec -n $np`,
                           launch_timeout::Real = 60.0,
                           mode::TransportMode = MPI_ON_WORKERS,
-                          master_tcp_interface::String="" )
+                        master_tcp_interface::String="" )
+        Base.depwarn("MPI cluster manager functionality has been moved to MPIClusterManagers.jl", :start_main_loop)
+
         mgr = new()
         mgr.np = np
         mgr.mpi2j = Dict{Int,Int}()
@@ -331,6 +333,8 @@ end
 # Enter the MPI cluster manager's main loop (does not return on the workers)
 function start_main_loop(mode::TransportMode=TCP_TRANSPORT_ALL;
                          comm::MPI.Comm=MPI.COMM_WORLD)
+    Base.depwarn("MPI cluster manager functionality has been moved to MPIClusterManagers.jl", :start_main_loop)
+
     !MPI.Initialized() && MPI.Init()
     @assert MPI.Initialized() && !MPI.Finalized()
     if mode == TCP_TRANSPORT_ALL
