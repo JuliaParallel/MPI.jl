@@ -6,6 +6,7 @@ include:
   variables:
     OMPI_ALLOW_RUN_AS_ROOT: '1'
     OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: '1'
+    OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
   before_script:
     - apt-get update
     - apt-get install --yes --no-install-recommends ssh
