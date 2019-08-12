@@ -4,6 +4,8 @@ include:
 .projecttest:
   extends: .test
   before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends ssh
     - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
     - tar xf openmpi.tar.gz
     - pushd openmpi-${OPENMPI_VER_FULL}
