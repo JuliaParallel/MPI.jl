@@ -1,0 +1,62 @@
+include:
+  - 'https://raw.githubusercontent.com/JuliaGPU/gitlab-ci/master/templates/v3/common.yml'
+
+.projecttest:
+  extends: .test
+  variables:
+    OMPI_ALLOW_RUN_AS_ROOT: '1'
+    OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: '1'
+    OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends ssh
+    - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
+    - tar xf openmpi.tar.gz
+    - patch -p1 -d openmpi-${OPENMPI_VER_FULL} < conf/ompi_rootenv.patch
+    - pushd openmpi-${OPENMPI_VER_FULL}
+    - ./configure --with-cuda --prefix=${HOME}/mpi
+    - make -j
+    - make install
+    - popd
+  script:
+    - export JULIA_MPI_PATH="${HOME}/mpi"
+    - ${JULIA_MPI_PATH}/bin/ompi_info
+    - julia -e 'using InteractiveUtils;
+                versioninfo()'
+    - julia --project -e 'using Pkg;
+                          Pkg.build();
+                          Pkg.test(coverage=true)'
+.gputest:
+  extends: .projecttest
+  variables:
+    CI_IMAGE_TAG:     'cuda'
+    OPENMPI_VER:      '4.0'
+    OPENMPI_VER_FULL: '4.0.1'
+  tags:
+    - cuda
+
+gpu:test:dev:
+  extends: .gputest
+  variables:
+    CI_VERSION_TAG: 'dev'
+  allow_failure: true
+
+gpu:test:v1.3:
+  extends: .gputest
+  variables:
+    CI_VERSION_TAG: 'v1.3'
+
+gpu:test:v1.2:
+  extends: .gputest
+  variables:
+    CI_VERSION_TAG: 'v1.2'
+
+gpu:test:v1.1:
+  extends: .gputest
+  variables:
+    CI_VERSION_TAG: 'v1.1'
+
+gpu:test:v1.0:
+  extends: .gputest
+  variables:
+    CI_VERSION_TAG: 'v1.0'
