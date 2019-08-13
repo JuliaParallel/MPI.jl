@@ -1,4 +1,4 @@
-# Setup
+# Installation
 
 ## Requirements
 
@@ -10,7 +10,7 @@ MPI.jl requires:
 - A C compiler available via the `mpicc` command: this is required as part of the build
   process to determine the necessary type definitions and constants.
 
-This has been tested with [Open MPI](http://www.open-mpi.org/) and [MPICH](http://www.mpich.org/)).
+This has been tested with [Open MPI](http://www.open-mpi.org/) and [MPICH](http://www.mpich.org/).
 
 ### Windows
 
