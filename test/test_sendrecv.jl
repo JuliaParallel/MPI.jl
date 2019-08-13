@@ -1,6 +1,12 @@
-using Test
+using Test, Pkg
 using MPI
-using LinearAlgebra
+
+if haskey(Pkg.installed(), "CuArrays")
+    using CuArrays
+    ArrayType = CuArray
+else
+    ArrayType = Array
+end
 
 MPI.Init()
 
@@ -13,9 +19,9 @@ src = mod(rank-1, size)
 
 N = 32
 
-send_mesg = Array{Float64}(undef,N)
-recv_mesg = Array{Float64}(undef,N)
-recv_mesg_expected = Array{Float64}(undef,N)
+send_mesg = ArrayType{Float64}(undef,N)
+recv_mesg = ArrayType{Float64}(undef,N)
+recv_mesg_expected = ArrayType{Float64}(undef,N)
 
 fill!(send_mesg, Float64(rank))
 fill!(recv_mesg_expected, Float64(src))
@@ -24,17 +30,14 @@ rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
 stats = MPI.Waitall!([sreq, rreq])
-@test isequal(typeof(rreq), typeof(MPI.REQUEST_NULL))
-@test isequal(typeof(sreq), typeof(MPI.REQUEST_NULL))
+@test rreq isa MPI.Request
+@test sreq isa MPI.Request
 @test MPI.Get_source(stats[2]) == src
 @test MPI.Get_tag(stats[2]) == src+32
-@test isapprox(norm(recv_mesg-recv_mesg_expected), 0.0)
+@test recv_mesg == recv_mesg_expected
 
-global (done, stats) = MPI.Testall!([sreq, rreq])
+(done, stats) = MPI.Testall!([sreq, rreq])
 @test done
-rreq = nothing
-sreq = nothing
-GC.gc()
 
 if rank == 0
     MPI.send(send_mesg, dst, rank+32, comm)
@@ -45,72 +48,35 @@ else
     (recv_mesg, _) = MPI.recv(src, src+32, comm)
     MPI.send(send_mesg, dst, rank+32, comm)
 end
+@test recv_mesg == recv_mesg_expected
 
-@test isapprox(norm(recv_mesg-recv_mesg_expected), 0.0)
-
-rreq = nothing
-sreq = nothing
-GC.gc()
 
 if rank == 0
-    MPI.send(send_mesg, dst, rank+32, comm)
-    recv_mesg = recv_mesg_expected
+    MPI.Send(Float64(rank), dst, rank+32, comm)
+    recv_val = Float64(src)
 elseif rank == size-1
-    (recv_mesg, _) = MPI.recv(src, src+32, comm)
+    (recv_val, _) = MPI.Recv(Float64, src, src+32, comm)
 else
-    (recv_mesg, _) = MPI.recv(src, src+32, comm)
-    MPI.send(send_mesg, dst, rank+32, comm)
+    (recv_val, _) = MPI.Recv(Float64, src, src+32, comm)
+    MPI.Send(Float64(rank), dst, rank+32, comm)
 end
+@test recv_val == Float64(src)
 
-send_mesg = Float64(rank)
-recv_mesg = Array{Float64}(undef,N)
-recv_mesg_expected = Array{Float64}(undef,N)
 
-fill!(recv_mesg_expected, Float64(src))
-
-rreq = nothing
-sreq = nothing
-GC.gc()
-
-send_mesg = Float64(rank)
-recv_mesg = Array{Float64}(undef,N)
-recv_mesg_expected = Array{Float64}(undef,N)
-
-fill!(recv_mesg_expected, Float64(src))
-
-if rank == 0
-    MPI.Send(send_mesg, dst, rank+32, comm)
-    recv_mesg = recv_mesg_expected
-elseif rank == size-1
-    (recv_mesg, _) = MPI.Recv(Float64,src, src+32, comm)
-else
-    (recv_mesg, _) = MPI.Recv(Float64,src, src+32, comm)
-    MPI.Send(send_mesg, dst, rank+32, comm)
-end
-
-rreq = nothing
-sreq = nothing
-GC.gc()
-
-recv_mesg = Array{Float64}(undef,N)
 rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
 (inds, stats) = MPI.Waitsome!([sreq, rreq])
 req_arr = [sreq,rreq]
 for i in inds
-    global (done, status) = MPI.Test!( req_arr[i] )
+    (done, status) = MPI.Test!( req_arr[i] )
     @test done
 end
 
-rreq = nothing
-sreq = nothing
-GC.gc()
-
-recv_mesg = Array{Float64}(undef,N)
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 MPI.Cancel!(sreq)
 @test sreq.buffer == nothing
+
 GC.gc()
 
 MPI.Finalize()

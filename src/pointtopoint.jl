@@ -127,17 +127,6 @@ function Send(buf::AbstractArray{T}, dest::Integer, tag::Integer, comm::Comm) wh
 end
 
 """
-    Send(buf::SubArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
-
-Complete a blocking send of `SubArray` `buf` to MPI rank `dest` of communicator
-`comm` using with the message tag `tag`. Note that the `buf` must be contiguous.
-"""
-function Send(buf::SubArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
-    @assert Base.iscontiguous(buf)
-    Send(buf, length(buf), dest, tag, comm)
-end
-
-"""
     Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
 
 Complete a blocking send of `obj` to MPI rank `dest` of communicator `comm`
@@ -203,20 +192,6 @@ using with the message tag `tag`
 Returns the commication `Request` for the nonblocking send.
 """
 function Isend(buf::AbstractArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
-    Isend(buf, length(buf), mpitype(T), dest, tag, comm)
-end
-
-"""
-    Isend(buf::SubArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
-
-Starts a nonblocking send of `SubArray` `buf` to MPI rank `dest` of communicator
-`comm` using with the message tag `tag`. Note that the `buf` must be contiguous.
-
-Returns the commication `Request` for the nonblocking send.
-"""
-function Isend(buf::SubArray{T}, dest::Integer, tag::Integer,
-               comm::Comm) where T
-    @assert Base.iscontiguous(buf)
     Isend(buf, length(buf), mpitype(T), dest, tag, comm)
 end
 
@@ -293,20 +268,6 @@ function Recv!(buf::AbstractArray{T}, src::Integer, tag::Integer, comm::Comm) wh
     Recv!(buf, length(buf), src, tag, comm)
 end
 
-"""
-    Recv!(buf::SubArray{T}, src::Integer, tag::Integer, comm::Comm) where T
-
-Completes a blocking receive into `SubArray` `buf` from MPI rank `src` of
-communicator `comm` using with the message tag `tag`. Note that `buf` must be
-contiguous.
-
-Returns the `Status` of the receive
-"""
-function Recv!(buf::SubArray{T}, src::Integer, tag::Integer, comm::Comm) where T
-    @assert Base.iscontiguous(buf)
-    Recv!(buf, length(buf), src, tag, comm)
-end
-
 function Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm) where T
     buf = Ref{T}()
     stat = Recv!(buf, 1, src, tag, comm)
@@ -366,21 +327,6 @@ Returns the communication `Request` for the nonblocking receive.
 """
 function Irecv!(buf::AbstractArray{T}, src::Integer, tag::Integer,
                              comm::Comm) where T
-    Irecv!(buf, length(buf), mpitype(T), src, tag, comm)
-end
-
-"""
-    Irecv!(buf::SubArray{T}, src::Integer, tag::Integer, comm::Comm) where T
-
-Starts a nonblocking receive into `SubArray` `buf` from MPI rank `src` of
-communicator `comm` using with the message tag `tag`. Note that `buf` must be
-contiguous.
-
-Returns the communication `Request` for the nonblocking receive.
-"""
-function Irecv!(buf::SubArray{T}, src::Integer, tag::Integer,
-                             comm::Comm) where T
-    @assert Base.iscontiguous(buf)
     Irecv!(buf, length(buf), mpitype(T), src, tag, comm)
 end
 

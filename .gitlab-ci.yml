@@ -20,12 +20,16 @@ include:
     - popd
   script:
     - export JULIA_MPI_PATH="${HOME}/mpi"
+    - export JULIA_PROJECT="test/cudaenv"
     - ${JULIA_MPI_PATH}/bin/ompi_info
     - julia -e 'using InteractiveUtils;
                 versioninfo()'
-    - julia --project -e 'using Pkg;
-                          Pkg.build();
-                          Pkg.test(coverage=true)'
+    - julia --color=yes -e 'using Pkg;
+                            Pkg.develop(PackageSpec(path=pwd()));
+                            Pkg.instantiate();
+                            Pkg.build()'
+    - julia --color=yes test/runtests.jl
+
 .gputest:
   extends: .projecttest
   variables:

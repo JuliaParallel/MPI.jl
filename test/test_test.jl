@@ -1,5 +1,12 @@
-using Test
+using Test, Pkg
 using MPI
+
+if haskey(Pkg.installed(), "CuArrays")
+    using CuArrays
+    ArrayType = CuArray
+else
+    ArrayType = Array
+end
 
 MPI.Init()
 
@@ -12,9 +19,9 @@ src = mod(rank-1, size)
 
 N = 32
 
-send_mesg = Array{Float64}(undef,N)
-recv_mesg = Array{Float64}(undef,N)
-recv_mesg_expected = Array{Float64}(undef,N)
+send_mesg = ArrayType{Float64}(undef,N)
+recv_mesg = ArrayType{Float64}(undef,N)
+recv_mesg_expected = ArrayType{Float64}(undef,N)
 fill!(send_mesg, Float64(rank))
 fill!(recv_mesg_expected, Float64(src))
 

@@ -15,23 +15,15 @@ MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 
 MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
 
-if sizeof(Ptr{Cvoid}) == 8
-    primitive type MPIPtr 64 end
-else
-    primitive type MPIPtr 32 end
+Base.cconvert(::Type{MPIPtr}, x::Union{Ptr{T}, Array{T}, Ref{T}}) where T = Base.cconvert(Ptr{T}, x)
+function Base.cconvert(::Type{MPIPtr}, x::SubArray{T}) where T
+    @assert Base.iscontiguous(x)
+    Base.cconvert(Ptr{T}, x)
 end
-
-MPIPtr(x::Cint) where T = reinterpret(MPIPtr, x)
-
-Base.cconvert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T = Base.cconvert(Ptr{T}, x)
-
 function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
     ptr = Base.unsafe_convert(Ptr{T}, x)
     reinterpret(MPIPtr, ptr)
 end
-
-Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
-Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
 
 fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fieldnames(T))]
 

@@ -1,41 +1,40 @@
-using Test
-using Random
+using Test, Pkg
 using MPI
+using Random
+
+if haskey(Pkg.installed(), "CuArrays")
+    using CuArrays
+    ArrayType = CuArray
+else
+    ArrayType = Array
+end
 
 MPI.Init()
 
+
+comm = MPI.COMM_WORLD
+
 function bcast_array(A, root)
-    comm = MPI.COMM_WORLD
 
-    if MPI.Comm_rank(comm) == root
-        B = copy(A)
-    else
-        B = similar(A)
-    end
-
-    MPI.Bcast!(B, root, comm)
-    B
 end
 
 root = 0
-
-if VERSION >= v"0.7.0-rc1"
-    Random.seed!(17)
-else
-    srand(17)
-end
-
+Random.seed!(17)
 matsize = (17,17)
-for typ in Base.uniontypes(MPI.MPIDatatype)
-    A = rand(typ, matsize...)
-    @test bcast_array(A, root) == A
+
+for T in Base.uniontypes(MPI.MPIDatatype)
+    A = ArrayType(rand(T, matsize))
+    B = MPI.Comm_rank(comm) == root ? A : similar(A)
+    MPI.Bcast!(B, root, comm)
+    @test B == A
 end
 
 # Char
 A = ['s', 't', 'a', 'r', ' ', 'w', 'a', 'r', 's']
-@test bcast_array(A, root) == A
+B = MPI.Comm_rank(comm) == root ? A : similar(A)
+MPI.Bcast!(B, root, comm)
+@test B == A
 
-comm = MPI.COMM_WORLD
 
 g = x -> x^2 + 2x - 1
 if MPI.Comm_rank(comm) == root

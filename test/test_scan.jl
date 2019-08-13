@@ -1,19 +1,33 @@
-using Test
-
+using Test, Pkg
 using MPI
+
+if haskey(Pkg.installed(), "CuArrays")
+    using CuArrays
+    ArrayType = CuArray
+else
+    ArrayType = Array
+end
 
 MPI.Init()
 
 comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
+prodrank = prod(1:rank+1)
 
 # Not possible to PROD a Char (and neither Int8 with OpenMPI)
-typs = setdiff([(Base.uniontypes(MPI.MPIDatatype))...], [Char, Int8, UInt8])
-for typ in typs
-    val = convert(typ,rank + 1)
-    B = MPI.Scan(val, MPI.PROD, comm)
-    @test B[1] ≈ convert(typ, prod(1:(rank+1)))
+for T in setdiff([Base.uniontypes(MPI.MPIDatatype)...], [Char, Int8, UInt8])
+    A = ArrayType{T}(fill(T(rank+1), 4))
+    B = similar(A)
+    MPI.Scan!(A, B, *, comm)
+    @test B == ArrayType{T}(fill(T(prodrank), 4))
+    
+    B = MPI.Scan(A, *, comm)
+    @test B isa ArrayType{T}
+    @test B == ArrayType{T}(fill(T(prodrank), 4))
+    
+    B = MPI.Scan(T(rank+1), *, comm)
+    @test B[1] == prodrank
 end
 
 MPI.Finalize()

@@ -35,11 +35,6 @@ function Bcast!(buffer::AbstractArray{T}, root::Integer, comm::Comm) where T
     Bcast!(buffer, length(buffer), root, comm)
 end
 
-function Bcast!(buffer::SubArray{T}, root::Integer, comm::Comm) where T
-    @assert Base.iscontiguous(buffer)
-    Bcast!(buffer, length(buffer), root, comm)
-end
-
 #=
 function Bcast{T}(obj::T, root::Integer, comm::Comm)
     buf = [T]
@@ -112,23 +107,18 @@ To specify the output buffer, see [`Reduce!`](@ref).
 
 To perform the reduction in place, see [`Reduce_in_place!`](@ref).
 """
-function Reduce(sendbuf::MPIBuffertype{T}, count::Integer,
+function Reduce(sendbuf, count::Integer,
                 op, root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
-    recvbuf = Array{T}(undef, isroot ? count : 0)
+    recvbuf = similar(sendbuf, isroot ? count : 0)
     Reduce!(sendbuf, recvbuf, count, op, root, comm)
 end
 
 function Reduce(sendbuf::AbstractArray{T,N}, op,
-    root::Integer, comm::Comm) where {T,N}
+                root::Integer, comm::Comm) where {T,N}
     isroot = Comm_rank(comm) == root
     recvbuf = similar(sendbuf, isroot ? size(sendbuf) : Tuple(zeros(Int, ndims(sendbuf))))
     Reduce!(sendbuf, recvbuf, length(sendbuf), op, root, comm)
-end
-
-function Reduce(sendbuf::SubArray{T}, op, root::Integer, comm::Comm) where T
-    @assert Base.iscontiguous(sendbuf)
-    Reduce(sendbuf, length(sendbuf), op, root, comm)
 end
 
 function Reduce(object::T, op
@@ -238,12 +228,6 @@ output buffer in all processes of the group.
 
 To specify the output buffer or perform the operation in pace, see [`Allreduce!`](@ref).
 """
-function Allreduce(sendbuf::MPIBuffertype{T}, op, comm::Comm) where T
-
-  recvbuf = similar(sendbuf)
-  Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
-end
-
 function Allreduce(sendbuf::AbstractArray{T, N}, op, comm::Comm) where {T, N}
     recvbuf = similar(sendbuf, size(sendbuf))
     Allreduce!(sendbuf, recvbuf, length(sendbuf), op, comm)
@@ -255,14 +239,6 @@ function Allreduce(obj::T, op, comm::Comm) where T
     Allreduce!(objref, outref, 1, op, comm)
 
     outref[]
-end
-
-# Deprecation warning for lowercase allreduce that was used until v. 0.7.2
-# Should be removed at some point in the future
-function allreduce(sendbuf::MPIBuffertype{T}, op,
-                   comm::Comm) where T
-    @warn "`allreduce` is deprecated, use `Allreduce` instead."
-    Allreduce(sendbuf, op, comm)
 end
 
 
@@ -456,10 +432,10 @@ Each process sends the first `count` elements of the buffer `sendbuf` to the
 `root` process. The `root` allocates the output buffer and stores elements in
 rank order.
 """
-function Gather(sendbuf::MPIBuffertype{T}, count::Integer,
+function Gather(sendbuf, count::Integer,
                 root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
-    recvbuf = Array{T}(undef, isroot ? Comm_size(comm) * count : 0)
+    recvbuf = similar(sendbuf, isroot ? Comm_size(comm) * count : 0)
     Gather!(sendbuf, recvbuf, count, root, comm)
 end
 
@@ -467,11 +443,6 @@ function Gather(sendbuf::AbstractArray{T}, root::Integer, comm::Comm) where T
     isroot = Comm_rank(comm) == root
     recvbuf = similar(sendbuf, isroot ? Comm_size(comm) * length(sendbuf) : 0)
     Gather!(sendbuf, recvbuf, length(sendbuf), root, comm)
-end
-
-function Gather(sendbuf::SubArray{T}, root::Integer, comm::Comm) where T
-    @assert Base.iscontiguous(sendbuf)
-    Gather(sendbuf, length(sendbuf), root, comm)
 end
 
 function Gather(object::T, root::Integer, comm::Comm) where T
@@ -549,25 +520,17 @@ function Allgather!(buf, count::Integer,
 end
 
 """
-    Allgather(sendbuf, count, comm)
+    Allgather(sendbuf[, count=length(sendbuf)], comm)
 
 Each process sends the first `count` elements of `sendbuf` to the
 other processes, who store the results in rank order allocating
 the output buffer.
 """
-function Allgather(sendbuf::MPIBuffertype{T}, count::Integer,
-                   comm::Comm) where T
-    recvbuf = Array{T}(undef, Comm_size(comm) * count)
+function Allgather(sendbuf, count::Integer, comm::Comm)
+    recvbuf = similar(sendbuf, Comm_size(comm) * count)
     Allgather!(sendbuf, recvbuf, count, comm)
 end
-
-function Allgather(sendbuf::AbstractArray{T}, comm::Comm) where T
-    recvbuf = similar(sendbuf, Comm_size(comm) * length(sendbuf))
-    Allgather!(sendbuf, recvbuf, length(sendbuf), comm)
-end
-
-function Allgather(sendbuf::SubArray{T}, comm::Comm) where T
-    @assert Base.iscontiguous(sendbuf)
+function Allgather(sendbuf::AbstractArray, comm::Comm)
     Allgather(sendbuf, length(sendbuf), comm)
 end
 
@@ -613,7 +576,7 @@ in rank order.
 function Gatherv(sendbuf, counts::Vector{Cint},
                  root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
-    recvbuf = Array{T}(undef, isroot ? sum(counts) : 0)
+    recvbuf = similar(sendbuf, isroot ? sum(counts) : 0)
     Gatherv!(sendbuf, recvbuf, counts, root, comm)
 end
 
@@ -797,15 +760,39 @@ function Scan(sendbuf, count::Integer,
     recvbuf
 end
 
-function Scan(object::T, op::Union{Op,MPI_Op}, comm::Comm) where T
+
+function Scan!(sendbuf, recvbuf, count::Integer,
+               op::Union{Op,MPI_Op}, comm::Comm)
+    T = eltype(sendbuf)
+    # int MPI_Scan(const void* sendbuf, void* recvbuf, int count,
+    #              MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
+    @mpichk ccall((:MPI_Scan, libmpi), Cint,
+                  (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
+                  sendbuf, recvbuf, count, mpitype(T), op, comm)
+    recvbuf
+end
+function Scan!(sendbuf, recvbuf, count::Integer, opfunc, comm::Comm)
+    Scan!(sendbuf, recvbuf, count, Op(opfunc, eltype(sendbuf)), comm)
+end
+function Scan!(sendbuf::AbstractArray, recvbuf, op, comm::Comm)
+    Scan!(sendbuf, recvbuf, length(sendbuf), op, comm)
+end
+
+function Scan(sendbuf, count::Integer, op, comm::Comm)
+    Scan!(sendbuf, similar(sendbuf, count), count, op, comm)
+end
+
+function Scan(sendbuf::AbstractArray, op, comm::Comm)
+    Scan(sendbuf, length(sendbuf), op, comm)
+end
+function Scan(object::T, op, comm::Comm) where T
     sendbuf = T[object]
     Scan(sendbuf,1,op,comm)
 end
 
-function Exscan(sendbuf, count::Integer,
+function Exscan!(sendbuf, recvbuf, count::Integer,
                 op::Union{Op,MPI_Op}, comm::Comm)
     T = eltype(sendbuf)
-    recvbuf = similar(sendbuf, count)
     # int MPI_Exscan(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
     @mpichk ccall((:MPI_Exscan, libmpi), Cint,
@@ -813,8 +800,21 @@ function Exscan(sendbuf, count::Integer,
           sendbuf, recvbuf, count, mpitype(T), op, comm)
     recvbuf
 end
+function Exscan!(sendbuf, recvbuf, count::Integer, opfunc, comm::Comm)
+    Exscan!(sendbuf, recvbuf, count, Op(opfunc, eltype(sendbuf)), comm)
+end
+function Exscan!(sendbuf::AbstractArray, recvbuf, op, comm::Comm)
+    Exscan!(sendbuf, recvbuf, length(sendbuf), op, comm)
+end
 
-function Exscan(object::T, op::Union{Op,MPI_Op}, comm::Comm) where T
+function Exscan(sendbuf, count::Integer, op, comm::Comm)
+    Exscan!(sendbuf, similar(sendbuf, count), count, op, comm)
+end
+
+function Exscan(sendbuf::AbstractArray, op, comm::Comm)
+    Exscan(sendbuf, length(sendbuf), op, comm)
+end
+function Exscan(object::T, op, comm::Comm) where T
     sendbuf = T[object]
     Exscan(sendbuf,1,op,comm)
 end

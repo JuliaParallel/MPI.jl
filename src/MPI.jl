@@ -22,9 +22,14 @@ function deserialize(x)
     Serialization.deserialize(s)
 end
 
-primitive type SentinelPtr
-    Sys.WORD_SIZE
+primitive type SentinelPtr Sys.WORD_SIZE
 end
+
+primitive type MPIPtr Sys.WORD_SIZE
+end
+Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
+Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
+
 
 function _doc_external(fname)
 """
