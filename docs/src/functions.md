@@ -6,34 +6,11 @@ Constants like `MPI_SUM` are wrapped as `MPI.SUM`.   Note also that
 arbitrary Julia functions `f(x,y)` can be passed as reduction operations
 to the MPI `Allreduce` and `Reduce` functions.
 
-## Communicators
-Julia interfaces to the Fortran versions of the MPI functions. Since the C and
-Fortran communicators are different, if a C communicator is required (e.g., to
-interface with a C library), this can be achieved with the Fortran to C
-communicator conversion:
-
-```julia
-juliacomm = MPI.COMM_WORLD
-ccomm = MPI.CComm(juliacomm)
-```
-
-## Administrative functions
+## Datatype functions
 
 Julia Function (assuming `import MPI`) | Fortran Function
 ---------------------------------------|--------------------------------------------------------
- [`MPI.Abort`](@ref)                   | [`MPI_Abort`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Abort.3.php)
- [`MPI.Comm_dup`](@ref)                | [`MPI_Comm_dup`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Comm_dup.3.php)
- [`MPI.Comm_free`](@ref)               | [`MPI_Comm_free`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Comm_free.3.php)
- [`MPI.Comm_get_parent`](@ref)         | [`MPI_Comm_get_parent`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Comm_get_parent.3.php)
- [`MPI.Comm_rank`](@ref)               | [`MPI_Comm_rank`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Comm_rank.3.php)
- [`MPI.Comm_size`](@ref)               | [`MPI_Comm_size`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Comm_size.3.php)
- [`MPI.Comm_spawn`](@ref)              | [`MPI_Comm_spawn`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Comm_spawn.3.php)
- [`MPI.Finalize`](@ref)                | [`MPI_Finalize`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Finalize.3.php)
- [`MPI.Finalized`](@ref)               | [`MPI_Finalized`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Finalized.3.php)
  [`MPI.Get_address`](@ref)             | [`MPI_Get_address`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Get_address.3.php)
- [`MPI.Init`](@ref)                    | [`MPI_Init`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Init.3.php)
- [`MPI.Initialized`](@ref)             | [`MPI_Initialized`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Initialized.3.php)
- [`MPI.Intercomm_merge`](@ref)         | [`MPI_Intercomm_merge`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Intercomm_merge.3.php)
  [`MPI.mpitype`](@ref)                 | [`MPI_Type_create_struct`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Type_create_struct.3.php)/[`MPI_Type_commit`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Type_commit.3.php)
 
 !!! note
@@ -43,22 +20,8 @@ Julia Function (assuming `import MPI`) | Fortran Function
 
 
 ```@docs
-MPI.Abort
-MPI.Comm_dup
-MPI.Comm_free
-MPI.Comm_get_parent
-MPI.Comm_rank
-MPI.Comm_size
-MPI.Comm_spawn
-MPI.Finalize
-MPI.Finalized
 MPI.Get_address
-MPI.Init
-MPI.Initialized
-MPI.Intercomm_merge
 MPI.mpitype
-MPI.refcount_inc()
-MPI.refcount_dec()
 ```
 
 ## Point-to-point communication

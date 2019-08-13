@@ -1,5 +1,4 @@
 using MPI
-
 MPI.Init()
 
 comm = MPI.COMM_WORLD

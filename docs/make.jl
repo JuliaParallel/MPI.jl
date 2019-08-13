@@ -42,9 +42,13 @@ makedocs(
     modules = [MPI],
     pages = Any[
         "index.md",
-        "installing.md",
+        "installation.md",
         "usage.md",
         "Examples" => EXAMPLES,
+        "Reference" => [
+            "environment.md",
+            "comm.md",
+            ],
         "functions.md",
         ]
 )

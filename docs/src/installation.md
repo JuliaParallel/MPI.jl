@@ -10,13 +10,16 @@ MPI.jl requires:
 - A C compiler available via the `mpicc` command: this is required as part of the build
   process to determine the necessary type definitions and constants.
 
-This has been tested with [Open MPI](http://www.open-mpi.org/) and [MPICH](http://www.mpich.org/).
+This has been tested with:
+- [Open MPI](http://www.open-mpi.org/)
+- [MPICH](http://www.mpich.org/)
+- [Intel MPI](https://software.intel.com/en-us/mpi-library)
 
 ### Windows
 
 MPI.jl requires the [Microsoft MPI (MS-MPI)](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi) runtime to be installed.
 
-## Installation
+## Building
 
 The MPI.jl package can be installed via `add MPI` in the [Julia package manager](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html). 
 
