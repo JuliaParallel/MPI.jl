@@ -1,6 +1,7 @@
 Allow override environment variables to work. This is required for running as root inside a docker container (e.g. Gitlab CI)
 
-See https://github.com/open-mpi/ompi/pull/5597#issuecomment-520612783
+Upstream: https://github.com/open-mpi/ompi/pull/6895
+
 --- a/orte/tools/orterun/orterun.c
 +++ b/orte/tools/orterun/orterun.c
 @@ -143,6 +143,14 @@ int orterun(int argc, char *argv[])
