@@ -20,6 +20,7 @@ include:
     - popd
   script:
     - export JULIA_MPI_PATH="${HOME}/mpi"
+    - ${JULIA_MPI_PATH}/bin/ompi_info
     - julia -e 'using InteractiveUtils;
                 versioninfo()'
     - julia --project -e 'using Pkg;
