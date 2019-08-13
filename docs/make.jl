@@ -14,11 +14,12 @@ isdir(examples_md_dir) || mkdir(examples_md_dir)
 
 for (example_title, example_md) in EXAMPLES
     example_jl = example_md[1:end-2]*"jl"
+    @info "Building $example_md"
     open(joinpath(@__DIR__, "src", example_md), "w") do mdfile
         println(mdfile, "# $example_title")
         println(mdfile)
-        println(mdfile, "`$example_jl`")
         println(mdfile, "```julia")
+        println(mdfile, "# $example_jl")
         write(mdfile, read(joinpath(@__DIR__,example_jl)))
         println(mdfile, "```")
         println(mdfile)
@@ -41,9 +42,13 @@ makedocs(
     modules = [MPI],
     pages = Any[
         "index.md",
-        "installing.md",
+        "installation.md",
         "usage.md",
         "Examples" => EXAMPLES,
+        "Reference" => [
+            "environment.md",
+            "comm.md",
+            ],
         "functions.md",
         ]
 )

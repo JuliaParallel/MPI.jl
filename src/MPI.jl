@@ -26,6 +26,12 @@ primitive type SentinelPtr
 end
 Base.cconvert(::Type{Ptr{T}}, sptr::SentinelPtr) where {T} = reinterpret(Ptr{T}, sptr)
 
+function _doc_external(fname)
+"""
+- `$fname` man page: [OpenMPI](https://www.open-mpi.org/doc/current/man3/$fname.3.php), [MPICH](https://www.mpich.org/static/docs/latest/www3/$fname.html)
+"""
+end    
+
 include(joinpath(@__DIR__, "..", "deps", "deps.jl"))
 include("handle.jl")
 include("info.jl")

@@ -38,6 +38,9 @@ All MPI programs must contain exactly one call to `MPI.Init()`.
 
 The only MPI functions that may be called before `MPI.Init()` are
 [`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
+
+# External links
+$(_doc_external("MPI_Init"))
 """
 function Init()
     if REFCOUNT[] != 1
@@ -68,6 +71,8 @@ particular:
 - It is optional: [`Init`](@ref) will automatically insert a hook to finalize MPI when
   Julia exits.
 
+# External links
+$(_doc_external("MPI_Finalize"))
 """
 function Finalize()
     # calling atexit here is a bit silly, but it's to avoid a case where MPI is finalized
@@ -97,6 +102,9 @@ end
 Make a “best attempt” to abort all tasks in the group of `comm`. This function does not
 require that the invoking environment take any action with the error code. However, a Unix
 or POSIX environment should handle this as a return errorcode from the main program.
+
+# External links
+$(_doc_external("MPI_Abort"))
 """
 function Abort(comm::Comm, errcode::Integer)
     @mpichk ccall((:MPI_Abort, libmpi), Cint, (MPI_Comm, Cint), comm, errcode)
@@ -109,6 +117,9 @@ Returns `true` if [`MPI.Init`](@ref) has been called, `false` otherwise.
 
 It is unaffected by [`MPI.Finalize`](@ref), and is one of the few functions that may be
 called before [`MPI.Init`](@ref).
+
+# External links
+$(_doc_external("MPI_Intialized"))
 """
 function Initialized()
     flag = Ref{Cint}()
@@ -122,6 +133,9 @@ end
 Returns `true` if [`MPI.Finalize`](@ref) has completed, `false` otherwise.
 
 It is safe to call before [`MPI.Init`](@ref) and after [`MPI.Finalize`](@ref).
+
+# External links
+$(_doc_external("MPI_Finalized"))
 """
 function Finalized()
     flag = Ref{Cint}()

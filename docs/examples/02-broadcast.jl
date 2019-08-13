@@ -1,5 +1,4 @@
 import MPI
-
 MPI.Init()
 
 comm = MPI.COMM_WORLD
@@ -7,7 +6,7 @@ N = 5
 root = 0
 
 if MPI.Comm_rank(comm) == root
-    println(" Running on $(MPI.Comm_size(comm)) processes")
+    print(" Running on $(MPI.Comm_size(comm)) processes\n")
 end
 MPI.Barrier(comm)
 
@@ -19,7 +18,7 @@ end
 
 MPI.Bcast!(A, root, comm)
 
-println("rank = $(MPI.Comm_rank(comm)), A = $A")
+print("rank = $(MPI.Comm_rank(comm)), A = $A\n")
 
 if MPI.Comm_rank(comm) == root
     B = Dict("foo" => "bar")
@@ -28,7 +27,7 @@ else
 end
 
 B = MPI.bcast(B, root, comm)
-println("rank = $(MPI.Comm_rank(comm)), B = $B")
+print("rank = $(MPI.Comm_rank(comm)), B = $B\n")
 
 if MPI.Comm_rank(comm) == root
     f = x -> x^2 + 2x - 1
@@ -37,4 +36,4 @@ else
 end
 
 f = MPI.bcast(f, root, comm)
-println("rank = $(MPI.Comm_rank(comm)), f(3) = $(f(3))")
+print("rank = $(MPI.Comm_rank(comm)), f(3) = $(f(3))\n")

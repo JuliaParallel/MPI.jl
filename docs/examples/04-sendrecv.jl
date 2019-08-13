@@ -1,5 +1,4 @@
 using MPI
-
 MPI.Init()
 
 comm = MPI.COMM_WORLD
@@ -18,11 +17,11 @@ fill!(send_mesg, Float64(rank))
 
 rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 
-println("$rank: Sending   $rank -> $dst = $send_mesg")
+print("$rank: Sending   $rank -> $dst = $send_mesg\n")
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
 stats = MPI.Waitall!([rreq, sreq])
 
-println("$rank: Received $src -> $rank = $recv_mesg")
+print("$rank: Received $src -> $rank = $recv_mesg\n")
 
 MPI.Barrier(comm)
