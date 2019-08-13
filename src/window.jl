@@ -21,12 +21,12 @@ This is a collective call over `comm`.
 
 [`MPI.free`](@ref) should be called on the `Win` object once operations have been completed.
 """
-function Win_create(base::Array{T}, comm::Comm; infokws...) where T
+function Win_create(base::AbstractArray{T}, comm::Comm; infokws...) where T
     win = Win()
     # int MPI_Win_create(void *base, MPI_Aint size, int disp_unit, MPI_Info info,
     #                    MPI_Comm comm, MPI_Win *win)
     @mpichk ccall((:MPI_Win_create, libmpi), Cint,
-                  (Ptr{T}, Cptrdiff_t, Cint, MPI_Info, MPI_Comm, Ptr{MPI_Win}),
+                  (MPIPtr, Cptrdiff_t, Cint, MPI_Info, MPI_Comm, Ptr{MPI_Win}),
                   base, Cptrdiff_t(length(base)*sizeof(T)), sizeof(T), Info(infokws...), comm, win)
     refcount_inc()
     finalizer(free, win)
@@ -106,17 +106,17 @@ function Win_shared_query(win::Win, owner_rank::Int)
     out_len[], out_sizeT[], out_baseptr[]
 end
 
-function Win_attach(win::Win, base::Array{T}) where T
+function Win_attach(win::Win, base::AbstractArray{T}) where T
     # int MPI_Win_attach(MPI_Win win, void *base, MPI_Aint size)
     @mpichk ccall((:MPI_Win_attach, libmpi), Cint,
-                  (MPI_Win, Ptr{T}, Cptrdiff_t),
+                  (MPI_Win, MPIPtr, Cptrdiff_t),
                   win, base, Cptrdiff_t(sizeof(base)))
 end
 
-function Win_detach(win::Win, base::Array{T}) where T
+function Win_detach(win::Win, base::AbstractArray{T}) where T
     # int MPI_Win_detach(MPI_Win win, const void *base)
     @mpichk ccall((:MPI_Win_detach, libmpi), Cint,
-                  (MPI_Win, Ptr{T}),
+                  (MPI_Win, MPIPtr),
                   win, base)
 end
 
@@ -147,16 +147,17 @@ function Win_unlock(rank::Integer, win::Win)
     @mpichk ccall((:MPI_Win_unlock, libmpi), Cint, (Cint, MPI_Win), rank, win)
 end
 
-function Get(origin_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, win::Win) where T
+function Get(origin_buffer, count::Integer, target_rank::Integer, target_disp::Integer, win::Win)
+    T = eltype(origin_buffer)
     # int MPI_Get(void *origin_addr, int origin_count,
     #             MPI_Datatype origin_datatype, int target_rank,
     #             MPI_Aint target_disp, int target_count,
     #             MPI_Datatype target_datatype, MPI_Win win)
     @mpichk ccall((:MPI_Get, libmpi), Cint,
-                  (Ptr{T}, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Win),
+                  (MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Win),
                   origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), win)
 end
-function Get(origin_buffer::Array{T}, target_rank::Integer, win::Win) where T
+function Get(origin_buffer::AbstractArray{T}, target_rank::Integer, win::Win) where T
     count = length(origin_buffer)
     Get(origin_buffer, count, target_rank, 0, win)
 end
@@ -164,16 +165,17 @@ function Get(origin_value::Ref{T}, target_rank::Integer, win::Win) where T
     Get(origin_value, 1, target_rank, 0, win)
 end
 
-function Put(origin_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, win::Win) where T
+function Put(origin_buffer, count::Integer, target_rank::Integer, target_disp::Integer, win::Win)
     # int MPI_Put(const void *origin_addr, int origin_count,
     #             MPI_Datatype origin_datatype, int target_rank,
     #             MPI_Aint target_disp, int target_count,
     #             MPI_Datatype target_datatype, MPI_Win win)
+    T = eltype(origin_buffer)
     @mpichk ccall((:MPI_Put, libmpi), Cint,
-                  (Ptr{T}, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Win),
+                  (MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Win),
                   origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), win)
 end
-function Put(origin_buffer::Array{T}, target_rank::Integer, win::Win) where T
+function Put(origin_buffer::AbstractArray{T}, target_rank::Integer, win::Win) where T
     count = length(origin_buffer)
     Put(origin_buffer, count, target_rank, 0, win)
 end
@@ -181,32 +183,37 @@ function Put(origin_value::Ref{T}, target_rank::Integer, win::Win) where T
     Put(origin_value, 1, target_rank, 0, win)
 end
 
-function Fetch_and_op(sourceval::MPIBuffertype{T}, returnval::MPIBuffertype{T}, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where T
+function Fetch_and_op(sourceval, returnval, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
     # int MPI_Fetch_and_op(const void *origin_addr, void *result_addr,
     #                      MPI_Datatype datatype, int target_rank, MPI_Aint target_disp,
     #                      MPI_Op op, MPI_Win win)
+    @assert eltype(sourceval) == eltype(returnval)
+    T = eltype(sourceval)
     @mpichk ccall((:MPI_Fetch_and_op, libmpi), Cint,
-                  (Ptr{T}, Ptr{T}, MPI_Datatype, Cint, Cptrdiff_t, MPI_Op, MPI_Win),
+                  (MPIPtr, MPIPtr, MPI_Datatype, Cint, Cptrdiff_t, MPI_Op, MPI_Win),
                   sourceval, returnval, mpitype(T), target_rank, target_disp, op, win)
 end
 
-function Accumulate(origin_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where T
+function Accumulate(origin_buffer, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
     # int MPI_Accumulate(const void *origin_addr, int origin_count,
     #                    MPI_Datatype origin_datatype, int target_rank,
     #                    MPI_Aint target_disp, int target_count,
     #                    MPI_Datatype target_datatype, MPI_Op op, MPI_Win win)
+    T = eltype(origin_buffer)
     @mpichk ccall((:MPI_Accumulate, libmpi), Cint,
-                  (Ptr{T}, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Op, MPI_Win),
+                  (MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Op, MPI_Win),
                   origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), op, win)
 end
 
-function Get_accumulate(origin_buffer::MPIBuffertype{T}, result_buffer::MPIBuffertype{T}, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where T
+function Get_accumulate(origin_buffer, result_buffer, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
     # int MPI_Get_accumulate(const void *origin_addr, int origin_count,
     #                        MPI_Datatype origin_datatype, void *result_addr,
     #                        int result_count, MPI_Datatype result_datatype,
     #                        int target_rank, MPI_Aint target_disp, int target_count,
     #                        MPI_Datatype target_datatype, MPI_Op op, MPI_Win win)
+    @assert eltype(origin_buffer) == eltype(result_buffer)
+    T = eltype(origin_buffer)
     @mpichk ccall((:MPI_Get_accumulate, libmpi), Cint,
-                  (Ptr{T}, Cint, MPI_Datatype, Ptr{T}, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Op, MPI_Win),
+                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Op, MPI_Win),
                   origin_buffer, count, mpitype(T), result_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), op, win)
 end
