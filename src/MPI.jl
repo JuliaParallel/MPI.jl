@@ -1,6 +1,7 @@
 module MPI
 
 using Libdl, Serialization
+using Requires
 
 macro mpichk(expr)
     @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
@@ -21,10 +22,14 @@ function deserialize(x)
     Serialization.deserialize(s)
 end
 
-primitive type SentinelPtr
-    Sys.WORD_SIZE
+primitive type SentinelPtr Sys.WORD_SIZE
 end
-Base.cconvert(::Type{Ptr{T}}, sptr::SentinelPtr) where {T} = reinterpret(Ptr{T}, sptr)
+
+primitive type MPIPtr Sys.WORD_SIZE
+end
+Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
+Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
+
 
 function _doc_external(fname)
 """
@@ -65,6 +70,8 @@ function __init__()
     if filesize(dlpath(libmpi)) != libmpi_size
         error("MPI library has changed, re-run Pkg.build(\"MPI\")")
     end
+
+    @require CuArrays="3a865a2d-5b23-5a0f-bc46-62713ec82fae" include("cuda.jl")
 end
 
 end

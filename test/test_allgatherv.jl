@@ -1,49 +1,41 @@
-using Test
+using Test, Pkg
 using MPI
 
-MPI.Init()
-
-function allgatherv_array(A, counts::Vector{Cint})
-    comm = MPI.COMM_WORLD
-    B = MPI.Allgatherv(A, counts, comm)
+if haskey(Pkg.installed(), "CuArrays")
+    using CuArrays
+    ArrayType = CuArray
+else
+    ArrayType = Array
 end
+
+MPI.Init()
 
 comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-# Defining this to make ones work for Char
-Base.one(::Type{Char}) = '\01'
+counts = Cint[mod(i,2) + 1 for i in 0:(size-1)]
+check = collect(Iterators.flatten([fill(r, counts[r+1]) for r = 0:size-1]))
 
-for typ in Base.uniontypes(MPI.MPIDatatype)
-
-    A = ones(typ, mod(rank,2) + 1)
-    counts = Cint[mod(i,2) + 1 for i in 0:(size-1)]
-    B = allgatherv_array(A, counts)
-    @test B == ones(typ, 3 * div(size,2) + mod(size,2))
+for T in Base.uniontypes(MPI.MPIDatatype)
+    A = ArrayType{T}(fill(T(rank), counts[rank+1]))
+    B = MPI.Allgatherv(A, counts, comm)
+    @test B isa ArrayType{T}
+    @test B == ArrayType{T}(check)
 
     # Test passing the output buffer
-    A = ones(typ, mod(rank,2) + 1)
-    counts = Cint[mod(i,2) + 1 for i in 0:(size-1)]
-    B = ones(typ, sum(counts)-1)
-    @test_throws AssertionError MPI.Allgatherv!(A, B, counts, comm)
+    B = ArrayType{T}(undef, sum(counts))
+    MPI.Allgatherv!(A, B, counts, comm)
+    @test B == ArrayType{T}(check)
 
     # Test assertion when output size is too small
-    A = ones(typ, mod(rank,2) + 1)
-    counts = Cint[mod(i,2) + 1 for i in 0:(size-1)]
-    B = ones(typ, sum(counts))
-    MPI.Allgatherv!(A, B, counts, comm)
-    @test B == ones(typ, 3 * div(size,2) + mod(size,2))
+    B = ArrayType{T}(undef, sum(counts)-1)
+    @test_throws AssertionError MPI.Allgatherv!(A, B, counts, comm)
 
     # Test explicit MPI_IN_PLACE
-    A = ones(typ, mod(rank,2) + 1)
-    counts = Cint[mod(i,2) + 1 for i in 0:(size-1)]
-    B = ones(typ, sum(counts))
-    start = (cumsum(counts)-counts.+1)[MPI.Comm_rank(comm)+1]
-    len   = counts[MPI.Comm_rank(comm)+1]
-    B[start:(start+len-1)] .= A
+    B = ArrayType(fill(T(rank), sum(counts)))
     MPI.Allgatherv!(MPI.IN_PLACE, B, counts, comm)
-    @test B == ones(typ, 3 * div(size,2) + mod(size,2))
+    @test B == ArrayType{T}(check)
 end
 
 MPI.Finalize()

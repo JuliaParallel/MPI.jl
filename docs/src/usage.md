@@ -22,6 +22,13 @@ Hello world, I am rank 2 of 3
 Hello world, I am rank 1 of 3
 ```
 
+## CUDA-aware MPI support
+
+If your MPI implementation has been compiled with CUDA support, then `CuArray`s (from the
+[CuArrays.jl](https://github.com/JuliaGPU/CuArrays.jl) package) can be passed directly as
+send and receive buffers for point-to-point and collective operations (they may also work
+with one-sided operations, but these are not often supported).
+
 ## Finalizers
 
 In order to ensure MPI routines are called in the correct order at finalization time,

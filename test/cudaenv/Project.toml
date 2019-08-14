@@ -1,0 +1,6 @@
+[deps]
+CuArrays = "3a865a2d-5b23-5a0f-bc46-62713ec82fae"
+DoubleFloats = "497a8b3b-efae-58df-a0af-a86822472b78"
+MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

@@ -1,5 +1,8 @@
-using Test
+using Test, Pkg
 using MPI
+
+# TODO: enable CUDA tests once OpenMPI has full support
+ArrayType = Array
 
 MPI.Init()
 
@@ -8,8 +11,8 @@ comm = MPI.COMM_WORLD
 const rank = MPI.Comm_rank(comm)
 const N = MPI.Comm_size(comm)
 
-buf = fill(Int(rank),N)
-received = fill(-1,N)
+buf = ArrayType{Int}(fill(Int(rank),N))
+received = ArrayType{Int}(fill(-1,N))
 
 # Test Get using fence
 win = MPI.Win_create(buf, comm)
@@ -17,7 +20,7 @@ MPI.Win_fence(0, win)
 MPI.Get(received, (rank+1)%N, win)
 MPI.Win_fence(0, win)
 
-@test received == fill(Int(rank+1)%N, size(received))
+@test received == ArrayType{Int}(fill(Int(rank+1)%N, size(received)))
 
 # Test locked window
 if rank != 0
