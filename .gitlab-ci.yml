@@ -8,18 +8,24 @@ include:
     OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: '1'
     OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
   before_script:
+    - mkdir -p ccache
+    - export CCACHE_BASEDIR=${CI_PROJECT_DIR}
+    - export CCACHE_DIR=${CI_PROJECT_DIR}/ccache
+    - export JULIA_DEPOT_PATH="${CI_PROJECT_DIR}/jldepot"
+    - export JULIA_MPI_PATH="${HOME}/mpi"
     - apt-get update
-    - apt-get install --yes --no-install-recommends ssh
+    - apt-get install --yes --no-install-recommends ssh ccache
+    - /usr/sbin/update-ccache-symlinks
+    - export PATH="/usr/lib/ccache:$PATH"
     - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
     - tar xf openmpi.tar.gz
     - patch -p1 -d openmpi-${OPENMPI_VER_FULL} < conf/ompi_rootenv.patch
     - pushd openmpi-${OPENMPI_VER_FULL}
-    - ./configure --with-cuda --prefix=${HOME}/mpi
+    - ./configure --with-cuda --prefix=${JULIA_MPI_PATH}
     - make -j
     - make install
     - popd
   script:
-    - export JULIA_MPI_PATH="${HOME}/mpi"
     - export JULIA_PROJECT="test/cudaenv"
     - ${JULIA_MPI_PATH}/bin/ompi_info
     - julia -e 'using InteractiveUtils;
@@ -29,6 +35,11 @@ include:
                             Pkg.instantiate();
                             Pkg.build()'
     - julia --color=yes test/runtests.jl
+  cache:
+    paths:
+      - ccache/
+      - jldepot/
+
 
 .gputest:
   extends: .projecttest
