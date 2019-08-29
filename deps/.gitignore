@@ -1,4 +1,5 @@
 deps.jl
+consts.jl
 build.log
 gen_consts.c
 gen_consts

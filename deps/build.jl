@@ -15,18 +15,34 @@ mpicc = get(ENV, "JULIA_MPICC") do
     end
 end
 
-mpiexec = get(ENV, "JULIA_MPIEXEC") do
-    if MPI_PATH !== nothing
+const mpiexec = get(ENV, "JULIA_MPIEXEC") do
+    if MPI_PATH !== nothing && Sys.isexecutable(joinpath(MPI_PATH,"bin","mpiexec"))
         joinpath(MPI_PATH,"bin","mpiexec")
     else
-        "mpiexec"
+        Sys.which("mpiexec")
     end
 end
+
+const libmpi = get(ENV, "JULIA_MPI_LIBRARY") do
+    libmpi = find_library(["libmpi", "msmpi", "libmpich"],
+                 MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
+    try
+        # expand paths
+        dlpath(libmpi)
+    catch e
+        error("No MPI library found.\nEnsure an MPI implementation is loaded, or set the `JULIA_MPI_PATH` variable.")
+    end
+end
+
 
 if haskey(ENV, "JULIA_MPI_CFLAGS")
     CFLAGS = split(ENV["JULIA_MPI_CFLAGS"])
 else
-    CFLAGS = ["-lmpi"]
+    lname, = split(basename(libmpi),'.')
+    if startswith(lname, "lib")
+        lname = lname[4:end]
+    end
+    CFLAGS = ["-l$lname"]
     if MPI_LIBRARY_PATH !== nothing
         push!(CFLAGS, "-L$(MPI_LIBRARY_PATH)")
     end
@@ -35,18 +51,7 @@ else
     end
 end
 
-const libmpi = find_library(Sys.iswindows() ? "msmpi.dll" : "libmpi",
-                            MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
-
-if libmpi == ""
-    error("No MPI library found.\nEnsure an MPI implementation is loaded, or set the `JULIA_MPI_PATH` variable.")
-end
-
-# expand paths
-libmpi = dlpath(libmpi)
 libsize = filesize(libmpi)
-
-mpiexec = Sys.which(mpiexec)
 
 @info "Using MPI library $libmpi"
 
@@ -74,18 +79,15 @@ open("deps.jl","w") do f
     println(f, :(const libmpi_size = $libsize))
     println(f, :(const MPI_VERSION = $MPI_VERSION))
     println(f, :(const mpiexec = $mpiexec))
-end
 
-if Sys.iswindows()
-    open("deps.jl","a") do f
+    if Sys.iswindows()
         println(f, :(include("consts_msmpi.jl")))
-    end
-else
-    include("gen_consts.jl")
+    else
+        include("gen_consts.jl")
 
-    run(`$mpicc gen_consts.c -o gen_consts $CFLAGS`)
+        run(`$mpicc gen_consts.c -o gen_consts $CFLAGS`)
+        run(`$mpiexec -n 1 ./gen_consts`)
 
-    open("deps.jl","a") do f
-        run(pipeline(`./gen_consts`, stdout = f))
+        println(f, :(include("consts.jl")))
     end
 end

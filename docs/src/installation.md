@@ -27,6 +27,7 @@ The build script will attempt to find the shared library and constants: this can
 controlled with the optional environment variables:
 
 - `JULIA_MPI_PATH`: the top-level installation directory of MPI.
+- `JULIA_MPI_LIBRARY`: the path of the MPI shared library.
 - `JULIA_MPI_LIBRARY_PATH`: the directory containing the MPI library files.
 - `JULIA_MPI_INCLUDE_PATH`: the directory containing the MPI header files.
 - `JULIA_MPI_CFLAGS`: C flags passed to the constant generation build (default: `-lmpi`)
