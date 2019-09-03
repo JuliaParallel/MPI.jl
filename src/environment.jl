@@ -46,7 +46,7 @@ function Init()
     if REFCOUNT[] != 1
         error("MPI REFCOUNT in incorrect state")
     end
-    @mpichk ccall((:MPI_Init, libmpi), Nothing, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
+    @mpichk ccall((:MPI_Init, libmpi), Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
     atexit(refcount_dec)
 
     for f in mpi_init_hooks
@@ -93,7 +93,7 @@ function Finalize()
 end
 
 function _Finalize()
-    @mpichk ccall((:MPI_Finalize, libmpi), Nothing, ())
+    @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
 end
 
 """
