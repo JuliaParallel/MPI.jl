@@ -1,4 +1,4 @@
-const REFCOUNT = Threads.Atomic{Int}(1)
+const REFCOUNT = Threads.Atomic{Int}(-1)
 
 """
     refcount_inc()
@@ -34,7 +34,7 @@ end
 
 Initialize MPI in the current process.
 
-All MPI programs must contain exactly one call to `MPI.Init()`.
+All MPI programs must contain exactly one call to `MPI.Init()`. In particular, note that it is not valid to call `MPI.Init` again after calling [`MPI.Finalize`](@ref).
 
 The only MPI functions that may be called before `MPI.Init()` are
 [`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
@@ -43,10 +43,9 @@ The only MPI functions that may be called before `MPI.Init()` are
 $(_doc_external("MPI_Init"))
 """
 function Init()
-    if REFCOUNT[] != 1
-        error("MPI REFCOUNT in incorrect state")
-    end
+    REFCOUNT[] == -1 || error("MPI.REFCOUNT in incorrect state: MPI may only be initialized once per session.")
     @mpichk ccall((:MPI_Init, libmpi), Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
+    REFCOUNT[] = 1
     atexit(refcount_dec)
 
     for f in mpi_init_hooks
