@@ -18,5 +18,15 @@ comm_cart = MPI.Cart_create(comm, ndims, cdims, cperiods, reorder)
 comm_cart2 = MPI.Cart_create(comm, dims, periods, reorder)
 @test MPI.Comm_size(comm_cart2) == nnodes
 
+comm_sub1 = MPI.Cart_sub(comm_cart, (false, true, true))
+@test MPI.Comm_size(comm_sub1) == div(nnodes, dims[1])
+
+comm_sub2 = MPI.Cart_sub(comm_cart, (true, false, true))
+@test MPI.Comm_size(comm_sub2) == div(nnodes, dims[2])
+
+comm_sub3 = MPI.Cart_sub(comm_cart, (true, true, false))
+@test MPI.Comm_size(comm_sub2) == div(nnodes, dims[3])
+
+
 MPI.Finalize()
 #@test MPI.Finalized()

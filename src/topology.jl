@@ -56,3 +56,17 @@ function Cart_shift(comm::Comm, direction::Integer, disp::Integer)
                   comm, direction, disp, rank_source, rank_dest)
     Int(rank_source[]), Int(rank_dest[])
 end
+
+function Cart_sub(comm::Comm, remain_dims)
+    comm_sub = Comm()
+    remain_dims = [Cint(dim) for dim in remain_dims]
+    # int MPI_Cart_sub(MPI_Comm comm, const int remain_dims[], MPI_Comm *comm_new)
+    @mpichk ccall((:MPI_Cart_sub, libmpi), Cint,
+                  (MPI_Comm, Ptr{Cint}, Ptr{MPI_Comm}),
+                  comm, remain_dims, comm_sub)
+    if comm_sub.val != MPI_COMM_NULL
+        refcount_inc()
+        finalizer(free, comm_sub)
+    end
+    comm_sub
+end
