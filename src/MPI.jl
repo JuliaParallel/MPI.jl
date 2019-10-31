@@ -48,6 +48,7 @@ include("pointtopoint.jl")
 include("collective.jl")
 include("topology.jl")
 include("window.jl")
+include("group.jl")
 
 include("cman.jl")
 include("deprecated.jl")
