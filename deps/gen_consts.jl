@@ -78,6 +78,9 @@ MPI_handle = [
     :MPI_Request => [
         :MPI_REQUEST_NULL,
     ],
+    :MPI_Message => [
+        :MPI_MESSAGE_NULL,
+    ],
     :MPI_Op => MPI_op_consts,
     :MPI_Datatype => MPI_datatype_consts
 ]
