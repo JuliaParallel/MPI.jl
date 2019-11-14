@@ -52,6 +52,20 @@ function Cart_get(comm::Comm, maxdims::Integer)
     return dims, periods, coords
 end
 
+"""
+    Cartdim_get(comm::Comm)
+
+Return number of dimensions of the Cartesian topology associated with the communicator `comm`.
+"""
+function Cartdim_get(comm::Comm)
+    dims    = Cint[0]
+    # int MPI_Cartdim_get(MPI_Comm comm, int *ndims)
+    @mpichk ccall((:MPI_Cartdim_get, libmpi), Cint,
+                  (MPI_Comm, Ptr{Cint}),
+                  comm, dims)
+    return Int(dims[1])
+end
+
 function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::MPIBuffertype{Cint})
     # int MPI_Cart_coords(MPI_Comm comm, int rank, int maxdims, int coords[])
     @mpichk ccall((:MPI_Cart_coords, libmpi), Cint,

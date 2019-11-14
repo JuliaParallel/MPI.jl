@@ -14,6 +14,9 @@ dims    = Cint[1, 1, nnodes]
 # create
 comm_cart = MPI.Cart_create(comm, maxdims, dims, periods, false)
 
+# check number of dimensions
+@test MPI.Cartdim_get(comm_cart) == maxdims
+
 # get info
 _dims, _periods, _coords = MPI.Cart_get(comm_cart, maxdims) 
 
