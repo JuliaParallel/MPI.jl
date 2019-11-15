@@ -394,6 +394,22 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
     (true, MPI.deserialize(buf), stat)
 end
 
+function Sendrecv(sendbuf, sendcount::Integer, sendtype::Datatype,   dest::Int, sendtag::Int,
+                  recvbuf, recvcount::Integer, recvtype::Datatype, source::Int, recvtag::Int,
+                  comm::Comm)
+    # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,  int sendtag,
+    #                        void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
+    #                    MPI_Comm comm, MPI_Status *status)
+    stat_ref = Ref{Status}()
+    @mpichk ccall((:MPI_Sendrecv, libmpi), Cint,
+                  (MPIPtr, Cint, Datatype, Cint, Cint,
+                   MPIPtr, Cint, Datatype, Cint, Cint,
+                 MPI_Comm, Ptr{Status}),
+                   sendbuf, sendcount, sendtype, dest,   sendtag,
+                   recvbuf, recvcount, recvtype, source, recvtag, comm, stat_ref)
+    return stat_ref[]
+end
+
 """
     Wait!(req::Request)
 

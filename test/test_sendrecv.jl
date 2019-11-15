@@ -113,5 +113,40 @@ MPI.Cancel!(sreq)
 @test sreq.buffer == nothing
 GC.gc()
 
+# MPI_Sendrecv function
+# We test this function by executing a left shift of the leftmost element in a 1D 
+# cartesian topology with periodic boundary conditions.
+#
+# Assume we have two processors, the data will look like this
+# proc 0 | proc 1
+#  0 0 0 |  1 1 1
+#
+# After the shift the data will contain
+# proc 0 | proc 1
+#  0 0 1 |  1 1 0
+#
+# init data
+comm_rank = MPI.Comm_rank(comm)
+comm_size = MPI.Comm_size(comm)
+a = Float64[comm_rank, comm_rank, comm_rank]
+
+# construct subarray type
+subarr_send = MPI.Type_Create_Subarray(1, Cint[3], Cint[1], Cint[0], MPI.MPI_ORDER_FORTRAN, Float64)
+subarr_recv = MPI.Type_Create_Subarray(1, Cint[3], Cint[1], Cint[2], MPI.MPI_ORDER_FORTRAN, Float64)
+MPI.Type_Commit!(subarr_send)
+MPI.Type_Commit!(subarr_recv)
+
+# construct cartesian communicator with 1D topology
+comm_cart = MPI.Cart_create(comm, 1, Cint[comm_size], Cint[1], false)
+
+# get source and dest ranks using Cart_shift
+src_rank, dest_rank = MPI.Cart_shift(comm_cart, 0, -1)
+
+# execute left shift using subarrays
+MPI.Sendrecv(a, 1, subarr_send, dest_rank, 0,
+             a, 1, subarr_recv,  src_rank, 0, comm_cart)
+
+@test a == [comm_rank, comm_rank, (comm_rank+1) % comm_size]
+
 MPI.Finalize()
-@test MPI.Finalized()
+# @test MPI.Finalized()
