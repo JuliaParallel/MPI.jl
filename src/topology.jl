@@ -32,6 +32,40 @@ function Cart_create(comm_old::Comm, dims::AbstractArray{T,N}, periods::Array{T,
     Cart_create(comm_old, ndims, cdims, cperiods, reorder)
 end
 
+"""
+    Cart_get(comm::Comm, maxdims::Integer)
+
+Obtain information on the Cartesian topology of dimension `maxdims` underlying the 
+communicator `comm`. This is specified by two `Cint` arrays of `maxdims` elements
+for the number of processes and periodicity properties along each Cartesian dimension. 
+A third `Cint` array is returned, containing the Cartesian coordinates of the calling process.
+"""
+function Cart_get(comm::Comm, maxdims::Integer)
+    # preallocate with nontrivial values
+    dims    = Cint[-1 for i = 1:maxdims]
+    periods = Cint[-1 for i = 1:maxdims]
+    coords  = Cint[-1 for i = 1:maxdims]
+    # int MPI_Cart_get(MPI_Comm comm, int maxdims, int dims[], int periods[], int coords[])
+    @mpichk ccall((:MPI_Cart_get, libmpi), Cint,
+                  (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+                  comm, maxdims, dims, periods, coords)
+    return dims, periods, coords
+end
+
+"""
+    Cartdim_get(comm::Comm)
+
+Return number of dimensions of the Cartesian topology associated with the communicator `comm`.
+"""
+function Cartdim_get(comm::Comm)
+    dims    = Cint[0]
+    # int MPI_Cartdim_get(MPI_Comm comm, int *ndims)
+    @mpichk ccall((:MPI_Cartdim_get, libmpi), Cint,
+                  (MPI_Comm, Ptr{Cint}),
+                  comm, dims)
+    return Int(dims[1])
+end
+
 function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::MPIBuffertype{Cint})
     # int MPI_Cart_coords(MPI_Comm comm, int rank, int maxdims, int coords[])
     @mpichk ccall((:MPI_Cart_coords, libmpi), Cint,
