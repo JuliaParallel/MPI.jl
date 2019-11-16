@@ -10,6 +10,8 @@ periods = [0 1 0]
 dims = [0 0 0]
 MPI.Dims_create!(nnodes, dims)
 
+@test prod(dims) == nnodes
+
 cperiods = Cint.(periods[:])
 cdims = Cint.(dims[:])
 comm_cart = MPI.Cart_create(comm, ndims, cdims, cperiods, reorder)
@@ -25,8 +27,11 @@ comm_sub2 = MPI.Cart_sub(comm_cart, (true, false, true))
 @test MPI.Comm_size(comm_sub2) == div(nnodes, dims[2])
 
 comm_sub3 = MPI.Cart_sub(comm_cart, (true, true, false))
-@test MPI.Comm_size(comm_sub2) == div(nnodes, dims[3])
+@test MPI.Comm_size(comm_sub3) == div(nnodes, dims[3])
 
+comm_cart = comm_cart2 = comm_sub1 = comm_sub2 = comm_sub3 = nothing
+
+GC.gc()
 
 MPI.Finalize()
-#@test MPI.Finalized()
+@test MPI.Finalized()
