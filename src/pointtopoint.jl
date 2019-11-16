@@ -394,6 +394,16 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
     (true, MPI.deserialize(buf), stat)
 end
 
+"""
+    Sendrecv(sendbuf, sendcount::Integer, sendtype::Datatype,   dest::Int, sendtag::Int,
+             recvbuf, recvcount::Integer, recvtype::Datatype, source::Int, recvtag::Int,
+             comm::Comm)
+
+Complete a blocking send-receive operation over the MPI communicator `comm`. Send 
+`sendcount` elements of type `sendtype` from `sendbuf` to the MPI rank `dest` using message 
+tag `tag`, and receive `recvcount` elements of type `recvtype` from MPI rank `source` into 
+the buffer `recvbuf` using message tag `tag`. Return an MPI.Status object.
+"""
 function Sendrecv(sendbuf, sendcount::Integer, sendtype::Datatype,   dest::Int, sendtag::Int,
                   recvbuf, recvcount::Integer, recvtype::Datatype, source::Int, recvtag::Int,
                   comm::Comm)
