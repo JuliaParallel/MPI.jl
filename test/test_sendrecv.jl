@@ -113,7 +113,12 @@ MPI.Cancel!(sreq)
 @test sreq.buffer == nothing
 GC.gc()
 
+# ---------------------
 # MPI_Sendrecv function
+# ---------------------
+# 
+# send datatype
+# ---------------------
 # We test this function by executing a left shift of the leftmost element in a 1D 
 # cartesian topology with periodic boundary conditions.
 #
@@ -147,6 +152,24 @@ MPI.Sendrecv(a, 1, subarr_send, dest_rank, 0,
              a, 1, subarr_recv,  src_rank, 0, comm_cart)
 
 @test a == [comm_rank, comm_rank, (comm_rank+1) % comm_size]
+
+# send elements from a buffer
+# ---------------------------
+a = Float64[comm_rank, comm_rank, comm_rank]
+b = Float64[       -1,        -1,        -1]
+MPI.Sendrecv(a, 2, dest_rank, 1,
+             b, 2,  src_rank, 1, comm_cart)
+
+@test b == [(comm_rank+1) % comm_size, (comm_rank+1) % comm_size, -1]
+
+# send entire buffer
+# ---------------------------
+a = Float64[comm_rank, comm_rank, comm_rank]
+b = Float64[       -1,        -1,        -1]
+MPI.Sendrecv(a, dest_rank, 2,
+             b,  src_rank, 2, comm_cart)
+
+@test b == [(comm_rank+1) % comm_size, (comm_rank+1) % comm_size, (comm_rank+1) % comm_size]
 
 MPI.Finalize()
 # @test MPI.Finalized()
