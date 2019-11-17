@@ -395,8 +395,8 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Sendrecv(sendbuf, sendcount::Integer, sendtype::Datatype,   dest::Int, sendtag::Int,
-             recvbuf, recvcount::Integer, recvtype::Datatype, source::Int, recvtag::Int,
+    Sendrecv(sendbuf, sendcount::Integer, sendtype::Datatype,   dest::Integer, sendtag::Integer,
+             recvbuf, recvcount::Integer, recvtype::Datatype, source::Integer, recvtag::Integer,
              comm::Comm)
 
 Complete a blocking send-receive operation over the MPI communicator `comm`. Send 
@@ -404,10 +404,10 @@ Complete a blocking send-receive operation over the MPI communicator `comm`. Sen
 tag `tag`, and receive `recvcount` elements of type `recvtype` from MPI rank `source` into 
 the buffer `recvbuf` using message tag `tag`. Return an MPI.Status object.
 """
-function Sendrecv(sendbuf, sendcount::Integer, sendtype::Datatype,   dest::Int, sendtag::Int,
-                  recvbuf, recvcount::Integer, recvtype::Datatype, source::Int, recvtag::Int,
+function Sendrecv(sendbuf, sendcount::Integer, sendtype::Datatype,   dest::Integer, sendtag::Integer,
+                  recvbuf, recvcount::Integer, recvtype::Datatype, source::Integer, recvtag::Integer,
                   comm::Comm)
-    # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,  int sendtag,
+    # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,   int sendtag,
     #                        void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
     #                    MPI_Comm comm, MPI_Status *status)
     stat_ref = Ref{Status}()
