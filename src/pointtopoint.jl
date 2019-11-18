@@ -48,16 +48,46 @@ if !@isdefined(Status)
     @assert sizeof(Status) == MPI_Status_size
 end
 
+
+"""
+    MPI.Status
+
+The status of an MPI receive communication. It has 3 accessible fields
+
+- `source`: source of the received message
+- `tag`: tag of the received message
+- `error`: error code. This is only set if a function returns multiple statuses.
+
+Additionally, the accessor function [`MPI.Get_count`](@ref) can be used to determine the
+number of entries received.
+"""
+Status
+
 Get_source(status::Status) = Int(status.source)
 Get_tag(status::Status) = Int(status.tag)
 Get_error(status::Status) = Int(status.error)
 
+"""
+    MPI.Request
 
+An MPI Request object, representing a non-blocking communication. This also contains a
+reference to the buffer used in the communication to ensure it isn't garbage-collected
+during communication.
+"""
 @mpi_handle Request buffer
 
 const REQUEST_NULL = _Request(MPI_REQUEST_NULL, nothing)
 Request() = Request(REQUEST_NULL.val, nothing)
 
+"""
+    ismessage, (status|nothing) = Iprobe(src::Integer, tag::Integer, comm::Comm)
+
+Blocks until there is a message that can be received matching `src`, `tag` and
+`comm`. Returns the corresponding [`Status`](@ref) object.
+
+# External links
+$(_doc_external("MPI_Probe"))
+"""
 function Probe(src::Integer, tag::Integer, comm::Comm)
     stat_ref = Ref{Status}()
     @mpichk ccall((:MPI_Probe, libmpi), Cint,
@@ -66,6 +96,15 @@ function Probe(src::Integer, tag::Integer, comm::Comm)
     stat_ref[]
 end
 
+"""
+    ismessage, (status|nothing) = Iprobe(src::Integer, tag::Integer, comm::Comm)
+
+Checks if there is a message that can be received matching `src`, `tag` and `comm`. If so,
+returns a tuple `true` and a [`Status`](@ref) object, otherwise returns a tuple `false, nothing`.
+
+# External links
+$(_doc_external("MPI_Iprobe"))
+"""
 function Iprobe(src::Integer, tag::Integer, comm::Comm)
     flag = Ref{Cint}()
     stat_ref = Ref{Status}()
@@ -78,22 +117,38 @@ function Iprobe(src::Integer, tag::Integer, comm::Comm)
     true, stat_ref[]
 end
 
-function Get_count(stat::Status, ::Type{T}) where T
+"""
+    MPI.Get_count(status::Status, T)
+
+The number of entries received. `T` should match the argument provided by the receive call that set the status variable.
+
+If the number of entries received exceeds the limits of the count parameter, then it returns `MPI_UNDEFINED`.
+
+# External links
+$(_doc_external("MPI_Get_count"))
+"""
+function Get_count(stat::Status, datatype::Union{MPI_Datatype, Datatype})
     count = Ref{Cint}()
     @mpichk ccall((:MPI_Get_count, libmpi), Cint,
                   (Ptr{Status}, MPI_Datatype, Ptr{Cint}),
-                  Ref(stat), mpitype(T), count)
+                  Ref(stat), datatype, count)
     Int(count[])
 end
-
+Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, mpitype(T))
 
 
 """
-    Send(buf::MPIBuffertype{T}, count::Integer, datatype::Datatype,
+    Send(buf, [count::Integer, [datatype::Datatype,]]
          dest::Integer, tag::Integer, comm::Comm) where T
 
-Complete a blocking send of `count` elements of type `datatype` from `buf` to MPI
+Perform a blocking send of `count` elements of type `datatype` from `buf` to MPI
 rank `dest` of communicator `comm` using the message tag `tag`
+
+If not provided, `datatype` and `count` are derived from the element type and length of
+`buf`, respectively.
+
+# External links
+$(_doc_external("MPI_Send"))
 """
 function Send(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
               dest::Integer, tag::Integer, comm::Comm)
@@ -102,29 +157,14 @@ function Send(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
     @mpichk ccall((:MPI_Send, libmpi), Cint,
           (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm),
           buf, count, datatype, dest, tag, comm)
+    return nothing
 end
 
-"""
-    Send(buf::MPIBuffertype{T}, count::Integer, dest::Integer, tag::Integer,
-         comm::Comm) where T
-
-Complete a blocking send of `count` elements of `buf` to MPI rank `dest`
-of communicator `comm` using with the message tag `tag`
-"""
-function Send(buf, count::Integer, dest::Integer,
-              tag::Integer, comm::Comm)
+Send(buf, count::Integer, dest::Integer, tag::Integer, comm::Comm) =
     Send(buf, count, mpitype(eltype(buf)), dest, tag, comm)
-end
-
-"""
-    Send(buf::AbstractArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
-
-Complete a blocking send of `buf` to MPI rank `dest` of communicator `comm`
-using with the message tag `tag`
-"""
-function Send(buf::AbstractArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
+Send(buf::AbstractArray, dest::Integer, tag::Integer, comm::Comm) =
     Send(buf, length(buf), dest, tag, comm)
-end
+
 
 """
     Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
@@ -149,13 +189,19 @@ function send(obj, dest::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Isend(buf::MPIBuffertype{T}, count::Integer, datatype::Datatype,
-          dest::Integer, tag::Integer, comm::Comm) where T
+    Isend(buf, [count::Integer, [datatype::Datatype,]]
+          dest::Integer, tag::Integer, comm::Comm)
 
 Starts a nonblocking send of `count` elements of type `datatype` from `buf` to
 MPI rank `dest` of communicator `comm` using with the message tag `tag`
 
-Returns the commication `Request` for the nonblocking send.
+If not provided, `datatype` and `count` are derived from the element type and length of
+`buf`, respectively.
+
+Returns the [`Request`](@ref) object for the nonblocking send.
+
+# External links
+$(_doc_external("MPI_Isend"))
 """
 function Isend(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
                dest::Integer, tag::Integer, comm::Comm)
@@ -169,31 +215,10 @@ function Isend(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
     return req
 end
 
-"""
-    Isend(buf::MPIBuffertype{T}, count::Integer, dest::Integer, tag::Integer,
-          comm::Comm) where T
-
-Starts a nonblocking send of `count` elements of `buf` to MPI rank `dest`
-of communicator `comm` using with the message tag `tag`
-
-Returns the commication `Request` for the nonblocking send.
-"""
-function Isend(buf, count::Integer,
-               dest::Integer, tag::Integer, comm::Comm)
+Isend(buf, count::Integer, dest::Integer, tag::Integer, comm::Comm) =
     Isend(buf, count, mpitype(eltype(buf)), dest, tag, comm)
-end
-
-"""
-    Isend(buf::Array{T}, dest::Integer, tag::Integer, comm::Comm) where T
-
-Starts a nonblocking send of `buf` to MPI rank `dest` of communicator `comm`
-using with the message tag `tag`
-
-Returns the commication `Request` for the nonblocking send.
-"""
-function Isend(buf::AbstractArray{T}, dest::Integer, tag::Integer, comm::Comm) where T
-    Isend(buf, length(buf), mpitype(T), dest, tag, comm)
-end
+Isend(buf::AbstractArray, dest::Integer, tag::Integer, comm::Comm) =
+    Isend(buf, length(buf), dest, tag, comm)
 
 """
     Isend(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
@@ -222,13 +247,19 @@ function isend(obj, dest::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Recv!(buf::MPIBuffertype{T}, count::Integer, datatype::Datatype,
-          src::Integer, tag::Integer, comm::Comm) where T
+    Recv!(buf, [count::Integer, [datatype::Datatype,]]
+          src::Integer, tag::Integer, comm::Comm)
 
 Completes a blocking receive of up to `count` elements of type `datatype` into `buf`
 from MPI rank `src` of communicator `comm` using with the message tag `tag`
 
-Returns the `Status` of the receive
+If not provided, `datatype` and `count` are derived from the element type and length of
+`buf`, respectively.
+
+Returns the [`Status`](@ref) of the receive.
+
+# External links
+$(_doc_external("MPI_Recv"))
 """
 function Recv!(buf, count::Integer, datatype::Union{Datatype,MPI_Datatype}, src::Integer,
                tag::Integer, comm::Comm)
@@ -241,32 +272,10 @@ function Recv!(buf, count::Integer, datatype::Union{Datatype,MPI_Datatype}, src:
     return stat_ref[]
 end
 
-"""
-    Recv!(buf::MPIBuffertype{T}, count::Integer, src::Integer, tag::Integer,
-          comm::Comm) where T
-
-Completes a blocking receive of up to `count` elements into `buf` from MPI rank
-`src` of communicator `comm` using with the message tag `tag`
-
-Returns the `Status` of the receive
-"""
-function Recv!(buf, count::Integer, src::Integer,
-               tag::Integer, comm::Comm)
+Recv!(buf, count::Integer, src::Integer, tag::Integer, comm::Comm) =
     Recv!(buf, count, mpitype(eltype(buf)), src, tag, comm)
-end
-
-
-"""
-    Recv!(buf::Array{T}, src::Integer, tag::Integer, comm::Comm) where T
-
-Completes a blocking receive into `buf` from MPI rank `src` of communicator
-`comm` using with the message tag `tag`
-
-Returns the `Status` of the receive
-"""
-function Recv!(buf::AbstractArray{T}, src::Integer, tag::Integer, comm::Comm) where T
+Recv!(buf::AbstractArray, src::Integer, tag::Integer, comm::Comm) =
     Recv!(buf, length(buf), src, tag, comm)
-end
 
 function Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm) where T
     buf = Ref{T}()
@@ -283,13 +292,16 @@ function recv(src::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Irecv!(buf::MPIBuffertype{T}, count::Integer, datatype::Datatype,
+    Irecv!(buf, [count::Integer, [datatype::Datatype,]]
            src::Integer, tag::Integer, comm::Comm) where T
 
 Starts a nonblocking receive of up to `count` elements of type `datatype` into `buf`
 from MPI rank `src` of communicator `comm` using with the message tag `tag`
 
-Returns the communication `Request` for the nonblocking receive.
+Returns the [`Request`](@ref) for the nonblocking receive.
+
+# External links
+$(_doc_external("MPI_Irecv"))
 """
 function Irecv!(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
                     src::Integer, tag::Integer, comm::Comm) where T
@@ -303,32 +315,11 @@ function Irecv!(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
     return req
 end
 
-"""
-    Irecv!(buf::MPIBuffertype{T}, count::Integer, src::Integer, tag::Integer,
-           comm::Comm) where T
-
-Starts a nonblocking receive of up to `count` elements into `buf`
-from MPI rank `src` of communicator `comm` using with the message tag `tag`
-
-Returns the communication `Request` for the nonblocking receive.
-"""
-function Irecv!(buf, count::Integer,
-                    src::Integer, tag::Integer, comm::Comm) 
+Irecv!(buf, count::Integer, src::Integer, tag::Integer, comm::Comm) =
     Irecv!(buf, count, mpitype(eltype(buf)), src, tag, comm)
-end
+Irecv!(buf::AbstractArray, src::Integer, tag::Integer, comm::Comm) =
+    Irecv!(buf, length(buf), src, tag, comm)
 
-"""
-    Irecv!(buf::Array{T}, src::Integer, tag::Integer, comm::Comm) where T
-
-Starts a nonblocking receive into `buf` from MPI rank `src` of communicator
-`comm` using with the message tag `tag`
-
-Returns the communication `Request` for the nonblocking receive.
-"""
-function Irecv!(buf::AbstractArray{T}, src::Integer, tag::Integer,
-                             comm::Comm) where T
-    Irecv!(buf, length(buf), mpitype(T), src, tag, comm)
-end
 
 function irecv(src::Integer, tag::Integer, comm::Comm)
     (flag, stat) = Iprobe(src, tag, comm)
@@ -342,14 +333,22 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Sendrecv(sendbuf, sendcount::Integer, sendtype::Union{Datatype, MPI_Datatype},   dest::Integer, sendtag::Integer,
-             recvbuf, recvcount::Integer, recvtype::Union{Datatype, MPI_Datatype}, source::Integer, recvtag::Integer,
+    Sendrecv(sendbuf, [sendcount::Integer, [sendtype::Union{Datatype, MPI_Datatype}]],  
+             dest::Integer, sendtag::Integer,
+             recvbuf, [recvcount::Integer, [recvtype::Union{Datatype, MPI_Datatype}]], 
+             source::Integer, recvtag::Integer,
              comm::Comm)
 
 Complete a blocking send-receive operation over the MPI communicator `comm`. Send 
 `sendcount` elements of type `sendtype` from `sendbuf` to the MPI rank `dest` using message 
 tag `tag`, and receive `recvcount` elements of type `recvtype` from MPI rank `source` into 
-the buffer `recvbuf` using message tag `tag`. Return an MPI.Status object.
+the buffer `recvbuf` using message tag `tag`. Return a [`Status`](@ref) object.
+
+If not provided, `sendtype`/`recvtype` and `sendcount`/`recvcount` are derived from the
+element type and length of `sendbuf`/`recvbuf`, respectively.
+
+# External links
+$(_doc_external("MPI_Sendrecv"))
 """
 function Sendrecv(sendbuf, sendcount::Integer, sendtype::Union{Datatype, MPI_Datatype},   dest::Integer, sendtag::Integer,
                   recvbuf, recvcount::Integer, recvtype::Union{Datatype, MPI_Datatype}, source::Integer, recvtag::Integer,
@@ -367,43 +366,26 @@ function Sendrecv(sendbuf, sendcount::Integer, sendtype::Union{Datatype, MPI_Dat
     return stat_ref[]
 end
 
-"""
-    Sendrecv(sendbuf::MPIBuffertype{T}, sendcount::Integer,   dest::Integer, sendtag::Integer,
-             recvbuf::MPIBuffertype{T}, recvcount::Integer, source::Integer, recvtag::Integer,
-             comm::Comm) where {T}
-
-Complete a blocking send-receive operation over the MPI communicator `comm`, sending 
-`sendcount` elements of type `T` from `sendbuf` to the MPI rank `dest` using message 
-tag `tag`, and receiving `recvcount` elements of the same type from MPI rank `source` into 
-the buffer `recvbuf` using message tag `tag`. Return an MPI.Status object.
-"""
-function Sendrecv(sendbuf::MPIBuffertype{T}, sendcount::Integer,   dest::Integer, sendtag::Integer,
-                  recvbuf::MPIBuffertype{T}, recvcount::Integer, source::Integer, recvtag::Integer,
-                  comm::Comm) where {T}
+function Sendrecv(sendbuf, sendcount::Integer,   dest::Integer, sendtag::Integer,
+                  recvbuf, recvcount::Integer, source::Integer, recvtag::Integer,
+                  comm::Comm)
     return Sendrecv(sendbuf, sendcount, mpitype(eltype(sendbuf)), dest,   sendtag,
                     recvbuf, recvcount, mpitype(eltype(recvbuf)), source, recvtag, comm)
 end
-
-"""
-    Sendrecv(sendbuf::AbstractArray{T},   dest::Integer, sendtag::Integer,
-             recvbuf::AbstractArray{T}, source::Integer, recvtag::Integer,
-             comm::Comm) where {T}
-
-Complete a blocking send-receive operation over the MPI communicator `comm`, sending 
-`sendbuf` to the MPI rank `dest` using message tag `tag`, and receiving the buffer 
-`recvbuf` using message tag `tag`. Return an MPI.Status object.
-"""
-function Sendrecv(sendbuf::AbstractArray{T},   dest::Integer, sendtag::Integer,
-                  recvbuf::AbstractArray{T}, source::Integer, recvtag::Integer,
-                  comm::Comm) where {T}
+function Sendrecv(sendbuf::AbstractArray,   dest::Integer, sendtag::Integer,
+                  recvbuf::AbstractArray, source::Integer, recvtag::Integer,
+                  comm::Comm)
     return Sendrecv(sendbuf, length(sendbuf), dest,   sendtag,
                     recvbuf, length(recvbuf), source, recvtag, comm)
 end
 
 """
-    Wait!(req::Request)
+    status = Wait!(req::Request)
 
-Wait on the request `req` to be complete. Returns the `Status` of the request.
+Block until the request `req` is complete and deallocated. Returns the [`Status`](@ref) of the request.
+
+# External links
+$(_doc_external("MPI_Wait"))
 """
 function Wait!(req::Request)
     stat_ref = Ref{Status}()
@@ -415,6 +397,16 @@ function Wait!(req::Request)
     stat
 end
 
+"""
+    iscomplete, (status|nothing) = Test!(req::Request)
+
+Check if the request `req` is complete. If so, the request is deallocated and a tuple of
+`true` and the [`Status`](@ref) of the request is returned. Otherwise a tuple of
+`false, nothing` is returned.
+
+# External links
+$(_doc_external("MPI_Test"))
+"""
 function Test!(req::Request)
     flag = Ref{Cint}()
     stat_ref = Ref{Status}()
@@ -430,10 +422,13 @@ function Test!(req::Request)
 end
 
 """
-    Waitall!(reqs::Vector{Request})
+    statuses = Waitall!(reqs::Vector{Request})
 
-Wait on all the requests in the array `reqs` to be complete. Returns an arrays
-of the all the requests statuses.
+Block until all the requests in the array `reqs` are complete. Returns an array
+of the [`Status`](@ref) objects corresponding to each request.
+
+# External links
+$(_doc_external("MPI_Waitall"))
 """
 function Waitall!(reqs::Vector{Request})
     count = length(reqs)
@@ -451,6 +446,17 @@ function Waitall!(reqs::Vector{Request})
     return stats
 end
 
+"""
+    iscomplete, (statuses|nothing) = Testall!(reqs::Vector{Request})
+
+Check if all the requests in the array `reqs` are complete. If so, the requests are
+deallocated and a tuple of `true` and an array of the [`Status`](@ref) objects
+corresponding to each request is returned. Otherwise no requests are modified a tuple of
+`false, nothing` is returned.
+
+# External links
+$(_doc_external("MPI_Testall"))
+"""
 function Testall!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
@@ -473,10 +479,14 @@ end
 
 
 """
-    Waitany!(reqs::Vector{Request})
+    (index, status) = Waitany!(reqs::Vector{Request})
 
-Wait on any the requests in the array `reqs` to be complete. Returns the index
-of the completed request and its `Status` as a tuple.
+Blocks until one of the requests in the array `reqs` is complete: if more than one is
+complete, one is chosen arbitrarily. The request is deallocated and a tuple of the index
+of the completed request and its [`Status`](@ref) is returned.
+
+# External links
+$(_doc_external("MPI_Waitany"))
 """
 function Waitany!(reqs::Vector{Request})
     count = length(reqs)
@@ -494,6 +504,17 @@ function Waitany!(reqs::Vector{Request})
     (index, stat_ref[])
 end
 
+"""
+    iscomplete, (index, status | 0, nothing) = Testany!(reqs::Vector{Request})
+
+Check if any one of the requests in the array `reqs` is complete: if more than one is
+complete, one is chosen arbitrarily. If so, the request is deallocated an a tuple of
+`true`, its index and its [`Status`](@ref) is returned. Otherwise a tuple of `false, 0,
+nothing` is returned.
+
+# External links
+$(_doc_external("MPI_Testany"))
+"""
 function Testany!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [req.val for req in reqs]
@@ -514,6 +535,16 @@ function Testany!(reqs::Vector{Request})
     (true, index, stat_ref[])
 end
 
+"""
+    (indices, statuses) = Waitsome!(reqs::Vector{Request})
+
+Block until at least one of the requests in the array `reqs` is complete. The completed
+requests are deallocated, and a tuple of their indices in `reqs` and their corresponding
+[`Status`](@ref) objects are returned.
+
+# External links
+$(_doc_external("MPI_Waitsome"))
+"""
 function Waitsome!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
@@ -541,6 +572,15 @@ function Waitsome!(reqs::Vector{Request})
     (indices, stats)
 end
 
+"""
+    (indices, statuses) = Testsome!(reqs::Vector{Request})
+
+Similar to [`Waitsome!`](@ref) except that it returns immediately: if no operations have
+completed then `indices` and `statuses` will be empty.
+
+# External links
+$(_doc_external("MPI_Testsome"))
+"""
 function Testsome!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [req.val for req in reqs]
@@ -568,6 +608,16 @@ function Testsome!(reqs::Vector{Request})
     (indices, stats)
 end
 
+"""
+    Cancel!(req::Request)
+
+Marks a pending [`Irecv!`](@ref) operation for cancellation (cancelling a [`Isend`](@ref)
+is deprecated). Note that the request is not deallocated, and can still be queried using
+the test or wait functions.
+
+# External links
+$(_doc_external("MPI_Cancel"))
+"""
 function Cancel!(req::Request)
     # int MPI_Cancel(MPI_Request *request)
     @mpichk ccall((:MPI_Cancel, libmpi), Cint, (Ptr{MPI_Request},), req)

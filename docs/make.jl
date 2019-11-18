@@ -48,6 +48,7 @@ makedocs(
         "Reference" => [
             "environment.md",
             "comm.md",
+            "pointtopoint.md",
             ],
         "functions.md",
         ]
