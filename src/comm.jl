@@ -1,3 +1,8 @@
+"""
+    MPI.Comm
+
+An MPI Communicator object.
+"""
 @mpi_handle Comm
 
 const COMM_NULL = _Comm(MPI_COMM_NULL)

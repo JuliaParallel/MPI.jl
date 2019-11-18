@@ -24,45 +24,6 @@ MPI.Get_address
 MPI.mpitype
 ```
 
-## Point-to-point communication
-
-Julia Function (assuming `import MPI`) | Fortran Function
----------------------------------------|--------------------------------------------------------
- [`MPI.Cancel!`](@ref)                 | [`MPI_Cancel`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Cancel.3.php)
- [`MPI.Get_count`](@ref)               | [`MPI_Get_count`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Get_count.3.php)
- [`MPI.Iprobe`](@ref)                  | [`MPI_Iprobe`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Iprobe.3.php)
- [`MPI.Irecv!`](@ref)                  | [`MPI_Irecv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Irecv.3.php)
- [`MPI.Isend`](@ref)                   | [`MPI_Isend`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Isend.3.php)
- [`MPI.Probe`](@ref)                   | [`MPI_Probe`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Probe.3.php)
- [`MPI.Recv!`](@ref)                   | [`MPI_Recv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Recv.3.php)
- [`MPI.Send`](@ref)                    | [`MPI_Send`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Send.3.php)
- [`MPI.Test!`](@ref)                   | [`MPI_Test`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Test.3.php)
- [`MPI.Testall!`](@ref)                | [`MPI_Testall`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Testall.3.php)
- [`MPI.Testany!`](@ref)                | [`MPI_Testany`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Testany.3.php)
- [`MPI.Testsome!`](@ref)               | [`MPI_Testsome`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Testsome.3.php)
- [`MPI.Wait!`](@ref)                   | [`MPI_Wait`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Wait.3.php)
- [`MPI.Waitall!`](@ref)                | [`MPI_Waitall`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Waitall.3.php)
- [`MPI.Waitany!`](@ref)                | [`MPI_Waitany`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Waitany.3.php)
- [`MPI.Waitsome!`](@ref)               | [`MPI_Waitsome`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Waitsome.3.php)
-
-```@docs
-MPI.Cancel!
-MPI.Get_count
-MPI.Iprobe
-MPI.Irecv!
-MPI.Isend
-MPI.Probe
-MPI.Recv!
-MPI.Send
-MPI.Test!
-MPI.Testall!
-MPI.Testany!
-MPI.Testsome!
-MPI.Wait!
-MPI.Waitall!
-MPI.Waitany!
-MPI.Waitsome!
-```
 
 ## Collective communication
 
