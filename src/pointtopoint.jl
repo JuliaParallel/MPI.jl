@@ -342,6 +342,65 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
 end
 
 """
+    Sendrecv(sendbuf, sendcount::Integer, sendtype::Union{Datatype, MPI_Datatype},   dest::Integer, sendtag::Integer,
+             recvbuf, recvcount::Integer, recvtype::Union{Datatype, MPI_Datatype}, source::Integer, recvtag::Integer,
+             comm::Comm)
+
+Complete a blocking send-receive operation over the MPI communicator `comm`. Send 
+`sendcount` elements of type `sendtype` from `sendbuf` to the MPI rank `dest` using message 
+tag `tag`, and receive `recvcount` elements of type `recvtype` from MPI rank `source` into 
+the buffer `recvbuf` using message tag `tag`. Return an MPI.Status object.
+"""
+function Sendrecv(sendbuf, sendcount::Integer, sendtype::Union{Datatype, MPI_Datatype},   dest::Integer, sendtag::Integer,
+                  recvbuf, recvcount::Integer, recvtype::Union{Datatype, MPI_Datatype}, source::Integer, recvtag::Integer,
+                  comm::Comm)
+    # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,   int sendtag,
+    #                        void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
+    #                    MPI_Comm comm, MPI_Status *status)
+    stat_ref = Ref{Status}()
+    @mpichk ccall((:MPI_Sendrecv, libmpi), Cint,
+                  (MPIPtr, Cint, MPI_Datatype, Cint, Cint,
+                   MPIPtr, Cint, MPI_Datatype, Cint, Cint,
+                 MPI_Comm, Ptr{Status}),
+                   sendbuf, sendcount, sendtype, dest,   sendtag,
+                   recvbuf, recvcount, recvtype, source, recvtag, comm, stat_ref)
+    return stat_ref[]
+end
+
+"""
+    Sendrecv(sendbuf::MPIBuffertype{T}, sendcount::Integer,   dest::Integer, sendtag::Integer,
+             recvbuf::MPIBuffertype{T}, recvcount::Integer, source::Integer, recvtag::Integer,
+             comm::Comm) where {T}
+
+Complete a blocking send-receive operation over the MPI communicator `comm`, sending 
+`sendcount` elements of type `T` from `sendbuf` to the MPI rank `dest` using message 
+tag `tag`, and receiving `recvcount` elements of the same type from MPI rank `source` into 
+the buffer `recvbuf` using message tag `tag`. Return an MPI.Status object.
+"""
+function Sendrecv(sendbuf::MPIBuffertype{T}, sendcount::Integer,   dest::Integer, sendtag::Integer,
+                  recvbuf::MPIBuffertype{T}, recvcount::Integer, source::Integer, recvtag::Integer,
+                  comm::Comm) where {T}
+    return Sendrecv(sendbuf, sendcount, mpitype(eltype(sendbuf)), dest,   sendtag,
+                    recvbuf, recvcount, mpitype(eltype(recvbuf)), source, recvtag, comm)
+end
+
+"""
+    Sendrecv(sendbuf::AbstractArray{T},   dest::Integer, sendtag::Integer,
+             recvbuf::AbstractArray{T}, source::Integer, recvtag::Integer,
+             comm::Comm) where {T}
+
+Complete a blocking send-receive operation over the MPI communicator `comm`, sending 
+`sendbuf` to the MPI rank `dest` using message tag `tag`, and receiving the buffer 
+`recvbuf` using message tag `tag`. Return an MPI.Status object.
+"""
+function Sendrecv(sendbuf::AbstractArray{T},   dest::Integer, sendtag::Integer,
+                  recvbuf::AbstractArray{T}, source::Integer, recvtag::Integer,
+                  comm::Comm) where {T}
+    return Sendrecv(sendbuf, length(sendbuf), dest,   sendtag,
+                    recvbuf, length(recvbuf), source, recvtag, comm)
+end
+
+"""
     Wait!(req::Request)
 
 Wait on the request `req` to be complete. Returns the `Status` of the request.
