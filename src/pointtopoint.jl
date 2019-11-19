@@ -80,7 +80,7 @@ const REQUEST_NULL = _Request(MPI_REQUEST_NULL, nothing)
 Request() = Request(REQUEST_NULL.val, nothing)
 
 """
-    ismessage, (status|nothing) = Iprobe(src::Integer, tag::Integer, comm::Comm)
+    status = Probe(src::Integer, tag::Integer, comm::Comm)
 
 Blocks until there is a message that can be received matching `src`, `tag` and
 `comm`. Returns the corresponding [`Status`](@ref) object.
