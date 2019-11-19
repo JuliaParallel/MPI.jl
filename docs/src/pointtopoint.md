@@ -20,7 +20,7 @@ MPI.Get_count
 ```@docs
 MPI.Send
 MPI.Recv!
-MPI.Sendrecv
+MPI.Sendrecv!
 ```
 
 ### Non-blocking

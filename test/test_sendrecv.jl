@@ -114,8 +114,8 @@ comm_cart = MPI.Cart_create(comm, 1, Cint[comm_size], Cint[1], false)
 src_rank, dest_rank = MPI.Cart_shift(comm_cart, 0, -1)
 
 # execute left shift using subarrays
-MPI.Sendrecv(a, 1, subarr_send, dest_rank, 0,
-             a, 1, subarr_recv,  src_rank, 0, comm_cart)
+MPI.Sendrecv!(a, 1, subarr_send, dest_rank, 0,
+              a, 1, subarr_recv,  src_rank, 0, comm_cart)
 
 @test a == [comm_rank, comm_rank, (comm_rank+1) % comm_size]
 
@@ -123,8 +123,8 @@ MPI.Sendrecv(a, 1, subarr_send, dest_rank, 0,
 # ---------------------------
 a = Float64[comm_rank, comm_rank, comm_rank]
 b = Float64[       -1,        -1,        -1]
-MPI.Sendrecv(a, 2, dest_rank, 1,
-             b, 2,  src_rank, 1, comm_cart)
+MPI.Sendrecv!(a, 2, dest_rank, 1,
+              b, 2,  src_rank, 1, comm_cart)
 
 @test b == [(comm_rank+1) % comm_size, (comm_rank+1) % comm_size, -1]
 
@@ -132,8 +132,8 @@ MPI.Sendrecv(a, 2, dest_rank, 1,
 # ---------------------------
 a = Float64[comm_rank, comm_rank, comm_rank]
 b = Float64[       -1,        -1,        -1]
-MPI.Sendrecv(a, dest_rank, 2,
-             b,  src_rank, 2, comm_cart)
+MPI.Sendrecv!(a, dest_rank, 2,
+              b,  src_rank, 2, comm_cart)
 
 @test b == [(comm_rank+1) % comm_size, (comm_rank+1) % comm_size, (comm_rank+1) % comm_size]
 
