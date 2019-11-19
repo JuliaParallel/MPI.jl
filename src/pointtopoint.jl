@@ -333,7 +333,7 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Sendrecv(sendbuf, [sendcount::Integer, [sendtype::Union{Datatype, MPI_Datatype}]],  
+    Sendrecv!(sendbuf, [sendcount::Integer, [sendtype::Union{Datatype, MPI_Datatype}]],  
              dest::Integer, sendtag::Integer,
              recvbuf, [recvcount::Integer, [recvtype::Union{Datatype, MPI_Datatype}]], 
              source::Integer, recvtag::Integer,
@@ -350,7 +350,7 @@ element type and length of `sendbuf`/`recvbuf`, respectively.
 # External links
 $(_doc_external("MPI_Sendrecv"))
 """
-function Sendrecv(sendbuf, sendcount::Integer, sendtype::Union{Datatype, MPI_Datatype},   dest::Integer, sendtag::Integer,
+function Sendrecv!(sendbuf, sendcount::Integer, sendtype::Union{Datatype, MPI_Datatype},   dest::Integer, sendtag::Integer,
                   recvbuf, recvcount::Integer, recvtype::Union{Datatype, MPI_Datatype}, source::Integer, recvtag::Integer,
                   comm::Comm)
     # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,   int sendtag,
@@ -366,16 +366,16 @@ function Sendrecv(sendbuf, sendcount::Integer, sendtype::Union{Datatype, MPI_Dat
     return stat_ref[]
 end
 
-function Sendrecv(sendbuf, sendcount::Integer,   dest::Integer, sendtag::Integer,
+function Sendrecv!(sendbuf, sendcount::Integer,   dest::Integer, sendtag::Integer,
                   recvbuf, recvcount::Integer, source::Integer, recvtag::Integer,
                   comm::Comm)
-    return Sendrecv(sendbuf, sendcount, mpitype(eltype(sendbuf)), dest,   sendtag,
+    return Sendrecv!(sendbuf, sendcount, mpitype(eltype(sendbuf)), dest,   sendtag,
                     recvbuf, recvcount, mpitype(eltype(recvbuf)), source, recvtag, comm)
 end
-function Sendrecv(sendbuf::AbstractArray,   dest::Integer, sendtag::Integer,
+function Sendrecv!(sendbuf::AbstractArray,   dest::Integer, sendtag::Integer,
                   recvbuf::AbstractArray, source::Integer, recvtag::Integer,
                   comm::Comm)
-    return Sendrecv(sendbuf, length(sendbuf), dest,   sendtag,
+    return Sendrecv!(sendbuf, length(sendbuf), dest,   sendtag,
                     recvbuf, length(recvbuf), source, recvtag, comm)
 end
 
