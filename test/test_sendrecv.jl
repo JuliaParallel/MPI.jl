@@ -73,9 +73,10 @@ for i in inds
     @test done
 end
 
-sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
-MPI.Cancel!(sreq)
-@test sreq.buffer == nothing
+rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
+MPI.Cancel!(rreq)
+MPI.Wait!(rreq)
+@test rreq.buffer == nothing
 
 GC.gc()
 

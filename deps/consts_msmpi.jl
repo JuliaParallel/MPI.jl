@@ -1,13 +1,5 @@
 # From https://github.com/microsoft/Microsoft-MPI/blob/v10.0/src/include/mpi.h
 
-struct Status
-    _pad1::Cint
-    _pad2::Cint
-    source::Cint
-    tag::Cint
-    error::Cint
-end
-
 for T in [:MPI_Comm, :MPI_Info, :MPI_Win, :MPI_Request, :MPI_Op, :MPI_Datatype]
     @eval begin
         primitive type $T 32 end
@@ -73,6 +65,7 @@ const MPI_C_DOUBLE_COMPLEX      = reinterpret(Cint, 0x4c001014)
 const MPI_PROC_NULL = Cint(-1)
 const MPI_ANY_SOURCE = Cint(-2)
 const MPI_ANY_TAG = Cint(-1)
+const MPI_SUCCESS = Cint(0)
 const MPI_UNDEFINED = Cint(-32766)
 const MPI_LOCK_EXCLUSIVE = Cint(234)
 const MPI_LOCK_SHARED = Cint(235)
@@ -89,3 +82,12 @@ const MPI_IN_PLACE = reinterpret(SentinelPtr, -1)
 
 const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 1)
 const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 1)
+
+struct Status
+    _pad1::Cint
+    _pad2::Cint
+    source::Cint
+    tag::Cint
+    error::Cint
+end
+const STATUS_EMPTY = Status(zero(Cint), zero(Cint), MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_SUCCESS)
