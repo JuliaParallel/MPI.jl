@@ -5,40 +5,51 @@ import Base: eltype
 if !@isdefined(Status)
     let
         struct_fields = Any[]
+        empty_vals = Cint[]
         offset = 0
         i = 0
 
         while offset < MPI_Status_Source_offset
             push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
+            push!(empty_vals, zero(Cint))
             offset += 4
         end
         @assert offset == MPI_Status_Source_offset
         push!(struct_fields, :(source::Cint))
+        push!(empty_vals, MPI_ANY_SOURCE)
         offset += 4
 
         while offset < MPI_Status_Tag_offset
             push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
+            push!(empty_vals, zero(Cint))
             offset += 4
         end
         @assert offset == MPI_Status_Tag_offset
         push!(struct_fields, :(tag::Cint))
+        push!(empty_vals, MPI_ANY_TAG)
         offset += 4
 
         while offset < MPI_Status_Error_offset
             push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
+            push!(empty_vals, zero(Cint))
             offset += 4
         end
         @assert offset == MPI_Status_Error_offset
         push!(struct_fields, :(error::Cint))
+        push!(empty_vals, MPI_SUCCESS)
         offset += 4
 
         while offset < MPI_Status_size
             push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
+            push!(empty_vals, zero(Cint))
             offset += 4
         end
 
-        @eval struct Status
-            $(struct_fields...)
+        @eval begin
+            struct Status
+                $(struct_fields...)
+            end
+            const STATUS_EMPTY = Status($(empty_vals...))
         end
     end
 
@@ -73,11 +84,30 @@ Get_error(status::Status) = Int(status.error)
 An MPI Request object, representing a non-blocking communication. This also contains a
 reference to the buffer used in the communication to ensure it isn't garbage-collected
 during communication.
+
+The status of a Request can be checked by the [`Wait!](@ref) and [`Test!`](@ref) functions
+or their multiple-request variants, which will deallocate the request once it is
+determined to be complete. Alternatively, it will be deallocated at finalization, meaning
+that it is safe to ignore the request objects if the status of the communication can be
+checked by other means.
+
+See also [`Cancel!`](@ref).
 """
 @mpi_handle Request buffer
 
 const REQUEST_NULL = _Request(MPI_REQUEST_NULL, nothing)
 Request() = Request(REQUEST_NULL.val, nothing)
+isnull(req::Request) = req.val == REQUEST_NULL.val
+
+function free(req::Request)
+    if !isnull(req)
+        @mpichk ccall((:MPI_Request_free, libmpi), Cint, (Ptr{MPI_Request},), req)
+        req.buffer = nothing
+        refcount_dec()
+    end
+    return nothing
+end
+
 
 """
     status = Probe(src::Integer, tag::Integer, comm::Comm)
@@ -89,7 +119,7 @@ Blocks until there is a message that can be received matching `src`, `tag` and
 $(_doc_external("MPI_Probe"))
 """
 function Probe(src::Integer, tag::Integer, comm::Comm)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     @mpichk ccall((:MPI_Probe, libmpi), Cint,
           (Cint, Cint, MPI_Comm, Ptr{Status}),
           src, tag, comm, stat_ref)
@@ -107,7 +137,7 @@ $(_doc_external("MPI_Iprobe"))
 """
 function Iprobe(src::Integer, tag::Integer, comm::Comm)
     flag = Ref{Cint}()
-    stat_ref = Ref{Status}()
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     @mpichk ccall((:MPI_Iprobe, libmpi), Cint,
           (Cint, Cint, MPI_Comm, Ptr{Cint}, Ptr{Status}),
           src, tag, comm, flag, stat_ref)
@@ -212,6 +242,8 @@ function Isend(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
           (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf, count, datatype, dest, tag, comm, req)
     req.buffer = buf
+    refcount_inc()
+    finalizer(free, req)
     return req
 end
 
@@ -263,7 +295,7 @@ $(_doc_external("MPI_Recv"))
 """
 function Recv!(buf, count::Integer, datatype::Union{Datatype,MPI_Datatype}, src::Integer,
                tag::Integer, comm::Comm)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     # int MPI_Recv(void* buf, int count, MPI_Datatype datatype, int source,
     #              int tag, MPI_Comm comm, MPI_Status *status)
     @mpichk ccall((:MPI_Recv, libmpi), Cint,
@@ -312,6 +344,8 @@ function Irecv!(buf, count::Integer, datatype::Union{Datatype, MPI_Datatype},
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf, count, datatype, src, tag, comm, req)
     req.buffer = buf
+    refcount_inc()
+    finalizer(free, req)
     return req
 end
 
@@ -333,15 +367,15 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Sendrecv!(sendbuf, [sendcount::Integer, [sendtype::Union{Datatype, MPI_Datatype}]],  
+    Sendrecv!(sendbuf, [sendcount::Integer, [sendtype::Union{Datatype, MPI_Datatype}]],
              dest::Integer, sendtag::Integer,
-             recvbuf, [recvcount::Integer, [recvtype::Union{Datatype, MPI_Datatype}]], 
+             recvbuf, [recvcount::Integer, [recvtype::Union{Datatype, MPI_Datatype}]],
              source::Integer, recvtag::Integer,
              comm::Comm)
 
-Complete a blocking send-receive operation over the MPI communicator `comm`. Send 
-`sendcount` elements of type `sendtype` from `sendbuf` to the MPI rank `dest` using message 
-tag `tag`, and receive `recvcount` elements of type `recvtype` from MPI rank `source` into 
+Complete a blocking send-receive operation over the MPI communicator `comm`. Send
+`sendcount` elements of type `sendtype` from `sendbuf` to the MPI rank `dest` using message
+tag `tag`, and receive `recvcount` elements of type `recvtype` from MPI rank `source` into
 the buffer `recvbuf` using message tag `tag`. Return a [`Status`](@ref) object.
 
 If not provided, `sendtype`/`recvtype` and `sendcount`/`recvcount` are derived from the
@@ -356,7 +390,7 @@ function Sendrecv!(sendbuf, sendcount::Integer, sendtype::Union{Datatype, MPI_Da
     # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,   int sendtag,
     #                        void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
     #                    MPI_Comm comm, MPI_Status *status)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     @mpichk ccall((:MPI_Sendrecv, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint,
                    MPIPtr, Cint, MPI_Datatype, Cint, Cint,
@@ -388,28 +422,31 @@ Block until the request `req` is complete and deallocated. Returns the [`Status`
 $(_doc_external("MPI_Wait"))
 """
 function Wait!(req::Request)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    alreadynull = isnull(req)
     # int MPI_Wait(MPI_Request *request, MPI_Status *status)
     @mpichk ccall((:MPI_Wait, libmpi), Cint,
                   (Ptr{MPI_Request}, Ptr{Status}),
                   req, stat_ref)
-    req.buffer = nothing
+    if !alreadynull
+        req.buffer = nothing
+        refcount_dec()
+    end
     stat
 end
 
 """
-    iscomplete, (status|nothing) = Test!(req::Request)
+    (flag, status) = Test!(req::Request)
 
-Check if the request `req` is complete. If so, the request is deallocated and a tuple of
-`true` and the [`Status`](@ref) of the request is returned. Otherwise a tuple of
-`false, nothing` is returned.
+Check if the request `req` is complete. If so, the request is deallocated and `flag` is returned `true` and `status` as the [`Status`](@ref) of the request. Otherwise `flag` is returned `false` and `status` is `nothing`.
 
 # External links
 $(_doc_external("MPI_Test"))
 """
 function Test!(req::Request)
     flag = Ref{Cint}()
-    stat_ref = Ref{Status}()
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    alreadynull = isnull(req)
     # int MPI_Test(MPI_Request *request, int *flag, MPI_Status *status)
     @mpichk ccall((:MPI_Test, libmpi), Cint,
                   (Ptr{MPI_Request}, Ptr{Cint}, Ptr{Status}),
@@ -417,15 +454,18 @@ function Test!(req::Request)
     if flag[] == 0
         return (false, nothing)
     end
-    req.buffer = nothing
+    if !alreadynull
+        req.buffer = nothing
+        refcount_dec()
+    end
     (true, stat_ref[])
 end
 
 """
     statuses = Waitall!(reqs::Vector{Request})
 
-Block until all the requests in the array `reqs` are complete. Returns an array
-of the [`Status`](@ref) objects corresponding to each request.
+Block until all active requests in the array `reqs` are complete. Returns an array of the
+[`Status`](@ref) objects corresponding to each request.
 
 # External links
 $(_doc_external("MPI_Waitall"))
@@ -433,26 +473,30 @@ $(_doc_external("MPI_Waitall"))
 function Waitall!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
-    stats = Array{Status}(undef, count)
+    stats = fill(STATUS_EMPTY, count)
     # int MPI_Waitall(int count, MPI_Request array_of_requests[],
     #                 MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Waitall, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Status}),
                   count, reqvals, stats)
     for i in 1:count
-        reqs[i].val = reqvals[i]
-        reqs[i].buffer = nothing
+        req = reqs[i]
+        if !isnull(req)
+            req.val = reqvals[i]
+            req.buffer = nothing
+            refcount_dec()
+        end
     end
     return stats
 end
 
 """
-    iscomplete, (statuses|nothing) = Testall!(reqs::Vector{Request})
+    (flag, statuses) = Testall!(reqs::Vector{Request})
 
-Check if all the requests in the array `reqs` are complete. If so, the requests are
-deallocated and a tuple of `true` and an array of the [`Status`](@ref) objects
-corresponding to each request is returned. Otherwise no requests are modified a tuple of
-`false, nothing` is returned.
+Check if all active requests in the array `reqs` are complete. If so, the requests are
+deallocated and `flag` is returned as `true` and `statuses` is an array of the
+[`Status`](@ref) objects corresponding to each request is returned. Otherwise no requests
+are modified a tuple of `false, nothing` is returned.
 
 # External links
 $(_doc_external("MPI_Testall"))
@@ -461,7 +505,7 @@ function Testall!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
     flag = Ref{Cint}()
-    stats = Array{Status}(undef, count)
+    stats = fill(STATUS_EMPTY, count)
     # int MPI_Testall(int count, MPI_Request array_of_requests[], int *flag,
     #                 MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Testall, libmpi), Cint,
@@ -471,8 +515,12 @@ function Testall!(reqs::Vector{Request})
         return (false, nothing)
     end
     for i in 1:count
-        reqs[i].val = reqvals[i]
-        reqs[i].buffer = nothing
+        req = reqs[i]
+        if !isnull(req)
+            req.val = reqvals[i]
+            req.buffer = nothing
+            refcount_dec()
+        end
     end
     (true, stats)
 end
@@ -483,7 +531,8 @@ end
 
 Blocks until one of the requests in the array `reqs` is complete: if more than one is
 complete, one is chosen arbitrarily. The request is deallocated and a tuple of the index
-of the completed request and its [`Status`](@ref) is returned.
+of the completed request and its [`Status`](@ref) is returned. If there are no active
+requests, then `index` is returned as `0`.
 
 # External links
 $(_doc_external("MPI_Waitany"))
@@ -492,25 +541,36 @@ function Waitany!(reqs::Vector{Request})
     count = length(reqs)
     reqvals = [reqs[i].val for i in 1:count]
     ind = Ref{Cint}()
-    stat_ref = Ref{Status}()
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     # int MPI_Waitany(int count, MPI_Request array_of_requests[], int *index,
     #                 MPI_Status *status)
     @mpichk ccall((:MPI_Waitany, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Status}),
                   count, reqvals, ind, stat_ref)
-    index = Int(ind[]) + 1
-    reqs[index].val = reqvals[index]
-    reqs[index].buffer = nothing
-    (index, stat_ref[])
+    if ind[] == MPI_UNDEFINED
+        return (0, stat_ref[])
+    end
+    i = Int(ind[]) + 1
+    req = reqs[i]
+    if !isnull(req)
+        req.val = reqvals[i]
+        req.buffer = nothing
+        refcount_dec()
+    end
+    (i, stat_ref[])
 end
 
 """
-    iscomplete, (index, status | 0, nothing) = Testany!(reqs::Vector{Request})
+    (flag, index, status) = Testany!(reqs::Vector{Request})
 
-Check if any one of the requests in the array `reqs` is complete: if more than one is
-complete, one is chosen arbitrarily. If so, the request is deallocated an a tuple of
-`true`, its index and its [`Status`](@ref) is returned. Otherwise a tuple of `false, 0,
-nothing` is returned.
+Check if any one of the requests in the array `reqs` is complete.
+
+If one or more requests are complete, then one is chosen arbitrarily, deallocated and `flag` is
+returned as `true`, along with the index and the [`Status`](@ref) of the request.
+
+Otherwise, if there are no complete requests, then `flag` is returned `true` if there are
+no active requests and `false` otherwise, with `index is returned as `0`, and `status as
+`nothing`.
 
 # External links
 $(_doc_external("MPI_Testany"))
@@ -520,27 +580,34 @@ function Testany!(reqs::Vector{Request})
     reqvals = [req.val for req in reqs]
     ind = Ref{Cint}()
     flag = Ref{Cint}()
-    stat_ref = Ref{Status}()
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     # int MPI_Testany(int count, MPI_Request array_of_requests[], int *index,
     #                 int *flag, MPI_Status *status)
     @mpichk ccall((:MPI_Testany, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{Status}),
                   count, reqvals, ind, flag, stat_ref)
-    if flag[] == 0 || ind[] == MPI_UNDEFINED
+    if flag[] == 0
         return (false, 0, nothing)
+    elseif ind[] == MPI_UNDEFINED
+        return (true, 0, nothing)
     end
-    index = Int(ind[]) + 1
-    reqs[index].val = reqvals[index]
-    reqs[index].buffer = nothing
-    (true, index, stat_ref[])
+    i = Int(ind[]) + 1
+    req = reqs[i]
+    if !isnull(req)
+        req.val = reqvals[i]
+        req.buffer = nothing
+        refcount_dec()
+    end
+    (true, i, stat_ref[])
 end
 
 """
     (indices, statuses) = Waitsome!(reqs::Vector{Request})
 
-Block until at least one of the requests in the array `reqs` is complete. The completed
-requests are deallocated, and a tuple of their indices in `reqs` and their corresponding
-[`Status`](@ref) objects are returned.
+Block until at least one of the active requests in the array `reqs` is complete. The
+completed requests are deallocated, and a tuple of their indices in `reqs` and their
+corresponding [`Status`](@ref) objects are returned. If there are no active requests, then
+the function returns immediately and `indices` and `statuses` are empty.
 
 # External links
 $(_doc_external("MPI_Waitsome"))
@@ -550,7 +617,7 @@ function Waitsome!(reqs::Vector{Request})
     reqvals = [reqs[i].val for i in 1:count]
     outcnt = Ref{Cint}()
     inds = Array{Cint}(undef, count)
-    stats = Array{Status}(undef,count)
+    stats = fill(STATUS_EMPTY, count)
     # int MPI_Waitsome(int incount, MPI_Request array_of_requests[],
     #                  int *outcount, int array_of_indices[],
     #                  MPI_Status array_of_statuses[])
@@ -563,12 +630,17 @@ function Waitsome!(reqs::Vector{Request})
         outcount = 0
     end
     indices = Array{Int}(undef, outcount)
-    for i in 1:outcount
-        ind = Int(inds[i])+1
-        reqs[ind].val = reqvals[ind]
-        reqs[ind].buffer = nothing
-        indices[i] = ind
+    for j in 1:outcount
+        i = Int(inds[j])+1
+        req = reqs[i]
+        if !isnull(req)
+            req.val = reqvals[i]
+            req.buffer = nothing
+            refcount_dec()
+        end
+        indices[i] = i
     end
+    resize!(stats, outcount)
     (indices, stats)
 end
 
@@ -586,7 +658,7 @@ function Testsome!(reqs::Vector{Request})
     reqvals = [req.val for req in reqs]
     outcnt = Ref{Cint}()
     inds = Array{Cint}(undef, count)
-    stats = Array{Status}(undef, count)
+    stats = fill(STATUS_EMPTY, count)
     # int MPI_Testsome(int incount, MPI_Request array_of_requests[],
     #                  int *outcount, int array_of_indices[],
     #                  MPI_Status array_of_statuses[])
@@ -599,21 +671,26 @@ function Testsome!(reqs::Vector{Request})
         outcount = 0
     end
     indices = Array{Int}(undef, outcount)
-    for i in 1:outcount
-        ind = Int(inds[i])+1
-        reqs[ind].val = reqvals[ind]
-        reqs[ind].buffer = nothing
+    for j in 1:outcount
+        i = Int(inds[j])+1
+        req = reqs[i]
+        if !isnull(req)
+            req.val = reqvals[i]
+            req.buffer = nothing
+            refcount_dec()
+        end
         indices[i] = ind
     end
+    resize!(stats, outcount)
     (indices, stats)
 end
 
 """
     Cancel!(req::Request)
 
-Marks a pending [`Irecv!`](@ref) operation for cancellation (cancelling a [`Isend`](@ref)
-is deprecated). Note that the request is not deallocated, and can still be queried using
-the test or wait functions.
+Marks a pending [`Irecv!`](@ref) operation for cancellation (cancelling a [`Isend`](@ref),
+while supported in some implementations, is deprecated as of MPI 3.1). Note that the
+request is not deallocated, and can still be queried using the test or wait functions.
 
 # External links
 $(_doc_external("MPI_Cancel"))
@@ -621,6 +698,5 @@ $(_doc_external("MPI_Cancel"))
 function Cancel!(req::Request)
     # int MPI_Cancel(MPI_Request *request)
     @mpichk ccall((:MPI_Cancel, libmpi), Cint, (Ptr{MPI_Request},), req)
-    req.buffer = nothing
     nothing
 end
