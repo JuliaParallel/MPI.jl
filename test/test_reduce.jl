@@ -20,12 +20,15 @@ isroot = rank == root
 
 val = isroot ? sum(0:sz-1) : nothing
 @test MPI.Reduce(rank, MPI.SUM, root, comm) == val
+@test MPI.Reduce(rank, +, root, comm) == val
 
 val = isroot ? sz-1 : nothing
 @test MPI.Reduce(rank, MPI.MAX, root, comm) == val
+@test MPI.Reduce(rank, max, root, comm) == val
 
 val = isroot ? 0 : nothing
 @test MPI.Reduce(rank, MPI.MIN, root, comm) == val
+@test MPI.Reduce(rank, min, root, comm) == val
 
 val = isroot ? sz : nothing
 @test MPI.Reduce(1, +, root, comm) == val
@@ -68,7 +71,7 @@ for T = [Int]
             
             # IN_PLACE
             recv_arr = copy(send_arr)
-            MPI.Reduce_in_place!(recv_arr, length(recv_arr), op, root, MPI.COMM_WORLD)
+            MPI.Reduce!(recv_arr, op, root, MPI.COMM_WORLD)
             if isroot
                 @test recv_arr == sz .* send_arr
             end

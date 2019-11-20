@@ -3,6 +3,14 @@
 const DATATYPE_NULL = _Datatype(MPI_DATATYPE_NULL)
 Datatype() = Datatype(DATATYPE_NULL.val)
 
+macro assert_minlength(buffer, count)
+    quote
+        if $(esc(buffer)) isa AbstractArray
+            @assert length($(esc(buffer))) >= $(esc(count))
+        end
+    end
+end
+
 const MPIInteger = Union{Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64}
 const MPIFloatingPoint = Union{Float32, Float64}
 const MPIComplex = Union{ComplexF32, ComplexF64}
@@ -24,6 +32,11 @@ function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
     ptr = Base.unsafe_convert(Ptr{T}, x)
     reinterpret(MPIPtr, ptr)
 end
+function Base.cconvert(::Type{MPIPtr}, ::Nothing)
+    reinterpret(MPIPtr, C_NULL)
+end
+
+
 
 fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fieldnames(T))]
 

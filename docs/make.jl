@@ -49,6 +49,7 @@ makedocs(
             "environment.md",
             "comm.md",
             "pointtopoint.md",
+            "collective.md",
             ],
         "functions.md",
         ]

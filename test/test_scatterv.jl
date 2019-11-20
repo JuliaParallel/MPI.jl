@@ -34,7 +34,11 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # IN_PLACE
     B = isroot ? copy(A) : ArrayType{T}(undef, counts[rank+1])
-    MPI.Scatterv_in_place!(B, counts, root, comm)
+    if root == MPI.Comm_rank(comm)
+        MPI.Scatterv!(B, nothing, counts, root, comm)
+    else
+        MPI.Scatterv!(nothing, B, counts, root, comm)
+    end
     if isroot
         @test B == A
     else
