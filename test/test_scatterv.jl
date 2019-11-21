@@ -19,8 +19,8 @@ isroot = rank == root
 counts = Cint[mod(i,2) + 1 for i in 0:(size-1)]
 ref = collect(Iterators.flatten([fill(r, counts[r+1]) for r = 0:size-1]))
 
-for T in Base.uniontypes(MPI.MPIDatatype)    
-    A = isroot ? ArrayType{T}(ref) : ArrayType{T}(undef, 0)
+for T in Base.uniontypes(MPI.MPIDatatype)
+    A = isroot ? ArrayType{T}(ref) : ArrayType{T}(undef, 1)
 
     # Allocating
     B = MPI.Scatterv(A, counts, root, comm)
