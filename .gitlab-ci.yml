@@ -7,6 +7,7 @@ include:
     OMPI_ALLOW_RUN_AS_ROOT: '1'
     OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: '1'
     OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
+    JULIA_MPI_TEST_ARRAYTYPE: 'CuArray'
   before_script:
     - mkdir -p ccache
     - export CCACHE_BASEDIR=${CI_PROJECT_DIR}
