@@ -66,8 +66,8 @@ end
 rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
-(inds, stats) = MPI.Waitsome!([sreq, rreq])
 req_arr = [sreq,rreq]
+(inds, stats) = MPI.Waitsome!(req_arr)
 for i in inds
     (done, status) = MPI.Test!( req_arr[i] )
     @test done

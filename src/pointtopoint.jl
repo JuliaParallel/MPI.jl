@@ -637,7 +637,7 @@ function Waitsome!(reqs::Vector{Request})
             req.buffer = nothing
             refcount_dec()
         end
-        indices[i] = i
+        indices[j] = i
     end
     resize!(stats, outcount)
     (indices, stats)
@@ -678,7 +678,7 @@ function Testsome!(reqs::Vector{Request})
             req.buffer = nothing
             refcount_dec()
         end
-        indices[i] = ind
+        indices[j] = i
     end
     resize!(stats, outcount)
     (indices, stats)
