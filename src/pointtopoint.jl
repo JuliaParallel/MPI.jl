@@ -85,7 +85,7 @@ An MPI Request object, representing a non-blocking communication. This also cont
 reference to the buffer used in the communication to ensure it isn't garbage-collected
 during communication.
 
-The status of a Request can be checked by the [`Wait!](@ref) and [`Test!`](@ref) functions
+The status of a Request can be checked by the [`Wait!`](@ref) and [`Test!`](@ref) functions
 or their multiple-request variants, which will deallocate the request once it is
 determined to be complete. Alternatively, it will be deallocated at finalization, meaning
 that it is safe to ignore the request objects if the status of the communication can be
@@ -568,9 +568,8 @@ Check if any one of the requests in the array `reqs` is complete.
 If one or more requests are complete, then one is chosen arbitrarily, deallocated and `flag` is
 returned as `true`, along with the index and the [`Status`](@ref) of the request.
 
-Otherwise, if there are no complete requests, then `flag` is returned `true` if there are
-no active requests and `false` otherwise, with `index is returned as `0`, and `status as
-`nothing`.
+Otherwise, if there are no complete requests, then `index` is returned as `0`, `status` as
+`nothing`, and `flag` as `true` if there are no active requests and `false` otherwise. 
 
 # External links
 $(_doc_external("MPI_Testany"))
