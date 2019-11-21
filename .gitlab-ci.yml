@@ -49,7 +49,7 @@ include:
     OPENMPI_VER:      '4.0'
     OPENMPI_VER_FULL: '4.0.1'
   tags:
-    - cuda
+    - nvidia
 
 gpu:test:dev:
   extends: .gputest
