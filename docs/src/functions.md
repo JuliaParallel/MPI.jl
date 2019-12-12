@@ -8,7 +8,7 @@ to the MPI `Allreduce` and `Reduce` functions.
 
 ## Datatype functions
 
-Julia Function (assuming `import MPI`) | Fortran Function
+Julia Function (assuming `import MPI`) | C Function
 ---------------------------------------|--------------------------------------------------------
  [`MPI.Get_address`](@ref)             | [`MPI_Get_address`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Get_address.3.php)
  [`MPI.mpitype`](@ref)                 | [`MPI_Type_create_struct`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Type_create_struct.3.php)/[`MPI_Type_commit`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Type_commit.3.php)
@@ -27,7 +27,7 @@ MPI.mpitype
 
 ## Collective communication
 
- Non-Allocating Julia Function         |Allocating Julia Function              | Fortran Function                                                                  | Supports `MPI_IN_PLACE`
+ Non-Allocating Julia Function         |Allocating Julia Function              | C Function                                                                  | Supports `MPI_IN_PLACE`
  --------------------------------------|---------------------------------------|-----------------------------------------------------------------------------------|-----------
  [`MPI.Allgather!`](@ref)              | [`MPI.Allgather`](@ref)               | [`MPI_Allgather`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Allgather.3.php)    | ✅
  [`MPI.Allgatherv!`](@ref)             | [`MPI.Allgatherv`](@ref)              | [`MPI_Allgatherv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Allgatherv.3.php)  | ✅
@@ -89,7 +89,7 @@ MPI.Scatterv_in_place!
 
 ## One-sided communication
 
-Julia Function (assuming `import MPI`) | Fortran Function
+Julia Function (assuming `import MPI`) | C Function
 ---------------------------------------|--------------------------------------------------------
  [`MPI.Win_create`](@ref)              | [`MPI_Win_create`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_create.3.php)
  [`MPI.Win_create_dynamic`](@ref)      | [`MPI_Win_create_dynamic`](https://www.open-mpi.org/doc/v3.0/man3/MPI_Win_create_dynamic.3.php)
