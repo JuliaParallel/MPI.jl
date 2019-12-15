@@ -19,7 +19,10 @@ MPI.Get_count
 
 ```@docs
 MPI.Send
+MPI.send
 MPI.Recv!
+MPI.Recv
+MPI.recv
 MPI.Sendrecv!
 ```
 
@@ -27,6 +30,7 @@ MPI.Sendrecv!
 
 ```@docs
 MPI.Isend
+MPI.isend
 MPI.Irecv!
 MPI.Test!
 MPI.Testall!
@@ -45,5 +49,3 @@ MPI.Iprobe
 MPI.Probe
 MPI.Cancel!
 ```
-
-
