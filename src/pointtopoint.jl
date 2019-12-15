@@ -172,7 +172,7 @@ Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, mpitype(T))
          dest::Integer, tag::Integer, comm::Comm) where T
 
 Perform a blocking send of `count` elements of type `datatype` from `buf` to MPI
-rank `dest` of communicator `comm` using the message tag `tag`
+rank `dest` of communicator `comm` using the message tag `tag`.
 
 If not provided, `datatype` and `count` are derived from the element type and length of
 `buf`, respectively.
@@ -210,7 +210,7 @@ end
 """
     send(obj, dest::Integer, tag::Integer, comm::Comm)
 
-Complete a blocking send of using a serialized version of `obj` to MPI rank
+Complete a blocking send using a serialized version of `obj` to MPI rank
 `dest` of communicator `comm` using with the message tag `tag`.
 """
 function send(obj, dest::Integer, tag::Integer, comm::Comm)
@@ -223,7 +223,7 @@ end
           dest::Integer, tag::Integer, comm::Comm)
 
 Starts a nonblocking send of `count` elements of type `datatype` from `buf` to
-MPI rank `dest` of communicator `comm` using with the message tag `tag`
+MPI rank `dest` of communicator `comm` using with the message tag `tag`.
 
 If not provided, `datatype` and `count` are derived from the element type and length of
 `buf`, respectively.
@@ -283,7 +283,7 @@ end
           src::Integer, tag::Integer, comm::Comm)
 
 Completes a blocking receive of up to `count` elements of type `datatype` into `buf`
-from MPI rank `src` of communicator `comm` using with the message tag `tag`
+from MPI rank `src` of communicator `comm` using with the message tag `tag`.
 
 If not provided, `datatype` and `count` are derived from the element type and length of
 `buf`, respectively.
@@ -309,12 +309,28 @@ Recv!(buf, count::Integer, src::Integer, tag::Integer, comm::Comm) =
 Recv!(buf::AbstractArray, src::Integer, tag::Integer, comm::Comm) =
     Recv!(buf, length(buf), src, tag, comm)
 
+"""
+    Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm)
+
+Completes a blocking receive of a buffer of type `T` from MPI rank `src` of communicator
+`comm` using with the message tag `tag`.
+
+Returns the buffer of type `T` and the [`Status`](@ref) of the receive.
+"""
 function Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm) where T
     buf = Ref{T}()
     stat = Recv!(buf, 1, src, tag, comm)
     (buf[], stat)
 end
 
+"""
+    recv(src::Integer, tag::Integer, comm::Comm)
+
+Completes a blocking receive of a serialized object from MPI rank `src` of communicator
+`comm` using with the message tag `tag`.
+
+Returns the deserialized object and the [`Status`](@ref) of the receive.
+"""
 function recv(src::Integer, tag::Integer, comm::Comm)
     stat = Probe(src, tag, comm)
     count = Get_count(stat, UInt8)
@@ -569,7 +585,7 @@ If one or more requests are complete, then one is chosen arbitrarily, deallocate
 returned as `true`, along with the index and the [`Status`](@ref) of the request.
 
 Otherwise, if there are no complete requests, then `index` is returned as `0`, `status` as
-`nothing`, and `flag` as `true` if there are no active requests and `false` otherwise. 
+`nothing`, and `flag` as `true` if there are no active requests and `false` otherwise.
 
 # External links
 $(_doc_external("MPI_Testany"))
