@@ -2,7 +2,9 @@
 
 MPI is based on a [single program, multiple data (SPMD)](https://en.wikipedia.org/wiki/SPMD) model, where multiple processes are launched running independent programs, which then communicate as necessary via messages.
 
-A script should include `using MPI` and [`MPI.Init()`](@ref) statements, for example
+## Basic example
+
+A script should include `using MPI` and [`MPI.Init()`](@ref) statements before calling any MPI operaions, for example
 
 ```julia
 # examples/01-hello.jl
@@ -13,6 +15,8 @@ comm = MPI.COMM_WORLD
 println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")
 MPI.Barrier(comm)
 ```
+
+Calling [`MPI.Finalize()`](@ref) at the end of the program is optional, as it will be called automatically when Julia exits.
 
 The program can then be launched via an MPI launch command (typically `mpiexec`, `mpirun` or `srun`), e.g.
 ```
