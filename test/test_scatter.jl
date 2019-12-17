@@ -31,7 +31,11 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # In place version
     B = isroot ? copy(A) : ArrayType{T}(undef, 1)
-    MPI.Scatter_in_place!(B, 1, root, comm)
+    if root == MPI.Comm_rank(comm)
+        MPI.Scatter!(B, nothing, 1, root, comm)
+    else
+        MPI.Scatter!(nothing, B, 1, root, comm)
+    end
     @test Array(B)[1] == T(rank+1)
 
     # Test throwing

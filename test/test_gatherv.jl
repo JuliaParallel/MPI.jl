@@ -42,7 +42,11 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Test explicit MPI_IN_PLACE
     B = ArrayType(fill(T(rank), sum(counts)))
-    MPI.Gatherv_in_place!(B, counts, root, comm)
+    if root == MPI.Comm_rank(comm)
+        MPI.Gatherv!(nothing, B, counts, root, comm)
+    else
+        MPI.Gatherv!(B, nothing, counts, root, comm)
+    end
     if isroot
         @test B == ArrayType{T}(check)
     end

@@ -24,69 +24,6 @@ MPI.Get_address
 MPI.mpitype
 ```
 
-
-## Collective communication
-
- Non-Allocating Julia Function         |Allocating Julia Function              | C Function                                                                  | Supports `MPI_IN_PLACE`
- --------------------------------------|---------------------------------------|-----------------------------------------------------------------------------------|-----------
- [`MPI.Allgather!`](@ref)              | [`MPI.Allgather`](@ref)               | [`MPI_Allgather`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Allgather.3.php)    | ✅
- [`MPI.Allgatherv!`](@ref)             | [`MPI.Allgatherv`](@ref)              | [`MPI_Allgatherv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Allgatherv.3.php)  | ✅
- [`MPI.Allreduce!`](@ref)              | [`MPI.Allreduce`](@ref)               | [`MPI_Allreduce`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Allreduce.3.php)    | ✅
- [`MPI.Alltoall!`](@ref)               | [`MPI.Alltoall`](@ref)                | [`MPI_Alltoall`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Alltoall.3.php)      | ✅
- [`MPI.Alltoallv!`](@ref)              | [`MPI.Alltoallv`](@ref)               | [`MPI_Alltoallv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Alltoallv.3.php)    | ❌
- --                                    | [`MPI.Barrier`](@ref)                 | [`MPI_Barrier`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Barrier.3.php)        | ❌
- [`MPI.Bcast!`](@ref)                  | [`MPI.Bcast!`](@ref)                  | [`MPI_Bcast`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Bcast.3.php)            | ❌
- --                                    | [`MPI.Exscan`](@ref)                  | [`MPI_Exscan`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Exscan.3.php)          | ❌
- [`MPI.Gather!`](@ref)                 | [`MPI.Gather`](@ref)                  | [`MPI_Gather`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Gather.3.php)          | [`Gather_in_place!`](@ref)
- [`MPI.Gatherv!`](@ref)                | [`MPI.Gatherv`](@ref)                 | [`MPI_Gatherv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Gatherv.3.php)        | [`Gatherv_in_place!`](@ref)
- [`MPI.Reduce!`](@ref)                 | [`MPI.Reduce`](@ref)                  | [`MPI_Reduce`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Reduce.3.php)          | [`Reduce_in_place!`](@ref)
- [`MPI.Scan`](@ref)                    | [`MPI.Scan`](@ref)                    | [`MPI_Scan`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Scan.3.php)              | missing
- [`MPI.Scatter!`](@ref)                | [`MPI.Scatter`](@ref)                 | [`MPI_Scatter`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Scatter.3.php)        | [`Scatter_in_place!`](@ref)
- [`MPI.Scatterv!`](@ref)               | [`MPI.Scatterv`](@ref)                | [`MPI_Scatterv`](https://www.open-mpi.org/doc/v1.10/man3/MPI_Scatterv.3.php)      | [`Scatterv_in_place!`](@ref)
-
-The non-allocating Julia functions map directly to the corresponding MPI operations, after asserting that the size of the output buffer is sufficient to store the result.
-
-The allocating Julia functions allocate an output buffer and then call the non-allocating method.
-
-All-to-all collective communications support in place operations by passing
-`MPI.IN_PLACE` with the same syntax documented by MPI.
-One-to-All communications support it by calling the function `*_in_place!`, calls the MPI functions with the right syntax on root and non root process.
-
-
-```@docs
-MPI.Allgather!
-MPI.Allgather
-MPI.Allgatherv!
-MPI.Allgatherv
-MPI.Allreduce!
-MPI.Allreduce
-MPI.Alltoall!
-MPI.Alltoall
-MPI.Alltoallv!
-MPI.Alltoallv
-MPI.Barrier
-MPI.Bcast!
-MPI.Bcast!
-MPI.Exscan
-MPI.Gather!
-MPI.Gather
-MPI.Gather_in_place!
-MPI.Gatherv!
-MPI.Gatherv
-MPI.Gatherv_in_place!
-MPI.Reduce!
-MPI.Reduce
-MPI.Reduce_in_place!
-MPI.Scan
-MPI.Scan
-MPI.Scatter!
-MPI.Scatter
-MPI.Scatter_in_place!
-MPI.Scatterv!
-MPI.Scatterv
-MPI.Scatterv_in_place!
-```
-
 ## One-sided communication
 
 Julia Function (assuming `import MPI`) | C Function

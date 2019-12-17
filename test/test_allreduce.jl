@@ -34,12 +34,7 @@ for T = [Int]
             recv_arr = ArrayType{T}(undef, size(send_arr).-1)
             @test_throws AssertionError MPI.Allreduce!(send_arr, recv_arr,
                                                        length(send_arr),
-                                                        op, MPI.COMM_WORLD)
-
-            recv_arr = copy(send_arr)
-            MPI.Allreduce!(MPI.IN_PLACE, recv_arr, op, MPI.COMM_WORLD)
-            @test recv_arr == comm_size .* send_arr
-
+                                                       op, MPI.COMM_WORLD)
             # IN_PLACE
             recv_arr = copy(send_arr)
             MPI.Allreduce!(recv_arr, op, MPI.COMM_WORLD)
