@@ -3,6 +3,16 @@
 const DATATYPE_NULL = _Datatype(MPI_DATATYPE_NULL)
 Datatype() = Datatype(DATATYPE_NULL.val)
 
+function free(dt::Datatype)
+    if dt.val != DATATYPE_NULL.val
+        @mpichk ccall((:MPI_Datatype_free, libmpi), Cint, (Ptr{MPI_Datatype},), dt)
+        refcount_dec()
+    end
+    return nothing
+end
+
+
+
 macro assert_minlength(buffer, count)
     quote
         if $(esc(buffer)) isa AbstractArray
@@ -40,12 +50,13 @@ end
 
 fieldoffsets(::Type{T}) where {T} = Int[fieldoffset(T, i) for i in 1:length(fieldnames(T))]
 
-# Define a function mpitype(T) that returns the MPI datatype code for
-# a given type T. In the case the the type does not exist, it is created and
-# then returned. The dictonary is defined in __init__ so the module can be
-# precompiled
+"""
+    mpitype(T)
 
-# accessor and creation function for getting MPI datatypes
+Returns the MPI `Datatype` code for a given type `T`. In the case the the type does not
+exist, it is created and then returned. The dictonary is defined in `__init__` so the
+module can be precompiled
+"""
 function mpitype(::Type{T}) where T
     get!(mpitype_dict, T) do
         if !isbitstype(T)
@@ -174,9 +185,7 @@ function Type_Commit!(newtype::Datatype)
 end
 
 
-"""
-  Setter function for mpitype_dict and mpitype_dict_inverse
-"""
+#  Setter function for mpitype_dict and mpitype_dict_inverse
 function recordDataType(T::DataType, mpiT::MPI_Datatype)
 
   if !haskey(mpitype_dict, T)

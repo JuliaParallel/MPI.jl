@@ -684,7 +684,7 @@ If only one `sendrecvbuf` buffer is provided, then the operation is performed in
 
 # See also
 - [`Allreduce`](@ref), to handle allocation of the output buffer.
-- [`Reduce!`](@ref)/[`Rreduce`](@ref) to send reduction to a single rank.
+- [`Reduce!`](@ref)/[`Reduce`](@ref) to send reduction to a single rank.
 - [`Op`](@ref) for details on reduction operators.
 
 # External links
@@ -726,7 +726,7 @@ the result in the `recvbuf` of all processes in the group.
 
 # See also
 - [`Allreduce!`](@ref) for mutating or in-place operations.
-- [`Reduce!`](@ref)/[`Rreduce`](@ref) to send reduction to a single rank.
+- [`Reduce!`](@ref)/[`Reduce`](@ref) to send reduction to a single rank.
 - [`Op`](@ref) for details on reduction operators.
 
 # External links
@@ -754,6 +754,7 @@ If only a single buffer is provided, then operations will be performed in-place 
 # See also
 - [`Scan`](@ref) to handle allocation of the output buffer
 - [`Exscan!`](@ref)/[`Exscan`](@ref) for exclusive scan
+- [`Op`](@ref) for details on reduction operators.
 
 # External links
 $(_doc_external("MPI_Scan"))
@@ -796,6 +797,7 @@ type.
 # See also
 - [`Scan!`](@ref) for mutating or in-place operations
 - [`Exscan!`](@ref)/[`Exscan`](@ref) for exclusive scan
+- [`Op`](@ref) for details on reduction operators.
 
 # External links
 $(_doc_external("MPI_Scan"))
@@ -826,6 +828,7 @@ rank 0 will remain unchanged.
 # See also
 - [`Exscan`](@ref) to handle allocation of the output buffer
 - [`Scan!`](@ref)/[`Scan`](@ref) for inclusive scan
+- [`Op`](@ref) for details on reduction operators.
 
 # External links
 $(_doc_external("MPI_Exscan"))
@@ -868,6 +871,7 @@ of `sendbuf` on rank `0`.
 # See also
 - [`Exscan!`](@ref) for mutating and in-place operations
 - [`Scan!`](@ref)/[`Scan`](@ref) for inclusive scan
+- [`Op`](@ref) for details on reduction operators.
 
 # External links
 $(_doc_external("MPI_Scan"))

@@ -1,8 +1,7 @@
 """
     Op
 
-An MPI reduction operator, for use with [`Reduce!`](@ref)/[`Reduce`](@ref),
-[`Reduce_in_place!`](@ref), [`Allreduce!`](@ref)/[`Allreduce`](@ref), [`Scan`](@ref) or [`Exscan`](@ref).
+An MPI reduction operator, for use with [Reduce/Scan collective operations](@ref Reduce/Scan) to wrap binary operators. MPI.jl will perform this conversion automatically.
 
 ## Usage
 
@@ -10,6 +9,13 @@ An MPI reduction operator, for use with [`Reduce!`](@ref)/[`Reduce`](@ref),
 
 Wrap the Julia reduction function `op` for arguments of type `T`. `op` is assumed to be
 associative, and if `iscommutative` is true, assumed to be commutative as well.
+
+## See also
+
+- [`Reduce!`](@ref)/[`Reduce`](@ref)
+- [`Allreduce!`](@ref)/[`Allreduce`](@ref)
+- [`Scan!`](@ref)/[`Scan`](@ref)
+- [`Exscan!`](@ref)/[`Exscan`](@ref)
 """
 @mpi_handle Op fptr
 

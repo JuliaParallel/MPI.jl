@@ -33,3 +33,12 @@ macro mpi_handle(def, extrafields...)
         end
     end
 end
+
+
+"""
+    MPI.free(obj)
+
+Free the MPI object handle `obj`. This is typically used as the finalizer, and so need not be called directly unless otherwise noted.
+"""
+function free
+end

@@ -47,7 +47,7 @@ include("operators.jl")
 include("pointtopoint.jl")
 include("collective.jl")
 include("topology.jl")
-include("window.jl")
+include("onesided.jl")
 
 include("deprecated.jl")
 

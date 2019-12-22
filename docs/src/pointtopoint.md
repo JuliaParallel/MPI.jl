@@ -7,15 +7,13 @@ MPI.Request
 MPI.Status
 ```
 
-## Functions
-
-### Accessor
+### Accessors
 
 ```@docs
 MPI.Get_count
 ```
 
-### Blocking
+## Blocking communication
 
 ```@docs
 MPI.Send
@@ -26,12 +24,19 @@ MPI.recv
 MPI.Sendrecv!
 ```
 
-### Non-blocking
+## Non-blocking communication
+
+### Initiation
 
 ```@docs
 MPI.Isend
 MPI.isend
 MPI.Irecv!
+```
+
+### Completion
+
+```@docs
 MPI.Test!
 MPI.Testall!
 MPI.Testany!
@@ -42,10 +47,10 @@ MPI.Waitany!
 MPI.Waitsome!
 ```
 
-### Probe and cancel
+### Probe/Cancel
 
 ```@docs
+MPI.Cancel!
 MPI.Iprobe
 MPI.Probe
-MPI.Cancel!
 ```

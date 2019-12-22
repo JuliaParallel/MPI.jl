@@ -50,9 +50,12 @@ makedocs(
             "comm.md",
             "pointtopoint.md",
             "collective.md",
-            ],
-        "functions.md",
-        ]
+            "onesided.md",
+            "topology.md",
+            "advanced.md",
+        ],
+        "refindex.md",
+    ]
 )
 
 deploydocs(
