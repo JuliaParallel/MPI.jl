@@ -137,3 +137,71 @@ Buffer_send(str::String) = Buffer(str, sizeof(str), MPI.CHAR)
 
 
 const BUFFER_NULL = Buffer(C_NULL, 0, DATATYPE_NULL)
+
+const IN_PLACE = Buffer(MPI_IN_PLACE, 0, DATATYPE_NULL)
+
+
+
+"""
+An MPI buffer for chunked collective communication.
+
+# Fields
+$(DocStringExtensions.FIELDS)
+
+# Usage
+
+    ChunkBuffer(data, count::Integer, nchunks::Union{Nothing, Integer}, datatype::Datatype)
+
+Generic constructor.
+
+    ChunkBuffer(data, count::Integer)
+
+Construct a `Buffer` backed by `data`, where `count` is the number of elements in each chunk.
+"""
+struct ChunkBuffer{A}
+    """A Julia object referencing a region of memory to be used for communication. It is
+    required that the object can be `cconvert`ed to an [`MPIPtr`](@ref)."""
+    data::A
+
+    """The number of elements of `datatype` in each chunk."""
+    count::Cint
+
+    """The maximum number of chunks stored in the buffer. This is used only for
+    validation, and can be set to `nothing` to disable checks."""
+    nchunks::Union{Nothing,Cint}
+
+    """The [`MPI.Datatype`](@ref) stored in the buffer."""
+    datatype::Datatype
+end
+ChunkBuffer(data, count::Integer, nchunks::Integer, datatype::Datatype) =
+    ChunkBuffer(data, Cint(count), Cint(nchunks), datatype)
+ChunkBuffer(data, count::Integer, nchunks::Nothing, datatype::Datatype) =
+    ChunkBuffer(data, Cint(count), nchunks, datatype)
+ChunkBuffer(arr::AbstractArray, count::Integer) =
+    ChunkBuffer(arr, count, div(length(arr), count), Datatype(eltype(arr)))
+ChunkBuffer() = ChunkBuffer(C_NULL, 0, 0, DATATYPE_NULL)
+
+struct VChunkBuffer{A}
+    data::A
+    counts::Vector{Cint}
+    displs::Vector{Cint}
+    datatype::Datatype
+end
+VChunkBuffer(data, counts, displs, datatype::Datatype) =
+    VChunkBuffer(data, convert(Vector{Cint}, counts),
+                 convert(Vector{Cint}, displs), datatype)
+VChunkBuffer(data, counts, displs) =
+    VChunkBuffer(data, counts, displs, Datatype(eltype(data)))
+
+function VChunkBuffer(arr::AbstractArray, counts)
+    counts = convert(Vector{Cint}, counts)
+    displs = similar(counts)
+    d = zero(Cint)
+    for i in eachindex(displs)
+        displs[i] = d
+        d += counts[i]
+    end
+    @assert length(data) <= d
+    VChunkBuffer(data, counts, displs, Datatype(eltype(arr)))
+end
+VChunkBuffer() = VChunkBuffer(C_NULL, Cint[], Cint[], DATATYPE_NULL)
