@@ -102,12 +102,6 @@ comm_rank = MPI.Comm_rank(comm)
 comm_size = MPI.Comm_size(comm)
 a = Float64[comm_rank, comm_rank, comm_rank]
 
-# construct subarray type
-subarr_send = MPI.Type_Create_Subarray(1, Cint[3], Cint[1], Cint[0], MPI.MPI_ORDER_FORTRAN, Float64)
-subarr_recv = MPI.Type_Create_Subarray(1, Cint[3], Cint[1], Cint[2], MPI.MPI_ORDER_FORTRAN, Float64)
-MPI.Type_Commit!(subarr_send)
-MPI.Type_Commit!(subarr_recv)
-
 # construct cartesian communicator with 1D topology
 comm_cart = MPI.Cart_create(comm, 1, Cint[comm_size], Cint[1], false)
 
@@ -115,8 +109,8 @@ comm_cart = MPI.Cart_create(comm, 1, Cint[comm_size], Cint[1], false)
 src_rank, dest_rank = MPI.Cart_shift(comm_cart, 0, -1)
 
 # execute left shift using subarrays
-MPI.Sendrecv!(a, 1, subarr_send, dest_rank, 0,
-              a, 1, subarr_recv,  src_rank, 0, comm_cart)
+MPI.Sendrecv!(@view(a[1]), dest_rank, 0,
+              @view(a[3]), src_rank,  0, comm_cart)
 
 @test a == [comm_rank, comm_rank, (comm_rank+1) % comm_size]
 
@@ -124,8 +118,8 @@ MPI.Sendrecv!(a, 1, subarr_send, dest_rank, 0,
 # ---------------------------
 a = Float64[comm_rank, comm_rank, comm_rank]
 b = Float64[       -1,        -1,        -1]
-MPI.Sendrecv!(a, 2, dest_rank, 1,
-              b, 2,  src_rank, 1, comm_cart)
+MPI.Sendrecv!(@view(a[1:2]), dest_rank, 1,
+              @view(b[1:2]), src_rank,  1, comm_cart)
 
 @test b == [(comm_rank+1) % comm_size, (comm_rank+1) % comm_size, -1]
 

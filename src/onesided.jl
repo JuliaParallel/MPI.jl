@@ -155,7 +155,7 @@ function Get(origin_buffer, count::Integer, target_rank::Integer, target_disp::I
     #             MPI_Datatype target_datatype, MPI_Win win)
     @mpichk ccall((:MPI_Get, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Win),
-                  origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), win)
+                  origin_buffer, count, Datatype(T), target_rank, Cptrdiff_t(target_disp), count, Datatype(T), win)
 end
 function Get(origin_buffer::AbstractArray{T}, target_rank::Integer, win::Win) where T
     count = length(origin_buffer)
@@ -173,7 +173,7 @@ function Put(origin_buffer, count::Integer, target_rank::Integer, target_disp::I
     T = eltype(origin_buffer)
     @mpichk ccall((:MPI_Put, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Win),
-                  origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), win)
+                  origin_buffer, count, Datatype(T), target_rank, Cptrdiff_t(target_disp), count, Datatype(T), win)
 end
 function Put(origin_buffer::AbstractArray{T}, target_rank::Integer, win::Win) where T
     count = length(origin_buffer)
@@ -191,7 +191,7 @@ function Fetch_and_op(sourceval, returnval, target_rank::Integer, target_disp::I
     T = eltype(sourceval)
     @mpichk ccall((:MPI_Fetch_and_op, libmpi), Cint,
                   (MPIPtr, MPIPtr, MPI_Datatype, Cint, Cptrdiff_t, MPI_Op, MPI_Win),
-                  sourceval, returnval, mpitype(T), target_rank, target_disp, op, win)
+                  sourceval, returnval, Datatype(T), target_rank, target_disp, op, win)
 end
 
 function Accumulate(origin_buffer, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
@@ -202,7 +202,7 @@ function Accumulate(origin_buffer, count::Integer, target_rank::Integer, target_
     T = eltype(origin_buffer)
     @mpichk ccall((:MPI_Accumulate, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Op, MPI_Win),
-                  origin_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), op, win)
+                  origin_buffer, count, Datatype(T), target_rank, Cptrdiff_t(target_disp), count, Datatype(T), op, win)
 end
 
 function Get_accumulate(origin_buffer, result_buffer, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
@@ -215,5 +215,5 @@ function Get_accumulate(origin_buffer, result_buffer, count::Integer, target_ran
     T = eltype(origin_buffer)
     @mpichk ccall((:MPI_Get_accumulate, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Op, MPI_Win),
-                  origin_buffer, count, mpitype(T), result_buffer, count, mpitype(T), target_rank, Cptrdiff_t(target_disp), count, mpitype(T), op, win)
+                  origin_buffer, count, Datatype(T), result_buffer, count, Datatype(T), target_rank, Cptrdiff_t(target_disp), count, Datatype(T), op, win)
 end
