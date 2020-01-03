@@ -1,44 +1,88 @@
 using Test
 using MPI
 
+if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
+    using CuArrays
+    ArrayType = CuArray
+else
+    ArrayType = Array
+end
+
 MPI.Init()
 
 comm = MPI.COMM_WORLD
-size = MPI.Comm_size(comm)
+comm_size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-# assuming there are at least two processes
-x = rank == 0 ? collect(reshape(1.0:16.0, 4, 4)) : zeros(4, 4)
+dest = mod(rank+1, comm_size)
+src  = mod(rank-1, comm_size)
 
-subarray = MPI.Type_Create_Subarray(2,
-                                    Cint[4, 4],
-                                    Cint[2, 2],
-                                    Cint[0, 0],
-                                    MPI.MPI_ORDER_FORTRAN,
-                                    Float64)
-MPI.Type_Commit!(subarray)
+@testset "contiguous" begin    
+    X = ArrayType(rank .+ collect(reshape(1.0:16.0, 4, 4)))
+    Y = ArrayType(zeros(4))
+    req_send = MPI.Isend(@view(X[:,1]), dest, 0, comm)
+    req_recv = MPI.Irecv!(Y, src, 0, comm)
 
-# test blocking send
-if rank == 0
-    MPI.Send(x, 1, subarray, 1, 0, comm)
-elseif rank == 1
-    MPI.Recv!(x, 1, subarray, 0, 0, comm)
-    @test x == [1 5 0 0;
-                2 6 0 0;
-                0 0 0 0;
-                0 0 0 0]
+    MPI.Wait!(req_send)
+    MPI.Wait!(req_recv)
+    
+    @test Y == X[:,1] .- rank .+ src
+
+    Y = ArrayType(zeros(2))
+
+    req_send = MPI.Isend(Y, dest, 1, comm)
+    req_recv = MPI.Irecv!(@view(X[3:4,1]), src, 1, comm)
+
+    MPI.Wait!(req_send)
+    MPI.Wait!(req_recv)
+
+    @test X[3:4,1] == Y
 end
 
-# test non blocking send
-if rank == 0
-    MPI.Isend(x, 1, subarray, 1, 0, comm)
-elseif rank == 1
-    req = MPI.Irecv!(x, 1, subarray, 0, 0, comm)
-    MPI.Wait!(req)
-    @test x == [1 5 0 0;
-                2 6 0 0;
-                0 0 0 0;
-                0 0 0 0]
+@testset "strided" begin
+    X = ArrayType(rank .+ collect(reshape(1.0:16.0, 4, 4)))
+    Y = ArrayType(zeros(4))
+    req_send = MPI.Isend(@view(X[2,:]), dest, 0, comm)
+    req_recv = MPI.Irecv!(Y, src, 0, comm)
+
+    MPI.Wait!(req_send)
+    MPI.Wait!(req_recv)
+    
+    @test Y == X[2,:] .- rank .+ src
+
+    Y = ArrayType(zeros(2))
+
+    req_send = MPI.Isend(Y, dest, 1, comm)
+    req_recv = MPI.Irecv!(@view(X[3,1:2]), src, 1, comm)
+
+    MPI.Wait!(req_send)
+    MPI.Wait!(req_recv)
+
+    @test X[3,1:2] == Y
 end
 
+@testset "dense subarray" begin
+    X = ArrayType(rank .+ collect(reshape(1.0:16.0, 4, 4)))
+    Y = ArrayType(zeros(2,2))
+    req_send = MPI.Isend(@view(X[2:3,3:4]), dest, 0, comm)
+    req_recv = MPI.Irecv!(Y, src, 0, comm)
+
+    MPI.Wait!(req_send)
+    MPI.Wait!(req_recv)
+    
+    @test Y == X[2:3,3:4] .- rank .+ src
+
+    Y = ArrayType(zeros(2,2))
+
+    req_send = MPI.Isend(Y, dest, 1, comm)
+    req_recv = MPI.Irecv!(@view(X[3:4,1:2]), src, 1, comm)
+
+    MPI.Wait!(req_send)
+    MPI.Wait!(req_recv)
+
+    @test X[3:4,1:2] == Y
+end
+
+GC.gc()
 MPI.Finalize()
+@test MPI.Finalized()

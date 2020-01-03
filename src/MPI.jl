@@ -2,6 +2,7 @@ module MPI
 
 using Libdl, Serialization
 using Requires
+using DocStringExtensions
 
 macro mpichk(expr)
     @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
@@ -38,11 +39,13 @@ function _doc_external(fname)
 end    
 
 include(joinpath(@__DIR__, "..", "deps", "deps.jl"))
+
 include("handle.jl")
 include("info.jl")
 include("comm.jl")
 include("environment.jl")
 include("datatypes.jl")
+include("buffers.jl")
 include("operators.jl")
 include("pointtopoint.jl")
 include("collective.jl")

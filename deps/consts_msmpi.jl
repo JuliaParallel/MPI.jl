@@ -1,5 +1,9 @@
 # From https://github.com/microsoft/Microsoft-MPI/blob/v10.0/src/include/mpi.h
 
+const MPI_Aint   = Int
+const MPI_Offset = Int64
+const MPI_Count  = Int64
+
 for T in [:MPI_Comm, :MPI_Info, :MPI_Win, :MPI_Request, :MPI_Op, :MPI_Datatype]
     @eval begin
         primitive type $T 32 end

@@ -59,13 +59,9 @@ end
 
 function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype}) where {F,T}
     len = unsafe_load(_len)
-    if isconcretetype(T)
-        S = T
-    else
-        S = mpitype_dict_inverse[unsafe_load(t)]
-    end
-    a = Ptr{S}(_a)
-    b = Ptr{S}(_b)
+    @assert isconcretetype(T)
+    a = Ptr{T}(_a)
+    b = Ptr{T}(_b)
     for i = 1:len
         unsafe_store!(b, w.f(unsafe_load(a,i), unsafe_load(b,i)), i)
     end

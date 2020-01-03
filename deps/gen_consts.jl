@@ -125,6 +125,10 @@ int main(int argc, char *argv[]) {
     fprintf(fptr, "# Do not edit\\n");
 """)
 
+    println(f,"  fprintf(fptr, \"const MPI_Aint = Int%d\\n\", 8*(int)sizeof(MPI_Aint));")
+    println(f,"  fprintf(fptr, \"const MPI_Offset = Int%d\\n\", 8*(int)sizeof(MPI_Offset));")
+    println(f,"  fprintf(fptr, \"const MPI_Count = Int%d\\n\", 8*(int)sizeof(MPI_Count));")
+
     println(f,"  fprintf(fptr, \"const MPI_Status_size = %d\\n\", (int)sizeof(MPI_Status));")
     println(f,"  fprintf(fptr, \"const MPI_Status_Source_offset = %d\\n\", (int)offsetof(MPI_Status, MPI_SOURCE));")
     println(f,"  fprintf(fptr, \"const MPI_Status_Tag_offset = %d\\n\", (int)offsetof(MPI_Status, MPI_TAG));")
