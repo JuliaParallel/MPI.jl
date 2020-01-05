@@ -78,6 +78,9 @@ MPI_handle = [
     :MPI_Request => [
         :MPI_REQUEST_NULL,
     ],
+    :MPI_File => [
+        :MPI_FILE_NULL,
+    ],
     :MPI_Op => MPI_op_consts,
     :MPI_Datatype => MPI_datatype_consts
 ]
@@ -96,7 +99,18 @@ MPI_Cints = [
     :MPI_COMM_TYPE_SHARED,
     :MPI_ORDER_C,
     :MPI_ORDER_FORTRAN,
-    :MPI_UNIVERSE_SIZE
+    :MPI_UNIVERSE_SIZE,
+    :MPI_MAX_ERROR_STRING,
+    :MPI_SUCCESS,
+    :MPI_MODE_RDONLY,
+    :MPI_MODE_RDWR,
+    :MPI_MODE_WRONLY,
+    :MPI_MODE_CREATE,
+    :MPI_MODE_EXCL,
+    :MPI_MODE_DELETE_ON_CLOSE,
+    :MPI_MODE_UNIQUE_OPEN,
+    :MPI_MODE_SEQUENTIAL,
+    :MPI_MODE_APPEND,
 ]
 
 MPI_pointers = [

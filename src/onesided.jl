@@ -1,4 +1,4 @@
-@mpi_handle Win
+@mpi_handle Win MPI_Win
 
 const WIN_NULL = _Win(MPI_WIN_NULL)
 Win() = Win(WIN_NULL.val)

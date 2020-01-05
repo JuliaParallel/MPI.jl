@@ -52,6 +52,7 @@ makedocs(
             "collective.md",
             "onesided.md",
             "topology.md",
+            "io.md",
             "advanced.md",
         ],
         "refindex.md",

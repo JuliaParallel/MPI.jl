@@ -41,17 +41,16 @@ function Bcast!(buffer::Union{Ref, AbstractArray}, root::Integer, comm::Comm)
     Bcast!(buffer, length(buffer), root, comm)
 end
 
-
 function bcast(obj, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
-    count = Array{Cint}(undef, 1)
+    count = Ref{Cint}()
     if isroot
         buf = MPI.serialize(obj)
-        count[1] = length(buf)
+        count[] = length(buf)
     end
     Bcast!(count, root, comm)
     if !isroot
-        buf = Array{UInt8}(undef, count[1])
+        buf = Array{UInt8}(undef, count[])
     end
     Bcast!(buf, root, comm)
     if !isroot
@@ -59,7 +58,6 @@ function bcast(obj, root::Integer, comm::Comm)
     end
     obj
 end
-
 
 """
     Scatter!(sendbuf, recvbuf[, count=length(recvbuf)], root::Integer, comm::Comm)

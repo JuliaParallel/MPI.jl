@@ -25,7 +25,7 @@ delete!(info, key)
 If `init=false` is used in the costructor (the default), a "null" `Info` object will be
 returned: no keys can be added to such an object.
 """
-@mpi_handle Info <: AbstractDict{Symbol,String}
+@mpi_handle Info <: AbstractDict{Symbol,String} MPI_Info
 
 const INFO_NULL = _Info(MPI_INFO_NULL)
 

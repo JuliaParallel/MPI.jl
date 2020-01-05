@@ -4,13 +4,6 @@ using Libdl, Serialization
 using Requires
 using DocStringExtensions
 
-macro mpichk(expr)
-    @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
-    if Sys.iswindows()
-        insert!(expr.args, 3, :stdcall)
-    end
-    esc(expr)
-end
 
 function serialize(x)
     s = IOBuffer()
@@ -39,7 +32,7 @@ function _doc_external(fname)
 end    
 
 include(joinpath(@__DIR__, "..", "deps", "deps.jl"))
-
+include("error.jl")
 include("handle.jl")
 include("info.jl")
 include("comm.jl")
@@ -51,6 +44,7 @@ include("pointtopoint.jl")
 include("collective.jl")
 include("topology.jl")
 include("onesided.jl")
+include("io.jl")
 
 include("deprecated.jl")
 
