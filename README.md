@@ -8,7 +8,9 @@
 [![codecov.io](https://codecov.io/github/JuliaParallel/MPI.jl/coverage.svg?branch=master)](https://codecov.io/github/JuliaParallel/MPI.jl?branch=master)
 [![Coverage Status](https://coveralls.io/repos/JuliaParallel/MPI.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaParallel/MPI.jl?branch=master)
 
-This provides [Julia](http://julialang.org/) interface to the Message Passing Interface ([MPI](http://www.mpi-forum.org/)), roughly inspired by [mpi4py](http://mpi4py.scipy.org). For instructions on installation and usage, please see the [documentation](https://juliaparallel.github.io/MPI.jl/stable/).
+This provides [Julia](http://julialang.org/) interface to the Message Passing Interface ([MPI](http://www.mpi-forum.org/)), roughly inspired by [mpi4py](http://mpi4py.scipy.org).
+
+Please see the [documentation](https://juliaparallel.github.io/MPI.jl/stable/) for instructions on [installation](https://juliaparallel.github.io/MPI.jl/stable/installation/) and [usage](https://juliaparallel.github.io/MPI.jl/stable/usage/).
 
 # Help and discussion
 
