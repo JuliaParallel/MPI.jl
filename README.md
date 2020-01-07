@@ -8,11 +8,18 @@
 [![codecov.io](https://codecov.io/github/JuliaParallel/MPI.jl/coverage.svg?branch=master)](https://codecov.io/github/JuliaParallel/MPI.jl?branch=master)
 [![Coverage Status](https://coveralls.io/repos/JuliaParallel/MPI.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaParallel/MPI.jl?branch=master)
 
-This is a basic [Julia] wrapper for the portable message passing
-system Message Passing Interface ([MPI]). Inspiration is taken from
-mpi4py, although we generally follow the C and not the C++ MPI API.
-(The C++ MPI API is deprecated.)
+This provides [Julia](http://julialang.org/) interface to the Message Passing Interface ([MPI](http://www.mpi-forum.org/)), roughly inspired by [mpi4py](http://mpi4py.scipy.org).
 
-[Julia]: http://julialang.org/
-[MPI]: http://www.mpi-forum.org/
-[mpi4py]: http://mpi4py.scipy.org
+Please see the [documentation](https://juliaparallel.github.io/MPI.jl/stable/) for instructions on [installation](https://juliaparallel.github.io/MPI.jl/stable/installation/) and [usage](https://juliaparallel.github.io/MPI.jl/stable/usage/).
+
+# Help and discussion
+
+For help and discussion, we suggest asking on the following venues:
+ - ["Julia at Scale" topic on the Julia Discourse](https://discourse.julialang.org/c/domain/parallel/34)
+ - #distributed channel on the [Julia Slack](https://julialang.slack.com/) (visit [slackinvite.julialang.org](https://slackinvite.julialang.org/) to join).
+
+# Contributing
+
+Contributions are encouraged. In particular, MPI provides several hundred functions, only a small number of which are currently exposed. If there are additional functions you would like to use, please open an [issue](https://github.com/JuliaParallel/MPI.jl/issues) or [pull request](https://github.com/JuliaParallel/MPI.jl/pulls).
+
+Additional examples and documentation improvements are also very welcome.
