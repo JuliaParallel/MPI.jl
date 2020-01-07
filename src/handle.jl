@@ -1,9 +1,11 @@
 const mpi_init_hooks = Any[]
 
-macro mpi_handle(def, extrafields...)
+macro mpi_handle(def, mpiname=nothing, extrafields...)
     name = def isa Expr ? def.args[1] : def
     _name = Symbol(:_, name)
-    mpiname = Symbol(:MPI_, name)
+    if mpiname == nothing
+        mpiname = Symbol(:MPI_, name)
+    end
     quote
         Base.@__doc__ mutable struct $(esc(def))
             val::$mpiname

@@ -17,7 +17,7 @@ associative, and if `iscommutative` is true, assumed to be commutative as well.
 - [`Scan!`](@ref)/[`Scan`](@ref)
 - [`Exscan!`](@ref)/[`Exscan`](@ref)
 """
-@mpi_handle Op fptr
+@mpi_handle Op MPI_Op fptr
 
 const OP_NULL = _Op(MPI_OP_NULL, nothing)
 const BAND    = _Op(MPI_BAND, nothing)

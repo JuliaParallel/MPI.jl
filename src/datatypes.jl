@@ -13,7 +13,7 @@ that it can be used for communication operations.
 
 Note that this can only be called on types for which `isbitstype(T)` is `true`.
 """
-@mpi_handle Datatype
+@mpi_handle Datatype MPI_Datatype
 
 const DATATYPE_NULL = _Datatype(MPI_DATATYPE_NULL)
 Datatype() = Datatype(DATATYPE_NULL.val)

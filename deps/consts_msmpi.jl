@@ -4,7 +4,7 @@ const MPI_Aint   = Int
 const MPI_Offset = Int64
 const MPI_Count  = Int64
 
-for T in [:MPI_Comm, :MPI_Info, :MPI_Win, :MPI_Request, :MPI_Op, :MPI_Datatype]
+for T in [:MPI_Comm, :MPI_Info, :MPI_Win, :MPI_Request, :MPI_Op, :MPI_Datatype, :MPI_File]
     @eval begin
         primitive type $T 32 end
         $T(c::Cint) = reinterpret($T, c)
@@ -64,7 +64,7 @@ const MPI_UINT64_T              = reinterpret(Cint, 0x4c00083a)
 const MPI_C_FLOAT_COMPLEX       = reinterpret(Cint, 0x4c000813)
 const MPI_C_DOUBLE_COMPLEX      = reinterpret(Cint, 0x4c001014)
 
-
+const MPI_FILE_NULL = Cint(0)
 
 const MPI_PROC_NULL = Cint(-1)
 const MPI_ANY_SOURCE = Cint(-2)
@@ -80,6 +80,17 @@ const MPI_COMM_TYPE_SHARED = Cint(1)
 const MPI_ORDER_C = Cint(56)
 const MPI_ORDER_FORTRAN = Cint(57)
 const MPI_UNIVERSE_SIZE = reinterpret(Cint, 0x64400009)
+const MPI_MAX_ERROR_STRING = Cint(512)
+const MPI_SUCCESS = Cint(0)
+const MPI_MODE_RDONLY = reinterpret(Cint, 0x00000002)
+const MPI_MODE_RDWR = reinterpret(Cint, 0x00000008)
+const MPI_MODE_WRONLY = reinterpret(Cint, 0x00000004)
+const MPI_MODE_CREATE = reinterpret(Cint, 0x00000001)
+const MPI_MODE_EXCL = reinterpret(Cint, 0x00000040)
+const MPI_MODE_DELETE_ON_CLOSE = reinterpret(Cint, 0x00000010)
+const MPI_MODE_UNIQUE_OPEN = reinterpret(Cint, 0x00000020)
+const MPI_MODE_SEQUENTIAL = reinterpret(Cint, 0x00000100)
+const MPI_MODE_APPEND = reinterpret(Cint, 0x00000080)
 
 const MPI_BOTTOM = reinterpret(SentinelPtr, 0)
 const MPI_IN_PLACE = reinterpret(SentinelPtr, -1)

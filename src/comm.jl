@@ -3,7 +3,7 @@
 
 An MPI Communicator object.
 """
-@mpi_handle Comm
+@mpi_handle Comm MPI_Comm
 
 const COMM_NULL = _Comm(MPI_COMM_NULL)
 

@@ -93,7 +93,7 @@ checked by other means.
 
 See also [`Cancel!`](@ref).
 """
-@mpi_handle Request buffer
+@mpi_handle Request MPI_Request buffer
 
 const REQUEST_NULL = _Request(MPI_REQUEST_NULL, nothing)
 Request() = Request(REQUEST_NULL.val, nothing)
