@@ -1,5 +1,6 @@
 using Pkg
 pkg"precompile"
+using DoubleFloats
 
 using MPI
 using Test
