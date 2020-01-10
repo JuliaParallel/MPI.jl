@@ -25,13 +25,12 @@ end
 
 const libmpi = get(ENV, "JULIA_MPI_LIBRARY") do
     libmpi = find_library(["libmpi", "msmpi", "libmpich"],
-                 MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
-    try
-        # expand paths
-        dlpath(libmpi)
-    catch e
+                          MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
+    if libmpi == ""
         error("No MPI library found.\nEnsure an MPI implementation is loaded, or set the `JULIA_MPI_PATH` variable.")
     end
+    # expand paths
+    dlpath(libmpi)
 end
 
 
