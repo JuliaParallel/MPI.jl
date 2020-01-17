@@ -29,16 +29,19 @@ cache:
 env:
   - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
+  - MPI_IMPL=mvapich
   - MPI_IMPL=intelmpi
 
 matrix:
+  exclude:
+  - os: osx
+    env: MPI_IMPL=mvapich
+  - os: osx
+    env: MPI_IMPL=intelmpi
   allow_failures: # issue 262
   - julia: nightly
   - os: osx
     env: MPI_IMPL=openmpi
-  exclude:
-  - os: osx
-    env: MPI_IMPL=intelmpi
 
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL

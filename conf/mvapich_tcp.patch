@@ -1,0 +1,58 @@
+# http://mailman.cse.ohio-state.edu/pipermail/mvapich-discuss/2019-August/006899.html
+
+diff --git a/src/include/coll_shmem.h b/src/include/coll_shmem.h
+index 7cf2503..39ed439 100644
+--- a/src/include/coll_shmem.h
++++ b/src/include/coll_shmem.h
+@@ -536,6 +536,7 @@ extern int MPIDI_CH3I_SHMEM_Helper_fn(MPIDI_PG_t * pg, int local_id, char **file
+                                 char *prefix, int *fd, size_t file_size);
+ #endif /* defined(CHANNEL_MRAIL_GEN2) || defined(CHANNEL_NEMESIS_IB) */
+
++#if defined(CHANNEL_MRAIL_GEN2) || defined(CHANNEL_PSM)
+ static inline int Cyclic_Rank_list_mapper(MPID_Comm * comm_ptr, int idx)
+ {
+     return comm_ptr->dev.ch.rank_list[idx];
+@@ -545,6 +546,7 @@ static inline int Bunch_Rank_list_mapper(MPID_Comm * comm_ptr, int idx)
+ {
+     return idx;
+ };
++#endif /* defined(CHANNEL_MRAIL_GEN2) || defined(CHANNEL_PSM) */
+
+ MPIR_T_PVAR_ULONG2_COUNTER_DECL_EXTERN(MV2, mv2_num_shmem_coll_calls);
+
+diff --git a/src/mpi/init/init.c b/src/mpi/init/init.c
+index 5694430..e8134cf 100644
+--- a/src/mpi/init/init.c
++++ b/src/mpi/init/init.c
+@@ -213,6 +213,7 @@ int MPI_Init( int *argc, char ***argv )
+         }
+     }
+
++#if defined(CHANNEL_MRAIL_GEN2) || defined(CHANNEL_PSM)
+     /* initialize the two level communicator for MPI_COMM_WORLD  */
+     if (mv2_use_osu_collectives &&
+             mv2_enable_shmem_collectives) {
+@@ -237,6 +238,7 @@ int MPI_Init( int *argc, char ***argv )
+             }
+        }
+     }
++#endif /*defined(CHANNEL_MRAIL_GEN2) || defined(CHANNEL_PSM)*/
+
+     /* ... end of body of routine ... */
+     MPID_MPI_INIT_FUNC_EXIT(MPID_STATE_MPI_INIT);
+diff --git a/src/mpid/ch3/src/ch3u_handle_send_req.c b/src/mpid/ch3/src/ch3u_handle_send_req.c
+index 878dc54..e43af56 100644
+--- a/src/mpid/ch3/src/ch3u_handle_send_req.c
++++ b/src/mpid/ch3/src/ch3u_handle_send_req.c
+@@ -30,9 +30,11 @@ int MPIDI_CH3U_Handle_send_req(MPIDI_VC_t * vc, MPID_Request * sreq, int *comple
+
+     MPIDI_FUNC_ENTER(MPID_STATE_MPIDI_CH3U_HANDLE_SEND_REQ);
+
++#if defined(CHANNEL_MRAIL)
+     PRINT_DEBUG(DEBUG_SHM_verbose>1,
+             "vc: %p, rank: %d, sreq: %p, type: %d, onDataAvail: %p\n",
+             vc, vc->pg_rank, sreq, MPIDI_Request_get_type(sreq), sreq->dev.OnDataAvail);
++#endif /*defined(CHANNEL_MRAIL)*/
+
+     /* Use the associated function rather than switching on the old ca field */
+     /* Routines can call the attached function directly */

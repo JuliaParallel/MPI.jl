@@ -9,6 +9,7 @@ MPI_IMPL="$1"
 os=`uname`
 OMPIVER=openmpi-3.0.0
 MPICHVER=mpich-3.2.1
+MVAPICHVER=2.3.2
 IMPIVER=2019.4.243
 case "$os" in
     Darwin)
@@ -58,6 +59,19 @@ case "$os" in
                 sh ./configure --prefix=$HOME/openmpi > /dev/null
                 make -j > /dev/null
                 sudo make install > /dev/null
+                ;;
+            mvapich)
+                sudo apt-get install -y gfortran ccache libibverbs-dev
+                sudo /usr/sbin/update-ccache-symlinks
+                export PATH="/usr/lib/ccache:$PATH"
+                wget http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-$MVAPICHVER.tar.gz
+                tar -xzf mvapich2-$MVAPICHVER.tar.gz
+                patch -p1 -d  mvapich2-${MVAPICHVER} < conf/mvapich_tcp.patch
+                cd mvapich2-$MVAPICHVER                
+                # Travis doesn't have Infiniband, so build with TCP support
+                sh ./configure --prefix=$HOME/mvapich --with-device=ch3:sock --disable-rdma-cm --disable-mcast
+                make -j
+                sudo make install
                 ;;
             intelmpi)
                 wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15553/l_mpi_$IMPIVER.tgz
