@@ -33,6 +33,29 @@ function Cart_create(comm_old::Comm, dims::AbstractArray{T,N}, periods::Array{T,
 end
 
 """
+    rank = Cart_rank(comm::Comm, coords)
+
+Determine process rank in communicator `comm` with Cartesian structure.
+The `coords` array specifies the Cartesian coordinates of the process.
+
+# External links
+$(_doc_external("MPI_Cart_rank"))
+"""
+function Cart_rank(comm::Comm, coords::MPIBuffertype{Cint})
+    rank = Ref{Cint}()
+    # int MPI_Cart_rank(MPI_Comm comm, const int coords[], int *rank)
+    @mpichk ccall((:MPI_Cart_rank, libmpi), Cint,
+                  (MPI_Comm, Ptr{Cint}, Ptr{Cint}),
+                  comm, coords, rank)
+    Int(rank[])
+end
+
+function Cart_rank(comm::MPI.Comm, coords::AbstractArray{T}) where {T <: Integer}
+    ccoords = Cint.(coords[:])
+    Cart_rank(comm, ccoords)
+end
+
+"""
     Cart_get(comm::Comm, maxdims::Integer)
 
 Obtain information on the Cartesian topology of dimension `maxdims` underlying the 
