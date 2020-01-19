@@ -56,12 +56,15 @@ function Cart_rank(comm::MPI.Comm, coords::AbstractArray{T}) where {T <: Integer
 end
 
 """
-    Cart_get(comm::Comm, maxdims::Integer)
+    dims, periods, coords = Cart_get(comm::Comm, maxdims::Integer)
 
 Obtain information on the Cartesian topology of dimension `maxdims` underlying the 
 communicator `comm`. This is specified by two `Cint` arrays of `maxdims` elements
 for the number of processes and periodicity properties along each Cartesian dimension. 
 A third `Cint` array is returned, containing the Cartesian coordinates of the calling process.
+
+# External links
+$(_doc_external("MPI_Cart_get"))
 """
 function Cart_get(comm::Comm, maxdims::Integer)
     # preallocate with nontrivial values
@@ -76,9 +79,12 @@ function Cart_get(comm::Comm, maxdims::Integer)
 end
 
 """
-    Cartdim_get(comm::Comm)
+    ndims = Cartdim_get(comm::Comm)
 
 Return number of dimensions of the Cartesian topology associated with the communicator `comm`.
+
+# External links
+$(_doc_external("MPI_Cartdim_get"))
 """
 function Cartdim_get(comm::Comm)
     dims    = Cint[0]
