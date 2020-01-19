@@ -66,7 +66,7 @@ function Cart_rank(comm::Comm, coords::MPIBuffertype{Cint})
     Int(rank[])
 end
 
-function Cart_rank(comm::MPI.Comm, coords::AbstractArray{T}) where {T <: Integer}
+function Cart_rank(comm::Comm, coords::AbstractArray{T}) where {T <: Integer}
     ccoords = Cint.(coords[:])
     Cart_rank(comm, ccoords)
 end
@@ -182,7 +182,7 @@ function Cart_sub(comm::Comm, remain_dims::MPIBuffertype{Cint})
     comm_sub
 end
 
-function Cart_sub(comm::MPI.Comm, remain_dims)
+function Cart_sub(comm::Comm, remain_dims)
     cremain_dims = [Cint(dim) for dim in remain_dims]
     Cart_sub(comm, cremain_dims)
 end
