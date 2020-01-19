@@ -1,3 +1,11 @@
+"""
+    Dims_create!(nnodes::Integer, [ndims::Integer], dims)
+
+Create a division of `nnodes` processes in a Cartesian grid.
+
+# External links
+$(_doc_external("MPI_Dims_create"))
+"""
 function Dims_create!(nnodes::Integer, ndims::Integer, dims::MPIBuffertype{T}) where {T <: Integer}
     # int MPI_Dims_create(int nnodes, int ndims, int dims[])
     @mpichk ccall((:MPI_Dims_create, libmpi), Cint,
@@ -11,6 +19,14 @@ function Dims_create!(nnodes::Integer, dims::AbstractArray{T,N}) where {T<:Integ
     dims[:] .= cdims
 end
 
+"""
+    comm_cart = Cart_create(comm_old::Comm, [ndims::Integer], dims, periods, reorder)
+
+Create new MPI communicator with Cartesian structure from an existent communicator.
+
+# External links
+$(_doc_external("MPI_Cart_create"))
+"""
 function Cart_create(comm_old::Comm, ndims::Integer, dims::MPIBuffertype{Cint}, periods::MPIBuffertype{Cint}, reorder)
     comm_cart = Comm()
     # int MPI_Cart_create(MPI_Comm comm_old, int ndims, const int dims[],
@@ -95,6 +111,14 @@ function Cartdim_get(comm::Comm)
     return Int(dims[1])
 end
 
+"""
+    Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords)
+
+Determine coordinates of a given process in Cartesian communicator.
+
+# External links
+$(_doc_external("MPI_Cart_coords"))
+"""
 function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::MPIBuffertype{Cint})
     # int MPI_Cart_coords(MPI_Comm comm, int rank, int maxdims, int coords[])
     @mpichk ccall((:MPI_Cart_coords, libmpi), Cint,
@@ -102,6 +126,13 @@ function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::MPIBu
                   comm, rank, maxdims, coords)
 end
 
+"""
+    Cart_coords(comm::Comm, maxdims::Integer)
+
+Determine coordinates of local process in Cartesian communicator.
+
+See also [`Cart_coords!`](@ref).
+"""
 function Cart_coords(comm::Comm, maxdims::Integer)
     ccoords = Vector{Cint}(undef, maxdims)
     rank    = Comm_rank(comm)
@@ -109,6 +140,15 @@ function Cart_coords(comm::Comm, maxdims::Integer)
     Int.(ccoords)
 end
 
+"""
+    rank_source, rank_dest = Cart_shift(comm::Comm, direction::Integer, disp::Integer)
+
+Return the source and destination ranks associated to a shift along a given
+direction.
+
+# External links
+$(_doc_external("MPI_Cart_shift"))
+"""
 function Cart_shift(comm::Comm, direction::Integer, disp::Integer)
     rank_source = Ref{Cint}()
     rank_dest   = Ref{Cint}()
@@ -120,6 +160,15 @@ function Cart_shift(comm::Comm, direction::Integer, disp::Integer)
     Int(rank_source[]), Int(rank_dest[])
 end
 
+"""
+    comm_sub = Cart_sub(comm::Comm, remain_dims)
+
+Create lower-dimensional Cartesian communicator from existent Cartesian
+topology.
+
+# External links
+$(_doc_external("MPI_Cart_sub"))
+"""
 function Cart_sub(comm::Comm, remain_dims::MPIBuffertype{Cint})
     comm_sub = Comm()
     # int MPI_Cart_sub(MPI_Comm comm, const int remain_dims[], MPI_Comm *comm_new)
