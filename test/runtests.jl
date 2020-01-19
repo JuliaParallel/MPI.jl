@@ -28,7 +28,7 @@ function runtests()
     testfiles = sort(filter(istest, readdir(testdir)))
     extra_args = []
     @static if !Sys.iswindows()
-        if occursin( "OpenRTE", read(`$mpiexec --version`, String))
+        if occursin( "OpenRTE", mpiexec(mpiexec_cmd -> read(`$mpiexec_cmd --version`, String)))
             push!(extra_args,"--oversubscribe")
         end
     end
@@ -39,9 +39,13 @@ function runtests()
     for f in testfiles
         coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
         if f ∈ singlefiles
-            run(`$mpiexec $extra_args -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            mpiexec() do mpiexec_cmd
+                run(`$mpiexec_cmd $extra_args -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            end
         else
-            run(`$mpiexec $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            mpiexec() do mpiexec_cmd
+                run(`$mpiexec_cmd $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            end
         end
         Base.with_output_color(:green,stdout) do io
             println(io,"\tSUCCESS: $f")
