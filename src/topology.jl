@@ -120,9 +120,8 @@ function Cart_shift(comm::Comm, direction::Integer, disp::Integer)
     Int(rank_source[]), Int(rank_dest[])
 end
 
-function Cart_sub(comm::Comm, remain_dims)
+function Cart_sub(comm::Comm, remain_dims::MPIBuffertype{Cint})
     comm_sub = Comm()
-    remain_dims = [Cint(dim) for dim in remain_dims]
     # int MPI_Cart_sub(MPI_Comm comm, const int remain_dims[], MPI_Comm *comm_new)
     @mpichk ccall((:MPI_Cart_sub, libmpi), Cint,
                   (MPI_Comm, Ptr{Cint}, Ptr{MPI_Comm}),
@@ -132,4 +131,9 @@ function Cart_sub(comm::Comm, remain_dims)
         finalizer(free, comm_sub)
     end
     comm_sub
+end
+
+function Cart_sub(comm::MPI.Comm, remain_dims)
+    cremain_dims = [Cint(dim) for dim in remain_dims]
+    Cart_sub(comm, cremain_dims)
 end
