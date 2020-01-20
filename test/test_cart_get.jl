@@ -18,7 +18,7 @@ comm_cart = MPI.Cart_create(comm, maxdims, dims, periods, false)
 @test MPI.Cartdim_get(comm_cart) == maxdims
 
 # get info
-_dims, _periods, _coords = MPI.Cart_get(comm_cart, maxdims) 
+_dims, _periods, _coords = MPI.Cart_get(comm_cart) 
 
 # test
 @test _dims    == dims
