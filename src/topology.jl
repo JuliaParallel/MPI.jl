@@ -103,12 +103,12 @@ Return number of dimensions of the Cartesian topology associated with the commun
 $(_doc_external("MPI_Cartdim_get"))
 """
 function Cartdim_get(comm::Comm)
-    dims    = Cint[0]
+    dims = Ref{Cint}()
     # int MPI_Cartdim_get(MPI_Comm comm, int *ndims)
     @mpichk ccall((:MPI_Cartdim_get, libmpi), Cint,
                   (MPI_Comm, Ptr{Cint}),
                   comm, dims)
-    return Int(dims[1])
+    return Int(dims[])
 end
 
 """
