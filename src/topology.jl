@@ -115,14 +115,15 @@ function Cartdim_get(comm::Comm)
 end
 
 """
-    Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords)
+    Cart_coords!(comm::Comm, rank::Integer, coords)
 
 Determine coordinates of a given process in Cartesian communicator.
 
 # External links
 $(_doc_external("MPI_Cart_coords"))
 """
-function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::MPIBuffertype{Cint})
+function Cart_coords!(comm::Comm, rank::Integer, coords::MPIBuffertype{Cint})
+    maxdims = Cartdim_get(comm)
     # int MPI_Cart_coords(MPI_Comm comm, int rank, int maxdims, int coords[])
     @mpichk ccall((:MPI_Cart_coords, libmpi), Cint,
                   (MPI_Comm, Cint, Cint, Ptr{Cint}),
@@ -130,18 +131,25 @@ function Cart_coords!(comm::Comm, rank::Integer, maxdims::Integer, coords::MPIBu
 end
 
 """
-    Cart_coords(comm::Comm, maxdims::Integer)
+    Cart_coords(comm::Comm)
 
 Determine coordinates of local process in Cartesian communicator.
 
 See also [`Cart_coords!`](@ref).
 """
-function Cart_coords(comm::Comm, maxdims::Integer)
+function Cart_coords(comm::Comm)
+    maxdims = Cartdim_get(comm)
     ccoords = Vector{Cint}(undef, maxdims)
     rank    = Comm_rank(comm)
-    Cart_coords!(comm, rank, maxdims, ccoords)
+    Cart_coords!(comm, rank, ccoords)
     Int.(ccoords)
 end
+
+@deprecate(Cart_coords!(comm, rank, maxdims::Integer, coords),
+           Cart_coords!(comm, rank, coords))
+
+@deprecate(Cart_coords(comm, maxdims::Integer),
+           Cart_coords(comm))
 
 """
     rank_source, rank_dest = Cart_shift(comm::Comm, direction::Integer, disp::Integer)

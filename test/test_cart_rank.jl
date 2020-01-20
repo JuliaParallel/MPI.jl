@@ -19,7 +19,7 @@ for k = 1:dims[3], j = 1:dims[2], i = 1:dims[1]
     @test cart_rank >= 0
     @test cart_rank < nnodes
 
-    MPI.Cart_coords!(comm_cart, cart_rank, ndims, coords_check)
+    MPI.Cart_coords!(comm_cart, cart_rank, coords_check)
     @test all(cart_coords .== coords_check)
 end
 

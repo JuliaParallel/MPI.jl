@@ -23,7 +23,7 @@ _dims, _periods, _coords = MPI.Cart_get(comm_cart)
 # test
 @test _dims    == dims
 @test _periods == periods
-@test _coords  == MPI.Cart_coords(comm_cart, maxdims)
+@test _coords  == MPI.Cart_coords(comm_cart)
 
 MPI.Finalize()
 
