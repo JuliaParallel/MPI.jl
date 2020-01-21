@@ -95,8 +95,6 @@ function Cart_get(comm::Comm)
     return dims, periods, coords
 end
 
-@deprecate Cart_get(comm, maxdims) Cart_get(comm)
-
 """
     ndims = Cartdim_get(comm::Comm)
 
@@ -144,12 +142,6 @@ function Cart_coords(comm::Comm)
     Cart_coords!(comm, rank, ccoords)
     Int.(ccoords)
 end
-
-@deprecate(Cart_coords!(comm, rank, maxdims::Integer, coords),
-           Cart_coords!(comm, rank, coords))
-
-@deprecate(Cart_coords(comm, maxdims::Integer),
-           Cart_coords(comm))
 
 """
     rank_source, rank_dest = Cart_shift(comm::Comm, direction::Integer, disp::Integer)
