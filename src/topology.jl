@@ -169,6 +169,9 @@ end
 Create lower-dimensional Cartesian communicator from existent Cartesian
 topology.
 
+`remain_dims` should be a boolean vector specifying the dimensions that should
+be kept in the generated subgrid.
+
 # External links
 $(_doc_external("MPI_Cart_sub"))
 """
