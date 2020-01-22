@@ -1,5 +1,6 @@
 using Libdl
 
+
 MPI_PATH = get(ENV, "JULIA_MPI_PATH", nothing)
 MPI_LIBRARY_PATH = get(ENV, "JULIA_MPI_LIBRARY_PATH") do
     MPI_PATH !== nothing ? joinpath(MPI_PATH,"lib") : nothing
@@ -15,7 +16,7 @@ mpicc = get(ENV, "JULIA_MPICC") do
     end
 end
 
-const mpiexec = get(ENV, "JULIA_MPIEXEC") do
+const mpiexec_path = get(ENV, "JULIA_MPIEXEC") do
     if MPI_PATH !== nothing && Sys.isexecutable(joinpath(MPI_PATH,"bin","mpiexec"))
         joinpath(MPI_PATH,"bin","mpiexec")
     else
@@ -77,7 +78,7 @@ open("deps.jl","w") do f
     println(f, :(const libmpi = $libmpi))
     println(f, :(const libmpi_size = $libsize))
     println(f, :(const MPI_VERSION = $MPI_VERSION))
-    println(f, :(const mpiexec = $mpiexec))
+    println(f, :(const mpiexec_path = $mpiexec_path))
 
     if Sys.iswindows()
         println(f, :(include("consts_msmpi.jl")))
@@ -85,7 +86,7 @@ open("deps.jl","w") do f
         include("gen_consts.jl")
 
         run(`$mpicc gen_consts.c -o gen_consts $CFLAGS`)
-        run(`$mpiexec -n 1 ./gen_consts`)
+        run(`$mpiexec_path -n 1 ./gen_consts`)
 
         println(f, :(include("consts.jl")))
     end
