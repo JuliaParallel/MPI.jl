@@ -29,7 +29,10 @@ comm_sub2 = MPI.Cart_sub(comm_cart, (true, false, true))
 comm_sub3 = MPI.Cart_sub(comm_cart, (true, true, false))
 @test MPI.Comm_size(comm_sub3) == div(nnodes, dims[3])
 
-comm_cart = comm_cart2 = comm_sub1 = comm_sub2 = comm_sub3 = nothing
+comm_sub4 = MPI.Cart_sub(comm_cart, Cint[true, true, false])
+@test MPI.Comm_size(comm_sub4) == MPI.Comm_size(comm_sub3)
+
+comm_cart = comm_cart2 = comm_sub1 = comm_sub2 = comm_sub3 = comm_sub4 = nothing
 
 GC.gc()
 

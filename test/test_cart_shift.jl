@@ -10,7 +10,7 @@ periods = [0,1,0]
 dims = [0,0,0]
 MPI.Dims_create!(nnodes, dims)
 comm_cart = MPI.Cart_create(comm, dims, periods, reorder)
-coords = MPI.Cart_coords(comm_cart, ndims)
+coords = MPI.Cart_coords(comm_cart)
 disp = 1
 
 for i in 0:2
