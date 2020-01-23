@@ -27,7 +27,7 @@ for (example_title, example_md) in EXAMPLES
         println(mdfile, "```")
         println(mdfile, "> mpiexec -n 3 julia $example_jl")
         cd(@__DIR__) do
-            write(mdfile, read(`$(MPI.mpiexec) -n 3 $(joinpath(Sys.BINDIR, Base.julia_exename())) --project $example_jl`))
+            write(mdfile, read(`$(MPI.mpiexec_path) -n 3 $(joinpath(Sys.BINDIR, Base.julia_exename())) --project $example_jl`))
         end
         println(mdfile, "```")
     end

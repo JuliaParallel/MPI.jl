@@ -98,3 +98,5 @@ end false
                      comm::Comm),
            Sendrecv!(view(sendbuf, 1:sendcount), dest, sendtag,
                      view(recvbuf, 1:recvcount), source, recvtag, comm), false)
+
+Base.@deprecate_binding(mpiexec,mpiexec_path,false)
