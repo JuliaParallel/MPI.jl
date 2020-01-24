@@ -53,13 +53,13 @@ for (mpiname, T) in [
 
     @eval if @isdefined($(Symbol(:MPI_,mpiname)))
         const $mpiname = _Datatype($(Symbol(:MPI_,mpiname)))
-        if !hasmethod(Datatype, Tuple{Type{$T}})
-            Datatype(::Type{$T}; commit=true) = $mpiname
+        if !hasmethod(Datatype, Tuple{Base.Type{$T}})
+            Datatype(::Base.Type{$T}; commit=true) = $mpiname
         end
     end
 end
     
-module Types
+module Type
 
 import MPI
 import MPI: @mpichk, libmpi, _doc_external,
@@ -67,7 +67,7 @@ import MPI: @mpichk, libmpi, _doc_external,
     refcount_inc, refcount_dec, free
 
 """
-    lb, extent = MPI.Types.extent(dt::MPI.Datatype)
+    lb, extent = MPI.Type.extent(dt::MPI.Datatype)
 
 Gets the lowerbound `lb` and the extent `extent` in bytes.
 
@@ -86,11 +86,11 @@ function extent(dt::Datatype)
 end
 
 """
-    MPI.Types.create_contiguous(count::Integer, oldtype::MPI.Datatype)
+    MPI.Type.create_contiguous(count::Integer, oldtype::MPI.Datatype)
 
 Create a derived [`Datatype`](@ref) that replicates `oldtype` into `count` contiguous locations.
 
-Note that [`MPI.Types.commit!`](@ref) must be used before the datatype can be used for
+Note that [`MPI.Type.commit!`](@ref) must be used before the datatype can be used for
 communication.
 
 # External links
@@ -108,19 +108,19 @@ end
 
 
 """
-    MPI.Types.create_vector(count::Integer, blocklength::Integer, stride::Integer, oldtype::MPI.Datatype)
+    MPI.Type.create_vector(count::Integer, blocklength::Integer, stride::Integer, oldtype::MPI.Datatype)
 
 Create a derived [`Datatype`](@ref) that replicates `oldtype` into locations that
 consist of equally spaced blocks. 
 
-Note that [`MPI.Types.commit!`](@ref) must be used before the datatype can be used for
+Note that [`MPI.Type.commit!`](@ref) must be used before the datatype can be used for
 communication.
 
 # Example
 
 ```julia
-datatype = MPI.Types.create_vector(3, 2, 5, MPI.Datatype(Int64))
-MPI.Types.commit!(datatype)
+datatype = MPI.Type.create_vector(3, 2, 5, MPI.Datatype(Int64))
+MPI.Type.commit!(datatype)
 ```
 will create a datatype with the following layout
 ```
@@ -152,7 +152,7 @@ function create_vector(count::Integer, blocklength::Integer, stride::Integer, ol
 end
 
 """
-    MPI.Types.create_subarray(sizes, subsizes, offset, oldtype::Datatype;
+    MPI.Type.create_subarray(sizes, subsizes, offset, oldtype::Datatype;
                               rowmajor=false)
     
 Creates a derived [`Datatype`](@ref) describing an `N`-dimensional subarray of size
@@ -162,7 +162,7 @@ the first element offset by `offset` (i.e. the 0-based index of the first elemen
 Column-major indexing (used by Julia and Fortran) is assumed; use the keyword
 `rowmajor=true` to specify row-major layout (used by C and numpy).
 
-Note that [`MPI.Types.commit!`](@ref) must be used before the datatype can be used for
+Note that [`MPI.Type.commit!`](@ref) must be used before the datatype can be used for
 communication.
 
 # External links
@@ -190,11 +190,11 @@ function create_subarray(sizes,
 end
 
 """
-    MPI.Types.create_struct(blocklengths, displacements, types)
+    MPI.Type.create_struct(blocklengths, displacements, types)
 
 Creates a derived [`Datatype`](@ref) describing a struct layout.
 
-Note that [`MPI.Types.commit!`](@ref) must be used before the datatype can be used for
+Note that [`MPI.Type.commit!`](@ref) must be used before the datatype can be used for
 communication.
 
 # External links
@@ -223,17 +223,17 @@ end
 
 
 """
-    MPI.Types.create_resized(oldtype::Datatype, lb::Integer, extent::Integer)
+    MPI.Type.create_resized(oldtype::Datatype, lb::Integer, extent::Integer)
 
 Creates a new [`Datatype`](@ref) that is identical to `oldtype`, except that the lower
 bound of this new datatype is set to be `lb`, and its upper bound is set to be `lb +
 extent`.
 
-Note that [`MPI.Types.commit!`](@ref) must be used before the datatype can be used for
+Note that [`MPI.Type.commit!`](@ref) must be used before the datatype can be used for
 communication.
 
 # See also
-- [`MPI.Types.extent`](@ref)
+- [`MPI.Type.extent`](@ref)
 
 # External links
 $(_doc_external("MPI_Type_create_resized"))
@@ -252,7 +252,7 @@ end
 
 
 """
-    MPI.Types.commit!(newtype::Datatype)
+    MPI.Type.commit!(newtype::Datatype)
 
 Commits a [`Datatype`](@ref) so that it can be used for communication.
 
@@ -266,7 +266,7 @@ function commit!(newtype::Datatype)
 end
 
 
-function Datatype(::Type{T}; commit=true) where T
+function Datatype(::Base.Type{T}; commit=true) where T
     if !isbitstype(T)
         throw(ArgumentError("Type must be isbitstype"))
     end

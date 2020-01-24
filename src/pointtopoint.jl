@@ -164,7 +164,7 @@ function Get_count(stat::Status, datatype::Datatype)
                   Ref(stat), datatype, count)
     Int(count[])
 end
-Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, Datatype(T))
+Get_count(stat::Status, ::Base.Type{T}) where {T} = Get_count(stat, Datatype(T))
 
 
 """
@@ -295,7 +295,7 @@ Returns a tuple of the object of type `T` and the [`Status`](@ref) of the receiv
 # External links
 $(_doc_external("MPI_Recv"))
 """
-function Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm) where T
+function Recv(::Base.Type{T}, src::Integer, tag::Integer, comm::Comm) where T
     buf = Ref{T}()
     stat = Recv!(buf, src, tag, comm)
     (buf[], stat)

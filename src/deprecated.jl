@@ -43,11 +43,11 @@ end false
 
 @deprecate(Type_Create_Subarray(ndims::Integer, sizes::MPIBuffertype{Cint}, subsizes::MPIBuffertype{Cint},
                                 starts::MPIBuffertype{Cint}, order::Integer, oldtype),
-           Types.create_subarray(sizes, subsizes, starts, Datatype(oldtype); rowmajor = order == MPI_ORDER_C), false)
+           Type.create_subarray(sizes, subsizes, starts, Datatype(oldtype); rowmajor = order == MPI_ORDER_C), false)
 @deprecate(Type_Create_Struct(nfields::Integer, blocklengths::MPIBuffertype{Cint},
                               displacements::MPIBuffertype{Cptrdiff_t}, types::MPIBuffertype{MPI_Datatype}),
-           Types.create_struct(blocklengths, displacements, types), false)
-@deprecate(Type_Commit!(datatype), Types.commit!(datatype), false)
+           Type.create_struct(blocklengths, displacements, types), false)
+@deprecate(Type_Commit!(datatype), Type.commit!(datatype), false)
 
 
 @deprecate(Send(buf, count::Integer, datatype::Datatype, dest::Integer, tag::Integer, comm::Comm),

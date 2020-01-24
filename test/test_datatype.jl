@@ -27,7 +27,7 @@ end
 @testset "Compound type" begin
     sz = sizeof(Boundary)
     al = Base.datatype_alignment(Boundary)
-    @test MPI.Types.extent(MPI.Datatype(Boundary)) == (0, cld(sz,al)*al)
+    @test MPI.Type.extent(MPI.Datatype(Boundary)) == (0, cld(sz,al)*al)
 
     arr = [Boundary( (comm_rank + i) % 127, i + comm_rank, i % 64) for i = 1:3]
     req_send = MPI.Isend(arr, dest, 1, MPI.COMM_WORLD)
@@ -56,7 +56,7 @@ end
 @testset "nested types" begin
     sz = sizeof(Boundary2)
     al = Base.datatype_alignment(Boundary2)
-    @test MPI.Types.extent(MPI.Datatype(Boundary2)) == (0, cld(sz,al)*al)
+    @test MPI.Type.extent(MPI.Datatype(Boundary2)) == (0, cld(sz,al)*al)
 
     arr = [Boundary2( (comm_rank + i) % 127, ( Int(i + comm_rank), UInt8(i % 64)), nothing) for i = 1:3]
     arr_recv = Array{Boundary2}(undef,3)
@@ -84,7 +84,7 @@ primitive type Primitive80 80 end
 @testset for PrimitiveType in (Primitive16, Primitive24, Primitive80)        
     sz = sizeof(PrimitiveType)
     al = Base.datatype_alignment(PrimitiveType)
-    @test MPI.Types.extent(MPI.Datatype(PrimitiveType)) == (0, cld(sz,al)*al)
+    @test MPI.Type.extent(MPI.Datatype(PrimitiveType)) == (0, cld(sz,al)*al)
 
     if VERSION < v"1.3" && PrimitiveType == Primitive80
         # alignment is broken on earlier Julia versions
@@ -108,7 +108,7 @@ end
 
     sz = sizeof(T)
     al = Base.datatype_alignment(T)
-    @test MPI.Types.extent(MPI.Datatype(T)) == (0, cld(sz,al)*al)
+    @test MPI.Type.extent(MPI.Datatype(T)) == (0, cld(sz,al)*al)
 
     arr = [(UInt8(comm_rank),UInt8(i),UInt8(0)) for i = 1:8]
     arr_recv = Array{T}(undef,8)
@@ -129,7 +129,7 @@ end
 
     # OpenMPI gives incorrect values
     # see https://github.com/open-mpi/ompi/issues/7266
-    # @test MPI.Types.extent(MPI.Datatype(Nothing)) == (0, cld(sz,al)*al)
+    # @test MPI.Type.extent(MPI.Datatype(Nothing)) == (0, cld(sz,al)*al)
 
     arr = [nothing for i = 1:100]
     arr_recv = Array{Nothing}(undef,100)

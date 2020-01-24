@@ -69,7 +69,7 @@ This is a collective call over `comm`.
 
 [`MPI.free`](@ref) should be called on the `Win` object once operations have been completed.
 """
-function Win_allocate_shared(::Type{T}, len::Int, comm::Comm; kwargs...) where T
+function Win_allocate_shared(::Base.Type{T}, len::Int, comm::Comm; kwargs...) where T
     win = Win()
     out_baseptr = Ref{Ptr{T}}()
     # int MPI_Win_allocate_shared(MPI_Aint size, int disp_unit, MPI_Info info,

@@ -21,8 +21,8 @@ end
 
 primitive type MPIPtr Sys.WORD_SIZE
 end
-Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
-Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
+Base.cconvert(::Base.Type{MPIPtr}, x::SentinelPtr) = x
+Base.unsafe_convert(::Base.Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
 
 
 function _doc_external(fname)

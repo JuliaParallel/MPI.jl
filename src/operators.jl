@@ -36,13 +36,13 @@ if @isdefined(MPI_NO_OP)
     const NO_OP   = _Op(MPI_NO_OP, nothing)
 end
 
-Op(::typeof(min), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MIN
-Op(::typeof(max), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MAX
-Op(::typeof(+), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint,MPIComplex}} = SUM
-Op(::typeof(*), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint,MPIComplex}} = PROD
-Op(::typeof(&), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BAND
-Op(::typeof(|), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BOR
-Op(::typeof(⊻), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BXOR
+Op(::typeof(min), ::Base.Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MIN
+Op(::typeof(max), ::Base.Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MAX
+Op(::typeof(+), ::Base.Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint,MPIComplex}} = SUM
+Op(::typeof(*), ::Base.Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint,MPIComplex}} = PROD
+Op(::typeof(&), ::Base.Type{T}; iscommutative=true) where {T<:MPIInteger} = BAND
+Op(::typeof(|), ::Base.Type{T}; iscommutative=true) where {T<:MPIInteger} = BOR
+Op(::typeof(⊻), ::Base.Type{T}; iscommutative=true) where {T<:MPIInteger} = BXOR
 
 
 function free(op::Op)

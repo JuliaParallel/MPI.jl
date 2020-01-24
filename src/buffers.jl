@@ -10,15 +10,15 @@ MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 
 MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
 
-Base.cconvert(::Type{MPIPtr}, x::Union{Ptr{T}, Array{T}, Ref{T}}) where T = Base.cconvert(Ptr{T}, x)
-function Base.cconvert(::Type{MPIPtr}, x::SubArray{T}) where T
+Base.cconvert(::Base.Type{MPIPtr}, x::Union{Ptr{T}, Array{T}, Ref{T}}) where T = Base.cconvert(Ptr{T}, x)
+function Base.cconvert(::Base.Type{MPIPtr}, x::SubArray{T}) where T
     Base.cconvert(Ptr{T}, x)
 end
-function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
+function Base.unsafe_convert(::Base.Type{MPIPtr}, x::MPIBuffertype{T}) where T
     ptr = Base.unsafe_convert(Ptr{T}, x)
     reinterpret(MPIPtr, ptr)
 end
-function Base.cconvert(::Type{MPIPtr}, ::Nothing)
+function Base.cconvert(::Base.Type{MPIPtr}, ::Nothing)
     reinterpret(MPIPtr, C_NULL)
 end
 
@@ -102,17 +102,17 @@ function Buffer(sub::Base.FastContiguousSubArray)
     Buffer(sub, Cint(length(sub)), Datatype(eltype(sub)))
 end
 function Buffer(sub::Base.FastSubArray)
-    datatype = Types.create_vector(length(sub), 1, sub.stride1,
+    datatype = Type.create_vector(length(sub), 1, sub.stride1,
                                    Datatype(eltype(sub); commit=false))
-    Types.commit!(datatype)
+    Type.commit!(datatype)
     Buffer(sub, Cint(1), datatype)
 end
 function Buffer(sub::SubArray{T,N,P,I,false}) where {T,N,P,I<:Tuple{Vararg{Union{Base.ScalarIndex, Base.Slice, AbstractUnitRange}}}}
-    datatype = Types.create_subarray(size(parent(sub)),
+    datatype = Type.create_subarray(size(parent(sub)),
                                      map(length, sub.indices),
                                      map(i -> first(i)-1, sub.indices),
                                      Datatype(eltype(sub), commit=false))
-    Types.commit!(datatype)
+    Type.commit!(datatype)
     Buffer(parent(sub), Cint(1), datatype)
 end
 
