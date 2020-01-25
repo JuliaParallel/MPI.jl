@@ -44,6 +44,7 @@ makedocs(
         "index.md",
         "installation.md",
         "usage.md",
+        "knownissues.md",
         "Examples" => EXAMPLES,
         "Reference" => [
             "environment.md",
