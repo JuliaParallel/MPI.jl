@@ -24,6 +24,8 @@ const mpiexec_path = get(ENV, "JULIA_MPIEXEC") do
     end
 end
 
+const mpiexec_args = split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))
+
 const libmpi = get(ENV, "JULIA_MPI_LIBRARY") do
     libmpi = find_library(["libmpi", "msmpi", "libmpich"],
                           MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
@@ -86,7 +88,7 @@ open("deps.jl","w") do f
         include("gen_consts.jl")
 
         run(`$mpicc gen_consts.c -o gen_consts $CFLAGS`)
-        run(`$mpiexec_path -n 1 ./gen_consts`)
+        run(`$mpiexec_path $mpiexec_args -n 1 ./gen_consts`)
 
         println(f, :(include("consts.jl")))
     end

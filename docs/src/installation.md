@@ -32,7 +32,8 @@ controlled with the optional environment variables:
 - `JULIA_MPI_INCLUDE_PATH`: the directory containing the MPI header files.
 - `JULIA_MPI_CFLAGS`: C flags passed to the constant generation build (default: `-lmpi`)
 - `JULIA_MPICC`: MPI C compiler (default: `mpicc`)
-- `JULIA_MPIEXEC`: MPI startup command (default: `mpiexec`)
+- `JULIA_MPIEXEC`: MPI launcher command (default: `mpiexec`)
+- `JULIA_MPIEXEC_ARGS`: Additional arguments to be passed to MPI launcher (only used in the build step and tests).
 
 If your MPI installation changes (e.g. it is upgraded by the system, or you switch
 libraries), you will need to re-run `build MPI` at the package prompt.

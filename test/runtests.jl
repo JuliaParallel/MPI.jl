@@ -26,11 +26,10 @@ function runtests()
     testdir = dirname(@__FILE__)
     istest(f) = endswith(f, ".jl") && startswith(f, "test_")
     testfiles = sort(filter(istest, readdir(testdir)))
-    extra_args = []
-    @static if !Sys.iswindows()
-        if occursin( "OpenRTE", read(`$mpiexec_path --version`, String))
-            push!(extra_args,"--oversubscribe")
-        end
+    mpiexec_args = split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))
+
+    if !Sys.iswindows() && occursin( "OpenRTE", read(`$mpiexec_path --version`, String))
+        push!(mpiexec_args,"--oversubscribe")
     end
 
     nfail = 0
@@ -39,9 +38,9 @@ function runtests()
     for f in testfiles
         coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
         if f ∈ singlefiles
-            run(`$mpiexec_path $extra_args -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            run(`$mpiexec_path $mpiexec_args -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
         else
-            run(`$mpiexec_path $extra_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            run(`$mpiexec_path $mpiexec_args -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
         end
         Base.with_output_color(:green,stdout) do io
             println(io,"\tSUCCESS: $f")
