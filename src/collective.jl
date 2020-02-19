@@ -153,11 +153,10 @@ Scatterv!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
 
 
 """
-    Gather!(sendbuf, recvbuf[, count::Integer=length(sendbuf)], root::Integer, comm::Comm)
+    Gather!(sendbuf, recvbuf, root::Integer, comm::Comm)
 
-Each process sends the first `count` elements of the buffer `sendbuf` to the
-`root` process. The `root` process stores elements in rank order in the buffer
-buffer `recvbuf`.
+Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
+process stores elements in rank order in the buffer buffer `recvbuf`.
 
 `sendbuf` can be `nothing` on the root process, in which case the corresponding entries in
 `recvbuf` are assumed to be already in place (this corresponds the behaviour of
@@ -208,10 +207,10 @@ Gather!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
 
 
 """
-    Gather(sendbuf[, count=length(sendbuf)], root, comm)
+    Gather(sendbuf, root, comm)
 
-Each process sends the first `count` elements of the buffer `sendbuf` to the `root`
-process. The `root` allocates the output buffer and stores elements in rank order.
+Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
+allocates the output buffer and stores elements in rank order.
 
 `count` should be the same for all processes.
 
@@ -223,21 +222,18 @@ process. The `root` allocates the output buffer and stores elements in rank orde
 # External links
 $(_doc_external("MPI_Gather"))
 """
-function Gather(sendbuf, count::Integer, root::Integer, comm::Comm)
-    Gather!(sendbuf, Comm_rank(comm) == root ? similar(sendbuf, Comm_size(comm) * count) : nothing, count, root, comm)
-end
-function Gather(sendbuf::AbstractArray, root::Integer, comm::Comm)
-    Gather(sendbuf, length(sendbuf), root, comm)
+function Gather(sendbuf::Union{Ref,AbstractArray}, root::Integer, comm::Comm)
+    Gather!(sendbuf, Comm_rank(comm) == root ? similar(sendbuf, Comm_size(comm) * length(sendbuf)) : nothing, root, comm)
 end
 function Gather(object::T, root::Integer, comm::Comm) where {T}
-    Gather!(Ref(object), Comm_rank(comm) == root ? Vector{T}(undef, Comm_size(comm)) : nothing, 1, root, comm)
+    Gather(Ref(object), root, comm)
 end
 
 """
-    Allgather!(sendbuf, recvbuf[, count::Integer=length(sendbuf)], comm::Comm)
-    Allgather!(sendrecvbuf, count::Integer, comm::Comm)
+    Allgather!(sendbuf, recvbuf, comm::Comm)
+    Allgather!(sendrecvbuf, comm::Comm)
 
-Each process sends the first `count` elements of `sendbuf` to the other processes, who
+Each process sends the contents of `sendbuf` to the other processes, who
 store the results in rank order into `recvbuf`.
 
 `count` should be the same for all processes.
@@ -253,22 +249,28 @@ in the area where it would receive it's own contribution.
 # External links
 $(_doc_external("MPI_Allgather"))
 """
-function Allgather!(sendbuf, recvbuf, count::Integer, comm::Comm)
-    @assert recvbuf !== nothing
-    @assert_minlength recvbuf count*Comm_size(comm)
-    @assert_minlength sendbuf count
-    T = eltype(recvbuf)
+function Allgather!(sendbuf::Buffer, recvbuf::ChunkBuffer, count::Integer, comm::Comm)
+    if recvbuf.nchunks !== nothing
+        @assert recvbuf.nchunks >= Comm_size(comm)
+    end
 
     # int MPI_Allgather(const void* sendbuf, int sendcount,
     #                   MPI_Datatype sendtype, void* recvbuf, int recvcount,
     #                   MPI_Datatype recvtype, MPI_Comm comm)
     @mpichk ccall((:MPI_Allgather, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
-                  sendbuf, count, Datatype(T), recvbuf, count, Datatype(T), comm)
-    recvbuf
+                  sendbuf.data, sendbuf.count, sendbuf.datatype,
+                  recvbuf.data, recvbuf.count, recvbuf.datatype, comm)
+    recvbuf.data
 end
-function Allgather!(sendrecvbuf, count::Integer, comm::Comm)
-    Allgather!(MPI.IN_PLACE, sendrecvbuf, count, comm)
+Allgather!(sendbuf, recvbuf::ChunkBuffer, comm::Comm) =
+    Allgather!(Buffer(sendbuf), recvbuf, comm)
+Allgather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, comm::Comm) =
+    Allgather!(sendbuf, ChunkBuffer(recvbuf, length(sendbuf)), comm)
+
+
+function Allgather!(sendrecvbuf::ChunkBuffer, comm::Comm)
+    Allgather!(IN_PLACE, sendrecvbuf, count, comm)
 end
 
 """
@@ -287,14 +289,11 @@ store the results in rank order allocating the output buffer.
 # External links
 $(_doc_external("MPI_Allgather"))
 """
-function Allgather(sendbuf, count::Integer, comm::Comm)
-    Allgather!(sendbuf, similar(sendbuf, Comm_size(comm) * count), count, comm)
-end
-function Allgather(sendbuf::AbstractArray, comm::Comm)
-    Allgather(sendbuf, length(sendbuf), comm)
+function Allgather(sendbuf::Union{Ref,AbstractArray}, comm::Comm)
+    Allgather!(sendbuf, similar(sendbuf, Comm_size(comm) * length(sendbuf)), comm)
 end
 function Allgather(object::T, comm::Comm) where T
-    Allgather!(Ref(object), Vector{T}(undef, Comm_size(comm)), 1, comm)
+    Allgather!(Ref(object), comm)
 end
 
 """
@@ -323,52 +322,28 @@ end
 # External links
 $(_doc_external("MPI_Gatherv"))
 """
-function Gatherv!(sendbuf, recvbuf, counts::Vector{Cint}, root::Integer, comm::Comm)
-    isroot = Comm_rank(comm) == root
-    displs = accumulate(+, counts) - counts
-    sendcnt = counts[Comm_rank(comm) + 1]
-    if isroot
-        @assert recvbuf !== nothing
-        @assert_minlength recvbuf sum(counts)
-        if sendbuf === nothing
-            sendbuf = MPI_IN_PLACE
-        end
+function Gatherv!(sendbuf::Buffer, recvbuf::VChunkBuffer, root::Integer, comm::Comm)
+    if Comm_rank(comm) == root
+        @assert length(recvbuf.counts) >= Comm_size(comm)
     end
-    @assert_minlength sendbuf sendcnt
-    T = sendbuf isa SentinelPtr ? eltype(recvbuf) : eltype(sendbuf)
-
     # int MPI_Gatherv(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                 void* recvbuf, const int recvcounts[], const int displs[],
     #                 MPI_Datatype recvtype, int root, MPI_Comm comm)
     @mpichk ccall((:MPI_Gatherv, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm),
-                  sendbuf, sendcnt, Datatype(T), recvbuf, counts, displs, Datatype(T), root, comm)
-    isroot ? recvbuf : nothing
+                  sendbuf.data, sendbuf.count, sendbuf.datatype,
+                  recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, root, comm)
+    recvbuf.data
 end
-
-"""
-    Gatherv(sendbuf, counts, root, comm)
-
-Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
-the `root` process. The `root` allocates the output buffer and stores elements
-in rank order.
-
-# See also
-- [`Gatherv!`](@ref) for the mutating operation
-- [`Gather!`](@ref)/[`Gather`](@ref)
-- [`Allgatherv!`](@ref)/[`Allgatherv`](@ref) to send the result to all processes
-
-# External links
-$(_doc_external("MPI_Gatherv"))
-"""
-function Gatherv(sendbuf, counts::Vector{Cint}, root::Integer, comm::Comm)
-    Gatherv!(sendbuf, Comm_rank(comm) == root ? similar(sendbuf, sum(counts)) : nothing, counts, root, comm)
-end
+Gatherv!(sendbuf, recvbuf::VChunkBuffer, root::Integer, comm::Comm) =
+    Gatherv!(Buffer(sendbuf), recvbuf, root, comm)
+Gatherv!(sendbuf, recvbuf::Nothing, root::Integer, comm::Comm) =
+    Gatherv!(sendbuf, VChunkBuffer(), root, comm)
 
 
 """
-    Allgatherv!(sendbuf, recvbuf, counts, comm)
-    Allgatherv!(sendrecvbuf, counts, comm)
+    Allgatherv!(sendbuf, recvbuf, comm)
+    Allgatherv!(sendrecvbuf, comm)
 
 Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
 all other process. Each process stores the received data in rank order in the
@@ -384,44 +359,22 @@ is taken from the interval of `recvbuf` where it would store it's own data.
 # External links
 $(_doc_external("MPI_Allgatherv"))
 """
-function Allgatherv!(sendbuf, recvbuf, counts::Vector{Cint}, comm::Comm)
-    displs = accumulate(+, counts) - counts
-    sendcnt = counts[Comm_rank(comm) + 1]
-    @assert recvbuf !== nothing
-    @assert_minlength recvbuf sum(counts)
-    @assert_minlength sendbuf sendcnt
-    T = eltype(recvbuf)
+function Allgatherv!(sendbuf::Buffer, recvbuf::VChunkBuffer, comm::Comm)
+    @assert length(recvbuf.counts) >= Comm_size(comm)
 
     # int MPI_Allgatherv(const void* sendbuf, int sendcount,
     #                    MPI_Datatype sendtype, void* recvbuf, const int recvcounts[],
     #                    const int displs[], MPI_Datatype recvtype, MPI_Comm comm)
     @mpichk ccall((:MPI_Allgatherv, libmpi), Cint,
-              (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
-              sendbuf, sendcnt, Datatype(T), recvbuf, counts, displs, Datatype(T), comm)
+                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
+                  sendbuf.data, sendbuf.count, sendbuf.datatype,
+                  recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, comm)
     recvbuf
 end
-function Allgatherv!(sendrecvbuf, counts::Vector{Cint}, comm::Comm)
-    Allgatherv!(MPI_IN_PLACE, sendrecvbuf, counts, comm)
+function Allgatherv!(sendrecvbuf::VChunkBuffer, comm::Comm)
+    Allgatherv!(IN_PLACE, sendrecvbuf, comm)
 end
 
-"""
-    Allgatherv(sendbuf, counts, comm)
-
-Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
-all other process. Each process allocates an output buffer and stores the
-received data in rank order.
-
-# See also
-- [`Allgatherv!`](@ref) for the mutating operation.
-- [`Gatherv!`](@ref)/[`Gatherv`](@ref) to send the result to a single process.
-
-# External links
-$(_doc_external("MPI_Allgatherv"))
-"""
-function Allgatherv(sendbuf, counts::Vector{Cint}, comm::Comm)
-    recvbuf = similar(sendbuf, sum(counts))
-    Allgatherv!(sendbuf, recvbuf, counts, comm)
-end
 
 
 """
