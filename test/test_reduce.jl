@@ -40,7 +40,9 @@ if isroot
     @test sum_mesg == sz .* mesg
 end
 
-if ArrayType != Array || Sys.iswindows() && Sys.WORD_SIZE == 32
+if ArrayType != Array || Sys.iswindows() && Sys.WORD_SIZE == 32 ||
+   Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
+   Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
     operators = [MPI.SUM, +]
 else
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
@@ -100,7 +102,11 @@ end
 
 MPI.Barrier( MPI.COMM_WORLD )
 
-if !(Sys.iswindows() && Sys.WORD_SIZE == 32)
+if Sys.iswindows() && Sys.WORD_SIZE == 32 ||
+   Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
+   Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
+   # Closures are not supported for cfunction
+else
 
     send_arr = [Double64(i)/10 for i = 1:10]
 
