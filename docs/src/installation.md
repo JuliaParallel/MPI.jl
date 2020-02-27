@@ -34,6 +34,7 @@ controlled with the optional environment variables:
 - `JULIA_MPICC`: MPI C compiler (default: `mpicc`)
 - `JULIA_MPIEXEC`: MPI launcher command (default: `mpiexec`)
 - `JULIA_MPIEXEC_ARGS`: Additional arguments to be passed to MPI launcher (only used in the build step and tests).
+- `JULIA_MPI_HAS_CUDA`: override the [`MPI.has_cuda`](@ref) function.
 
 If your MPI installation changes (e.g. it is upgraded by the system, or you switch
 libraries), you will need to re-run `build MPI` at the package prompt.
