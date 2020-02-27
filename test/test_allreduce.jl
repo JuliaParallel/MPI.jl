@@ -12,7 +12,10 @@ MPI.Init()
 
 comm_size = MPI.Comm_size(MPI.COMM_WORLD)
 
-if ArrayType != Array || Sys.iswindows() && Sys.WORD_SIZE == 32
+if ArrayType != Array ||
+   Sys.iswindows() && Sys.WORD_SIZE == 32 ||
+   Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
+   Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
     operators = [MPI.SUM, +]
 else
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
