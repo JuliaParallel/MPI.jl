@@ -172,8 +172,8 @@ or `false`.
 function has_cuda()
     flag = get(ENV, "JULIA_MPI_HAS_CUDA", nothing)
     if flag === nothing
-        # Only OpenMPI provides a function to check CUDA support
-        @static if dlsym_e(dlopen(libmpi), :MPIX_Query_cuda_support) != C_NULL
+        # Only Open MPI provides a function to check CUDA support
+        @static if startswith(MPI_LIBRARY_VERSION, "Open MPI")
             # int MPIX_Query_cuda_support(void)
             return 0 != ccall((:MPIX_Query_cuda_support, libmpi), Cint, ())
         else
