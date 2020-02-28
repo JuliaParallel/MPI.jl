@@ -158,3 +158,28 @@ function Wtime()
     end
 end
 
+
+"""
+    MPI.has_cuda()
+
+Check if the MPI implementation is known to have CUDA support. Currently only Open MPI
+provides a mechanism to check, so it will return `false` with other implementations
+(unless overriden).
+
+This can be overriden by setting the `JULIA_MPI_HAS_CUDA` environment variable to `true`
+or `false`.
+"""
+function has_cuda()
+    flag = get(ENV, "JULIA_MPI_HAS_CUDA", nothing)
+    if flag === nothing
+        # Only Open MPI provides a function to check CUDA support
+        @static if startswith(MPI_LIBRARY_VERSION, "Open MPI")
+            # int MPIX_Query_cuda_support(void)
+            return 0 != ccall((:MPIX_Query_cuda_support, libmpi), Cint, ())
+        else
+            return false
+        end
+    else
+        return parse(Bool, flag)
+    end
+end

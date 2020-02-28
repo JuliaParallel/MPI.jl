@@ -9,6 +9,5 @@ MPI.Initialized
 MPI.Finalize
 MPI.Finalized
 MPI.universe_size
+MPI.has_cuda
 ```
-
-
