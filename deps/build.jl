@@ -27,7 +27,7 @@ end
 const mpiexec_args = split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))
 
 const libmpi = get(ENV, "JULIA_MPI_LIBRARY") do
-    libmpi = find_library(["libmpi", "msmpi", "libmpich"],
+    libmpi = find_library(["libmpi", "libmpi_ibm", "msmpi", "libmpich"],
                           MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
     if libmpi == ""
         error("No MPI library found.\nEnsure an MPI implementation is loaded, or set the `JULIA_MPI_PATH` variable.")
