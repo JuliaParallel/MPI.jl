@@ -172,8 +172,12 @@ or `false`.
 function has_cuda()
     flag = get(ENV, "JULIA_MPI_HAS_CUDA", nothing)
     if flag === nothing
-        # Only Open MPI provides a function to check CUDA support
-        @static if startswith(MPI_LIBRARY_VERSION, "Open MPI")
+        # Only OpenMPI provides a function to check CUDA support
+        # - Spectrum MPI is an OpenMPI, but IBM removed the functionality
+        #   check, therefore force true
+        @static if occursin("IBM Spectrum MPI", MPI_LIBRARY_VERSION)
+            return true
+        elseif startswith(MPI_LIBRARY_VERSION, "Open MPI")
             # int MPIX_Query_cuda_support(void)
             return 0 != ccall((:MPIX_Query_cuda_support, libmpi), Cint, ())
         else
