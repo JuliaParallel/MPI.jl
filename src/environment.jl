@@ -175,9 +175,9 @@ function has_cuda()
         # Only OpenMPI provides a function to check CUDA support
         # - Spectrum MPI is an OpenMPI, but IBM removed the functionality
         #   check, therefore force true
-        @static if occursin("IBM Spectrum MPI", MPI_LIBRARY_VERSION)
+        @static if occursin("IBM Spectrum MPI", MPI_LIBRARY_VERSION_STRING)
             return true
-        elseif startswith(MPI_LIBRARY_VERSION, "Open MPI")
+        elseif startswith(MPI_LIBRARY_VERSION_STRING, "Open MPI")
             # int MPIX_Query_cuda_support(void)
             return 0 != ccall((:MPIX_Query_cuda_support, libmpi), Cint, ())
         else
