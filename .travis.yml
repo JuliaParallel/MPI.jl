@@ -29,6 +29,7 @@ cache:
 env:
   - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
+    JULIA_MPIEXEC_ARGS="--oversubscribe"
   - MPI_IMPL=intelmpi
 
 matrix:

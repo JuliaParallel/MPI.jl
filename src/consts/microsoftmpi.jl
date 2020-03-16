@@ -1,24 +1,19 @@
-# From https://github.com/microsoft/Microsoft-MPI/blob/v10.0/src/include/mpi.h
-
 const MPI_Aint   = Int
 const MPI_Offset = Int64
 const MPI_Count  = Int64
 
-for T in [:MPI_Comm, :MPI_Info, :MPI_Win, :MPI_Request, :MPI_Op, :MPI_Datatype, :MPI_File]
-    @eval begin
-        primitive type $T 32 end
-        $T(c::Cint) = reinterpret($T, c)
-    end
-end
-
+const MPI_Comm = Cint
 const MPI_COMM_NULL  = reinterpret(Cint, 0x04000000)
 const MPI_COMM_SELF  = reinterpret(Cint, 0x44000001)
 const MPI_COMM_WORLD = reinterpret(Cint, 0x44000000)
 
+const MPI_Info = Cint
 const MPI_INFO_NULL = reinterpret(Cint, 0x1c000000)
 
+const MPI_Win = Cint
 const MPI_WIN_NULL = reinterpret(Cint, 0x20000000)
 
+const MPI_Op = Cint
 const MPI_OP_NULL = reinterpret(Cint, 0x18000000)
 const MPI_MAX     = reinterpret(Cint, 0x58000001)
 const MPI_MIN     = reinterpret(Cint, 0x58000002)
@@ -35,8 +30,10 @@ const MPI_MAXLOC  = reinterpret(Cint, 0x5800000c)
 const MPI_REPLACE = reinterpret(Cint, 0x5800000d)
 const MPI_NO_OP   = reinterpret(Cint, 0x5800000e)
 
+const MPI_Request = Cint
 const MPI_REQUEST_NULL = reinterpret(Cint, 0x2c000000)
 
+const MPI_Datatype = Cint
 const MPI_DATATYPE_NULL         = reinterpret(Cint, 0x0c000000)
 const MPI_PACKED                = reinterpret(Cint, 0x4c00010f)
 const MPI_CHAR                  = reinterpret(Cint, 0x4c000101)
@@ -64,6 +61,7 @@ const MPI_UINT64_T              = reinterpret(Cint, 0x4c00083a)
 const MPI_C_FLOAT_COMPLEX       = reinterpret(Cint, 0x4c000813)
 const MPI_C_DOUBLE_COMPLEX      = reinterpret(Cint, 0x4c001014)
 
+const MPI_File = Cint
 const MPI_FILE_NULL = Cint(0)
 
 const MPI_PROC_NULL = Cint(-1)
@@ -105,4 +103,5 @@ struct Status
     tag::Cint
     error::Cint
 end
+
 const STATUS_EMPTY = Status(zero(Cint), zero(Cint), MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_SUCCESS)

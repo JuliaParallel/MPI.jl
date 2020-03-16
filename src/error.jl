@@ -4,7 +4,7 @@ end
 
 macro mpichk(expr)
     @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
-    if Sys.iswindows()
+    if MPI_LIBRARY == MicrosoftMPI
         insert!(expr.args, 3, :stdcall)
     end
     :((errcode = $(esc(expr))) == MPI_SUCCESS || throw(MPIError(errcode)))
