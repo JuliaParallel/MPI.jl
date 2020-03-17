@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
             end
         else
             println(f,"  fprintf(fptr, \"const $T = Ptr{Cvoid}\\n\");")
-            println(f,"  fprintf(fptr, \"$T_f2c(c::Cint) = ccall((:$T_f2c,libmpi),$T,(Cint,),c)\\n\");")
+            println(f,"  fprintf(fptr, \"$(Symbol(T,:_f2c))(c::Cint) = ccall((:$T_f2c,libmpi),$T,(Cint,),c)\\n\");")
             for constant in constants
                 println(f,"  fprintf(fptr, \"const $constant = Cint(%i)\\n\", $T_c2f($constant));")
             end
