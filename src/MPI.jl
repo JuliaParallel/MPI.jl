@@ -74,6 +74,9 @@ function __init__()
         # MPI library has changed, invalidate cache
         cachefile = Base.compilecache(Base.PkgId(MPI))
         rm(cachefile)
+        # TODO: figure out if we can reload package without erroring
+        # though that would probably trigger a race condition
+        error("MPI library has changed, please restart Julia")
     end
     
     # disable UCX memory hooks since it can mess up dlopen
