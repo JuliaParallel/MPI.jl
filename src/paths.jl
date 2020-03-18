@@ -42,11 +42,15 @@ const mpiexec_path = find_mpiexec()
 """
     mpiexec(fn)
 
-A wrapper for the MPI launcher executable (typically `mpiexec`).
+A wrapper function for the MPI launcher executable. Calls `fn(cmd)`, where `cmd` is a `Cmd` object of the MPI launcher.
 
-This will call `fn(cmd)`, where `cmd` is a `Cmd` object of the MPI launcher (typically
-called `mpiexec`), along with any additional arguments specified in the
-`JULIA_MPIEXEC_ARGS` environment variable.
+# Environment Variables
+
+The behaviour of `mpiexec` can be controlled by the following environment variables:
+
+- `JULIA_MPIEXEC`: the name or path of the launcher executable (set at compile time).
+- `JULIA_MPIEXEC_ARGS`: additional arguments that are passed to the launcher. These are space seperated, supporting the same quoting rules as
+  Julia `Cmd` objects. These can be modified at run time.
 
 # Usage
 

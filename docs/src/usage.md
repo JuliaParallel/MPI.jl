@@ -26,6 +26,8 @@ Hello world, I am rank 2 of 3
 Hello world, I am rank 1 of 3
 ```
 
+The [`mpiexec`](@ref) function is provided for launching MPI programs from Julia itself.
+
 ## CUDA-aware MPI support
 
 If your MPI implementation has been compiled with CUDA support, then `CuArray`s (from the

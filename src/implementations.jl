@@ -18,6 +18,14 @@ function Get_library_version()
     return String(buf)
 end
 
+"""
+    MPI_LIBRARY_VERSION_STRING :: String
+
+The full version string provided by the library
+
+# External links
+$(_doc_external("MPI_Get_library_version"))
+"""
 const MPI_LIBRARY_VERSION_STRING = Get_library_version()
 
 """
@@ -32,6 +40,10 @@ An enum corresponding to known MPI implementations
 - `IntelMPI`: [Intel MPI](https://software.intel.com/en-us/mpi-library)
 - `SpectrimMPI`: [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
 - `MVAPICH`: [MVAPICH](http://mvapich.cse.ohio-state.edu/)
+
+# See also
+
+- [`MPI_LIBRARY`](@ref)
 """
 @enum MPIImpl begin
     UnknownMPI
@@ -48,7 +60,7 @@ end
 
 An enum corresponding to known MPI Application Binary Interfaces (ABI)
 
-- `UnknownABI`: unable to determine MPI ABI
+- `UnknownABI`: unable to determine MPI ABI. This 
 - `MPICHABI`: Compatible with [MPICH ABI Compatibility Initiative](https://www.mpich.org/abi/).
 - `OpenMPIABI`: Compatible with Open MPI
 - `MicrosftMPIABI`: Compatible with Microsoft MPI
@@ -63,12 +75,12 @@ end
 """
     impl, version, abi = identify_implementation()
 
-Attempt to identify the MPI implementation based on `MPI_LIBRARY_VERSION_STRING`. Returns
-a triple of values:
+Attempt to identify the MPI implementation based on
+[`MPI_LIBRARY_VERSION_STRING`](@ref). Returns a triple of values:
 
 - `impl`: a value of type [`MPIImpl`](@ref)
 - `version`: a `VersionNumber` of the library, or `nothing` if it cannot be determined.
-- `abi`: a value of [`MPIABI`](@ref).
+- `abi`: a value of [`MPIABI`](@ref). This can be overridden by the `JULIA_MPI_ABI` environment variable.
 """
 function identify_implementation()
     impl = UnknownMPI
@@ -137,8 +149,34 @@ function identify_implementation()
     return impl, version, abi
 end
 
-    
 const MPI_LIBRARY, MPI_LIBRARY_VERSION, MPI_LIBRARY_ABI = identify_implementation()
+
+"""
+    MPI_LIBRARY :: MPIImpl
+
+The current MPI implementation: this is determined by 
+
+# See also
+- [`MPIImpl`](@ref)
+"""
+MPI_LIBRARY
+
+"""
+    MPI_LIBRARY_VERSION :: VersionNumber
+
+The version of the MPI library
+"""
+MPI_LIBRARY_VERSION
+
+"""
+    MPI_LIBRARY_ABI :: MPIABI
+
+The ABI used by the current MPI implementation.
+
+# See also
+- [`MPIABI`](@ref)
+"""
+MPI_LIBRARY_ABI
 
 
 function Get_version()
@@ -154,4 +192,12 @@ function Get_version()
     VersionNumber(major[], minor[])
 end
 
+"""
+    MPI_VERSION :: VersionNumber
+
+The supported version of the MPI standard.
+
+# External links
+$(_doc_external("MPI_Get_version"))
+"""
 const MPI_VERSION = Get_version()
