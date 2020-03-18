@@ -1,3 +1,5 @@
+_doc_external(fname) = ""
+
 include(joinpath("..","src","paths.jl"))
 include(joinpath("..","src","implementations.jl"))
 
