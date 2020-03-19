@@ -143,7 +143,7 @@ function Finalized()
 end
 
 function Wtick()
-    @static if Sys.iswindows()
+    @static if MPI_LIBRARY == MicrosoftMPI
         ccall((:MPI_Wtick, libmpi), stdcall, Cdouble, ())
     else
         ccall((:MPI_Wtick, libmpi), Cdouble, ())
@@ -151,7 +151,7 @@ function Wtick()
 end
 
 function Wtime()
-    @static if Sys.iswindows()
+    @static if MPI_LIBRARY == MicrosoftMPI
         ccall((:MPI_Wtime, libmpi), stdcall, Cdouble, ())
     else
         ccall((:MPI_Wtime, libmpi), Cdouble, ())
@@ -172,14 +172,12 @@ or `false`.
 function has_cuda()
     flag = get(ENV, "JULIA_MPI_HAS_CUDA", nothing)
     if flag === nothing
-        # Only OpenMPI provides a function to check CUDA support
-        # - Spectrum MPI is an OpenMPI, but IBM removed the functionality
-        #   check, therefore force true
-        @static if occursin("IBM Spectrum MPI", MPI_LIBRARY_VERSION_STRING)
-            return true
-        elseif startswith(MPI_LIBRARY_VERSION_STRING, "Open MPI")
+        # Only Open MPI provides a function to check CUDA support
+        @static if MPI_LIBRARY == OpenMPI
             # int MPIX_Query_cuda_support(void)
             return 0 != ccall((:MPIX_Query_cuda_support, libmpi), Cint, ())
+        elseif MPI_LIBRARY == IBMSpectrumMPI
+            return true
         else
             return false
         end

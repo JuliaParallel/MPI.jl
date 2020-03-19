@@ -1,5 +1,11 @@
 # Environment
 
+## Launching MPI programs
+
+```@docs
+mpiexec
+```
+
 ## Functions
 
 ```@docs
@@ -9,5 +15,4 @@ MPI.Initialized
 MPI.Finalize
 MPI.Finalized
 MPI.universe_size
-MPI.has_cuda
 ```

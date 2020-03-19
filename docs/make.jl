@@ -46,6 +46,7 @@ makedocs(
         "usage.md",
         "Examples" => EXAMPLES,
         "Reference" => [
+            "library.md",
             "environment.md",
             "comm.md",
             "pointtopoint.md",

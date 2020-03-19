@@ -2,30 +2,33 @@
 
 ## Requirements
 
-### Unix systems (Linux and MacOS)
-
-MPI.jl requires:
-
-- A shared library MPI installation for C (supporting MPI standard 3.0), and
-- A C compiler available via the `mpicc` command: this is required as part of the build
-  process to determine the necessary type definitions and constants.
-
-This has been tested with:
-- [Open MPI](http://www.open-mpi.org/)
-- [MPICH](http://www.mpich.org/)
-- [Intel MPI](https://software.intel.com/en-us/mpi-library)
-
-### Windows
-
-MPI.jl requires the [Microsoft MPI (MS-MPI)](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi) runtime to be installed.
+MPI.jl requires a shared library installation of a C MPI library, supporting the MPI 3.0 standard or later.
 
 ## Building
 
-The MPI.jl package can be installed via `add MPI` in the [Julia package manager](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html). 
+The MPI.jl package can be installed via `add MPI` in the [Julia package
+manager](https://docs.julialang.org/en/v1/stdlib/Pkg/index.html). The package will attempt
+to find and identify the MPI installation.
 
-The build script will attempt to find the shared library and constants: this can be
-controlled with the optional environment variables:
+The MPI standard doesn't specify the exact application binary interface (ABI), but the
+following implementations should work directly:
 
+- [Open MPI](http://www.open-mpi.org/)
+- [MPICH](http://www.mpich.org/) (v3.1 or later)
+- [Intel MPI](https://software.intel.com/en-us/mpi-library)
+- [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
+- [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
+
+For other implementations, the build script will attempt to build a small C program to
+determine the appropriate type definitions and constants. This requires a compatible C
+compiler (`mpicc` by default).
+
+## Environment variables
+
+The following optional environment variables can be used to control certain aspects of the
+build script and other library behaviour:
+
+- `JULIA_MPI_ABI`: the application binary interface, a string matching an [`MPIABI`](@ref) value.
 - `JULIA_MPI_PATH`: the top-level installation directory of MPI.
 - `JULIA_MPI_LIBRARY`: the path of the MPI shared library.
 - `JULIA_MPI_LIBRARY_PATH`: the directory containing the MPI library files.
@@ -33,8 +36,5 @@ controlled with the optional environment variables:
 - `JULIA_MPI_CFLAGS`: C flags passed to the constant generation build (default: `-lmpi`)
 - `JULIA_MPICC`: MPI C compiler (default: `mpicc`)
 - `JULIA_MPIEXEC`: MPI launcher command (default: `mpiexec`)
-- `JULIA_MPIEXEC_ARGS`: Additional arguments to be passed to MPI launcher (only used in the build step and tests).
+- `JULIA_MPIEXEC_ARGS`: Additional arguments to be passed to MPI launcher.
 - `JULIA_MPI_HAS_CUDA`: override the [`MPI.has_cuda`](@ref) function.
-
-If your MPI installation changes (e.g. it is upgraded by the system, or you switch
-libraries), you will need to re-run `build MPI` at the package prompt.

@@ -29,7 +29,13 @@ cache:
 env:
   - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
+    JULIA_MPIEXEC_ARGS="--oversubscribe"
   - MPI_IMPL=intelmpi
+  - MPI_IMPL=mpich
+    JULIA_MPI_ABI=UnknownABI
+  - MPI_IMPL=openmpi
+    JULIA_MPI_ABI=UnknownABI
+    JULIA_MPIEXEC_ARGS="--oversubscribe"
 
 matrix:
   allow_failures: # issue 262

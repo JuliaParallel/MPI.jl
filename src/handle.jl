@@ -6,6 +6,7 @@ macro mpi_handle(def, mpiname=nothing, extrafields...)
     if mpiname == nothing
         mpiname = Symbol(:MPI_, name)
     end
+    mpiname_f2c = Symbol(mpiname,:_f2c)
     quote
         Base.@__doc__ mutable struct $(esc(def))
             val::$mpiname
@@ -16,9 +17,13 @@ macro mpi_handle(def, mpiname=nothing, extrafields...)
 
         # const initializer
         function $(esc(_name))(ival::Cint, extraargs...)
-            x = $name(reinterpret($mpiname, sizeof($mpiname) == 4 ?  Int32(-1) : Int64(-1)), extraargs...)
-            push!(mpi_init_hooks, () -> x.val = $mpiname(ival))
-            return x
+            if $mpiname == Cint
+                return $name(ival, extraargs...)
+            else
+                x = $name(C_NULL, extraargs...)
+                push!(mpi_init_hooks, () -> x.val = $mpiname_f2c(ival))
+                return x
+            end
         end
 
         function Base.:(==)(a::$name, b::$name)

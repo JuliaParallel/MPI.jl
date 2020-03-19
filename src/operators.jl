@@ -70,7 +70,7 @@ end
 
 
 function Op(f, T=Any; iscommutative=false)
-    if Sys.iswindows() && Sys.WORD_SIZE == 32
+    if MPI_LIBRARY == MicrosoftMPI && Sys.WORD_SIZE == 32
         error("User-defined reduction operators are not supported on 32-bit Windows.\nSee https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.")
     end
     w = OpWrapper{typeof(f),T}(f)
