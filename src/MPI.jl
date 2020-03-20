@@ -86,6 +86,14 @@ function __init__()
     ENV["UCX_MEM_MALLOC_RELOC"] = "no"
     ENV["UCX_MEM_EVENTS"] = "no"
 
+    # Julia multithreading uses SIGSEGV to sync thread
+    # https://docs.julialang.org/en/v1/devdocs/debuggingtips/#Dealing-with-signals-1
+    # By default, UCX will error if this occurs (issue #337)
+    if !haskey(ENV, "UCX_ERROR_SIGNALS")
+        # default is "SIGILL,SIGSEGV,SIGBUS,SIGFPE"
+        ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
+    end
+    
     @require CuArrays="3a865a2d-5b23-5a0f-bc46-62713ec82fae" include("cuda.jl")
 end
 

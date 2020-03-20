@@ -17,9 +17,6 @@ const coverage_opts =
                       JL_LOG_USER => "user",
                       JL_LOG_ALL => "all")
 
-# Files to run with mpiexec -n 1
-singlefiles = ["test_spawn.jl"]
-
 function runtests()
     nprocs = clamp(Sys.CPU_THREADS, 2, 4)
     exename = joinpath(Sys.BINDIR, Base.julia_exename())
@@ -33,8 +30,12 @@ function runtests()
     for f in testfiles
         coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
         mpiexec() do cmd
-            if f ∈ singlefiles
+            if f == "test_spawn.jl"
                 run(`$cmd -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+            elseif f == "test_threads.jl"
+                withenv("JULIA_NUM_THREAD" => "4") do
+                    run(`$cmd -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
+                end
             else
                 run(`$cmd -n $nprocs $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
             end

@@ -1,3 +1,5 @@
+# https://github.com/pmodels/mpich/blob/master/src/include/mpi.h.in
+
 const MPI_Aint = Int
 const MPI_Count = Int64
 const MPI_Offset = Int64
@@ -69,6 +71,10 @@ const MPI_UINT64_T = Cint(1275070526)
 const MPI_C_FLOAT_COMPLEX = Cint(1275070528)
 const MPI_C_DOUBLE_COMPLEX = Cint(1275072577)
 
+const MPI_THREAD_SINGLE = Cint(0)
+const MPI_THREAD_FUNNELED = Cint(1)
+const MPI_THREAD_SERIALIZED = Cint(2)
+const MPI_THREAD_MULTIPLE = Cint(3)
 const MPI_PROC_NULL = Cint(-1)
 const MPI_ANY_SOURCE = Cint(-2)
 const MPI_ANY_TAG = Cint(-1)
