@@ -34,9 +34,11 @@ end
 
 Initialize MPI in the current process.
 
-All MPI programs must contain exactly one call to `MPI.Init()`. In particular, note that it is not valid to call `MPI.Init` again after calling [`MPI.Finalize`](@ref).
+All MPI programs must contain exactly one call to `MPI.Init` or
+[`MPI.Init_thread`](@ref). In particular, note that it is not valid to call `MPI.Init` or
+`MPI.Init_thread` again after calling [`MPI.Finalize`](@ref).
 
-The only MPI functions that may be called before `MPI.Init()` are
+The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` are
 [`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
 
 # External links
@@ -52,6 +54,64 @@ function Init()
         f()
     end
 end
+
+@enum ThreadLevel begin
+    THREAD_SINGLE     = MPI_THREAD_SINGLE
+    THREAD_FUNNELED   = MPI_THREAD_FUNNELED
+    THREAD_SERIALIZED = MPI_THREAD_SERIALIZED
+    THREAD_MULTIPLE   = MPI_THREAD_MULTIPLE
+end
+    
+
+"""
+    Init_thread(required::ThreadLevel)
+
+Initialize MPI and the MPI thread environment in the current process. The argument
+specifies the required thread level, which is one of the following:
+
+ - `MPI.THREAD_SINGLE`: Only one thread will execute.
+ - `MPI.THREAD_FUNNELED`: The process may be multi-threaded, but the application must ensure that only the main thread makes MPI calls.
+ - `MPI.THREAD_SERIALIZED`: The process may be multi-threaded, and multiple threads may make MPI calls, but only one at a time (i.e. all MPI calls are serialized).
+ - `MPI.THREAD_MULTIPLE`: Multiple threads may call MPI, with no restrictions.
+
+Tne function will return the provided `ThreadLevel`, and values may be compared via inequalities, i.e.
+```julia
+if Init_thread(required) < required
+    error("Insufficient threading")
+end
+```
+
+All MPI programs must contain exactly one call to [`MPI.Init`](@ref) or
+`MPI.Init_thread`. In particular, note that it is not valid to call `MPI.Init` or
+`MPI.Init_thread` again after calling [`MPI.Finalize`](@ref).
+
+The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` are
+[`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
+
+# External links
+$(_doc_external("MPI_Init_thread"))
+"""
+function Init_thread(required::ThreadLevel)
+    REFCOUNT[] == -1 || error("MPI.REFCOUNT in incorrect state: MPI may only be initialized once per session.")
+    r_provided = Ref{ThreadLevel}()
+    # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
+    @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
+                  (Ptr{Cint},Ptr{Cvoid}, ThreadLevel, Ref{ThreadLevel}),
+                  C_NULL, C_NULL, required, r_provided)
+    provided = r_provided[]
+    if provided < required
+        @warn "Thread level requested = $required, provided = $provided"
+    end
+    
+    REFCOUNT[] = 1
+    atexit(refcount_dec)
+
+    for f in mpi_init_hooks
+        f()
+    end
+    return provided
+end
+
 
 """
     Finalize()
