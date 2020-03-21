@@ -33,6 +33,7 @@ for (example_title, example_md) in EXAMPLES
     end
 end
 
+DocMeta.setdocmeta!(MPI, :DocTestSetup, :(using MPI); recursive=true)
 
 makedocs(
     sitename = "MPI.jl",

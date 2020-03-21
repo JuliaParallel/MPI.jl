@@ -23,12 +23,12 @@ For other implementations, the build script will attempt to build a small C prog
 determine the appropriate type definitions and constants. This requires a compatible C
 compiler (`mpicc` by default).
 
-## Environment variables
+## [Environment variables](@id environment_variables)
 
 The following optional environment variables can be used to control certain aspects of the
 build script and other library behaviour:
 
-- `JULIA_MPI_ABI`: the application binary interface, a string matching an [`MPIABI`](@ref) value.
+- `JULIA_MPI_ABI`: the application binary interface, a string matching an [`MPI.MPIABI`](@ref) value.
 - `JULIA_MPI_PATH`: the top-level installation directory of MPI.
 - `JULIA_MPI_LIBRARY`: the path of the MPI shared library.
 - `JULIA_MPI_LIBRARY_PATH`: the directory containing the MPI library files.

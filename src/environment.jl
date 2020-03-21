@@ -55,30 +55,46 @@ function Init()
     end
 end
 
+"""
+    ThreadLevel
+
+An Enum denoting the level of threading support in the current process:
+
+ - `MPI.THREAD_SINGLE`: Only one thread will execute.
+
+ - `MPI.THREAD_FUNNELED`: The process may be multi-threaded, but the application must
+   ensure that only the main thread makes MPI calls. See [`Is_thread_main`](@ref).
+
+ - `MPI.THREAD_SERIALIZED`: The process may be multi-threaded, and multiple threads may
+   make MPI calls, but only one at a time (i.e. all MPI calls are serialized).
+
+ - `MPI.THREAD_MULTIPLE`: Multiple threads may call MPI, with no restrictions.
+
+# See also
+
+- [`Init_thread`](@ref)
+- [`Query_thread`](@ref)
+"""
 @enum ThreadLevel begin
     THREAD_SINGLE     = MPI_THREAD_SINGLE
     THREAD_FUNNELED   = MPI_THREAD_FUNNELED
     THREAD_SERIALIZED = MPI_THREAD_SERIALIZED
     THREAD_MULTIPLE   = MPI_THREAD_MULTIPLE
 end
-    
+
 
 """
     Init_thread(required::ThreadLevel)
 
 Initialize MPI and the MPI thread environment in the current process. The argument
-specifies the required thread level, which is one of the following:
+specifies the required level of threading support, see [`ThreadLevel`](@ref).
 
- - `MPI.THREAD_SINGLE`: Only one thread will execute.
- - `MPI.THREAD_FUNNELED`: The process may be multi-threaded, but the application must ensure that only the main thread makes MPI calls.
- - `MPI.THREAD_SERIALIZED`: The process may be multi-threaded, and multiple threads may make MPI calls, but only one at a time (i.e. all MPI calls are serialized).
- - `MPI.THREAD_MULTIPLE`: Multiple threads may call MPI, with no restrictions.
+The function will return the provided `ThreadLevel`, and values may be compared via
+inequalities, i.e.
 
-Tne function will return the provided `ThreadLevel`, and values may be compared via inequalities, i.e.
 ```julia
-if Init_thread(required) < required
-    error("Insufficient threading")
-end
+provided = Init_thread(required)
+@assert provided >= required
 ```
 
 All MPI programs must contain exactly one call to [`MPI.Init`](@ref) or
@@ -102,7 +118,7 @@ function Init_thread(required::ThreadLevel)
     if provided < required
         @warn "Thread level requested = $required, provided = $provided"
     end
-    
+
     REFCOUNT[] = 1
     atexit(refcount_dec)
 
@@ -110,6 +126,41 @@ function Init_thread(required::ThreadLevel)
         f()
     end
     return provided
+end
+
+"""
+    Query_thread()
+
+Query the level of threading support in the current process.
+Returns a [`ThreadLevel`](@ref) value denoting
+
+# External links
+$(_doc_external("MPI_Query_thread"))
+"""
+function Query_thread()
+    r_provided = Ref{ThreadLevel}()
+
+    # int MPI_Query_thread(int *provided)
+    @mpichk ccall((:MPI_Query_thread, libmpi), Cint,
+                  (Ref{ThreadLevel},), r_provided)
+    return r_provided[]
+end
+
+"""
+    Is_thread_main()
+
+Queries whether the current thread is the main thread according to MPI. This can be called
+by any thread, and is useful for the  `THREAD_FUNNELED` [`ThreadLevel`](@ref).
+
+# External links
+$(_doc_external("MPI_Is_thread_main"))
+"""
+function Is_thread_main()
+    r_flag = Ref{Cint}()
+    # int MPI_Is_thread_main(int *flag)
+    @mpichk ccall((:MPI_Is_thread_main, libmpi), Cint,
+                  (Ref{Cint},), r_flag)
+    return r_flag[] != 0
 end
 
 
@@ -207,7 +258,7 @@ function Wtick()
         ccall((:MPI_Wtick, libmpi), stdcall, Cdouble, ())
     else
         ccall((:MPI_Wtick, libmpi), Cdouble, ())
-    end        
+    end
 end
 
 function Wtime()
