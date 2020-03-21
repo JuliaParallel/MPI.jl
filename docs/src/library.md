@@ -21,4 +21,5 @@ MPI.MPIABI
 
 ```@docs
 MPI.has_cuda
+MPI.identify_implementation
 ```
