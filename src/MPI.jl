@@ -78,6 +78,8 @@ function __init__()
         # though that would probably trigger a race condition
         error("MPI library has changed, please restart Julia")
     end
+
+    _check_hpc()
     
     # disable UCX memory hooks since it can mess up dlopen
     # https://github.com/openucx/ucx/issues/4001
