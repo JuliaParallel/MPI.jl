@@ -7,8 +7,8 @@ set -x
 
 MPI_IMPL="$1"
 os=`uname`
-OMPIVER=openmpi-4.0.3
-MPICHVER=mpich-3.3.2
+OMPIVER=4.0.3
+MPICHVER=3.3.2
 IMPIVER=2019.4.243
 case "$os" in
     Darwin)
@@ -41,9 +41,9 @@ case "$os" in
                 sudo apt-get install -y gfortran hwloc ccache
                 sudo /usr/sbin/update-ccache-symlinks
                 export PATH="/usr/lib/ccache:$PATH"
-                wget http://www.mpich.org/static/downloads/$MPICHVER/$MPICHVER.tar.gz
-                tar -zxf $MPICHVER.tar.gz
-                cd $MPICHVER
+                wget http://www.mpich.org/static/downloads/$MPICHVER/mpich-$MPICHVER.tar.gz
+                tar -zxf mpich-$MPICHVER.tar.gz
+                cd mpich-$MPICHVER
                 sh ./configure --prefix=$HOME/mpich --enable-shared > /dev/null
                 make -j > /dev/null
                 sudo make install > /dev/null
@@ -52,9 +52,9 @@ case "$os" in
                 sudo apt-get install -y gfortran ccache
                 sudo /usr/sbin/update-ccache-symlinks
                 export PATH="/usr/lib/ccache:$PATH"
-                wget --no-check-certificate https://www.open-mpi.org/software/ompi/v4.0/downloads/$OMPIVER.tar.gz
-                tar -zxf $OMPIVER.tar.gz
-                cd $OMPIVER
+                wget --no-check-certificate https://www.open-mpi.org/software/ompi/v4.0/downloads/openmpi-$OMPIVER.tar.gz
+                tar -zxf openmpi-$OMPIVER.tar.gz
+                cd openmpi-$OMPIVER
                 sh ./configure --prefix=$HOME/openmpi > /dev/null
                 make -j > /dev/null
                 sudo make install > /dev/null

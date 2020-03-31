@@ -65,8 +65,3 @@ gpu:test:v1.3:
   extends: .gputest
   variables:
     CI_VERSION_TAG: 'v1.3'
-
-gpu:test:v1.0:
-  extends: .gputest
-  variables:
-    CI_VERSION_TAG: 'v1.0'
