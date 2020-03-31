@@ -20,7 +20,6 @@ include:
     - export PATH="/usr/lib/ccache:$PATH"
     - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
     - tar xf openmpi.tar.gz
-    - patch -p1 -d openmpi-${OPENMPI_VER_FULL} < conf/ompi_rootenv.patch
     - pushd openmpi-${OPENMPI_VER_FULL}
     - ./configure --with-cuda --prefix=${JULIA_MPI_PATH}
     - make -j
@@ -47,7 +46,7 @@ include:
   variables:
     CI_IMAGE_TAG:     'cuda'
     OPENMPI_VER:      '4.0'
-    OPENMPI_VER_FULL: '4.0.1'
+    OPENMPI_VER_FULL: '4.0.3'
   tags:
     - nvidia
 
@@ -57,20 +56,15 @@ gpu:test:dev:
     CI_VERSION_TAG: 'dev'
   allow_failure: true
 
+gpu:test:v1.4:
+  extends: .gputest
+  variables:
+    CI_VERSION_TAG: 'v1.4'
+
 gpu:test:v1.3:
   extends: .gputest
   variables:
     CI_VERSION_TAG: 'v1.3'
-
-gpu:test:v1.2:
-  extends: .gputest
-  variables:
-    CI_VERSION_TAG: 'v1.2'
-
-gpu:test:v1.1:
-  extends: .gputest
-  variables:
-    CI_VERSION_TAG: 'v1.1'
 
 gpu:test:v1.0:
   extends: .gputest
