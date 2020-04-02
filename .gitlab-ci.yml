@@ -1,78 +1,63 @@
 include:
-  - 'https://raw.githubusercontent.com/JuliaGPU/gitlab-ci/master/templates/v3/common.yml'
+  - 'https://raw.githubusercontent.com/JuliaGPU/gitlab-ci/master/templates/v6.yml'
 
-.projecttest:
-  extends: .test
+image: nvidia/cuda:10.1-devel
+
+variables:
+  OMPI_ALLOW_RUN_AS_ROOT: '1'
+  OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: '1'
+  OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
+  OMPI_MCA_plm_rsh_agent: 'sh' # the container doesn't have ssh installed, but we don't need it
+  JULIA_CUDA_VERBOSE: 'true'
+  JULIA_MPI_TEST_ARRAYTYPE: 'CuArray'
+  JULIA_MPI_PATH: "$CI_PROJECT_DIR/mpi"
+
+openmpi:
+  stage: build
   variables:
-    OMPI_ALLOW_RUN_AS_ROOT: '1'
-    OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: '1'
-    OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
-    JULIA_MPI_TEST_ARRAYTYPE: 'CuArray'
+    OPENMPI_VER:      '4.0'
+    OPENMPI_VER_FULL: '4.0.3'
   before_script:
-    - mkdir -p ccache
     - export CCACHE_BASEDIR=${CI_PROJECT_DIR}
-    - export CCACHE_DIR=${CI_PROJECT_DIR}/ccache
-    - export JULIA_DEPOT_PATH="${CI_PROJECT_DIR}/jldepot"
-    - export JULIA_MPI_PATH="${HOME}/mpi"
+    - export CCACHE_DIR=${CI_PROJECT_DIR}/downloads/ccache
+    - mkdir -p ${CCACHE_DIR}
     - apt-get update
-    - apt-get install --yes --no-install-recommends ssh ccache
-    - /usr/sbin/update-ccache-symlinks
-    - export PATH="/usr/lib/ccache:$PATH"
+    - apt-get install --yes --no-install-recommends ccache curl
+    - /usr/sbin/update-ccache-symlinks    
+    - export PATH="/usr/lib/ccache:$PATH"    
     - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
     - tar xf openmpi.tar.gz
-    - patch -p1 -d openmpi-${OPENMPI_VER_FULL} < conf/ompi_rootenv.patch
     - pushd openmpi-${OPENMPI_VER_FULL}
-    - ./configure --with-cuda --prefix=${JULIA_MPI_PATH}
+    - ./configure --with-cuda --prefix="${JULIA_MPI_PATH}"
     - make -j
     - make install
     - popd
   script:
-    - export JULIA_PROJECT="test/cudaenv"
     - ${JULIA_MPI_PATH}/bin/ompi_info
-    - julia -e 'using InteractiveUtils;
-                versioninfo()'
-    - julia --color=yes -e 'using Pkg;
-                            Pkg.develop(PackageSpec(path=pwd()));
-                            Pkg.instantiate();
-                            Pkg.build()'
-    - julia --color=yes test/runtests.jl
-  cache:
+  artifacts:
+    when: always
     paths:
-      - ccache/
-      - jldepot/
+      - mpi/
 
-
-.gputest:
-  extends: .projecttest
-  variables:
-    CI_IMAGE_TAG:     'cuda'
-    OPENMPI_VER:      '4.0'
-    OPENMPI_VER_FULL: '4.0.1'
+# Julia versions
+julia:1.3:
+  extends:
+    - .julia:1.3
+    - .test
   tags:
     - nvidia
 
-gpu:test:dev:
-  extends: .gputest
-  variables:
-    CI_VERSION_TAG: 'dev'
+julia:1.4:
+  extends:
+    - .julia:1.4
+    - .test
+  tags:
+    - nvidia
+
+julia:nightly:
+  extends:
+    - .julia:nightly
+    - .test
+  tags:
+    - nvidia
   allow_failure: true
-
-gpu:test:v1.3:
-  extends: .gputest
-  variables:
-    CI_VERSION_TAG: 'v1.3'
-
-gpu:test:v1.2:
-  extends: .gputest
-  variables:
-    CI_VERSION_TAG: 'v1.2'
-
-gpu:test:v1.1:
-  extends: .gputest
-  variables:
-    CI_VERSION_TAG: 'v1.1'
-
-gpu:test:v1.0:
-  extends: .gputest
-  variables:
-    CI_VERSION_TAG: 'v1.0'

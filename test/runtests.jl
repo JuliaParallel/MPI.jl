@@ -1,11 +1,14 @@
 using Pkg
-pkg"precompile"
-using DoubleFloats
-
-using MPI
 using Test
 
-import MPI: mpiexec_path
+using MPI
+
+# load test packages to trigger precompilation
+using DoubleFloats
+if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
+    using CuArrays
+end
+
 
 # Code coverage command line options; must correspond to src/julia.h
 # and src/ui/repl.c
