@@ -7,6 +7,7 @@ variables:
   OMPI_ALLOW_RUN_AS_ROOT: '1'
   OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: '1'
   OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
+  OMPI_MCA_plm_rsh_agent: 'sh' # the container doesn't have ssh installed
   JULIA_CUDA_VERBOSE: 'true'
   JULIA_MPI_TEST_ARRAYTYPE: 'CuArray'
   JULIA_MPI_PATH: "$CI_PROJECT_DIR/mpi"
@@ -21,7 +22,7 @@ openmpi:
     - export CCACHE_DIR=${CI_PROJECT_DIR}/downloads/ccache
     - mkdir -p ${CCACHE_DIR}
     - apt-get update
-    - apt-get install --yes --no-install-recommends ssh ccache curl
+    - apt-get install --yes --no-install-recommends ccache curl
     - /usr/sbin/update-ccache-symlinks    
     - export PATH="/usr/lib/ccache:$PATH"    
     - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
