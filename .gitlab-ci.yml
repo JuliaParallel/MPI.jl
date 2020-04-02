@@ -21,7 +21,7 @@ openmpi:
     - export CCACHE_DIR=${CI_PROJECT_DIR}/downloads/ccache
     - mkdir -p ${CCACHE_DIR}
     - apt-get update
-    - apt-get install --yes --no-install-recommends ssh ccache
+    - apt-get install --yes --no-install-recommends ssh ccache curl
     - /usr/sbin/update-ccache-symlinks    
     - export PATH="/usr/lib/ccache:$PATH"    
     - curl https://download.open-mpi.org/release/open-mpi/v${OPENMPI_VER}/openmpi-${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
