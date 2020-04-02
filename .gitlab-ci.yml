@@ -33,6 +33,10 @@ openmpi:
     - popd
   script:
     - ${JULIA_MPI_PATH}/bin/ompi_info
+  artifacts:
+    when: always
+    paths:
+      - mpi/
 
 # Julia versions
 julia:1.3:
