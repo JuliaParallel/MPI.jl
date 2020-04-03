@@ -65,3 +65,18 @@ function mpiexec(fn)
     mpiexec_args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))
     fn(`$mpiexec_path $mpiexec_args`)
 end
+
+
+const use_stdcall = startswith(basename(libmpi), "msmpi")
+
+macro mpicall(expr)
+    @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
+    # Microsoft MPI uses stdcall calling convention
+    # this only affects 32-bit Windows
+    # unfortunately we need to use ccall to call Get_library_version
+    # so check using library name instead
+    if use_stdcall
+        insert!(expr.args, 3, :stdcall)
+    end
+    return esc(expr)
+end
