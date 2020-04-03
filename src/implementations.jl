@@ -7,13 +7,8 @@ function Get_library_version()
     buf = Array{UInt8}(undef, 8192)
     buflen = Ref{Cint}()
 
-    # Microsoft MPI uses stdcall calling convention
     libfilename, = split(basename(libmpi),'.')
-    if libfilename == "msmpi"
-        ccall((:MPI_Get_library_version, libmpi), stdcall, Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
-    else
-        ccall((:MPI_Get_library_version, libmpi), Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
-    end
+    @mpicall ccall((:MPI_Get_library_version, libmpi), Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
     resize!(buf, buflen[])
     return String(buf)
 end
@@ -190,13 +185,8 @@ MPI_LIBRARY_ABI
 function Get_version()
     major = Ref{Cint}()
     minor = Ref{Cint}()
-    if MPI_LIBRARY == MicrosoftMPI
-        ccall((:MPI_Get_version, libmpi), stdcall, Cint,
-              (Ptr{Cint}, Ptr{Cint}), major, minor)
-    else
-        ccall((:MPI_Get_version, libmpi), Cint,
-              (Ptr{Cint}, Ptr{Cint}), major, minor)
-    end
+    @mpicall ccall((:MPI_Get_version, libmpi), Cint,
+                   (Ptr{Cint}, Ptr{Cint}), major, minor)
     VersionNumber(major[], minor[])
 end
 
