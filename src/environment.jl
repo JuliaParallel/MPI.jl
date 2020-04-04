@@ -254,19 +254,11 @@ function Finalized()
 end
 
 function Wtick()
-    @static if MPI_LIBRARY == MicrosoftMPI
-        ccall((:MPI_Wtick, libmpi), stdcall, Cdouble, ())
-    else
-        ccall((:MPI_Wtick, libmpi), Cdouble, ())
-    end
+    @mpicall ccall((:MPI_Wtick, libmpi), Cdouble, ())
 end
 
 function Wtime()
-    @static if MPI_LIBRARY == MicrosoftMPI
-        ccall((:MPI_Wtime, libmpi), stdcall, Cdouble, ())
-    else
-        ccall((:MPI_Wtime, libmpi), Cdouble, ())
-    end
+    @mpicall ccall((:MPI_Wtime, libmpi), Cdouble, ())
 end
 
 
