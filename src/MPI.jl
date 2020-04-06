@@ -70,6 +70,8 @@ function __init__()
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
 
+    @debug "MPI library info" BINARY find_binary()  MPI_LIBRARY_VERSION_STRING Get_library_version()
+    
     if BINARY != find_binary() || MPI_LIBRARY_VERSION_STRING != Get_library_version()
         # MPI library has changed, invalidate cache
         cachefile = Base.compilecache(Base.PkgId(MPI))
