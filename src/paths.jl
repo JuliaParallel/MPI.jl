@@ -1,80 +1,101 @@
 using Libdl
 
 
-let
-    global libmpi, mpiexec, mpiexec_path, _check_hpc
+struct SystemBinary
+    libmpi::String
+    mpiexec_path::String
+end
 
-    # 1. attempt to find MPI implementation
-    MPI_PATH = get(ENV, "JULIA_MPI_PATH", nothing)
+struct JLLBinary
+    jllname::String
+end
 
-    MPI_LIBRARY_PATH = get(ENV, "JULIA_MPI_LIBRARY_PATH") do
-        if MPI_PATH !== nothing
-            joinpath(MPI_PATH,"lib")
-        else
-            nothing
-        end
-    end
+function find_binary()
 
-    MPI_LIBRARY = get(ENV, "JULIA_MPI_LIBRARY") do
-        find_library(["libmpi", "libmpi_ibm", "msmpi", "libmpich"],
-                     MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
-    end
+    # 1. check if JULIA_MPI_BINARY is defined
+    MPI_LIBRARY = ""
+    MPI_BINARY = get(ENV, "JULIA_MPI_BINARY", "")
 
-    # 2. if not found, use BinaryBuilder-provided MPI where available
-    if MPI_LIBRARY == ""
-        if !Sys.iswindows()
-            MPI_LIBRARY = "MPICH_jll"
-        else
-            error("No MPI library found.\nEnsure an MPI implementation is loaded, or set the `JULIA_MPI_PATH` variable.")
-        end
-        function _check_hpc()
-            if haskey(ENV, "SLURM_JOBID") || haskey(ENV, "PBS_JOBID") || haskey(ENV, "LSB_JOBID")
-                @warn "You appear to be using MPI.jl on a cluster with the default MPI binary.\nFor maximum performance you should use the cluster provided version.\nThis warning message can be disabled by setting the `JULIA_MPI_LIBRARY=$MPI_LIBRARY`."
-            end
-        end
-    else
-        _check_hpc() = nothing
-    end
+    # 2. attempt to find MPI implementation
+    if MPI_BINARY == "" || MPI_BINARY == "System"
 
-    # 3. load dependency and define mpiexec
-    if endswith(MPI_LIBRARY, "_jll")
-        if MPI_LIBRARY == "MPICH_jll"
-            import MPICH_jll, MPICH_jll.libmpi, MPICH_jll.mpiexec_path
+        MPI_PATH = get(ENV, "JULIA_MPI_PATH", nothing)
 
-            function mpiexec(fn)
-                mpiexec_args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))
-                MPICH_jll.mpiexec(mpiexec_path -> fn(`$mpiexec_path $mpiexec_args`))
-            end
-        elseif MPI_LIBRARY == "OpenMPI_jll"
-            import OpenMPI_jll, OpenMPI_jll.libmpi, OpenMPI_jll.mpiexec_path
-
-            function mpiexec(fn)
-                mpiexec_args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))
-                OpenMPI_jll.mpiexec(mpiexec_path -> fn(`$mpiexec_path $mpiexec_args`))
-            end
-
-        else
-            error("Unsupported MPI library $MPI_LIBRARY")
-        end
-    else
-        const libmpi = MPI_LIBRARY
-
-        const mpiexec_path = get(ENV, "JULIA_MPIEXEC") do
-            MPI_PATH = get(ENV, "JULIA_MPI_PATH", nothing)
-            if MPI_PATH !== nothing && Sys.isexecutable(joinpath(MPI_PATH,"bin","mpiexec"))
-                joinpath(MPI_PATH,"bin","mpiexec")
+        MPI_LIBRARY_PATH = get(ENV, "JULIA_MPI_LIBRARY_PATH") do
+            if MPI_PATH !== nothing
+                joinpath(MPI_PATH,"lib")
             else
-                "mpiexec"
+                nothing
             end
         end
 
-        function mpiexec(fn)
-            mpiexec_args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))
-            fn(`$mpiexec_path $mpiexec_args`)
+        MPI_LIBRARY = get(ENV, "JULIA_MPI_LIBRARY") do
+            find_library(["libmpi", "libmpi_ibm", "msmpi", "libmpich"],
+                         MPI_LIBRARY_PATH !== nothing ? [MPI_LIBRARY_PATH] : [])
         end
+
+        if MPI_LIBRARY != ""
+            MPIEXEC = get(ENV, "JULIA_MPIEXEC") do
+                MPI_PATH = get(ENV, "JULIA_MPI_PATH", nothing)
+                if MPI_PATH !== nothing && Sys.isexecutable(joinpath(MPI_PATH,"bin","mpiexec"))
+                    joinpath(MPI_PATH,"bin","mpiexec")
+                else
+                    "mpiexec"
+                end
+            end
+            return SystemBinary(MPI_LIBRARY, MPIEXEC)
+        end
+    end
+
+    # 3. if not found, use BinaryBuilder-provided MPI where available
+    if MPI_BINARY == "System"
+        error("Cannot find system MPI implementation")
+    elseif MPI_BINARY == ""
+        if Sys.iswindows()
+            MPI_BINARY = "MicrosoftMPI_jll"
+        else
+            MPI_BINARY = "MPICH_jll"
+        end
+    end
+    if MPI_BINARY in ["MPICH_jll", "OpenMPI_jll", "MicrosoftMPI_jll"]
+        return JLLBinary(MPI_BINARY)
+    else
+        error("Unknown MPI_BINARY=$MPI_BINARY")
     end
 end
 
+const BINARY = find_binary()
+
+if BINARY isa JLLBinary
+    if BINARY.jllname == "MPICH_jll"
+        import MPICH_jll
+        const MPI_jll = MPICH_jll
+    elseif BINARY.jllname == "OpenMPI_jll"
+        import OpenMPI_jll
+        const MPI_jll = OpenMPI_jll
+    elseif BINARY.jllname == "MicrosoftMPI_jll"
+        import MicrosoftMPI_jll
+        const MPI_jll = MicrosoftMPI_jll
+    else
+        error("Unknown binary $(BINARY.jllname)")
+    end
+
+    const libmpi = MPI_jll.libmpi
+    const mpiexec_path = MPI_jll.mpiexec_path
+
+    function mpiexec(fn)
+        mpiexec_args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))
+        MPI_jll.mpiexec(mpiexec_path -> fn(`$mpiexec_path $mpiexec_args`))
+    end
+else
+    const libmpi = BINARY.libmpi
+    const mpiexec_path = BINARY.mpiexec_path
+
+    function mpiexec(fn)
+        mpiexec_args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))
+        fn(`$mpiexec_path $mpiexec_args`)
+    end
+end
 
 """
     mpiexec(fn)

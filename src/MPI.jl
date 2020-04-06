@@ -30,7 +30,7 @@ function _doc_external(fname)
 """
 - `$fname` man page: [OpenMPI](https://www.open-mpi.org/doc/current/man3/$fname.3.php), [MPICH](https://www.mpich.org/static/docs/latest/www3/$fname.html)
 """
-end    
+end
 
 include("paths.jl")
 include("implementations.jl")
@@ -70,7 +70,7 @@ function __init__()
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
 
-    if MPI_LIBRARY_VERSION_STRING != Get_library_version()
+    if BINARY != find_binary() || MPI_LIBRARY_VERSION_STRING != Get_library_version()
         # MPI library has changed, invalidate cache
         cachefile = Base.compilecache(Base.PkgId(MPI))
         rm(cachefile)
@@ -79,8 +79,20 @@ function __init__()
         error("MPI library has changed, please restart Julia")
     end
 
-    _check_hpc()
-    
+    # check if using JLL binaries on HPC
+    if BINARY isa JLLBinary && !haskey(ENV, "JULIA_MPI_BINARY")
+        if haskey(ENV, "SLURM_JOBID") || haskey(ENV, "PBS_JOBID") || haskey(ENV, "LSB_JOBID")
+            @warn "You appear to be using MPI.jl on a cluster with the default MPI binary.\nFor maximum performance you should use the cluster provided version.\nThis warning message can be disabled by setting the `JULIA_MPI_BINARY=$MPI_BINARY`."
+        end
+    end
+
+    # Required for OpenMPI relocateable binaries
+    # TODO: this should be done in OpenMPI_jll package
+    # https://github.com/JuliaPackaging/Yggdrasil/issues/390
+    if BINARY isa JLLBinary && BINARY.jllname == "OpenMPI_jll"
+        ENV["OPAL_PREFIX"] = OpenMPI_jll.artifact_dir
+    end
+
     # disable UCX memory hooks since it can mess up dlopen
     # https://github.com/openucx/ucx/issues/4001
     ENV["UCX_MEM_MMAP_RELOC"] = "no"
@@ -95,7 +107,7 @@ function __init__()
         # default is "SIGILL,SIGSEGV,SIGBUS,SIGFPE"
         ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
     end
-    
+
     @require CuArrays="3a865a2d-5b23-5a0f-bc46-62713ec82fae" include("cuda.jl")
 end
 
