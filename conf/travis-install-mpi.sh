@@ -15,6 +15,8 @@ case "$os" in
         brew update
         brew upgrade cmake
         case "$MPI_IMPL" in
+            none)
+                ;;
             mpich|mpich3)
                 brew install mpich
                 ;;
@@ -31,6 +33,8 @@ case "$os" in
     Linux)
         sudo apt-get update -q
         case "$MPI_IMPL" in
+            none)
+                ;;
             mpich1)
                 sudo apt-get install -y gfortran mpich-shmem-bin libmpich-shmem1.0-dev
                 ;;

@@ -26,6 +26,9 @@ cache:
   - $HOME/.julia/registries # can we cache all of .julia?
 
 env:
+  - MPI_IMPL=none
+  - MPI_IMPL=none
+    JULIA_MPI_BINARY=OpenMPI_jll    
   - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
     JULIA_MPIEXEC_ARGS="--oversubscribe"
@@ -44,7 +47,13 @@ matrix:
   exclude:
   - os: osx
     env: MPI_IMPL=intelmpi
-
+  - julia: 1.0
+    env:
+    - MPI_IMPL=none
+  - julia: 1.0
+    env:
+    - MPI_IMPL=none
+      JULIA_MPI_BINARY=OpenMPI_jll
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - |
