@@ -30,6 +30,7 @@ env:
     JULIA_DEBUG=MPI
   - MPI_IMPL=none
     JULIA_MPI_BINARY=OpenMPI_jll
+    JULIA_MPIEXEC_ARGS="--oversubscribe"
     JULIA_DEBUG=MPI
   - MPI_IMPL=mpich
   - MPI_IMPL=openmpi
@@ -52,7 +53,7 @@ matrix:
   - julia: 1.0
     env: MPI_IMPL=none JULIA_DEBUG=MPI
   - julia: 1.0
-    env: MPI_IMPL=none JULIA_MPI_BINARY=OpenMPI_jll JULIA_DEBUG=MPI
+    env: MPI_IMPL=none JULIA_MPI_BINARY=OpenMPI_jll JULIA_MPIEXEC_ARGS="--oversubscribe" JULIA_DEBUG=MPI
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - |

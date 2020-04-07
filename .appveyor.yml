@@ -37,6 +37,8 @@ for:
 -
   matrix:
     only:
+      - julia_version: 1.0
+        mpi_impl: msmpi
       - julia_version: 1.4
         mpi_impl: msmpi
 
