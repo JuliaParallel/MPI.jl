@@ -78,14 +78,14 @@ function __init__()
         # though that would probably trigger a race condition
         error("MPI library has changed, please restart Julia")
     end
-    
-    # disable UCX memory hooks since it can mess up dlopen
-    # https://github.com/openucx/ucx/issues/4001
-    ENV["UCX_MEM_MMAP_RELOC"] = "no"
-    ENV["UCX_MEM_MALLOC_HOOKS"] = "no"
-    ENV["UCX_MEM_MALLOC_RELOC"] = "no"
-    ENV["UCX_MEM_EVENTS"] = "no"
 
+
+    # disable UCX memory cache, since it doesn't work correctly
+    # https://github.com/openucx/ucx/issues/5061
+    if !haskey(ENV, "UCX_MEMTYPE_CACHE")
+        ENV["UCX_MEMTYPE_CACHE"] = "no"
+    end
+    
     # Julia multithreading uses SIGSEGV to sync thread
     # https://docs.julialang.org/en/v1/devdocs/debuggingtips/#Dealing-with-signals-1
     # By default, UCX will error if this occurs (issue #337)
