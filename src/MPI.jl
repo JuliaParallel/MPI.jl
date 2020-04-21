@@ -81,10 +81,10 @@ function __init__()
     
     # disable UCX memory hooks since it can mess up dlopen
     # https://github.com/openucx/ucx/issues/4001
-    ENV["UCX_MEM_MMAP_RELOC"] = "no"
-    ENV["UCX_MEM_MALLOC_HOOKS"] = "no"
-    ENV["UCX_MEM_MALLOC_RELOC"] = "no"
-    ENV["UCX_MEM_EVENTS"] = "no"
+#    ENV["UCX_MEM_MMAP_RELOC"] = "no"
+#    ENV["UCX_MEM_MALLOC_HOOKS"] = "no"
+#    ENV["UCX_MEM_MALLOC_RELOC"] = "no"
+#    ENV["UCX_MEM_EVENTS"] = "no"
 
     # Julia multithreading uses SIGSEGV to sync thread
     # https://docs.julialang.org/en/v1/devdocs/debuggingtips/#Dealing-with-signals-1
