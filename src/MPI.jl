@@ -72,8 +72,7 @@ function __init__()
 
     if MPI_LIBRARY_VERSION_STRING != Get_library_version()
         # MPI library has changed, invalidate cache
-        cachefile = Base.compilecache(Base.PkgId(MPI))
-        rm(cachefile)
+        rm(Base.compilecache_path(Base.PkgId(MPI)), force = true)
         # TODO: figure out if we can reload package without erroring
         # though that would probably trigger a race condition
         error("MPI library has changed, please restart Julia")
