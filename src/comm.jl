@@ -179,3 +179,21 @@ function universe_size()
     end
     Int(unsafe_load(result[]))
 end
+
+"""
+    Comm_compare(comm1::Comm, comm2::Comm)
+
+Compare two communicators.
+
+Returns one of `MPI.MPI_IDENT`, `MPI.MPI_CONGRUENT`, `MPI.MPI_SIMILAR` or
+`MPI.MPI_UNEQUAL`.
+
+# External links
+$(_doc_external("MPI_Comm_compare"))
+"""
+function Comm_compare(comm1::Comm, comm2::Comm)
+    result = Ref{Cint}()
+    @mpichk ccall((:MPI_Comm_compare, libmpi), Cint,
+                  (MPI_Comm, MPI_Comm, Ptr{Cint}), comm1, comm2, result)
+    result[]
+end
