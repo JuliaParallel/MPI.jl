@@ -6,10 +6,11 @@ each process a unique *rank* (see [`MPI.Comm_rank`](@ref)) taking an integer val
 `0:n-1`, where `n` is the number of processes in the communicator (see
 [`MPI.Comm_size`](@ref).
 
-## Types
+## Types and enums
 
 ```@docs
 MPI.Comm
+MPI.Comparison
 ```
 
 ## Constants
@@ -21,11 +22,12 @@ MPI.COMM_SELF
 
 ## Functions
 
-### Accessors
+### Operations
 
 ```@docs
 MPI.Comm_size
 MPI.Comm_rank
+MPI.Comm_compare
 ```
 
 ### Constructors

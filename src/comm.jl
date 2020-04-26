@@ -180,20 +180,39 @@ function universe_size()
     Int(unsafe_load(result[]))
 end
 
+
 """
-    Comm_compare(comm1::Comm, comm2::Comm)
+    Comparison
 
-Compare two communicators.
+An enum denoting the result of [`Comm_compare`](@ref):
 
-Returns one of `MPI.MPI_IDENT`, `MPI.MPI_CONGRUENT`, `MPI.MPI_SIMILAR` or
-`MPI.MPI_UNEQUAL`.
+ - `MPI.IDENT`: the objects are handles for the same object (identical groups and same contexts).
+
+ - `MPI.CONGRUENT`: the underlying groups are identical in constituents and rank order; these communicators differ only by context.
+
+ - `MPI.SIMILAR`: members of both objects are the same but the rank order differs.
+
+ - `MPI.UNEQUAL`: otherwise
+"""
+@enum Comparison begin
+    IDENT     = MPI_IDENT
+    CONGRUENT = MPI_CONGRUENT
+    SIMILAR   = MPI_SIMILAR
+    UNEQUAL   = MPI_UNEQUAL
+end
+
+
+"""
+    Comm_compare(comm1::Comm, comm2::Comm)::MPI.Comparison
+
+Compare two communicators, returning an element of the [`Comparison`](@ref) enum.
 
 # External links
 $(_doc_external("MPI_Comm_compare"))
 """
 function Comm_compare(comm1::Comm, comm2::Comm)
-    result = Ref{Cint}()
+    result = Ref{Comparison}()
     @mpichk ccall((:MPI_Comm_compare, libmpi), Cint,
-                  (MPI_Comm, MPI_Comm, Ptr{Cint}), comm1, comm2, result)
+                  (MPI_Comm, MPI_Comm, Ptr{Comparison}), comm1, comm2, result)
     result[]
 end
