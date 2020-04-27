@@ -115,6 +115,10 @@ MPI_Cints = [
     :MPI_MODE_UNIQUE_OPEN,
     :MPI_MODE_SEQUENTIAL,
     :MPI_MODE_APPEND,
+    :MPI_IDENT,
+    :MPI_CONGRUENT,
+    :MPI_SIMILAR,
+    :MPI_UNEQUAL,
 ]
 
 MPI_pointers = [

@@ -105,3 +105,8 @@ const MPI_BOTTOM = reinterpret(SentinelPtr, 0)
 const MPI_IN_PLACE = reinterpret(SentinelPtr, -1)
 const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 1)
 const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 1)
+
+const MPI_IDENT = Cint(0)
+const MPI_CONGRUENT = Cint(1)
+const MPI_SIMILAR = Cint(2)
+const MPI_UNEQUAL = Cint(3)
