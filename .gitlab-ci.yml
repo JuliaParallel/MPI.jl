@@ -9,8 +9,9 @@ variables:
   OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
   OMPI_MCA_plm_rsh_agent: 'sh' # the container doesn't have ssh installed, but we don't need it
   JULIA_CUDA_VERBOSE: 'true'
-  JULIA_MPI_TEST_ARRAYTYPE: 'CuArray'
+  JULIA_MPI_BINARY: "system"
   JULIA_MPI_PATH: "$CI_PROJECT_DIR/mpi"
+  JULIA_MPI_TEST_ARRAYTYPE: 'CuArray'
 
 openmpi:
   stage: build

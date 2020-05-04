@@ -6,7 +6,7 @@ if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     using CuArrays
 end
 
-args = Base.shell_split(get(ENV, "JULIA_TEST_MPIEXEC_ARGS", ""))
+args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_TEST_ARGS", ""))
 
 
 # Code coverage command line options; must correspond to src/julia.h

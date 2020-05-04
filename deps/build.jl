@@ -13,6 +13,7 @@ update_config = false
 
 # MPI.toml has 4 keys
 #  binary   = "system" | "default" | "MPICH_jll" | "OpenMPI_jll" | "MicrosoftMPI_jll"
+#  path     = top-level directory location
 #  library  = library name/path | list of library names/paths
 #  abi      = "MPICH" | "OpenMPI" | "MicrosoftMPI" | "unknown"
 #  mpiexec  = executable name/path | [executable name/path, extra args...]
@@ -22,8 +23,13 @@ update_config = false
 if haskey(ENV, "JULIA_MPI_BINARY")
     config["binary"] = ENV["JULIA_MPI_BINARY"]
     update_config = true
-elseif haskey(ENV, "JULIA_MPI_LIBRARY")
+elseif haskey(ENV, "JULIA_MPI_LIBRARY") || haskey(ENV, "JULIA_MPI_PATH")
     config["binary"] = "system"
+end
+
+if haskey(ENV, "JULIA_MPI_PATH")
+    config["path"] = ENV["JULIA_MPI_PATH"]
+    update_config = true
 end
 
 if haskey(ENV, "JULIA_MPI_LIBRARY")
@@ -53,10 +59,11 @@ binary = get(config, "binary", "default")
 if binary == "system"
     @info "using system MPI"
     library = get(config, "library", ["libmpi", "libmpi_ibm", "msmpi", "libmpich"])
-    mpiexec = get(config, "mpiexec", ["mpiexec"])
+    path    = get(config, "paths", nothing)
+    mpiexec = get(config, "mpiexec", [path == nothing ? "mpiexec" : joinpath(path, "bin", "mpiexec")])
     abi     = get(config, "abi", nothing)
 
-    const libmpi = find_library(library)
+    const libmpi = find_library(library, path == nothing ? [] : [joinpath(path, lib)])
     if libmpi == ""
         error("libmpi could not be found")
     end
