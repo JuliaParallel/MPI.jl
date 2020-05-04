@@ -52,7 +52,6 @@ matrix:
   exclude:
   - os: osx
     env: MPI_IMPL=intelmpi
-bscribe" JULIA_DEBUG=MPI
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - |
