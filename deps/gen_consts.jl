@@ -14,7 +14,7 @@ MPI_LIBRARY_PATH = dirname(dlpath(libmpi))
 
 MPI_PATH = get(ENV, "JULIA_MPI_PATH", dirname(MPI_LIBRARY_PATH))
 MPI_INCLUDE_PATH = get(ENV, "JULIA_MPI_INCLUDE_PATH", joinpath(MPI_PATH,"include"))
-mpicc = get(ENV, "JULIA_MPICC", "mpicc")
+mpicc = get(ENV, "JULIA_MPICC", joinpath(MPI_PATH, "bin", "mpicc"))
 
 if haskey(ENV, "JULIA_MPI_CFLAGS")
     CFLAGS = Base.shell_split(ENV["JULIA_MPI_CFLAGS"])
