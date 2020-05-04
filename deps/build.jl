@@ -59,11 +59,11 @@ binary = get(config, "binary", "default")
 if binary == "system"
     @info "using system MPI"
     library = get(config, "library", ["libmpi", "libmpi_ibm", "msmpi", "libmpich"])
-    path    = get(config, "paths", nothing)
+    path    = get(config, "path", nothing)
     mpiexec = get(config, "mpiexec", [path == nothing ? "mpiexec" : joinpath(path, "bin", "mpiexec")])
     abi     = get(config, "abi", nothing)
 
-    const libmpi = find_library(library, path == nothing ? [] : [joinpath(path, lib)])
+    const libmpi = find_library(library, path == nothing ? [] : [joinpath(path, "lib")])
     if libmpi == ""
         error("libmpi could not be found")
     end
