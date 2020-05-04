@@ -1,13 +1,12 @@
-using Pkg
-using Test
-
-using MPI
+using Test, MPI
 
 # load test packages to trigger precompilation
 using DoubleFloats
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     using CuArrays
 end
+
+args = Base.shell_split(get(ENV, "JULIA_TEST_MPIEXEC_ARGS", ""))
 
 
 # Code coverage command line options; must correspond to src/julia.h
@@ -33,6 +32,7 @@ function runtests()
     for f in testfiles
         coverage_opt = coverage_opts[Base.JLOptions().code_coverage]
         mpiexec() do cmd
+            cmd = `$cmd $args`
             if f == "test_spawn.jl"
                 run(`$cmd -n 1 $exename --code-coverage=$coverage_opt $(joinpath(testdir, f))`)
             elseif f == "test_threads.jl"

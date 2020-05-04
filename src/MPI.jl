@@ -32,19 +32,8 @@ function _doc_external(fname)
 """
 end
 
-include("paths.jl")
+include(joinpath(dirname(@__DIR__), "deps","deps.jl"))
 include("implementations.jl")
-
-if MPI_LIBRARY_ABI == UnknownABI
-    include(joinpath(@__DIR__, "..", "deps", "consts.jl"))
-elseif MPI_LIBRARY_ABI == MPICHABI
-    include(joinpath("consts", "mpich.jl"))
-elseif MPI_LIBRARY_ABI == OpenMPIABI
-    include(joinpath("consts", "openmpi.jl"))
-elseif MPI_LIBRARY_ABI == MicrosoftMPIABI
-    include(joinpath("consts", "microsoftmpi.jl"))
-end
-
 include("error.jl")
 include("handle.jl")
 include("info.jl")
@@ -70,30 +59,8 @@ function __init__()
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
 
-    @debug "MPI library info" BINARY find_binary()  MPI_LIBRARY_VERSION_STRING Get_library_version()
+    __init__deps()
     
-    if false # BINARY != find_binary() || MPI_LIBRARY_VERSION_STRING != Get_library_version()
-        # MPI library has changed, invalidate cache
-        rm(Base.compilecache_path(Base.PkgId(MPI)), force = true)
-        # TODO: figure out if we can reload package without erroring
-        # though that would probably trigger a race condition
-        error("MPI library has changed, please restart Julia")
-    end
-
-    # check if using JLL binaries on HPC
-    if BINARY isa JLLBinary && !haskey(ENV, "JULIA_MPI_BINARY")
-        if haskey(ENV, "SLURM_JOBID") || haskey(ENV, "PBS_JOBID") || haskey(ENV, "LSB_JOBID")
-            @warn "You appear to be using MPI.jl on a cluster with the default MPI binary.\nFor maximum performance you should use the cluster provided version.\nThis warning message can be disabled by setting the `JULIA_MPI_BINARY=$MPI_BINARY`."
-        end
-    end
-
-    # Required for OpenMPI relocateable binaries
-    # TODO: this should be done in OpenMPI_jll package
-    # https://github.com/JuliaPackaging/Yggdrasil/issues/390
-    if BINARY isa JLLBinary && BINARY.jllname == "OpenMPI_jll"
-        ENV["OPAL_PREFIX"] = OpenMPI_jll.artifact_dir
-    end
-
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
     if !haskey(ENV, "UCX_MEMTYPE_CACHE")

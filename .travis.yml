@@ -6,7 +6,6 @@ os:
   - osx
 
 julia:
-  - 1.0
   - 1.3
   - 1.4
   - nightly
@@ -27,20 +26,23 @@ cache:
 
 env:
   - MPI_IMPL=none
-    JULIA_DEBUG=MPI
   - MPI_IMPL=none
     JULIA_MPI_BINARY=OpenMPI_jll
-    JULIA_MPIEXEC_ARGS="--oversubscribe"
-    JULIA_DEBUG=MPI
+    JULIA_TEST_MPIEXEC_ARGS="--oversubscribe"
   - MPI_IMPL=mpich
+    JULIA_MPI_BINARY=system
   - MPI_IMPL=openmpi
-    JULIA_MPIEXEC_ARGS="--oversubscribe"
+    JULIA_MPI_BINARY=system
+    JULIA_TEST_MPIEXEC_ARGS="--oversubscribe"
   - MPI_IMPL=intelmpi
+    JULIA_MPI_BINARY=system
   - MPI_IMPL=mpich
-    JULIA_MPI_ABI=UnknownABI
+    JULIA_MPI_BINARY=system
+    JULIA_MPI_ABI=unknown
   - MPI_IMPL=openmpi
-    JULIA_MPI_ABI=UnknownABI
-    JULIA_MPIEXEC_ARGS="--oversubscribe"
+    JULIA_MPI_BINARY=system
+    JULIA_MPI_ABI=unknown
+    JULIA_TEST_MPIEXEC_ARGS="--oversubscribe"
 
 matrix:
   allow_failures: # issue 262
@@ -50,10 +52,7 @@ matrix:
   exclude:
   - os: osx
     env: MPI_IMPL=intelmpi
-  - julia: 1.0
-    env: MPI_IMPL=none JULIA_DEBUG=MPI
-  - julia: 1.0
-    env: MPI_IMPL=none JULIA_MPI_BINARY=OpenMPI_jll JULIA_MPIEXEC_ARGS="--oversubscribe" JULIA_DEBUG=MPI
+bscribe" JULIA_DEBUG=MPI
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - |

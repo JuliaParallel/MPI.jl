@@ -1,13 +1,10 @@
 environment:
   matrix:
-  - julia_version: 1.0
-    mpi_impl: msmpi
   - julia_version: 1.3
-    JULIA_DEBUG: MPI
   - julia_version: 1.4
-    JULIA_DEBUG: MPI
   - julia_version: 1.4
     mpi_impl: msmpi
+    JULIA_MPI_BINARY: system
   - julia_version: nightly
 
 platform:
