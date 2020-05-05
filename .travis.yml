@@ -63,7 +63,12 @@ before_install:
       if [ "$MPI_IMPL" == "intelmpi" ]; then
         source $HOME/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
       elif [ "$MPI_IMPL" != "none" ]; then
-        export JULIA_MPI_PATH=$HOME/$MPI_IMPL;
+        export JULIA_MPI_PATH=$HOME/$MPI_IMPL
+      fi
+    elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      if [ "$MPI_IMPL" != "none" ]; then
+        # dlopen on Julia 1.4 no longer searches /usr/local/lib on Mac
+        export JULIA_MPI_PATH="/usr/local"
       fi
     fi
 # Work around OpenMPI attempting to create overly long temporary
