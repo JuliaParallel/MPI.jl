@@ -23,6 +23,7 @@ cache:
   directories:
   - $HOME/.ccache
   - $HOME/.julia/registries # can we cache all of .julia?
+  - $HOME/.julia/artifacts
 
 env:
   - MPI_IMPL=none
