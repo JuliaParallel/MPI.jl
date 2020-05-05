@@ -51,14 +51,14 @@ matrix:
     env: MPI_IMPL=openmpi
   exclude:
   - os: osx
-    env: MPI_IMPL=intelmpi
+    env: MPI_IMPL=intelmpi JULIA_MPI_BINARY=system
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - |
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       if [ "$MPI_IMPL" == "intelmpi" ]; then
         source $HOME/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-      else
+      elif [ "$MPI_IMPL" != "none" ]; then
         export JULIA_MPI_PATH=$HOME/$MPI_IMPL;
       fi
     fi
