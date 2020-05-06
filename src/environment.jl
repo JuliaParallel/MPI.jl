@@ -1,3 +1,28 @@
+"""
+    mpiexec(fn)
+
+A wrapper function for the MPI launcher executable. Calls `fn(cmd)`, where `cmd` is a `Cmd` object of the MPI launcher.
+
+# Environment Variables
+
+The behaviour of `mpiexec` can be controlled by the following environment variables:
+
+- `JULIA_MPIEXEC`: the name or path of the launcher executable (set at compile time).
+- `JULIA_MPIEXEC_ARGS`: additional arguments that are passed to the launcher. These are space seperated, supporting the same quoting rules as
+  Julia `Cmd` objects. These can be modified at run time.
+
+# Usage
+
+```jldoctest
+julia> mpiexec(cmd -> run(`\$cmd -n 3 echo hello world`));
+hello world
+hello world
+hello world
+```
+"""
+mpiexec
+
+
 const REFCOUNT = Threads.Atomic{Int}(-1)
 
 """

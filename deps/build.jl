@@ -136,10 +136,11 @@ elseif binary == "default"
         end
 
         function __init__deps()
-            if haskey(ENV, "SLURM_JOBID") || haskey(ENV, "PBS_JOBID") || haskey(ENV, "LSB_JOBID")
+            if (haskey(ENV, "SLURM_JOBID") || haskey(ENV, "PBS_JOBID") || haskey(ENV, "LSB_JOBID")) &&
+                !(get(ENV, "JULIA_MPI_CLUSTER_WARN", "") == "n")
                 @warn """
                     You appear to be using MPI.jl with the default MPI binary on a cluster.
-                    For maximum performance you should use the cluster provided version.
+                    We recommend using the system-provided MPI, see the Configuration section of the MPI.jl docs.
                     """
             end
         end
