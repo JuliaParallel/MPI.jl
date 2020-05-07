@@ -48,6 +48,7 @@ An enum corresponding to known MPI implementations
 - `IntelMPI`: [Intel MPI](https://software.intel.com/en-us/mpi-library)
 - `SpectrimMPI`: [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
 - `MVAPICH`: [MVAPICH](http://mvapich.cse.ohio-state.edu/)
+- `CrayMPICH`: Part of the Cray Message Passing Toolkit (MPT)
 
 # See also
 
@@ -61,7 +62,7 @@ An enum corresponding to known MPI implementations
     IntelMPI
     IBMSpectrumMPI
     MVAPICH
-    CRAYMPICH
+    CrayMPICH
 end
 
 """
@@ -119,15 +120,11 @@ function identify_implementation()
             version = VersionNumber(m.captures[1])
         end
 
-    elseif occursin("CRAY MPICH", MPI_LIBRARY_VERSION_STRING) 
-        impl = CRAYMPICH
+    elseif occursin("CRAY MPICH", MPI_LIBRARY_VERSION_STRING)
+        impl = CrayMPICH
         # "MPI VERSION    : CRAY MPICH version 7.7.10 (ANL base 3.2)\n"
-        if (m = match(r"CRAY MPICH version (\d+.\d+.\d+) \(ANL base (\d+.\d+)\)\n", MPI_LIBRARY_VERSION_STRING)) !== nothing
+        if (m = match(r"CRAY MPICH version (\d+.\d+.\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
             version = VersionNumber(m.captures[1])
-            abiversion = VersionNumber(m.captures[2])
-            if abiversion >= v"3.1"
-                abi = MPICHABI
-            end
         end
     end
 
