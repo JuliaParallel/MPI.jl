@@ -1,5 +1,5 @@
 # tests for the various kinds of waits
-using Test, Pkg
+using Test
 using MPI
 
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"

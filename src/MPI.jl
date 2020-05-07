@@ -30,21 +30,14 @@ function _doc_external(fname)
 """
 - `$fname` man page: [OpenMPI](https://www.open-mpi.org/doc/current/man3/$fname.3.php), [MPICH](https://www.mpich.org/static/docs/latest/www3/$fname.html)
 """
-end    
-
-include("paths.jl")
-include("implementations.jl")
-
-if MPI_LIBRARY_ABI == UnknownABI
-    include(joinpath(@__DIR__, "..", "deps", "consts.jl"))
-elseif MPI_LIBRARY_ABI == MPICHABI
-    include(joinpath("consts", "mpich.jl"))
-elseif MPI_LIBRARY_ABI == OpenMPIABI
-    include(joinpath("consts", "openmpi.jl"))
-elseif MPI_LIBRARY_ABI == MicrosoftMPIABI
-    include(joinpath("consts", "microsoftmpi.jl"))
 end
 
+try
+    include(joinpath(dirname(@__DIR__), "deps","deps.jl"))
+catch e
+    error("MPI.jl not properly configured, please run `Pkg.build(\"MPI\")`.")
+end
+include("implementations.jl")
 include("error.jl")
 include("handle.jl")
 include("info.jl")
@@ -70,15 +63,8 @@ function __init__()
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
 
-    if MPI_LIBRARY_VERSION_STRING != Get_library_version()
-        # MPI library has changed, invalidate cache
-        rm(Base.compilecache_path(Base.PkgId(MPI)), force = true)
-        # TODO: figure out if we can reload package without erroring
-        # though that would probably trigger a race condition
-        error("MPI library has changed, please restart Julia")
-    end
-
-
+    __init__deps()
+    
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
     if !haskey(ENV, "UCX_MEMTYPE_CACHE")
@@ -92,7 +78,7 @@ function __init__()
         # default is "SIGILL,SIGSEGV,SIGBUS,SIGFPE"
         ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
     end
-    
+
     @require CuArrays="3a865a2d-5b23-5a0f-bc46-62713ec82fae" include("cuda.jl")
 end
 

@@ -1,4 +1,4 @@
-using Test, Pkg
+using Test
 using MPI
 using Random
 

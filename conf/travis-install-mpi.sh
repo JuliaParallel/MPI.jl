@@ -12,13 +12,15 @@ MPICHVER=3.3.2
 IMPIVER=2019.4.243
 case "$os" in
     Darwin)
-        brew update
-        brew upgrade cmake
         case "$MPI_IMPL" in
+            none)
+                ;;
             mpich|mpich3)
+                brew update
                 brew install mpich
                 ;;
             openmpi)
+                brew update
                 brew install openmpi
                 ;;
             *)
@@ -29,15 +31,19 @@ case "$os" in
     ;;
 
     Linux)
-        sudo apt-get update -q
         case "$MPI_IMPL" in
+            none)
+                ;;
             mpich1)
+                sudo apt-get update -q
                 sudo apt-get install -y gfortran mpich-shmem-bin libmpich-shmem1.0-dev
                 ;;
             mpich2)
+                sudo apt-get update -q
                 sudo apt-get install -y gfortran mpich2 libmpich2-3 libmpich2-dev
                 ;;
             mpich|mpich3)
+                sudo apt-get update -q
                 sudo apt-get install -y gfortran hwloc ccache
                 sudo /usr/sbin/update-ccache-symlinks
                 export PATH="/usr/lib/ccache:$PATH"
@@ -49,6 +55,7 @@ case "$os" in
                 sudo make install > /dev/null
                 ;;
             openmpi)
+                sudo apt-get update -q
                 sudo apt-get install -y gfortran ccache
                 sudo /usr/sbin/update-ccache-symlinks
                 export PATH="/usr/lib/ccache:$PATH"

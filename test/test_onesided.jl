@@ -1,4 +1,4 @@
-using Test, Pkg
+using Test
 using MPI
 
 # TODO: enable CUDA tests once OpenMPI has full support
