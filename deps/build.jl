@@ -12,11 +12,11 @@ update_config = false
 
 
 # MPI.toml has 4 keys
-#  binary   = "system" | "default" | "MPICH_jll" | "OpenMPI_jll" | "MicrosoftMPI_jll"
-#  path     = top-level directory location
-#  library  = library name/path | list of library names/paths
-#  abi      = "MPICH" | "OpenMPI" | "MicrosoftMPI" | "unknown"
-#  mpiexec  = executable name/path | [executable name/path, extra args...]
+#  binary   = "" (default) | "system" | "MPICH_jll" | "OpenMPI_jll" | "MicrosoftMPI_jll"
+#  path     = "" (default) | top-level directory location
+#  library  = "" (default) | library name/path | list of library names/paths
+#  abi      = "" (default) | "MPICH" | "OpenMPI" | "MicrosoftMPI" | "unknown"
+#  mpiexec  = "" (default) | executable name/path | [executable name/path, extra args...]
 
 
 # 1. check if environment variables have changed
@@ -43,7 +43,11 @@ if haskey(ENV, "JULIA_MPI_ABI")
 end
 
 if haskey(ENV, "JULIA_MPIEXEC")
-    config["mpiexec"] = [ENV["JULIA_MPIEXEC"], Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))...]
+    if ENV["JULIA_MPIEXEC"] == ""
+        delete!(config, "mpiexec")
+    else
+        config["mpiexec"] = [ENV["JULIA_MPIEXEC"], Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))...]
+    end
     update_config = true
 end
 
@@ -53,17 +57,20 @@ if update_config
     end
 end
 
-binary = get(config, "binary", "default")
+binary = get(config, "binary", "")
 
 # 2. generate deps.jl
 if binary == "system"
     @info "using system MPI"
-    library = get(config, "library", ["libmpi", "libmpi_ibm", "msmpi", "libmpich"])
-    path    = get(config, "path", nothing)
-    mpiexec = get(config, "mpiexec", [path == nothing ? "mpiexec" : joinpath(path, "bin", "mpiexec")])
-    abi     = get(config, "abi", nothing)
+    library = get(config, "library", "")
+    if library == ""
+        library = ["libmpi", "libmpi_ibm", "msmpi", "libmpich"]
+    end
+    path    = get(config, "path", "")
+    mpiexec = get(config, "mpiexec", [path == "" ? "mpiexec" : joinpath(path, "bin", "mpiexec")])
+    abi     = get(config, "abi", "")
 
-    const libmpi = find_library(library, path == nothing ? [] : [joinpath(path, "lib")])
+    const libmpi = find_library(library, path == "" ? [] : [joinpath(path, "lib")])
     if libmpi == ""
         error("libmpi could not be found")
     end
@@ -74,7 +81,7 @@ if binary == "system"
     _doc_external(fname) = ""
     include(joinpath("..","src","implementations.jl"))
     
-    if abi === nothing
+    if abi === ""
         # 3. check ABI
         impl, version = identify_implementation()
         if (impl == MPICH && version >= v"3.1" ||
@@ -124,7 +131,7 @@ if binary == "system"
                      error("OpenMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
         end
     end
-elseif binary == "default"
+elseif binary == ""
     @info "using default MPI jll"
     deps = quote
         if Sys.iswindows()

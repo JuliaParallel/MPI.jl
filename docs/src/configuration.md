@@ -51,8 +51,8 @@ build script and other library behaviour. The results of these will be cached in
 configuration file located at `~/.julia/prefs/MPI.toml` and so can be used for subsequent
 MPI builds.
 
-- `JULIA_MPI_BINARY`: can be set to either `default` (to use the default implementations
-  above) or `system` (to use the system-provided version).
+- `JULIA_MPI_BINARY`: can be set to either the empty string (to use the default implementations
+  above) or `system` (to use a system-provided implementation).
 - `JULIA_MPI_PATH`: the top-level installation directory of MPI. i.e. the library should
   be located in `${JULIA_MPI_PATH}/lib` and `mpiexec` in `${JULIA_MPI_PATH}/bin`
 - `JULIA_MPI_LIBRARY`: the library name or full path of the MPI shared library. By
@@ -60,8 +60,7 @@ MPI builds.
   paths (e.g. `libmpi`, `libmpich`, `msmpi`).
 - `JULIA_MPI_ABI`: the ABI used by the MPI implementation: one of `MPICH`, `OpenMPI`,
   `MicrosoftMPI`, or `unknown`. By default it will attempt to determine this by looking at
-  the [`MPI_LIBRARY_VERSION_STRING`](@ref MPI.MPI_LIBRARY_VERSION_STRING
-).
+  the [`MPI_LIBRARY_VERSION_STRING`](@ref MPI.MPI_LIBRARY_VERSION_STRING).
 - `JULIA_MPIEXEC`: the name (or full path) of the MPI launcher executable. The default is
   `mpiexec`, but some clusters require using the scheduler launcher interface (e.g. `srun`
   on Slurm, `aprun` on PBS).

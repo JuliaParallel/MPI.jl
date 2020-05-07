@@ -32,7 +32,11 @@ function _doc_external(fname)
 """
 end
 
-include(joinpath(dirname(@__DIR__), "deps","deps.jl"))
+try
+    include(joinpath(dirname(@__DIR__), "deps","deps.jl"))
+catch e
+    error("MPI.jl not properly configured, please run `Pkg.build(\"MPI\")`.")
+end
 include("implementations.jl")
 include("error.jl")
 include("handle.jl")
