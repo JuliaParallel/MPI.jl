@@ -1,3 +1,16 @@
+const use_stdcall = startswith(basename(libmpi), "msmpi")
+
+macro mpicall(expr)
+    @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
+    # Microsoft MPI uses stdcall calling convention
+    # this only affects 32-bit Windows
+    # unfortunately we need to use ccall to call Get_library_version
+    # so check using library name instead
+    if use_stdcall
+        insert!(expr.args, 3, :stdcall)
+    end
+    return esc(expr)
+end
 
 function Get_library_version()
     # There is no way to query at runtime what the length of the buffer should be.
@@ -51,53 +64,26 @@ An enum corresponding to known MPI implementations
 end
 
 """
-    MPIABI
-
-An enum corresponding to known MPI Application Binary Interfaces (ABI)
-
-- `UnknownABI`: unable to determine MPI ABI. MPI.jl will attempt to build a small C
-  program to determine the necessary constants and type information.
-
-- `MPICHABI`: Compatible with [MPICH ABI Compatibility
-  Initiative](https://www.mpich.org/abi/).
-
-- `OpenMPIABI`: Compatible with [Open MPI](https://www.open-mpi.org/).
-
-- `MicrosftMPIABI`: Compatible with [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi).
-"""
-@enum MPIABI begin
-    UnknownABI
-    MPICHABI
-    OpenMPIABI
-    MicrosoftMPIABI
-end
-
-"""
-    impl, version, abi = identify_implementation()
+    impl, version = identify_implementation()
 
 Attempt to identify the MPI implementation based on
 [`MPI_LIBRARY_VERSION_STRING`](@ref). Returns a triple of values:
 
 - `impl`: a value of type [`MPIImpl`](@ref)
 - `version`: a `VersionNumber` of the library, or `nothing` if it cannot be determined.
-- `abi`: a value of [`MPIABI`](@ref). This can be overridden by the `JULIA_MPI_ABI` [environment variable](@ref environment_variables).
 
 This function is only intended for internal use. Users should use [`MPI_LIBRARY`](@ref),
-[`MPI_LIBRARY_VERSION`](@ref) or [`MPI_LIBRARY_ABI`](@ref).
+[`MPI_LIBRARY_VERSION`](@ref).
 """
 function identify_implementation()
     impl = UnknownMPI
-    version = nothing
-    abi = UnknownABI
+    version = v"0"
 
     if startswith(MPI_LIBRARY_VERSION_STRING, "MPICH")
         impl = MPICH
         # "MPICH Version:\t%s\n" /  "MPICH2 Version:\t%s\n"
         if (m = match(r"^MPICH2? Version:\t(\d+.\d+.\d+\w*)\n", MPI_LIBRARY_VERSION_STRING)) !== nothing
             version = VersionNumber(m.captures[1])
-            if version >= v"3.1"
-                abi = MPICHABI
-            end
         end
 
     elseif startswith(MPI_LIBRARY_VERSION_STRING, "Open MPI")
@@ -107,7 +93,6 @@ function identify_implementation()
         if (m = match(r"^Open MPI v(\d+.\d+.\d+\w*)", MPI_LIBRARY_VERSION_STRING)) !== nothing
             version = VersionNumber(m.captures[1])
         end
-        abi = OpenMPIABI
 
     elseif startswith(MPI_LIBRARY_VERSION_STRING, "Microsoft MPI")
         impl = MicrosoftMPI
@@ -116,7 +101,6 @@ function identify_implementation()
         if (m = match(r"^Microsoft MPI v(\d+.\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
             version = VersionNumber(m.captures[1])
         end
-        abi = MicrosoftMPIABI
 
     elseif startswith(MPI_LIBRARY_VERSION_STRING, "Intel")
         impl = IntelMPI
@@ -125,9 +109,6 @@ function identify_implementation()
         # "Intel(R) MPI Library 2019 Update 4 for Linux* OS"
         if (m = match(r"^Intel\(R\) MPI Library (\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
             version = VersionNumber(m.captures[1])
-            if version > v"2014"
-                abi = MPICHABI
-            end
         end
 
     elseif startswith(MPI_LIBRARY_VERSION_STRING, "MVAPICH2")
@@ -135,24 +116,13 @@ function identify_implementation()
         # "MVAPICH2 Version      :\t%s\n")
         if (m = match(r"^MVAPICH2? Version\s*:\t(\S*)\n", MPI_LIBRARY_VERSION_STRING)) !== nothing
             version = VersionNumber(m.captures[1])
-            if version > v"2"
-                abi = MPICHABI
-            end
         end
     end
 
-    if (abienv = get(ENV, "JULIA_MPI_ABI", nothing)) !== nothing
-        for inst in instances(MPIABI)
-            if String(Symbol(inst)) == abienv
-                abi = inst
-            end
-        end
-    end
-
-    return impl, version, abi
+    return impl, version
 end
 
-const MPI_LIBRARY, MPI_LIBRARY_VERSION, MPI_LIBRARY_ABI = identify_implementation()
+const MPI_LIBRARY, MPI_LIBRARY_VERSION = identify_implementation()
 
 """
     MPI_LIBRARY :: MPIImpl
@@ -170,16 +140,6 @@ MPI_LIBRARY
 The version of the MPI library
 """
 MPI_LIBRARY_VERSION
-
-"""
-    MPI_LIBRARY_ABI :: MPIABI
-
-The ABI used by the current MPI implementation.
-
-# See also
-- [`MPIABI`](@ref)
-"""
-MPI_LIBRARY_ABI
 
 
 function Get_version()
