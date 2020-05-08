@@ -86,7 +86,9 @@ if binary == "system"
         impl, version = identify_implementation()
         if (impl == MPICH && version >= v"3.1" ||
             impl == IntelMPI && version > v"2014" ||
-            impl == MVAPICH && version >= v"2")
+            impl == MVAPICH && version >= v"2" ||
+            impl == CrayMPICH && version >= v"7")
+            # https://www.mpich.org/abi/
             abi = "MPICH"
         elseif impl == OpenMPI || impl == IBMSpectrumMPI
             abi = "OpenMPI"
