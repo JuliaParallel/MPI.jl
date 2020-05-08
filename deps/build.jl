@@ -80,7 +80,7 @@ if binary == "system"
     
     _doc_external(fname) = ""
     include(joinpath("..","src","implementations.jl"))
-    
+
     if abi === ""
         # 3. check ABI
         impl, version = identify_implementation()
@@ -95,6 +95,9 @@ if binary == "system"
         else
             abi = "unknown"
         end
+        @info "MPI implementation detected" impl version abi
+    else
+        @info "MPI implementation config" abi
     end
     if abi == "MPICH"
         abi_incl = :(include("consts_mpich.jl"))
@@ -136,9 +139,13 @@ elseif binary == ""
     deps = quote
         if Sys.iswindows()
             using MicrosoftMPI_jll
+            const mpiexec = MicrosoftMPI_jll.mpiexec
+            const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
             include("consts_microsoftmpi.jl")
         else
             using MPICH_jll
+            const mpiexec = MPICH_jll.mpiexec
+            const mpiexec_path = MPICH_jll.mpiexec_path
             include("consts_mpich.jl")
         end
 
@@ -157,6 +164,8 @@ elseif binary ==  "MPICH_jll"
     deps = quote
         using MPICH_jll
         include("consts_mpich.jl")
+        const mpiexec = MPICH_jll.mpiexec
+        const mpiexec_path = MPICH_jll.mpiexec_path
         __init__deps() = nothing
     end
 elseif binary ==  "OpenMPI_jll"
@@ -164,6 +173,8 @@ elseif binary ==  "OpenMPI_jll"
     deps = quote
         using OpenMPI_jll
         include("consts_openmpi.jl")
+        const mpiexec = OpenMPI_jll.mpiexec
+        const mpiexec_path = OpenMPI_jll.mpiexec_path
 
         function __init__deps()
             # Required for OpenMPI relocateable binaries
@@ -177,6 +188,9 @@ elseif binary ==  "MicrosoftMPI_jll"
     deps = quote
         using MicrosoftMPI_jll
         include("consts_microsoftmpi.jl")
+        const mpiexec = MicrosoftMPI_jll.mpiexec
+        const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
+
         __init__deps() = nothing
     end
 else
