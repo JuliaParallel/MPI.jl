@@ -82,18 +82,8 @@ before_install:
 jobs:
   include:
     - stage: "Tests" # implicit first stage
-    - stage: "Documentation"
-      julia: 1.0
-      os: linux
-      script:
-        - export DOCUMENTER_DEBUG="true"
-        - julia --color=yes --project=docs/ -e 'using Pkg;
-                                                      Pkg.develop(PackageSpec(path=pwd()));
-                                                      Pkg.instantiate();
-                                                      Pkg.build()'
-        - julia --color=yes --project=docs/ docs/make.jl
     - stage: "Coverage"
-      julia: 1.0
+      julia: 1.4
       os: linux
       after_success: # Intentionally rerun tests
         - julia -e 'using Pkg; cd(Pkg.dir("MPI")); Pkg.add("Coverage")'
