@@ -21,24 +21,20 @@
 ### Code:
 
 # From BinaryBuilder.jl
-function extract_flag!(ARGS, flag, val = "")
+function extract_flag(ARGS, flag, val = "")
+    flag_args = String[]
+    other_args = String[]
     for f in ARGS
-        if f == flag || startswith(f, string(flag, "="))
-            # Check if it's just `--flag` or if it's `--flag=foo`
-            if f != flag
-                val = split(f, '=')[2]
-            end
-
-            # Drop this value from our ARGS
-            filter!(x -> x != f, ARGS)
-            return (true, String(val))
+        if startswith(f, flag)
+            push!(flag_args, flag)
+        else
+            push!(other_args, flag)
         end
     end
-    return (false, val)
+    return (flag_args, other_args)
 end
 
-_ARGS = deepcopy(ARGS)
-project, project_dir = extract_flag!(_ARGS, "--project")
+project_args, _ARGS = extract_flag(_ARGS, "--project")
 
 const script = raw"""
     using MPI
@@ -48,8 +44,4 @@ const script = raw"""
     end
     """
 
-if project
-    run(`$(joinpath(Sys.BINDIR, Base.julia_exename())) --color=yes --startup-file=no -q --compile=min -O0 --project=$(project_dir) -e $(script) -- $(_ARGS)`)
-else
-    run(`$(joinpath(Sys.BINDIR, Base.julia_exename())) --color=yes --startup-file=no -q --compile=min -O0 -e $(script) -- $(_ARGS)`)
-end
+run(`$(joinpath(Sys.BINDIR, Base.julia_exename())) --color=yes --startup-file=no -q --compile=min -O0 $(project_args) -e $(script) -- $(_ARGS)`)
