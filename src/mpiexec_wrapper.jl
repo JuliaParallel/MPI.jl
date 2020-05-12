@@ -18,6 +18,6 @@ function install_mpiexecjl(; command::String = "mpiexecjl",
     end
     mkpath(destdir)
     @info "Installing `$(command)` to `$(destdir)`..."
-    cp(joinpath(@__DIR__, "..", "contrib", "mpiexecjl"), exec; force = force)
+    cp(joinpath(@__DIR__, "..", "bin", "mpiexecjl"), exec; force = force)
     @info "Done!"
 end
