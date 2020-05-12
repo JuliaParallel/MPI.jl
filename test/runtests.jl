@@ -6,6 +6,9 @@ if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     using CuArrays
 end
 
+# This test doesn't need to be run with mpiexec
+include("mpiexecjl.jl")
+
 args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_TEST_ARGS", ""))
 
 function runtests()

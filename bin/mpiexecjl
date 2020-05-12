@@ -25,16 +25,16 @@ function extract_flag(ARGS, flag, val = "")
     flag_args = String[]
     other_args = String[]
     for f in ARGS
-        if startswith(f, flag)
-            push!(flag_args, flag)
+        if startswith(flag, f)
+            push!(flag_args, f)
         else
-            push!(other_args, flag)
+            push!(other_args, f)
         end
     end
     return (flag_args, other_args)
 end
 
-project_args, _ARGS = extract_flag(_ARGS, "--project")
+project_args, _ARGS = extract_flag(ARGS, "--project")
 
 const script = raw"""
     using MPI
