@@ -57,11 +57,8 @@ using MPI
 ENV["JULIA_PROJECT"] = dirname(Base.active_project())
 mpiexec(exe -> run(`$exe $ARGS`))'
 
-case "${PROJECT_ARG}" in
-    --project*)
-        julia "${PROJECT_ARG}" --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
-        ;;
-    *)
-        julia --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
-        ;;
-esac
+if [ -n "${PROJECT_ARG}" ]; then
+    julia "${PROJECT_ARG}" --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
+else
+    julia --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
+fi
