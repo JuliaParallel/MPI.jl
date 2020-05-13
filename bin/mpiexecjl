@@ -25,7 +25,7 @@ function extract_flag(ARGS, flag, val = "")
     flag_args = String[]
     other_args = String[]
     for f in ARGS
-        if startswith(flag, f)
+        if startswith(f, flag)
             push!(flag_args, f)
         else
             push!(other_args, f)
