@@ -15,9 +15,16 @@
 #
 #   $ mpiexecjl --version
 #   $ mpiexecjl -n 40 julia mpi-script.jl
-#   $ mpiexecjl --project=my_experiment -n 80 --oversubscribe mpi-script.jl
+#   $ mpiexecjl --project=my_experiment -n 80 --oversubscribe julia mpi-script.jl
 #
 ### Code:
+
+usage () {
+    echo "Usage: ${0} [--project=...] MPIEXEC_ARGUMENTS..."
+    echo "Call the mpiexec binary in the Julia environment specified by the --project option."
+    echo "If no project is specified, the MPI associated with the global Julia environment will be used."
+    echo "All other arguments are forwarded to mpiexec."
+}
 
 for arg; do
     shift
@@ -25,11 +32,24 @@ for arg; do
         --project | --project=*)
             PROJECT_ARG="${arg}"
             ;;
+        -h | --help)
+            usage
+            echo "Below is the help of the current mpiexec."
+            echo
+            set -- "${@}" "${arg}"
+            ;;
         *)
             set -- "${@}" "${arg}"
             ;;
     esac
 done
+
+if [ -z "${*}" ]; then
+    echo "ERROR: no arguments specified." 1>&2
+    echo
+    usage
+    exit 1
+fi
 
 SCRIPT='
 using MPI
