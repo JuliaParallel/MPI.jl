@@ -1,14 +1,13 @@
-#!/usr/bin/env julia
-# -*- julia -*-
+#!/bin/sh
 #
-# Copyright (C) 2020 Mosè Giordano
+# Copyright (C) 2020 Simon Byrne, Mosè Giordano
 # License is MIT "Expat"
 #
 ### Commentary:
 #
 # Command line utility to call the `mpiexec` binary used by the `MPI.jl` version
 # in the given Julia project.  It has the same syntax as the `mpiexec` binary
-# that would be called, with the additional `--project=...` to select a
+# that would be called, with the additional `--project=...` flag to select a
 # different Julia project.
 #
 # Examples of usage (the MPI flags available depend on the MPI implementation
@@ -20,28 +19,28 @@
 #
 ### Code:
 
-# From BinaryBuilder.jl
-function extract_flag(ARGS, flag, val = "")
-    flag_args = String[]
-    other_args = String[]
-    for f in ARGS
-        if startswith(f, flag)
-            push!(flag_args, f)
-        else
-            push!(other_args, f)
-        end
-    end
-    return (flag_args, other_args)
-end
+for arg; do
+    shift
+    case "${arg}" in
+        --project | --project=*)
+            PROJECT_ARG="${arg}"
+            ;;
+        *)
+            set -- "${@}" "${arg}"
+            ;;
+    esac
+done
 
-project_args, _ARGS = extract_flag(ARGS, "--project")
+SCRIPT='
+using MPI
+ENV["JULIA_PROJECT"] = dirname(Base.active_project())
+mpiexec(exe -> run(`$exe $ARGS`))'
 
-const script = raw"""
-    using MPI
-    ENV["JULIA_PROJECT"] = dirname(Base.active_project())
-    mpiexec() do exe
-        run(`$exe $ARGS`)
-    end
-    """
-
-run(`$(joinpath(Sys.BINDIR, Base.julia_exename())) --color=yes --startup-file=no -q --compile=min -O0 $(project_args) -e $(script) -- $(_ARGS)`)
+case "${PROJECT_ARG}" in
+    --project*)
+        julia "${PROJECT_ARG}" --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
+        ;;
+    *)
+        julia --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
+        ;;
+esac
