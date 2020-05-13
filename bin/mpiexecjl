@@ -51,6 +51,7 @@ if [ -z "${*}" ]; then
     exit 1
 fi
 
+# shellcheck disable=SC2016
 SCRIPT='
 using MPI
 ENV["JULIA_PROJECT"] = dirname(Base.active_project())
