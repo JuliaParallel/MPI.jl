@@ -6,8 +6,11 @@ if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     using CuArrays
 end
 
-# This test doesn't need to be run with mpiexec
-include("mpiexecjl.jl")
+if Sys.isunix()
+    # This test doesn't need to be run with mpiexec.  `mpiexecjl` is currently
+    # available only on Unix systems
+    include("mpiexecjl.jl")
+end
 
 args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_TEST_ARGS", ""))
 
