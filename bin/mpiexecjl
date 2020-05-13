@@ -14,7 +14,7 @@
 # called):
 #
 #   $ mpiexecjl --version
-#   $ mpiexecjl -n 40 mpi-script.jl
+#   $ mpiexecjl -n 40 julia mpi-script.jl
 #   $ mpiexecjl --project=my_experiment -n 80 --oversubscribe mpi-script.jl
 #
 ### Code:
