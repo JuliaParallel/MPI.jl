@@ -4,6 +4,7 @@
 
 ```@docs
 mpiexec
+MPI.install_mpiexecjl
 ```
 
 ## Enums
