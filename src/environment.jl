@@ -49,7 +49,15 @@ For more details, see [Finalizers](@ref).
 function refcount_dec()
     # refcount zero, all objects finalized, now finalize MPI
     if Threads.atomic_sub!(REFCOUNT, 1) == 1
-        !Finalized() && _Finalize()
+        if !Finalized()
+            # MPI can now be finalized, but MPI_Finalize is a collective and can act
+            # like a barrier (this may be implementation specific), if we are terminating
+            # due to a Julia exception, we should calling MPI_Finalize. We thus peek at the
+            # current exception, and only if that field is nothing do we terminate.
+            if ccall(:jl_current_exception, Any, ()) === nothing
+                _Finalize()
+            end
+        end
     end
 end
 
