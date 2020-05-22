@@ -22,7 +22,7 @@ function runtests()
 
     nfail = 0
     printstyled("Running MPI.jl tests\n"; color=:white)
-    
+
     for f in testfiles
         mpiexec() do cmd
             cmd = `$cmd $args`
@@ -32,6 +32,9 @@ function runtests()
                 withenv("JULIA_NUM_THREAD" => "4") do
                     run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
                 end
+            elseif f == "test_error.jl"
+                r = run(ignorestatus(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`))
+                @test !success(r)
             else
                 run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
             end
