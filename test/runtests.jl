@@ -14,36 +14,26 @@ end
 
 args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_TEST_ARGS", ""))
 
-function runtests()
-    nprocs = clamp(Sys.CPU_THREADS, 2, 4)
-    testdir = dirname(@__FILE__)
-    istest(f) = endswith(f, ".jl") && startswith(f, "test_")
-    testfiles = sort(filter(istest, readdir(testdir)))
+nprocs = clamp(Sys.CPU_THREADS, 2, 4)
+testdir = @__DIR__
+istest(f) = endswith(f, ".jl") && startswith(f, "test_")
+testfiles = sort(filter(istest, readdir(testdir)))
 
-    nfail = 0
-    printstyled("Running MPI.jl tests\n"; color=:white)
-
-    for f in testfiles
-        mpiexec() do cmd
-            cmd = `$cmd $args`
-            if f == "test_spawn.jl"
-                run(`$cmd -n 1 $(Base.julia_cmd()) $(joinpath(testdir, f))`)
-            elseif f == "test_threads.jl"
-                withenv("JULIA_NUM_THREAD" => "4") do
-                    run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
-                end
-            elseif f == "test_error.jl"
-                r = run(ignorestatus(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`))
-                @test !success(r)
-            else
+@testset "$f" for f in testfiles
+    mpiexec() do cmd
+        cmd = `$cmd $args`
+        if f == "test_spawn.jl"
+            run(`$cmd -n 1 $(Base.julia_cmd()) $(joinpath(testdir, f))`)
+        elseif f == "test_threads.jl"
+            withenv("JULIA_NUM_THREAD" => "4") do
                 run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
             end
+        elseif f == "test_error.jl"
+            r = run(ignorestatus(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`))
+            @test !success(r)
+        else
+            run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
         end
-        Base.with_output_color(:green,stdout) do io
-            println(io,"\tSUCCESS: $f")
-        end
+        @test true
     end
-    return nfail
 end
-
-exit(runtests())
