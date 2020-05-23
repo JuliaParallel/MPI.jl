@@ -12,6 +12,7 @@ variables:
   JULIA_MPI_BINARY: "system"
   JULIA_MPI_PATH: "$CI_PROJECT_DIR/mpi"
   JULIA_MPI_TEST_ARRAYTYPE: 'CuArray'
+  JULIA_MPI_TEST_NPROCS: '2'
 
 openmpi:
   stage: build
@@ -30,7 +31,7 @@ openmpi:
     - tar xf openmpi.tar.gz
     - pushd openmpi-${OPENMPI_VER_FULL}
     - ./configure --with-cuda --prefix="${JULIA_MPI_PATH}"
-    - make -j
+    - make -j 2
     - make install
     - popd
   script:
