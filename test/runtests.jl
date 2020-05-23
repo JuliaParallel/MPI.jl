@@ -4,6 +4,9 @@ using Test, MPI
 using DoubleFloats
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     using CuArrays
+    ArrayType = CuArray
+else
+    ArrayType = Array
 end
 
 if Sys.isunix()
@@ -12,16 +15,19 @@ if Sys.isunix()
     include("mpiexecjl.jl")
 end
 
-args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_TEST_ARGS", ""))
+mpiexec_args = Base.shell_split(get(ENV, "JULIA_MPIEXEC_TEST_ARGS", ""))
 
-nprocs = clamp(Sys.CPU_THREADS, 2, 4)
+nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS","")
+nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
 testdir = @__DIR__
 istest(f) = endswith(f, ".jl") && startswith(f, "test_")
 testfiles = sort(filter(istest, readdir(testdir)))
 
+@info "Running MPI tests" ArrayType nprocs mpiexec_args
+
 @testset "$f" for f in testfiles
     mpiexec() do cmd
-        cmd = `$cmd $args`
+        cmd = `$cmd $mpiexec_args`
         if f == "test_spawn.jl"
             run(`$cmd -n 1 $(Base.julia_cmd()) $(joinpath(testdir, f))`)
         elseif f == "test_threads.jl"
