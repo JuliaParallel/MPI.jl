@@ -98,6 +98,11 @@ function set_view!(file::FileHandle, disp::Integer, etype::Datatype, filetype::D
 end
 
 
+function sync(file::FileHandle)
+    # int MPI_File_sync(MPI_File fh)
+    @mpichk ccall((:MPI_File_sync, libmpi), Cint, (MPI_File,), file)
+    return nothing
+end
 
 
 # Explicit offsets
