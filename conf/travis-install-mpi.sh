@@ -9,7 +9,7 @@ MPI_IMPL="$1"
 os=`uname`
 OMPIVER=4.0.3
 MPICHVER=3.3.2
-IMPIVER=2019.4.243
+IMPIVER=2019.7.217
 case "$os" in
     Darwin)
         case "$MPI_IMPL" in
@@ -67,7 +67,7 @@ case "$os" in
                 sudo make install > /dev/null
                 ;;
             intelmpi)
-                wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/15553/l_mpi_$IMPIVER.tgz
+                wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16546/l_mpi_2019.7.217.tgz
                 tar -xzf l_mpi_$IMPIVER.tgz
                 cd l_mpi_$IMPIVER
                 cat << EOF > intel.conf
