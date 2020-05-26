@@ -12,6 +12,12 @@ MPI.File.open
 MPI.File.set_view!
 ```
 
+## Consistency
+
+```@docs
+MPI.File.sync
+```
+
 ## Data access
 
 ### Explicit offsets

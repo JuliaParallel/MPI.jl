@@ -97,7 +97,17 @@ function set_view!(file::FileHandle, disp::Integer, etype::Datatype, filetype::D
     set_view!(file, disp, etype, filetype, datarep, Info(infokwargs...))
 end
 
+"""
+    MPI.File.sync(fh::FileHandle)
 
+A collective operation causing all previous writes to `fh` by the calling process to be
+transferred to the storage device. If other processes have made updates to the storage
+device, then all such updates become visible to subsequent reads of `fh` by the calling
+process.
+
+# External links
+$(_doc_external("MPI_File_sync"))
+"""
 function sync(file::FileHandle)
     # int MPI_File_sync(MPI_File fh)
     @mpichk ccall((:MPI_File_sync, libmpi), Cint, (MPI_File,), file)
