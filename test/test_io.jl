@@ -15,52 +15,33 @@ rank = MPI.Comm_rank(comm)
 sz = MPI.Comm_size(comm)
 filename = MPI.bcast(tempname(), 0, comm)
 
-# Write
 MPI.Barrier(comm)
 
-f = MPI.File.open(comm, filename, write=true)
-MPI.File.set_view!(f, 0, MPI.Datatype(Int64), MPI.Datatype(Int64))
-MPI.File.write_at(f, rank*2, ArrayType([Int64(rank+1) for i = 1:2]))
-close(f)
+# Collective write
+fh = MPI.File.open(comm, filename, read=true, write=true, create=true)
+MPI.File.set_view!(fh, 0, MPI.Datatype(Int64), MPI.Datatype(Int64))
+MPI.File.write_at_all(fh, rank*2, ArrayType([Int64(rank+1) for i = 1:2]))
 
-MPI.Barrier(comm)
+MPI.File.sync(fh)
 
+# Noncollective read
 if rank == 0
-    @test read!(filename, zeros(Int64, (2,sz))) == [j for i = 1:2, j=1:sz]
+    data = zeros(Int64, (2,sz))
+    MPI.File.read_at!(fh, 0, data)
+    @test data == [j for i = 1:2, j=1:sz]
 end
 
+MPI.File.sync(fh)
 MPI.Barrier(comm)
 
-f = MPI.File.open(comm, filename, write=true)
-MPI.File.set_view!(f, 0, MPI.Datatype(Int64), MPI.Datatype(Int64))
-MPI.File.write_at_all(f, rank*2, ArrayType([Int64(rank+1) for i = 1:2]))
-close(f)
-
-MPI.Barrier(comm)
-
-if rank == 0
-    @test read!(filename, zeros(Int64, (2,sz))) == [j for i = 1:2, j=1:sz]
+if rank == sz-1
+    MPI.File.write_at(fh, 0, ArrayType([Int64(-1) for i = 1:2]))
 end
 
-MPI.Barrier(comm)
+MPI.File.sync(fh)
 
-# Read
-if rank == 0
-    write(filename, [Float64(j) for i = 1:3, j = 1:sz])
-end
-
-MPI.Barrier(comm)
-
-
-f = MPI.File.open(comm, filename, read=true)
-MPI.File.set_view!(f, 0, MPI.Datatype(Float64), MPI.Datatype(Float64))
-
-data = ArrayType(zeros(Float64, 3))
-MPI.File.read_at!(f, rank*3, data)
-@test data == Float64[rank+1 for i = 1:3]
-
-MPI.Barrier(comm)
-
-data = ArrayType(zeros(Float64, 3))
-MPI.File.read_at_all!(f, rank*3, data)
-@test data == Float64[rank+1 for i = 1:3]
+# Collective read
+data = zeros(Int64, 1)
+MPI.File.read_at_all!(fh, rank*2, data)
+@test data == [rank == 0 ? -1 : rank+1]
+close(fh)
