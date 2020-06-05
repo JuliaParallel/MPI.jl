@@ -844,16 +844,16 @@ end
 function Exscan!(sendbuf, recvbuf, count::Integer, opfunc, comm::Comm)
     Exscan!(sendbuf, recvbuf, count, Op(opfunc, eltype(recvbuf)), comm)
 end
-function Exscan!(sendbuf::AbstractArray, recvbuf, op, comm::Comm)
+function Exscan!(sendbuf::AbstractArray, recvbuf::AbstractArray, op, comm::Comm)
     Exscan!(sendbuf, recvbuf, length(sendbuf), op, comm)
 end
 
 # inplace
 function Exscan!(buf, count::Integer, opfunc, comm::Comm)
-    Exscan!(MPI_IN_PLACE, buf, count, Op(opfunc, eltype(sendbuf)), comm)
+    Exscan!(MPI_IN_PLACE, buf, count, Op(opfunc, eltype(buf)), comm)
 end
-function Exscan!(buf, opfunc, comm::Comm)
-    Exscan!(buf, length(buf), Op(opfunc, eltype(sendbuf)), comm)
+function Exscan!(buf, op, comm::Comm)
+    Exscan!(buf, length(buf), op, comm)
 end
 
 

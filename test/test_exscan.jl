@@ -26,8 +26,16 @@ for T in setdiff([Base.uniontypes(MPI.MPIDatatype)...], [Char, Int8, UInt8])
     
     B = MPI.Exscan(A, *, comm)
     @test B isa ArrayType{T}
+
+    MPI.Exscan!(A, length(A), *, comm)
     if rank > 0
-        @test B == ArrayType{T}(fill(T(prodrank), 4))
+        @test A == ArrayType{T}(fill(T(prodrank), 4))
+    end
+
+    A = ArrayType{T}(fill(T(rank+1), 4))
+    MPI.Exscan!(A, *, comm)
+    if rank > 0
+        @test A == ArrayType{T}(fill(T(prodrank), 4))
     end
     
     B = MPI.Exscan(T(rank+1), *, comm)
