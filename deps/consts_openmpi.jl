@@ -107,12 +107,17 @@ const MPI_MODE_UNIQUE_OPEN = Cint(32)
 const MPI_MODE_SEQUENTIAL = Cint(256)
 const MPI_MODE_APPEND = Cint(128)
 
-const MPI_BOTTOM = reinterpret(SentinelPtr, 0)
-const MPI_IN_PLACE = reinterpret(SentinelPtr, 1)
-const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 0)
-const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 0)
+const MPI_SEEK_SET = Cint(600)
+const MPI_SEEK_CUR = Cint(602)
+const MPI_SEEK_END = Cint(604)
 
 const MPI_IDENT = Cint(0)
 const MPI_CONGRUENT = Cint(1)
 const MPI_SIMILAR = Cint(2)
 const MPI_UNEQUAL = Cint(3)
+
+const MPI_BOTTOM = reinterpret(SentinelPtr, 0)
+const MPI_IN_PLACE = reinterpret(SentinelPtr, 1)
+const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 0)
+const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 0)
+

@@ -139,6 +139,9 @@ MPI_Cints = [
     :MPI_CONGRUENT,
     :MPI_SIMILAR,
     :MPI_UNEQUAL,
+    :MPI_SEEK_SET,
+    :MPI_SEEK_CUR,
+    :MPI_SEEK_END,
 ]
 
 MPI_pointers = [

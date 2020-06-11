@@ -97,6 +97,16 @@ function set_view!(file::FileHandle, disp::Integer, etype::Datatype, filetype::D
     set_view!(file, disp, etype, filetype, datarep, Info(infokwargs...))
 end
 
+function get_byte_offset(file::FileHandle, offset::Integer)
+    r_displ = Ref{MPI_Offset}()
+    # int MPI_File_get_byte_offset(MPI_File fh, MPI_Offset offset,
+    #              MPI_Offset *disp)
+    @mpichk ccall((:MPI_File_get_byte_offset, libmpi), Cint,
+                  (MPI_File, MPI_Offset,  Ptr{MPI_Offset}),
+                  file, offset, r_displ)
+    r_displ[]
+end
+
 """
     MPI.File.sync(fh::FileHandle)
 
@@ -212,6 +222,72 @@ end
 write_at_all(file::FileHandle, offset::Integer, data) = write_at_all(file, offset, Buffer_send(data))
 
 
+# Shared file pointer
+function read_shared!(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_read_shared(MPI_File fh, void *buf, int count,
+    #              MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_read_shared, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+read_shared!(file::FileHandle, data) = read_shared!(file, Buffer(data))
 
+function write_shared(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_write_shared(MPI_File fh, const void *buf, int count,
+    #          MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_write_shared, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+write_shared(file::FileHandle, buf) = write_shared(file, Buffer_send(buf))
+
+# Shared collective operations
+function read_ordered!(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_read_ordered(MPI_File fh, void *buf, int count,
+    #              MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_read_ordered, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+read_ordered!(file::FileHandle, data) = read_ordered!(file, Buffer(data))
+
+function write_ordered(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_write_ordered(MPI_File fh, const void *buf, int count,
+    #              MPI_Datatype datatype, MPI_Status *status)    
+    @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+write_ordered(file::FileHandle, buf) = write_ordered(file, Buffer_send(buf))
+
+# seek
+@enum Seek begin
+    SEEK_SET = MPI.MPI_SEEK_SET
+    SEEK_CUR = MPI.MPI_SEEK_CUR
+    SEEK_END = MPI.MPI_SEEK_END
+end    
+
+function seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)
+    # int MPI_File_seek_shared(MPI_File fh, MPI_Offset offset, int whence)
+    @mpichk ccall((:MPI_File_seek_shared, libmpi), Cint,
+                  (MPI_File, MPI_Offset, Cint),
+                  file, offset, whence)
+end
+
+function get_position_shared(file::FileHandle)
+    r = Ref{MPI_Offset}()
+    # int MPI_File_get_position_shared(MPI_File fh, MPI_Offset *offset)
+    @mpichk ccall((:MPI_File_get_position_shared, libmpi), Cint,
+                  (MPI_File, Ptr{MPI_Offset}), file, r)
+    return r[]
+end
 
 end # module

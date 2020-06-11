@@ -18,6 +18,15 @@ function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
     ptr = Base.unsafe_convert(Ptr{T}, x)
     reinterpret(MPIPtr, ptr)
 end
+
+
+function Base.cconvert(::Type{MPIPtr}, x::String)
+    x
+end
+function Base.unsafe_convert(::Type{MPIPtr}, x::String)
+    reinterpret(MPIPtr, pointer(x))
+end
+
 function Base.cconvert(::Type{MPIPtr}, ::Nothing)
     reinterpret(MPIPtr, C_NULL)
 end
@@ -123,5 +132,8 @@ Construct a [`Buffer`](@ref) object for a send operation from `data`, allowing c
 `isbits(data)`.
 """
 Buffer_send(data) = isbits(data) ? Buffer(Ref(data)) : Buffer(data)
+Buffer_send(str::String) = Buffer(str, sizeof(str), MPI.CHAR)
+
+
 
 const BUFFER_NULL = Buffer(C_NULL, 0, DATATYPE_NULL)
