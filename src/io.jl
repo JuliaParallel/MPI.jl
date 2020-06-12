@@ -98,6 +98,26 @@ function set_view!(file::FileHandle, disp::Integer, etype::Datatype, filetype::D
 end
 
 """
+    MPI.File.get_byte_offset(file::FileHandle, offset::Integer)
+
+Converts a view-relative offset into an absolute byte position. Returns the absolute byte
+position (from the beginning of the file) of `offset` relative to the current view of
+`file`.
+
+# External links
+$(_doc_external("MPI_File_get_byte_offset"))
+"""
+function get_byte_offset(file::FileHandle, offset::Integer)
+    r_displ = Ref{MPI_Offset}()
+    # int MPI_File_get_byte_offset(MPI_File fh, MPI_Offset offset,
+    #              MPI_Offset *disp)
+    @mpichk ccall((:MPI_File_get_byte_offset, libmpi), Cint,
+                  (MPI_File, MPI_Offset,  Ptr{MPI_Offset}),
+                  file, offset, r_displ)
+    r_displ[]
+end
+
+"""
     MPI.File.sync(fh::FileHandle)
 
 A collective operation causing all previous writes to `fh` by the calling process to be
@@ -212,6 +232,148 @@ end
 write_at_all(file::FileHandle, offset::Integer, data) = write_at_all(file, offset, Buffer_send(data))
 
 
+# Shared file pointer
+"""
+    MPI.File.read_shared!(file::FileHandle, data)
 
+Reads from `file` using the shared file pointer into `data`.  `data` can be a
+[`Buffer`](@ref), or any object for which `Buffer(data)` is defined.
+
+# See also
+- [`MPI.File.read_ordered!`](@ref) for the collective operation
+
+# External links
+$(_doc_external("MPI_File_read_shared"))
+"""
+function read_shared!(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_read_shared(MPI_File fh, void *buf, int count,
+    #              MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_read_shared, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+read_shared!(file::FileHandle, data) = read_shared!(file, Buffer(data))
+
+"""
+    MPI.File.write_shared(file::FileHandle, data)
+
+Writes to `file` using the shared file pointer from `data`. `data` can be a
+[`Buffer`](@ref), or any object for which `Buffer(data)` is defined.
+
+# See also
+- [`MPI.File.write_ordered`](@ref) for the noncollective operation
+
+# External links
+$(_doc_external("MPI_File_write_shared"))
+"""
+function write_shared(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_write_shared(MPI_File fh, const void *buf, int count,
+    #          MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_write_shared, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+write_shared(file::FileHandle, buf) = write_shared(file, Buffer_send(buf))
+
+# Shared collective operations
+"""
+    MPI.File.read_ordered!(file::FileHandle, data)
+
+Collectively reads in rank order from `file` using the shared file pointer into `data`.
+`data` can be a [`Buffer`](@ref), or any object for which `Buffer(data)` is defined. This
+is a collective operation, so must be called on all ranks in the communicator on which
+`file` was opened.
+
+# See also
+- [`MPI.File.read_shared!`](@ref) for the non-collective operation
+
+# External links
+$(_doc_external("MPI_File_read_ordered"))
+"""
+function read_ordered!(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_read_ordered(MPI_File fh, void *buf, int count,
+    #              MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_read_ordered, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+read_ordered!(file::FileHandle, data) = read_ordered!(file, Buffer(data))
+
+"""
+    MPI.File.write_ordered(file::FileHandle, data)
+
+Collectively writes in rank order to `file` using the shared file pointer from `data`.
+`data` can be a [`Buffer`](@ref), or any object for which `Buffer(data)` is defined. This
+is a collective operation, so must be called on all ranks in the communicator on which
+`file` was opened.
+
+# See also
+- [`MPI.File.write_shared`](@ref) for the noncollective operation
+
+# External links
+$(_doc_external("MPI_File_write_ordered"))
+"""
+function write_ordered(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_write_ordered(MPI_File fh, const void *buf, int count,
+    #              MPI_Datatype datatype, MPI_Status *status)    
+    @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+write_ordered(file::FileHandle, buf) = write_ordered(file, Buffer_send(buf))
+
+# seek
+@enum Seek begin
+    SEEK_SET = MPI.MPI_SEEK_SET
+    SEEK_CUR = MPI.MPI_SEEK_CUR
+    SEEK_END = MPI.MPI_SEEK_END
+end    
+
+"""
+    MPI.File.seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)
+
+Updates the shared file pointer according to `whence`, which has the following possible
+values:
+
+- `MPI.File.SEEK_SET` (default): the pointer is set to `offset`
+- `MPI.File.SEEK_CUR`: the pointer is set to the current pointer position plus `offset`
+- `MPI.File.SEEK_END`: the pointer is set to the end of file plus `offset`
+
+This is a collective operation, and must be called with the same value on all processes in
+the communicator.
+
+# External links
+$(_doc_external("MPI_File_seek_shared"))
+"""
+function seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)
+    # int MPI_File_seek_shared(MPI_File fh, MPI_Offset offset, int whence)
+    @mpichk ccall((:MPI_File_seek_shared, libmpi), Cint,
+                  (MPI_File, MPI_Offset, Cint),
+                  file, offset, whence)
+end
+
+"""
+    MPI.File.get_position_shared(file::FileHandle)
+
+The current position of the shared file pointer (in `etype` units) relative to the current view.
+
+# External links
+$(_doc_external("MPI_File_get_position_shared"))
+"""
+function get_position_shared(file::FileHandle)
+    r = Ref{MPI_Offset}()
+    # int MPI_File_get_position_shared(MPI_File fh, MPI_Offset *offset)
+    @mpichk ccall((:MPI_File_get_position_shared, libmpi), Cint,
+                  (MPI_File, Ptr{MPI_Offset}), file, r)
+    return r[]
+end
 
 end # module
