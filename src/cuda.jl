@@ -1,28 +1,21 @@
-import .CuArrays: CuArray
-import .CuArrays.CUDAdrv: CuPtr, synchronize
-import .CuArrays.CUDAdrv.Mem: DeviceBuffer
+import .CUDA
 
-
-function Base.cconvert(::Type{MPIPtr}, buf::CuArray{T}) where T
-    Base.cconvert(CuPtr{T}, buf) # returns DeviceBuffer
+function Base.cconvert(::Type{MPIPtr}, buf::CUDA.CuArray{T}) where T
+    Base.cconvert(CUDA.CuPtr{T}, buf) # returns DeviceBuffer
 end
 
-# CuArrays <= v1.3
-function Base.unsafe_convert(::Type{MPIPtr}, buf::DeviceBuffer)
-    reinterpret(MPIPtr, buf.ptr)
+function Base.unsafe_convert(::Type{MPIPtr}, X::CUDA.CuArray{T}) where T
+    reinterpret(MPIPtr, Base.unsafe_convert(CUDA.CuPtr{T}, X))
 end
-# CuArrays > v1.3
-function Base.unsafe_convert(::Type{MPIPtr}, X::CuArray{T}) where T
-    reinterpret(MPIPtr, Base.unsafe_convert(CuPtr{T}, X))
-end
+
 # only need to define this for strided arrays: all others can be handled by generic machinery
-function Base.unsafe_convert(::Type{MPIPtr}, V::SubArray{T,N,P,I,true}) where {T,N,P<:CuArray,I}
+function Base.unsafe_convert(::Type{MPIPtr}, V::SubArray{T,N,P,I,true}) where {T,N,P<:CUDA.CuArray,I}
     X = parent(V)
-    pX = Base.unsafe_convert(CuPtr{T}, X)
+    pX = Base.unsafe_convert(CUDA.CuPtr{T}, X)
     pV = pX + ((V.offset1 + V.stride1) - first(LinearIndices(X)))*sizeof(T)
     return reinterpret(MPIPtr, pV)
 end
 
-function Buffer(arr::CuArray)
+function Buffer(arr::CUDA.CuArray)
     Buffer(arr, Cint(length(arr)), Datatype(eltype(arr)))
 end

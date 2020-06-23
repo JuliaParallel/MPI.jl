@@ -77,7 +77,7 @@ The test suite can also be modified by the following variables:
 
 - `JULIA_MPIEXEC_TEST_ARGS`: Additional arguments to be passed to the MPI launcher for the tests only.
 - `JULIA_MPI_TEST_ARRAYTYPE`: Set to `CuArray` to test the CUDA-aware interface with
-  [`CuArray`s](https://github.com/JuliaGPU/CuArrays.jl) buffers.
+  [`CUDA.CuArray](https://github.com/JuliaGPU/CUDA.jl) buffers.
 
 ## Julia wrapper for `mpiexec`
 
