@@ -30,8 +30,8 @@ The [`mpiexec`](@ref) function is provided for launching MPI programs from Julia
 
 ## CUDA-aware MPI support
 
-If your MPI implementation has been compiled with CUDA support, then `CuArray`s (from the
-[CuArrays.jl](https://github.com/JuliaGPU/CuArrays.jl) package) can be passed directly as
+If your MPI implementation has been compiled with CUDA support, then `CUDA.CuArray`s (from the
+[CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) package) can be passed directly as
 send and receive buffers for point-to-point and collective operations (they may also work
 with one-sided operations, but these are not often supported).
 

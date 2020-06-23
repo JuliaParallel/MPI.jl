@@ -51,7 +51,7 @@ Currently supported are:
  - `Ref`
  - `Array`
  - `SubArray`
- - `CuArray` if CuArrays.jl is loaded.
+ - `CUDA.CuArray` if CUDA.jl is loaded.
 
 Additionally, certain sentinel values can be used, e.g. `MPI_IN_PLACE` or `MPI_BOTTOM`.
 """
@@ -79,8 +79,8 @@ and `datatype`. Methods are provided for
 
  - `Ref`
  - `Array`
- - `CuArray` if CuArrays.jl is loaded
- - `SubArray`s of an `Array` or `CuArray` where the layout is contiguous, sequential or
+ - `CUDA.CuArray` if CUDA.jl is loaded
+ - `SubArray`s of an `Array` or `CUDA.CuArray` where the layout is contiguous, sequential or
    blocked.
 
 """

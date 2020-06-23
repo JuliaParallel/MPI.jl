@@ -80,7 +80,7 @@ function __init__()
         ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
     end
 
-    @require CuArrays="3a865a2d-5b23-5a0f-bc46-62713ec82fae" include("cuda.jl")
+    @require CUDA="052768ef-5323-5732-b1bb-66c8b64840ba" include("cuda.jl")
 end
 
 end
