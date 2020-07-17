@@ -18,6 +18,7 @@ jobs:
 
     env:
       MPICH_INTERFACE_HOSTNAME: localhost
+      JULIA_MPIEXEC_TEST_ARGS: "-hosts localhost"
 
     steps:
     - name: Cancel Previous Runs
