@@ -11,13 +11,16 @@ jobs:
   test-os:
     timeout-minutes: 120
     strategy:
-      fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-10.14]
 
     runs-on: ${{ matrix.os }}
 
     steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.4.0
+      with:
+        access_token: ${{ github.token }}
 
     - name: Checkout
       uses: actions/checkout@v2.2.0
