@@ -12,7 +12,7 @@ end
 if Sys.isunix()
     # This test doesn't need to be run with mpiexec.  `mpiexecjl` is currently
     # available only on Unix systems
-    include("mpiexecjl.jl")
+    #include("mpiexecjl.jl")
 end
 
 nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS","")
