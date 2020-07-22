@@ -8,8 +8,9 @@ A wrapper function for the MPI launcher executable. Calls `fn(cmd)`, where `cmd`
 The behaviour of `mpiexec` can be controlled by the following environment variables:
 
 - `JULIA_MPIEXEC`: the name or path of the launcher executable (set at compile time).
-- `JULIA_MPIEXEC_ARGS`: additional arguments that are passed to the launcher. These are space seperated, supporting the same quoting rules as
-  Julia `Cmd` objects. These can be modified at run time.
+- `JULIA_MPIEXEC_ARGS`: additional arguments that are passed to the launcher. These are
+  space seperated, supporting the same quoting rules as Julia `Cmd` objects. These can be
+  modified at run time.
 
 # Usage
 
@@ -20,8 +21,9 @@ hello world
 hello world
 ```
 """
-mpiexec
-
+function mpiexec(fn)
+    _mpiexec(cmd -> fn(`$cmd $(Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", "")))`))
+end
 
 const REFCOUNT = Threads.Atomic{Int}(-1)
 

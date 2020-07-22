@@ -46,10 +46,11 @@ if haskey(ENV, "JULIA_MPIEXEC")
     if ENV["JULIA_MPIEXEC"] == ""
         delete!(config, "mpiexec")
     else
-        config["mpiexec"] = [ENV["JULIA_MPIEXEC"], Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", ""))...]
+        config["mpiexec"] = ENV["JULIA_MPIEXEC"]
     end
     update_config = true
 end
+    
 
 if update_config
     open(config_toml, write=true) do f
@@ -67,7 +68,7 @@ if binary == "system"
         library = ["libmpi", "libmpi_ibm", "msmpi", "libmpich"]
     end
     path    = get(config, "path", "")
-    mpiexec = get(config, "mpiexec", [path == "" ? "mpiexec" : joinpath(path, "bin", "mpiexec")])
+    mpiexec = get(config, "mpiexec", path == "" ? "mpiexec" : joinpath(path, "bin", "mpiexec"))
     abi     = get(config, "abi", "")
 
     const libmpi = find_library(library, path == "" ? [] : [joinpath(path, "lib")])
@@ -117,7 +118,7 @@ if binary == "system"
         const libmpi = $libmpi
         const mpiexec_cmd = $mpiexec_cmd
         const mpiexec_path = mpiexec_cmd[1]
-        mpiexec(fn) = fn(mpiexec_cmd)
+        _mpiexec(fn) = fn(mpiexec_cmd)
         $abi_incl
 
         using Requires
@@ -141,12 +142,12 @@ elseif binary == ""
     deps = quote
         if Sys.iswindows()
             using MicrosoftMPI_jll
-            const mpiexec = MicrosoftMPI_jll.mpiexec
+            const _mpiexec = MicrosoftMPI_jll.mpiexec
             const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
             include("consts_microsoftmpi.jl")
         else
             using MPICH_jll
-            const mpiexec = MPICH_jll.mpiexec
+            const _mpiexec = MPICH_jll.mpiexec
             const mpiexec_path = MPICH_jll.mpiexec_path
             include("consts_mpich.jl")
         end
@@ -166,7 +167,7 @@ elseif binary ==  "MPICH_jll"
     deps = quote
         using MPICH_jll
         include("consts_mpich.jl")
-        const mpiexec = MPICH_jll.mpiexec
+        const _mpiexec = MPICH_jll.mpiexec
         const mpiexec_path = MPICH_jll.mpiexec_path
         __init__deps() = nothing
     end
@@ -175,7 +176,7 @@ elseif binary ==  "OpenMPI_jll"
     deps = quote
         using OpenMPI_jll
         include("consts_openmpi.jl")
-        const mpiexec = OpenMPI_jll.mpiexec
+        const _mpiexec = OpenMPI_jll.mpiexec
         const mpiexec_path = OpenMPI_jll.mpiexec_path
 
         function __init__deps()
@@ -190,7 +191,7 @@ elseif binary ==  "MicrosoftMPI_jll"
     deps = quote
         using MicrosoftMPI_jll
         include("consts_microsoftmpi.jl")
-        const mpiexec = MicrosoftMPI_jll.mpiexec
+        const _mpiexec = MicrosoftMPI_jll.mpiexec
         const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
 
         __init__deps() = nothing
