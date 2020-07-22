@@ -18,6 +18,8 @@ jobs:
           - os: macos-latest
             mpiexec_args: "-hosts localhost"
 
+    fail-fast: false
+
     runs-on: ${{ matrix.os }}
     env:
       MPICH_INTERFACE_HOSTNAME: localhost
