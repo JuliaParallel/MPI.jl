@@ -36,9 +36,11 @@ byte_offset = MPI.File.get_byte_offset(fh, offset)
 @test byte_offset == offset
 
 MPI.File.set_view!(fh, byte_offset, MPI.Datatype(Int64), MPI.Datatype(Int64))
+MPI.Barrier(comm)
 @test MPI.File.get_position_shared(fh) == 0
 
 MPI.File.write_ordered(fh, fill(Int64(rank), rank+1))
+MPI.Barrier(comm)
 @test MPI.File.get_position_shared(fh) == sum(1:sz)
 
 MPI.File.seek_shared(fh, 0)
