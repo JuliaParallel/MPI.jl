@@ -13,6 +13,7 @@ using MPI
         mpiexecjl = joinpath(dir, "mpiexecjl")
         julia = joinpath(Sys.BINDIR, Base.julia_exename())
         example = joinpath(@__DIR__, "..", "docs", "examples", "01-hello.jl")
+        run(`$(mpiexecjl) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
         @test success(`$(mpiexecjl) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
         # Test help messages
         for help_flag in ("-h", "--help")
