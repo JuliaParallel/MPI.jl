@@ -12,13 +12,15 @@ jobs:
     timeout-minutes: 120
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-latest
+            env:
+              MPICH_INTERFACE_HOSTNAME: localhost
+              JULIA_MPIEXEC_ARGS: "-hosts localhost"
 
     runs-on: ${{ matrix.os }}
-
-    env:
-      MPICH_INTERFACE_HOSTNAME: localhost
-      JULIA_MPIEXEC_TEST_ARGS: "-hosts localhost"
 
     steps:
     - name: Cancel Previous Runs
