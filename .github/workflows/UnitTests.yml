@@ -54,7 +54,7 @@ jobs:
 
     - name: Install Project Packages
       run: |
-        julia --project=@. -e 'using Pkg; Pkg.instantiate(); Pkg.build()'
+        julia --project=@. -e 'using Pkg; Pkg.instantiate(); Pkg.build(verbose=true)'
 
     - name: Run Unit Tests
       run: |
