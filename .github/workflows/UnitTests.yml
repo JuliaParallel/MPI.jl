@@ -16,7 +16,7 @@ jobs:
           - os: ubuntu-latest
           - os: windows-latest
           - os: macos-latest
-            mpiexec_args: "-hosts localhost"
+            mpiexec_args: "-host localhost"
 
       fail-fast: false
 
@@ -45,7 +45,7 @@ jobs:
       env:
         cache-name: cache-artifacts
       with:
-        path: ~/.julia/artifacts 
+        path: ~/.julia/artifacts
         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
         restore-keys: |
           ${{ runner.os }}-test-${{ env.cache-name }}-
