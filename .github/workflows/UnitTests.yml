@@ -16,11 +16,12 @@ jobs:
           - os: ubuntu-latest
           - os: windows-latest
           - os: macos-latest
-            env:
-              MPICH_INTERFACE_HOSTNAME: localhost
-              JULIA_MPIEXEC_ARGS: "-hosts localhost"
+            mpiexec_args: "-hosts localhost"
 
     runs-on: ${{ matrix.os }}
+    env:
+      MPICH_INTERFACE_HOSTNAME: localhost
+      JULIA_MPIEXEC_ARGS: ${{ matrix.mpiexec_args }}
 
     steps:
     - name: Cancel Previous Runs
