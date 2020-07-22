@@ -1,0 +1,61 @@
+name: Unit Tests
+
+on:
+  pull_request:
+
+  push:
+    branches:
+      - master
+
+jobs:
+  test-os:
+    timeout-minutes: 120
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: windows-latest
+          - os: macos-latest
+            mpiexec_args: "-host localhost"
+
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+    env:
+      MPICH_INTERFACE_HOSTNAME: localhost
+      JULIA_MPIEXEC_ARGS: ${{ matrix.mpiexec_args }}
+
+    steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.4.0
+      with:
+        access_token: ${{ github.token }}
+
+    - name: Checkout
+      uses: actions/checkout@v2.2.0
+
+    - name: Set up Julia
+      uses: julia-actions/setup-julia@v1.1.6
+      with:
+        version: 1.4
+
+    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+    - name: Cache artifacts
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-artifacts
+      with:
+        path: ~/.julia/artifacts
+        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-test-${{ env.cache-name }}-
+          ${{ runner.os }}-test-
+          ${{ runner.os }}-
+
+    - name: Install Project Packages
+      run: |
+        julia --project=@. -e 'using Pkg; Pkg.instantiate(); Pkg.build(verbose=true)'
+
+    - name: Run Unit Tests
+      run: |
+        julia --project=@. -e 'using Pkg; Pkg.test()'

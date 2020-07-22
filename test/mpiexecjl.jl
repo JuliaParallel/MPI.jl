@@ -6,14 +6,15 @@ using MPI
         # Install MPI locally, so that we can test the `--project` flag to
         # `mpiexecjl`
         Pkg.activate(dir)
-        Pkg.add("MPI")
+        Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")))
         # Test installation
         @test_logs (:info, r"Installing") (:info, r"Done") MPI.install_mpiexecjl(; destdir = dir)
         # Test a run of mpiexec
         mpiexecjl = joinpath(dir, "mpiexecjl")
         julia = joinpath(Sys.BINDIR, Base.julia_exename())
         example = joinpath(@__DIR__, "..", "docs", "examples", "01-hello.jl")
-        @test success(`$(mpiexecjl) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
+        p = run(`$(mpiexecjl) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
+        @test success(p)
         # Test help messages
         for help_flag in ("-h", "--help")
             help_message = read(`$(mpiexecjl) --project=$(dir) --help`, String)
