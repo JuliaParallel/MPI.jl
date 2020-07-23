@@ -5,6 +5,10 @@ os:
   - linux
   - osx
 
+arch:
+  - amd64
+  - ppc64le
+
 # requires MacOS 10.14
 osx_image: xcode11.4
 
@@ -56,6 +60,11 @@ matrix:
   exclude:
   - os: osx
     env: MPI_IMPL=intelmpi JULIA_MPI_BINARY=system
+  - os: osx
+    arch: ppc64le
+
+
+
 before_install:
   - sh ./conf/travis-install-mpi.sh $MPI_IMPL
   - |
