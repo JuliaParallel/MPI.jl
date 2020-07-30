@@ -256,6 +256,8 @@ end
 Each process sends the first `count` elements of the buffer `sendbuf` to the `root`
 process. The `root` allocates the output buffer and stores elements in rank order.
 
+`count` should be the same for all processes.
+
 # See also
 - [`Gather!`](@ref) for the mutating operation.
 - [`Gatherv!`](@ref)/[`Gatherv`](@ref) if the number of elements varies between processes.
@@ -280,6 +282,8 @@ end
 
 Each process sends the first `count` elements of `sendbuf` to the other processes, who
 store the results in rank order into `recvbuf`.
+
+`count` should be the same for all processes.
 
 If only one buffer `sendrecvbuf` is provided, then each process send data is assumed to be
 in the area where it would receive it's own contribution.
@@ -315,6 +319,8 @@ end
 
 Each process sends the first `count` elements of `sendbuf` to the other processes, who
 store the results in rank order allocating the output buffer.
+
+`count` should be the same for all processes.
 
 # See also
 - [`Allgather!`](@ref) for the mutating operation
