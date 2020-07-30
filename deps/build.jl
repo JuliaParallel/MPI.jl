@@ -200,6 +200,20 @@ else
     error("Unknown binary $binary")
 end
 
-open("deps.jl", write=true) do f
-    print(f, deps)
+remove_line_numbers(x) = x
+function remove_line_numbers(ex::Expr)
+    if ex.head == :macrocall
+        ex.args[2] = nothing
+    else
+        ex.args = [remove_line_numbers(arg) for arg in ex.args if !(arg isa LineNumberNode)]
+    end
+    return ex
+end
+
+# only update deps.jl if it has changed.
+# allows users to call Pkg.build("MPI") without triggering another round of precompilation
+deps_str = string(remove_line_numbers(deps))
+
+if !isfile("deps.jl") || deps_str != read("deps.jl", String)
+    write("deps.jl", deps_str)
 end
