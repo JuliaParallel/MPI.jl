@@ -10,7 +10,7 @@
 
 This provides [Julia](http://julialang.org/) interface to the Message Passing Interface ([MPI](http://www.mpi-forum.org/)), roughly inspired by [mpi4py](http://mpi4py.scipy.org).
 
-Please see the [documentation](https://juliaparallel.github.io/MPI.jl/stable/) for instructions on [installation](https://juliaparallel.github.io/MPI.jl/stable/installation/) and [usage](https://juliaparallel.github.io/MPI.jl/stable/usage/).
+Please see the [documentation](https://juliaparallel.github.io/MPI.jl/stable/) for instructions on [configuration](https://juliaparallel.github.io/MPI.jl/stable/configuration/) and [usage](https://juliaparallel.github.io/MPI.jl/stable/usage/).
 
 # Help and discussion
 
