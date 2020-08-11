@@ -105,35 +105,35 @@ end false
            Bcast!(view(buffer, 1:count), root, comm), false)
 
 @deprecate(Scatter!(sendbuf, recvbuf, count::Integer, root::Integer, comm::Comm),
-           Scatter!(ChunkBuffer(sendbuf, count), recvbuf, root, comm), false)
+           Scatter!(MultiBuffer(sendbuf, count), recvbuf, root, comm), false)
 @deprecate(Scatter(sendbuf, count::Integer, root::Integer, comm::Comm),
            Scatter!(sendbuf, similar(sendbuf, count), count, root, comm), false)
 
 @deprecate(Scatterv!(sendbuf, recvbuf, counts::Vector, root::Integer, comm::Comm),
-           Scatterv!(VChunkBuffer(sendbuf, counts), recvbuf, root, comm), false)
+           Scatterv!(VMultiBuffer(sendbuf, counts), recvbuf, root, comm), false)
 @deprecate(Scatterv(sendbuf, counts::Vector, root::Integer, comm::Comm),
-           Scatterv!(VChunkBuffer(sendbuf, counts), similar(sendbuf, counts[Comm_rank(comm) + 1]), root, comm), false)
+           Scatterv!(VMultiBuffer(sendbuf, counts), similar(sendbuf, counts[Comm_rank(comm) + 1]), root, comm), false)
 
 @deprecate(Gather!(sendbuf, recvbuf, count::Integer, root::Integer, comm::Comm),
-           Gather!(sendbuf, ChunkBuffer(recvbuf, count), root, comm), false)
+           Gather!(sendbuf, MultiBuffer(recvbuf, count), root, comm), false)
 @deprecate(Gather(sendbuf, count::Integer, root::Integer, comm::Comm),
            Gather(view(sendbuf, 1:count), root, comm), false)
 
 @deprecate(Allgather!(sendbuf, recvbuf, count::Integer, comm::Comm),
-           Allgather!(sendbuf, ChunkBuffer(recvbuf, count), comm::Comm), false)
+           Allgather!(sendbuf, MultiBuffer(recvbuf, count), comm::Comm), false)
 @deprecate(Allgather!(sendrecvbuf, count::Integer, comm::Comm),
-           Allgather!(ChunkBuffer(sendrecvbuf, count), comm), false)
+           Allgather!(MultiBuffer(sendrecvbuf, count), comm), false)
 @deprecate(Allgather(sendbuf, count::Integer, comm::Comm),
            Allgather(view(sendbuf, 1:count), comm), false)
 
 @deprecate(Gatherv!(sendbuf, recvbuf, counts::Vector{Cint}, root::Integer, comm::Comm),
            Gatherv!(sendbuf, VchunkBuffer(recvbuf, counts), root, comm), false)
 @deprecate(Gatherv(sendbuf, counts::Vector{Cint}, root::Integer, comm::Comm),
-           Gatherv!(sendbuf, Comm_rank(comm) == root ? ChunkBuffer(similar(sendbuf, sum(counts)), counts) : nothing, root, comm), false)
+           Gatherv!(sendbuf, Comm_rank(comm) == root ? MultiBuffer(similar(sendbuf, sum(counts)), counts) : nothing, root, comm), false)
 
 @deprecate(Allgatherv!(sendbuf, recvbuf, counts::Vector{Cint}, comm::Comm),
-           Allgatherv!(sendbuf, VChunkBuffer(recvbuf, counts), comm), false)
+           Allgatherv!(sendbuf, VMultiBuffer(recvbuf, counts), comm), false)
 @deprecate(Allgatherv!(sendrecvbuf, counts::Vector{Cint}, comm::Comm),
-           Allgatherv!(VChunkBuffer(sendrecvbuf, counts), comm))
+           Allgatherv!(VMultiBuffer(sendrecvbuf, counts), comm))
 
 

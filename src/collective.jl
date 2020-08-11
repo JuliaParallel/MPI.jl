@@ -60,7 +60,7 @@ end
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks,
 sending the `j`-th chunk to the process of rank `j` into the `recvbuf` buffer.
 
-`sendbuf` on the root process should be a [`ChunkBuffer`](@ref), or an `Array` if the
+`sendbuf` on the root process should be a [`MultiBuffer`](@ref), or an `Array` if the
 `count` can be determined from `recvbuf`. On non-root processes it is ignored, and can be
 `nothing`.
 
@@ -69,7 +69,7 @@ defined. On the root process, it can also be `nothing`, in which case it is igno
 corresponds the behaviour of `MPI_IN_PLACE` in `MPI_Scatter`). For example
 ```
 if root == MPI.Comm_rank(comm)
-    Scatter!(ChunkBuffer(buf, count), nothing, root, comm)
+    Scatter!(MultiBuffer(buf, count), nothing, root, comm)
 else
     Scatter!(nothing, buf, root, comm)        
 end
@@ -82,7 +82,7 @@ end
 # External links
 $(_doc_external("MPI_Scatter"))
 """
-function Scatter!(sendbuf::ChunkBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
+function Scatter!(sendbuf::MultiBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
     if sendbuf.nchunks !== nothing && Comm_rank(comm) == root
         @assert sendbuf.nchunks >= Comm_size(comm)
     end
@@ -96,13 +96,13 @@ function Scatter!(sendbuf::ChunkBuffer, recvbuf::Buffer, root::Integer, comm::Co
                   recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
     recvbuf.data
 end
-Scatter!(sendbuf::ChunkBuffer, recvbuf, root::Integer comm::Comm) =
+Scatter!(sendbuf::MultiBuffer, recvbuf, root::Integer comm::Comm) =
     Scatter!(sendbuf, Buffer(recvbuf), root, comm)
 Scatter!(sendbuf::AbstractArray, recvbuf::Union{Ref,AbstractArray}, root::Integer, comm::Comm) =
-    Scatter!(ChunkBuffer(sendbuf,length(recvbuf)), recvbuf, root, comm)    
+    Scatter!(MultiBuffer(sendbuf,length(recvbuf)), recvbuf, root, comm)    
 Scatter!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
-    Scatter!(ChunkBuffer(), recvbuf, root, comm)
-Scatter!(sendbuf::ChunkBuffer, recvbuf::Nothing, root::Integer, comm::Comm) =
+    Scatter!(MultiBuffer(), recvbuf, root, comm)
+Scatter!(sendbuf::MultiBuffer, recvbuf::Nothing, root::Integer, comm::Comm) =
     Scatter!(sendbuf, IN_PLACE, root, comm)
 
 
@@ -130,7 +130,7 @@ end
 # External links
 $(_doc_external("MPI_Scatterv"))
 """
-function Scatterv!(sendbuf::VChunkBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
+function Scatterv!(sendbuf::VMultiBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
     if Comm_rank(comm) == root
         @assert length(sendbuf.counts) >= Comm_size(comm)
     end
@@ -144,12 +144,12 @@ function Scatterv!(sendbuf::VChunkBuffer, recvbuf::Buffer, root::Integer, comm::
                   recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
     recvbuf
 end
-Scatterv!(sendbuf::VChunkBuffer, recvbuf, root::Integer, comm::Comm) =
+Scatterv!(sendbuf::VMultiBuffer, recvbuf, root::Integer, comm::Comm) =
     Scatterv!(sendbuf, Buffer(recvbuf), root, comm)
-Scatterv!(sendbuf::VChunkBuffer, recvbuf::Nothing, root::Integer, comm::Comm) =
+Scatterv!(sendbuf::VMultiBuffer, recvbuf::Nothing, root::Integer, comm::Comm) =
     Scatterv!(sendbuf, IN_PLACE, root, comm)
 Scatterv!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
-    Scatterv!(VChunkBuffer(), recvbuf, root, comm)
+    Scatterv!(VMultiBuffer(), recvbuf, root, comm)
 
 
 """
@@ -182,7 +182,7 @@ on non-root processes it is ignored and can be `nothing`.
 # External links
 $(_doc_external("MPI_Gather"))
 """
-function Gather!(sendbuf::Buffer, recvbuf::ChunkBuffer, root::Integer, comm::Comm)
+function Gather!(sendbuf::Buffer, recvbuf::MultiBuffer, root::Integer, comm::Comm)
     if recvbuf.nchunks !== nothing && Comm_rank(comm) == root
         @assert recvbuf.nchunks >= Comm_size(comm)
     end
@@ -195,12 +195,12 @@ function Gather!(sendbuf::Buffer, recvbuf::ChunkBuffer, root::Integer, comm::Com
                   recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
     recvbuf.data
 end
-Gather!(sendbuf, recvbuf::ChunkBuffer, root::Integer, comm::Comm) =
+Gather!(sendbuf, recvbuf::MultiBuffer, root::Integer, comm::Comm) =
     Gather!(Buffer(sendbuf), recvbuf, root, comm)
 Gather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, root::Integer, comm::Comm) =
-    Gather!(sendbuf, ChunkBuffer(recvbuf, length(sendbuf)), root, comm)
+    Gather!(sendbuf, MultiBuffer(recvbuf, length(sendbuf)), root, comm)
 Gather!(sendbuf, recvbuf::Nothing, root::Integer, comm::Comm) =
-    Gather!(sendbuf, ChunkBuffer(), root, comm)
+    Gather!(sendbuf, MultiBuffer(), root, comm)
 Gather!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
     Gather!(IN_PLACE, recvbuf, root, comm)
 
@@ -249,7 +249,7 @@ in the area where it would receive it's own contribution.
 # External links
 $(_doc_external("MPI_Allgather"))
 """
-function Allgather!(sendbuf::Buffer, recvbuf::ChunkBuffer, count::Integer, comm::Comm)
+function Allgather!(sendbuf::Buffer, recvbuf::MultiBuffer, count::Integer, comm::Comm)
     if recvbuf.nchunks !== nothing
         @assert recvbuf.nchunks >= Comm_size(comm)
     end
@@ -263,13 +263,13 @@ function Allgather!(sendbuf::Buffer, recvbuf::ChunkBuffer, count::Integer, comm:
                   recvbuf.data, recvbuf.count, recvbuf.datatype, comm)
     recvbuf.data
 end
-Allgather!(sendbuf, recvbuf::ChunkBuffer, comm::Comm) =
+Allgather!(sendbuf, recvbuf::MultiBuffer, comm::Comm) =
     Allgather!(Buffer(sendbuf), recvbuf, comm)
 Allgather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, comm::Comm) =
-    Allgather!(sendbuf, ChunkBuffer(recvbuf, length(sendbuf)), comm)
+    Allgather!(sendbuf, MultiBuffer(recvbuf, length(sendbuf)), comm)
 
 
-function Allgather!(sendrecvbuf::ChunkBuffer, comm::Comm)
+function Allgather!(sendrecvbuf::MultiBuffer, comm::Comm)
     Allgather!(IN_PLACE, sendrecvbuf, count, comm)
 end
 
@@ -322,7 +322,7 @@ end
 # External links
 $(_doc_external("MPI_Gatherv"))
 """
-function Gatherv!(sendbuf::Buffer, recvbuf::VChunkBuffer, root::Integer, comm::Comm)
+function Gatherv!(sendbuf::Buffer, recvbuf::VMultiBuffer, root::Integer, comm::Comm)
     if Comm_rank(comm) == root
         @assert length(recvbuf.counts) >= Comm_size(comm)
     end
@@ -335,10 +335,10 @@ function Gatherv!(sendbuf::Buffer, recvbuf::VChunkBuffer, root::Integer, comm::C
                   recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, root, comm)
     recvbuf.data
 end
-Gatherv!(sendbuf, recvbuf::VChunkBuffer, root::Integer, comm::Comm) =
+Gatherv!(sendbuf, recvbuf::VMultiBuffer, root::Integer, comm::Comm) =
     Gatherv!(Buffer(sendbuf), recvbuf, root, comm)
 Gatherv!(sendbuf, recvbuf::Nothing, root::Integer, comm::Comm) =
-    Gatherv!(sendbuf, VChunkBuffer(), root, comm)
+    Gatherv!(sendbuf, VMultiBuffer(), root, comm)
 
 
 """
@@ -359,7 +359,7 @@ is taken from the interval of `recvbuf` where it would store it's own data.
 # External links
 $(_doc_external("MPI_Allgatherv"))
 """
-function Allgatherv!(sendbuf::Buffer, recvbuf::VChunkBuffer, comm::Comm)
+function Allgatherv!(sendbuf::Buffer, recvbuf::VMultiBuffer, comm::Comm)
     @assert length(recvbuf.counts) >= Comm_size(comm)
 
     # int MPI_Allgatherv(const void* sendbuf, int sendcount,
@@ -371,7 +371,7 @@ function Allgatherv!(sendbuf::Buffer, recvbuf::VChunkBuffer, comm::Comm)
                   recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, comm)
     recvbuf
 end
-function Allgatherv!(sendrecvbuf::VChunkBuffer, comm::Comm)
+function Allgatherv!(sendrecvbuf::VMultiBuffer, comm::Comm)
     Allgatherv!(IN_PLACE, sendrecvbuf, comm)
 end
 
