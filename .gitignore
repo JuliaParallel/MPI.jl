@@ -3,3 +3,4 @@ libjuliampi.dylib
 *.cov
 *.mem
 Manifest.toml
+.vscode

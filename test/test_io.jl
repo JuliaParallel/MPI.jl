@@ -45,3 +45,39 @@ data = zeros(Int64, 1)
 MPI.File.read_at_all!(fh, rank*2, data)
 @test data == [rank == 0 ? -1 : rank+1]
 close(fh)
+
+MPI.Barrier(comm)
+
+# File Info hints
+fh = MPI.File.open(comm, filename, read=true)
+fh_info = MPI.File.get_info(fh)
+
+# File Info hints are implementation specific
+# so test MPICH dervived implementations
+if MPI.MPI_LIBRARY in (MPI.MPICH, MPI.MicrosoftMPI, MPI.IntelMPI, MPI.MVAPICH, MPI.CrayMPICH)
+
+    # MPICH sets some default MPI-IO hints
+    @test length(keys(fh_info)) > 0
+
+    # Test that default info hints on mpi-io implementation are present
+    # cb_buffer_size is one of the reserved MPI 3.1 keywords
+    @test parse(Int, fh_info[:cb_buffer_size]) > 0
+
+    # Test that we can attach custom info to an existing FileHandle
+    MPI.File.set_info!(fh, MPI.Info(:cb_buffer_size=>33554432))
+    fh_info = MPI.File.get_info(fh)
+    @test parse(Int, fh_info[:cb_buffer_size]) == 33554432
+
+elseif MPI.MPI_LIBRARY == MPI.OpenMPI
+
+    # OpenMPI does not set any MPI-IO hints by default
+    @test length(keys(fh_info)) == 0
+
+    # Test that default info hints on mpi-io implementation are present
+    @test parse(Int, fh_info[:coll_write_bufsize]) > 0
+
+    # Test that we can attach custom info to an existing FileHandle
+    MPI.File.set_info!(fh, MPI.Info(:coll_write_bufsize=>33554432))
+    fh_info = MPI.File.get_info(fh)
+    @test parse(Int, fh_info[:coll_write_bufsize]) == 33554432
+end
