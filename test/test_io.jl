@@ -45,3 +45,18 @@ data = zeros(Int64, 1)
 MPI.File.read_at_all!(fh, rank*2, data)
 @test data == [rank == 0 ? -1 : rank+1]
 close(fh)
+
+MPI.Barrier(comm)
+
+# File Info hints
+fh = MPI.File.open(comm, filename, read=true)
+fh_info = MPI.File.get_info(fh)
+
+# Test that default info hints on mpi-io implementation are present
+# cb_buffer_size is one of the reserved MPI 3.1 keywords
+@test parse(Int, fh_info[:cb_buffer_size]) > 0
+
+# Test that we can attach custom info to an existing FileHandle
+MPI.File.set_info!(fh, MPI.Info(:cb_buffer_size=>33554432))
+fh_info = MPI.File.get_info(fh)
+@test parse(Int, fh_info[:cb_buffer_size]) == 33554432
