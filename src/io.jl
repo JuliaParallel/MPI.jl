@@ -71,38 +71,6 @@ function close(file::FileHandle)
     return nothing
 end
 
-# Info
-"""
-    MPI.File.get_info(file::FileHandle)
-
-Returns the hints for a file that are actually being used by MPI.
-
-# External links
-$(_doc_external("MPI_File_get_info"))
-"""
-function get_info(file::FileHandle)
-    file_info = Info(init=true)
-    @mpichk ccall((:MPI_File_get_info, libmpi), Cint,
-        (MPI_File, Ptr{MPI_Info}), file, file_info)
-    return file_info
-end
-
-"""
-    MPI.File.set_info!(file::FileHandle, info::Info)
-
-Sets new values for the hints associated with a MPI.File.FileHandle
-
-MPI.File.set_info! is a collective.
-
-# External links
-$(_doc_external("MPI_File_set_info"))
-"""
-function set_info!(file::FileHandle, info::Info)
-    @mpichk ccall((:MPI_File_set_info, libmpi), Cint,
-        (MPI_File, MPI_Info), file, info)
-    return file
-end
-
 # View
 """
     MPI.File.set_view!(file::FileHandle, disp::Integer, etype::Datatype, filetype::Datatype, datarep::AbstractString; kwargs...)
@@ -354,7 +322,7 @@ $(_doc_external("MPI_File_write_ordered"))
 function write_ordered(file::FileHandle, buf::Buffer)
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     # int MPI_File_write_ordered(MPI_File fh, const void *buf, int count,
-    #              MPI_Datatype datatype, MPI_Status *status)
+    #              MPI_Datatype datatype, MPI_Status *status)    
     @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint,
                   (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
                   file, buf.data, buf.count, buf.datatype, stat_ref)
@@ -367,7 +335,7 @@ write_ordered(file::FileHandle, buf) = write_ordered(file, Buffer_send(buf))
     SEEK_SET = MPI.MPI_SEEK_SET
     SEEK_CUR = MPI.MPI_SEEK_CUR
     SEEK_END = MPI.MPI_SEEK_END
-end
+end    
 
 """
     MPI.File.seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)
