@@ -21,6 +21,15 @@ MPI.File.sync
 
 ## Data access
 
+### Views
+
+```@docs
+MPI.File.read!
+MPI.File.read_all!
+MPI.File.write
+MPI.File.write_all
+```
+
 ### Explicit offsets
 
 ```@docs
