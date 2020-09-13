@@ -135,6 +135,106 @@ function sync(file::FileHandle)
 end
 
 
+# I/O using individual file pointers
+"""
+    MPI.File.read!(file::FileHandle, data)
+
+Reads current view of `file` into `data`. `data` can be a [`Buffer`](@ref), or
+any object for which `Buffer(data)` is defined.
+
+# See also
+- [`MPI.File.set_view!`](@ref) to set the current view of the file
+- [`MPI.File.read_all!`](@ref) for the collective operation
+
+# External links
+$(_doc_external("MPI_File_read"))
+"""
+function read!(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_read(MPI_File fh, void *buf,
+    #                   int count, MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_read, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+read!(file::FileHandle, data) = read!(file, Buffer(data))
+
+"""
+    MPI.File.read_all!(file::FileHandle, data)
+
+Reads current view of `file` into `data`. `data` can be a [`Buffer`](@ref), or
+any object for which `Buffer(data)` is defined. This is a collective operation, so must be
+called on all ranks in the communicator on which `file` was opened.
+
+# See also
+- [`MPI.File.set_view!`](@ref) to set the current view of the file
+- [`MPI.File.read!`](@ref) for the noncollective operation
+
+# External links
+$(_doc_external("MPI_File_read_all"))
+"""
+function read_all!(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_read_all(MPI_File fh, void *buf,
+    #                       int count, MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_read_all, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+read_all!(file::FileHandle, data) = read_all!(file, Buffer(data))
+
+"""
+    MPI.File.write(file::FileHandle, data)
+
+Writes `data` to the current view of `file`. `data` can be a [`Buffer`](@ref),
+or any object for which `Buffer_send(data)` is defined.
+
+# See also
+- [`MPI.File.set_view!`](@ref) to set the current view of the file
+- [`MPI.File.write_all`](@ref) for the collective operation
+
+# External links
+$(_doc_external("MPI_File_write"))
+"""
+function write(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_write(MPI_File fh, const void *buf,
+    #                    int count, MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_write, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+write(file::FileHandle, data) = write(file, Buffer_send(data))
+
+"""
+    MPI.File.write_all(file::FileHandle, data)
+
+Writes `data` to the current view of `file`. `data` can be a [`Buffer`](@ref),
+or any object for which `Buffer_send(data)` is defined. This is a collective
+operation, so must be called on all ranks in the communicator on which `file` was opened.
+
+# See also
+- [`MPI.File.set_view!`](@ref) to set the current view of the file
+- [`MPI.File.write`](@ref) for the noncollective operation
+
+# External links
+$(_doc_external("MPI_File_write_all"))
+"""
+function write_all(file::FileHandle, buf::Buffer)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    # int MPI_File_write_all(MPI_File fh, const void *buf,
+    #                    int count, MPI_Datatype datatype, MPI_Status *status)
+    @mpichk ccall((:MPI_File_write_all, libmpi), Cint,
+                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
+                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    return stat_ref[]
+end
+write_all(file::FileHandle, data) = write_all(file, Buffer_send(data))
+
+
 # Explicit offsets
 """
     MPI.File.read_at!(file::FileHandle, offset::Integer, data)
