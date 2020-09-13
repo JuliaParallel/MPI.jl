@@ -21,7 +21,7 @@ MPI.File.sync
 
 ## Data access
 
-### Views
+### Individual pointer
 
 ```@docs
 MPI.File.read!

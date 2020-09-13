@@ -135,7 +135,7 @@ function sync(file::FileHandle)
 end
 
 
-# I/O using views
+# I/O using individual file pointers
 """
     MPI.File.read!(file::FileHandle, data)
 
