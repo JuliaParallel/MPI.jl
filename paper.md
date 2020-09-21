@@ -48,12 +48,13 @@ The C and Fortran interfaces require that users allocate memory buffers for outp
 ## Buffers and datatypes
 
 MPI communication functions require three arguments (address, count and element datatype,) to specify their input and/or output buffers e.g. the `MPI_Send` signature in C has six arguments:
-```
-int MPI_Send(const void* buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
+```C
+int MPI_Send(const void* buf, int count, MPI_Datatype datatype, int dest,
+             int tag, MPI_Comm comm)
 ```
 
 In Julia, these can all be determined from an `Array` object, so the corresponding function in MPI.jl only requires 4 arguments:
-```
+```julia
 MPI.Send(buf, dest::Integer, tag::Integer, comm::Comm)
 ```
 
@@ -76,7 +77,7 @@ custom operators.
 The following example uses both custom datatypes and custom reduction operators
 to compute the pooled variance of a distributed dataset in a numerically stable
 way, using a single communication operation:
-```
+```julia
 # Custom struct containing the summary statistics (mean, variance, count)
 struct SummaryStat
     mean::Float64
@@ -91,7 +92,7 @@ function SummaryStat(X::AbstractArray)
     SummaryStat(m,v,n)
 end
 
-# Custom reduction operator, computing pooled mean, pooled variance and total length
+# Custom reduction operator, computing pooled mean, variance and length
 function pool(S1::SummaryStat, S2::SummaryStat)
     n = S1.n + S2.n
     m = (S1.mean*S1.n + S2.mean*S2.n) / n
