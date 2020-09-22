@@ -123,7 +123,75 @@ However on high-performance computing systems one would typically want to use sy
 # Examples
 ## Pseudo-code
 
-Examples from @chan2007collective
+Julia syntax is close to pseudo-code found in the literature to describe
+parallel algorithms. For example, consider the minimum-spanning tree algorithm
+of Chan et al. (Figure 3a of @chan2007collective). A Julia implementation is
+given as:
+```julia
+function MSTBcast(x, root, left, right, comm)
+    me = MPI.Comm_rank(comm)
+    tag = 999
+
+    if left == right
+        return x
+    end
+    mid = (left + right) ÷ 2
+    dest = root ≤ mid ? right : left
+
+    if me == root
+        MPI.send(x, dest, tag, comm)
+    end
+    if me == dest
+        (x, _) = MPI.recv(root, tag, comm)
+    end
+
+    if me ≤ mid && root ≤ mid
+        MSTBcast(x, root, left, mid, comm)
+    elseif me ≤ mid && root > mid
+        MSTBcast(x, dest, left, mid, comm)
+    elseif me > mid && root ≤ mid
+        MSTBcast(x, dest, mid + 1, right, comm)
+    elseif me > mid && root > mid
+        MSTBcast(x, root, mid + 1, right, comm)
+    end
+end
+```
+
+This is a nearly identical to the pseudo-code and can be called for all of the
+datatypes supported by `MPI.Send` and `MPI.Recv`, for example arrays,
+functions, and dictionaries:
+```julia
+using MPI
+using Random
+using Test
+
+MPI.Init()
+
+comm = MPI.COMM_WORLD
+Random.seed!(17)
+matsize = (17,17)
+
+for T in (Float64, Float32, Int8)
+    A = ArrayType(rand(T, matsize))
+    B = MPI.Comm_rank(comm) == root ? A : nothing
+    B = MSTBcast(B, root, 0, MPI.Comm_size(comm) - 1, comm)
+    @test B == A
+end
+
+g = x -> x^2 + 2x - 1
+f = MPI.Comm_rank(comm) == root ? g : nothing
+f = MSTBcast(f, root, 0, MPI.Comm_size(comm) - 1, comm)
+@test f(3) == g(3)
+@test f(5) == g(5)
+@test f(7) == g(7)
+
+A = Dict("foo" => "bar")
+B = MPI.Comm_rank(comm) == root ? A : nothing
+B = MSTBcast(B, root, 0, MPI.Comm_size(comm) - 1, comm)
+@test B["foo"] == "bar"
+
+MPI.Finalize()
+```
 
 ## Ping pong benchmark
 
