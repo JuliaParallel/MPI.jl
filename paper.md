@@ -124,9 +124,9 @@ However on high-performance computing systems one would typically want to use sy
 ## Pseudo-code
 
 Julia syntax is close to pseudo-code found in the literature to describe
-parallel algorithms. For example, consider the minimum-spanning tree algorithm
-of Chan et al. (Figure 3a of @chan2007collective). A Julia implementation is
-given as:
+parallel algorithms. For example, consider the minimum-spanning tree broadcast
+algorithm of Chan et al. (Figure 3a of @chan2007collective). A Julia
+implementation is given as:
 ```julia
 function MSTBcast(x, root, left, right, comm)
     me = MPI.Comm_rank(comm)
