@@ -31,19 +31,25 @@ MPI.jl provides Julia bindings to the Message Passing Interface (MPI).
 
 # Statement of Need
 
+MPI is the 
+
 # Basic introduction and running programs
 
 How to use `mpiexec` function
 
 
 # Implementation details and challenges
-## Allocation, serialization and error handling
 
-The C and Fortran interfaces require that users allocate memory buffers for output, and receive 
+Although MPI.jl mirrors the C MPI interface quite closely, it does take advantage of several features of the Julia language to make minor improvements. The C and Fortran MPI interfaces require that users manually check the error code returned by each function; MPI.jl is able to use Julia's exception handling machinery to automatically check error codes and print readable error messages. This allows functions to return their results via return values instead of via extra functions arguemtns. For example, non-blocking operations return `Request` objects; blocking receive operations return their output buffers.
 
-- Use Julia error handling instead of manual checking of error codes
-- For functions which receive output, adopt Julia convention of suffixing functions which mutate their arguments with `!` (e.g. `MPI.Recv!`)
-- Use convention from mpi4py of using lowercase for functions which are able to handle arbirary data. These are typically slower as they rely on serialization and are not type-stable, but can be convenient for communicating objects of unknown length (e.g. broadcasting file paths at initialization).
+## Allocation and serialization
+
+MPI.jl typically defines two separate functions for operations which receive data:
+
+- one function in which the output buffer is supplied by the user: as it mutates this value, it adopts the Julia convention of suffixing with `!` (e.g. `MPI.Recv!`, `MPI.Reduce!`).
+- one function which allocates the buffer for the output (`MPI.Recv`, `MPI.Reduce`). 
+
+Additionally, we adopt the convention from mpi4py [@dalcin2011parallel] of using lowercase for functions which are able to handle arbirary objects. These are typically slower as they rely on serialization and are not type-stable, but can be convenient as they don't require that the object type or length be known by the receiver. Currently only a small number of these functions are provided.
 
 ## Buffers and datatypes
 
