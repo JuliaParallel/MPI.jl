@@ -158,11 +158,11 @@ Similar to many Julia packages, MPI.jl uses BinaryBuilder and the Artifacts syst
 On high-performance computing systems one would typically want to use system or other externally-provided binaries. To aid this, MPI.jl provides additional hooks to enable switching this at build time via environment variables, and a warning is show if a user appears to be using the default MPI binary on a HPC system. Challenges remain on how to make it easier to switch implementations (when multiple are present), or how to deal with binaries which depend on MPI.
 
 # Examples
-## Pseudo-code
+## Minimum-spanning tree broadcast
 
 Julia syntax is close to pseudo-code found in the literature to describe
 parallel algorithms. For example, consider the minimum-spanning tree broadcast
-algorithm of Chan et al. (Figure 3a of @chan2007collective). A Julia
+algorithm in Figure 3a of @chan2007collective. A Julia
 implementation is given as:
 ```julia
 function MSTBcast(x, root, left, right, comm)
@@ -235,5 +235,8 @@ MPI.Finalize()
 
 # Acknowledgements
 
+We thank the many contributors to MPI.jl over the years: Erik Schnetter, Jared Crean, Jake Bolewski, Davide Lasagna, Katharine Hyatt, Jeremy Kozdon, Andreas Noack, Bart Janssens, Amit Murthy, Steven G. Johnson, David Anthoff, Thomas Bolemann, Joey Huchette, Seyoon Ko, Juan Ignacio Polanco, Tristan Konolige, Samuel Omlin, Mosè Giordano, Filippo Vicentini, Keno Fischer, Maurizio Tomasi, Yuichi Motoyama, Tom Abel, Jane Herriman, Ernesto Vargas, Elliot Saba, Rohan McLure, Randy Lai, Mike Nolta, Josh Milthorpe, Michel Schanen, Kiran Pamnany, Joaquim Dias Garcia, Jonathan Goldfarb, Chris Hill, Balazs Nemeth, Alberto F. Martin, Ali Ramadhan, Viral Shah, Sacha Verweij, Kristoffer Carlsson, Joel Mason and Yao Lu. 
+
+TODO: Funders
 
 # References
