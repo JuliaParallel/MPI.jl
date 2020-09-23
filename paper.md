@@ -149,7 +149,7 @@ The MPI standard specifies C and Fortran appilication programming interfaces (AP
 
 - Attempt to identify the MPI implementation by querying `MPI_Get_library_version`, and use predefined constants and types if known to be compatible with MPICH, Open MPI or Microsoft MPI.
 
-- Otherwise, at build time it compiles a small C program that outputs the type sizes and constants. One complication is that the opaque C handles might only be defined at link time: in this case, we convert to the Fortran handle values (which are required to be integers), and convert back to C handles when calling `MPI.Init()`. A similar approach is used by the MPI bindings for Rust.
+- Otherwise, at build time it compiles a small C program that outputs the type sizes and constants. One complication is that the opaque C handles might only be defined at link time: in this case, we convert to the Fortran handle values (which are required to be integers), and convert back to C handles when calling `MPI.Init()`. A similar approach is used by the MPI bindings for Rust [@rsmpi].
 
 ## Binary support
 
