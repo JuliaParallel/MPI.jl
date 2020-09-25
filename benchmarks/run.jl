@@ -20,7 +20,7 @@ MPI.mpiexec() do cmd
                  stdout=joinpath(DIR, "python-generic.csv")))
     
     @info "Running pingpong.c"
-    run(`mpicc $(joinpath(DIR, "pingpong.c")) -o $(joinpath(DIR, "pingpong"))`)
+    run(`mpicc -std=c99 $(joinpath(DIR, "pingpong.c")) -o $(joinpath(DIR, "pingpong"))`)
     run(pipeline(`$cmd -n 2 $(joinpath(DIR, "pingpong"))`,
                  stdout=joinpath(DIR, "c.csv")))
 end
