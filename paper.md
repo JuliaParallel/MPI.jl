@@ -200,8 +200,8 @@ function MSTBcast(x, root, left, right, comm)
 end
 ```
 
-This is a nearly identical to the pseudo-code and can be called for all of the
-datatypes supported by `MPI.Send` and `MPI.Recv`, for example arrays,
+This is nearly identical to the pseudo-code and can be called for all of the
+datatypes supported by `MPI.send` and `MPI.recv`, for example arrays,
 functions, and dictionaries.
 
 ## Pooled variance using custom datatypes and operators
