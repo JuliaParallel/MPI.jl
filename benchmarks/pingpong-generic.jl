@@ -33,7 +33,8 @@ pingpong(Float64, 1, 100)
 
 for k = 0:20
     bufsize = 2^k
-    avgtime = pingpong(Float64, bufsize, 100)
+    iters = k < 15 ? 10_000 : 1000 
+    avgtime = pingpong(Float64, bufsize, iters)
     if MPI.Comm_rank(MPI.COMM_WORLD) == 0
         println(bufsize, ", ", avgtime)
     end

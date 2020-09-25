@@ -16,3 +16,4 @@ for (label, filename, color, linestyle) in [
 end
 
 savefig(p, "pingpong.pdf")
+savefig(p, "pingpong.svg")
