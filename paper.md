@@ -158,11 +158,11 @@ function pingpong(T, bufsize, iters)
 end
 ```
 
-![MPI ping pong benchmark in C, Julia (MPI.jl) and Python (mpi4py). Benchmarks were performed using Open MPI 4.0.4, using two processes on different nodes connected by EDR InfiniBand.\label{fig:pingpong}](pingpong.pdf)
+![MPI ping pong benchmark in C, Julia (MPI.jl) and Python (mpi4py) using arrays of 64-bit floating-point numbers. Benchmarks were performed using Open MPI 4.0.4, using two processes on different nodes connected by EDR InfiniBand.\label{fig:pingpong}](pingpong.pdf)
 
 Figure \autoref{fig:pingpong} compares the ping pong benchmark implemented in C, Julia using MPI.jl, and Python using mpi4py. The MPI.jl benchmark exhibits similar performance to C, whereas mpi4py is notable slower for smaller message sizes, likely due to the intepreter overhead of Python.
 
-In addition, for MPI.jl and mpi4py we also compare the lowercase "generic" `send` and `recv` functions, which are able to handle arbitrary objects. Here MPI.jl is notably slower than mpi4py, which we suspect is due to the slower performance of Julia's `serialize` function compared with Python's `pickle` function.
+In addition, for MPI.jl and mpi4py we also compare the lowercase "generic" `send` and `recv` functions, which are able to handle arbitrary objects. Here MPI.jl is still faster than mpi4py for small messages, but slower for medium-sized messages. We suspect this is due to garbage collection pauses in the Julia runtime.
 
 ## Minimum-spanning tree broadcast
 
@@ -237,11 +237,10 @@ end
 summ = MPI.Reduce(SummaryStat(X), pool, root, comm)
 ```
 
-
 # Acknowledgements
 
-We thank the many contributors to MPI.jl over the years: Erik Schnetter, Jared Crean, Jake Bolewski, Davide Lasagna, Katharine Hyatt, Jeremy Kozdon, Andreas Noack, Bart Janssens, Amit Murthy, Steven G. Johnson, David Anthoff, Thomas Bolemann, Joey Huchette, Seyoon Ko, Juan Ignacio Polanco, Tristan Konolige, Samuel Omlin, Mosè Giordano, Filippo Vicentini, Keno Fischer, Maurizio Tomasi, Yuichi Motoyama, Tom Abel, Jane Herriman, Ernesto Vargas, Elliot Saba, Rohan McLure, Randy Lai, Mike Nolta, Josh Milthorpe, Michel Schanen, Kiran Pamnany, Joaquim Dias Garcia, Jonathan Goldfarb, Chris Hill, Balazs Nemeth, Alberto F. Martin, Ali Ramadhan, Viral Shah, Sacha Verweij, Kristoffer Carlsson, Joel Mason and Yao Lu. 
+We thank the many contributors to MPI.jl over the years: Erik Schnetter, Jared Crean, Jake Bolewski, Davide Lasagna, Katharine Hyatt, Jeremy Kozdon, Andreas Noack, Bart Janssens, Amit Murthy, Steven G. Johnson, David Anthoff, Thomas Bolemann, Joey Huchette, Seyoon Ko, Juan Ignacio Polanco, Tristan Konolige, Samuel Omlin, Mosè Giordano, Filippo Vicentini, Keno Fischer, Maurizio Tomasi, Yuichi Motoyama, Tom Abel, Jane Herriman, Ernesto Vargas, Elliot Saba, Rohan McLure, Randy Lai, Mike Nolta, Josh Milthorpe, Michel Schanen, Kiran Pamnany, Joaquim Dias Garcia, Jonathan Goldfarb, Chris Hill, Balazs Nemeth, Alberto F. Martin, Ali Ramadhan, Viral Shah, Sacha Verweij, Kristoffer Carlsson, Joel Mason and Yao Lu.
 
-This research was made possible by the generosity of Eric and Wendy Schmidt by recommendation of the Schmidt Futures program, by Earthrise Alliance, Mountain Philanthropies, the Paul G. Allen Family Foundation, and the National Science Foundation (NSF award AGS-1835860).
+This research was made possible by the generosity of Eric and Wendy Schmidt by recommendation of the Schmidt Futures program, Mountain Philanthropies, the Paul G. Allen Family Foundation, and the National Science Foundation (NSF award AGS-1835860).
 
 # References
