@@ -11,6 +11,7 @@ authors:
   - name: Lucas Wilcox
     affiliation: 2
   - name: Valentin Churavy
+    orcid: 0000-0002-9033-165X
     affiliation: 3
 affiliations:
  - name: California Institute of Technology
@@ -81,7 +82,7 @@ For communication operations which receive data, MPI.jl typically defines two se
 - one function in which the output buffer is supplied by the user: as it mutates this value, it adopts the Julia convention of suffixing with `!` (e.g. `MPI.Recv!`, `MPI.Reduce!`).
 - one function which allocates the buffer for the output (`MPI.Recv`, `MPI.Reduce`). 
 
-Additionally, we adopt the convention from the Python MPI bindings mpi4py [@dalcin2011parallel] of using lowercase for functions which are able to handle arbirary objects. These are typically slower as they rely on serialization and are not type-stable, but can be convenient as they don't require that the object type or length be known by the receiver. Currently only a small number of these functions are provided.
+Additionally, we adopt the convention from the mpi4py Python MPI bindings [@dalcin2011parallel] of using lowercase names for functions which are able to handle arbirary objects. These are typically slower as they rely on serialization and are not type-stable, but can be convenient as they don't require that the object type or size be known by the receiver. Currently only a small number of these functions are provided.
 
 ## Buffers, datatypes and operators
 
@@ -111,37 +112,7 @@ MPI.jl will convert Julia functions to MPI operator objects, either mapping to
 predefined operators (e.g. `+` to `MPI.SUM`), or wrapping functions to form
 custom operators.
 
-The following example uses both custom datatypes and custom reduction operators
-to compute the pooled variance of a distributed dataset in a numerically stable
-way, using a single communication operation:
-```julia
-# Custom struct containing the summary statistics (mean, variance, count)
-struct SummaryStat
-    mean::Float64
-    var::Float64
-    n::Float64
-end
-
-function SummaryStat(X::AbstractArray)
-    m = mean(X)
-    v = varm(X,m, corrected=false)
-    n = length(X)
-    SummaryStat(m,v,n)
-end
-
-# Custom reduction operator, computing pooled mean, variance and length
-function pool(S1::SummaryStat, S2::SummaryStat)
-    n = S1.n + S2.n
-    m = (S1.mean*S1.n + S2.mean*S2.n) / n
-    v = (S1.n * (S1.var + S1.mean * (S1.mean-m)) +
-         S2.n * (S2.var + S2.mean * (S2.mean-m)))/n
-    SummaryStat(m,v,n)
-end
-
-# Perform a scalar reduction to `root`
-summ = MPI.Reduce(SummaryStat(X), pool, root, comm)
-```
-
+Both of these are illustrated in the pooled variance example.
 
 ## Application binary interface
 
@@ -189,7 +160,7 @@ end
 
 ![MPI ping pong benchmark in C, Julia (MPI.jl) and Python (mpi4py). Benchmarks were performed using Open MPI 4.0.4, using two processes on different nodes connected by EDR InfiniBand.\label{fig:pingpong}](pingpong.pdf)
 
-Figure \autoref{fig:example} compares the ping pong benchmark implemented in C, Julia using MPI.jl, and Python using mpi4py. The MPI.jl benchmark exhibits similar performance to C, whereas the mpi4py is notable slower for smaller message sizes, likely due to the intepreter overhead of Python.
+Figure \autoref{fig:pingpong} compares the ping pong benchmark implemented in C, Julia using MPI.jl, and Python using mpi4py. The MPI.jl benchmark exhibits similar performance to C, whereas the mpi4py is notable slower for smaller message sizes, likely due to the intepreter overhead of Python.
 
 In addition, for MPI.jl and mpi4py we also compare the lowercase "generic" `send` and `recv` functions, which are able to handle arbitrary objects. Here MPI.jl is notably slower than mpi4py, which we suspect is due to the slower performance of Julia's `serialize` function compared with Python's `pickle` function.
 
@@ -231,38 +202,39 @@ end
 
 This is a nearly identical to the pseudo-code and can be called for all of the
 datatypes supported by `MPI.Send` and `MPI.Recv`, for example arrays,
-functions, and dictionaries:
+functions, and dictionaries.
+
+## Pooled variance using custom datatypes and operators
+
+The following example uses both custom MPI datatypes and custom reduction operators
+to compute the pooled variance of a distributed dataset in a numerically stable
+way, using a single communication operation:
 ```julia
-using MPI
-using Random
-using Test
-
-MPI.Init()
-
-comm = MPI.COMM_WORLD
-Random.seed!(17)
-matsize = (17,17)
-
-for T in (Float64, Float32, Int8)
-    A = ArrayType(rand(T, matsize))
-    B = MPI.Comm_rank(comm) == root ? A : nothing
-    B = MSTBcast(B, root, 0, MPI.Comm_size(comm) - 1, comm)
-    @test B == A
+# Custom struct containing the summary statistics (mean, variance, count)
+struct SummaryStat
+    mean::Float64
+    var::Float64
+    n::Float64
 end
 
-g = x -> x^2 + 2x - 1
-f = MPI.Comm_rank(comm) == root ? g : nothing
-f = MSTBcast(f, root, 0, MPI.Comm_size(comm) - 1, comm)
-@test f(3) == g(3)
-@test f(5) == g(5)
-@test f(7) == g(7)
+function SummaryStat(X::AbstractArray)
+    m = mean(X)
+    v = varm(X,m, corrected=false)
+    n = length(X)
+    SummaryStat(m,v,n)
+end
 
-A = Dict("foo" => "bar")
-B = MPI.Comm_rank(comm) == root ? A : nothing
-B = MSTBcast(B, root, 0, MPI.Comm_size(comm) - 1, comm)
-@test B["foo"] == "bar"
+# Custom reduction operator, computing pooled mean, variance and length
+function pool(S1::SummaryStat, S2::SummaryStat)
+    n = S1.n + S2.n
+    m = (S1.mean*S1.n + S2.mean*S2.n) / n
+    v = (S1.n * (S1.var + S1.mean * (S1.mean-m)) +
+         S2.n * (S2.var + S2.mean * (S2.mean-m)))/n
+    SummaryStat(m,v,n)
+end
 
-MPI.Finalize()
+# Perform a scalar reduction to `root`
+summ = MPI.Reduce(SummaryStat(X), pool, root, comm)
 ```
 
 
@@ -270,6 +242,6 @@ MPI.Finalize()
 
 We thank the many contributors to MPI.jl over the years: Erik Schnetter, Jared Crean, Jake Bolewski, Davide Lasagna, Katharine Hyatt, Jeremy Kozdon, Andreas Noack, Bart Janssens, Amit Murthy, Steven G. Johnson, David Anthoff, Thomas Bolemann, Joey Huchette, Seyoon Ko, Juan Ignacio Polanco, Tristan Konolige, Samuel Omlin, Mosè Giordano, Filippo Vicentini, Keno Fischer, Maurizio Tomasi, Yuichi Motoyama, Tom Abel, Jane Herriman, Ernesto Vargas, Elliot Saba, Rohan McLure, Randy Lai, Mike Nolta, Josh Milthorpe, Michel Schanen, Kiran Pamnany, Joaquim Dias Garcia, Jonathan Goldfarb, Chris Hill, Balazs Nemeth, Alberto F. Martin, Ali Ramadhan, Viral Shah, Sacha Verweij, Kristoffer Carlsson, Joel Mason and Yao Lu. 
 
-TODO: Funders
+This research was made possible by the generosity of Eric and Wendy Schmidt by recommendation of the Schmidt Futures program, by Earthrise Alliance, Mountain Philanthropies, the Paul G. Allen Family Foundation, and the National Science Foundation (NSF award AGS-1835860).
 
 # References
