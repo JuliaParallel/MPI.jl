@@ -160,7 +160,7 @@ end
 
 ![MPI ping pong benchmark in C, Julia (MPI.jl) and Python (mpi4py) using arrays of 64-bit floating-point numbers. Benchmarks were performed using Open MPI 4.0.4, using two processes on different nodes connected by EDR InfiniBand.\label{fig:pingpong}](pingpong.pdf)
 
-Figure \autoref{fig:pingpong} compares the ping pong benchmark implemented in C, Julia using MPI.jl, and Python using mpi4py. The MPI.jl benchmark exhibits similar performance to C, whereas mpi4py is notable slower for smaller message sizes, likely due to the intepreter overhead of Python.
+\autoref{fig:pingpong} compares the ping pong benchmark implemented in C, Julia using MPI.jl, and Python using mpi4py. The MPI.jl benchmark exhibits similar performance to C, whereas mpi4py is notable slower for smaller message sizes, likely due to the intepreter overhead of Python.
 
 In addition, for MPI.jl and mpi4py we also compare the lowercase "generic" `send` and `recv` functions, which are able to handle arbitrary objects. Here MPI.jl is still faster than mpi4py for small messages, but slower for medium-sized messages. We suspect this is due to garbage collection pauses in the Julia runtime.
 
