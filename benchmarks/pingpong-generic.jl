@@ -17,9 +17,9 @@ function pingpong(T, bufsize, iters)
     for i = 1:iters
         if rank == 0
             MPI.send(buffer, 1, tag, MPI.COMM_WORLD)
-            buffer = MPI.recv(1, tag, MPI.COMM_WORLD)
+            buffer,_ = MPI.recv(1, tag, MPI.COMM_WORLD)
         else
-            buffer = MPI.recv(0, tag, MPI.COMM_WORLD)
+            buffer,_ = MPI.recv(0, tag, MPI.COMM_WORLD)
             MPI.send(buffer, 0, tag, MPI.COMM_WORLD)
         end
     end
