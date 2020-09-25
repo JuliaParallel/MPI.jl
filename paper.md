@@ -8,7 +8,7 @@ authors:
   - name: Simon Byrne
     orcid: 0000-0001-8048-6810
     affiliation: 1
-  - name: Lucas Wilcox
+  - name: Lucas C. Wilcox
     affiliation: 2
   - name: Valentin Churavy
     orcid: 0000-0002-9033-165X
