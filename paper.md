@@ -72,7 +72,7 @@ $ mpiexec -n 3 julia sendrecv.jl
 
 # Implementation details and challenges
 
-Although MPI.jl mirrors the C MPI interface quite closely, it does take advantage of several features of the Julia language to make minor improvements. The C and Fortran MPI interfaces require that users manually check the error code returned by each function; MPI.jl is able to use Julia's exception handling machinery to automatically check error codes and print readable error messages. This allows functions to return their results via return values instead of via additional functions arguments. For example, non-blocking operations return `Request` objects; blocking receive operations return their output buffers.
+Although MPI.jl mirrors the C MPI interface quite closely, it does take advantage of several features of the Julia language to improve usability. The C and Fortran MPI interfaces require that users manually check the error code returned by each function; MPI.jl is able to use Julia's exception handling machinery to automatically check error codes and print readable error messages. This allows functions to return their results via return values instead of via additional functions arguments. For example, non-blocking operations return `Request` objects; blocking receive operations return their output buffers.
 
 ## Allocation and serialization
 
@@ -81,7 +81,7 @@ For communication operations which receive data, MPI.jl typically defines two se
 - one function in which the output buffer is supplied by the user: as it mutates this value, it adopts the Julia convention of suffixing with `!` (e.g. `MPI.Recv!`, `MPI.Reduce!`).
 - one function which allocates the buffer for the output (`MPI.Recv`, `MPI.Reduce`). 
 
-Additionally, we adopt the convention from mpi4py [@dalcin2011parallel] of using lowercase for functions which are able to handle arbirary objects. These are typically slower as they rely on serialization and are not type-stable, but can be convenient as they don't require that the object type or length be known by the receiver. Currently only a small number of these functions are provided.
+Additionally, we adopt the convention from the Python MPI bindings mpi4py [@dalcin2011parallel] of using lowercase for functions which are able to handle arbirary objects. These are typically slower as they rely on serialization and are not type-stable, but can be convenient as they don't require that the object type or length be known by the receiver. Currently only a small number of these functions are provided.
 
 ## Buffers, datatypes and operators
 
@@ -158,6 +158,41 @@ Similar to many Julia packages, MPI.jl uses BinaryBuilder and the Artifacts syst
 On high-performance computing systems one would typically want to use system or other externally-provided binaries. To aid this, MPI.jl provides additional hooks to enable switching this at build time via environment variables, and a warning is show if a user appears to be using the default MPI binary on a HPC system. Challenges remain on how to make it easier to switch implementations (when multiple are present), or how to deal with binaries which depend on MPI.
 
 # Examples
+## Ping pong benchmark
+
+The "ping pong" benchmark consists of two MPI processes which alternate sending messages between each other, and is a useful measure of how function call overhead affects communication latency.
+
+A simple Julia implementation is:
+```julia
+function pingpong(T, bufsize, iters)
+    buffer = zeros(T, bufsize)
+    rank = MPI.Comm_rank(MPI.COMM_WORLD)
+    tag = 0
+
+    MPI.Barrier(MPI.COMM_WORLD)
+    tic = MPI.Wtime()
+    for i = 1:iters
+        if rank == 0
+            MPI.Send(buffer, 1, tag, MPI.COMM_WORLD)
+            MPI.Recv!(buffer, 1, tag, MPI.COMM_WORLD)
+        else
+            MPI.Recv!(buffer, 0, tag, MPI.COMM_WORLD)
+            MPI.Send(buffer, 0, tag, MPI.COMM_WORLD)
+        end
+    end
+    toc = MPI.Wtime()
+
+    avgtime = (toc-tic)/iters
+    return avgtime
+end
+```
+
+![MPI ping pong benchmark in C, Julia (MPI.jl) and Python (mpi4py). Benchmarks were performed using Open MPI 4.0.4, using two processes on different nodes connected by EDR InfiniBand.\label{fig:pingpong}](pingpong.pdf)
+
+Figure \autoref{fig:example} compares the ping pong benchmark implemented in C, Julia using MPI.jl, and Python using mpi4py. The MPI.jl benchmark exhibits similar performance to C, whereas the mpi4py is notable slower for smaller message sizes, likely due to the intepreter overhead of Python.
+
+In addition, for MPI.jl and mpi4py we also compare the lowercase "generic" `send` and `recv` functions, which are able to handle arbitrary objects. Here MPI.jl is notably slower than mpi4py, which we suspect is due to the slower performance of Julia's `serialize` function compared with Python's `pickle` function.
+
 ## Minimum-spanning tree broadcast
 
 Julia syntax is close to pseudo-code found in the literature to describe
@@ -229,8 +264,6 @@ B = MSTBcast(B, root, 0, MPI.Comm_size(comm) - 1, comm)
 
 MPI.Finalize()
 ```
-
-## Ping pong benchmark
 
 
 # Acknowledgements

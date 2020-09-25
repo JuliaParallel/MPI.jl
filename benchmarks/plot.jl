@@ -15,4 +15,4 @@ for (label, filename, color, linestyle) in [
     plot!(p, D[:,1], D[:,2], xscale=:log10, yscale=:log10, label=label, linecolor=color, linestyle=linestyle)
 end
 
-savefig(p, "times.svg")
+savefig(p, "pingpong.pdf")
