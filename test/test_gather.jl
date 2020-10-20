@@ -63,7 +63,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
         A = ArrayType{T}(fill(T(rank+1), 4*sz))
     end
     if root == MPI.Comm_rank(comm)
-        MPI.Gather!(nothing, A, 4, root, comm)
+        MPI.Gather!(MPI.IN_PLACE, A, 4, root, comm)
     else
         MPI.Gather!(A, nothing, 4, root, comm)
     end

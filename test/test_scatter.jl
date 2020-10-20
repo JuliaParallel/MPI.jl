@@ -40,7 +40,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Test throwing
     B = ArrayType{T}(undef, 0)
-    @test_throws AssertionError MPI.Scatter!(A, B, 1, root, comm)
+    @test_throws BoundsError MPI.Scatter!(A, B, 1, root, comm)
 end
 
 MPI.Finalize()

@@ -65,7 +65,7 @@ for T = [Int]
             # Assertions when output buffer too small
             recv_arr = ArrayType{T}(undef, size(send_arr).-1)
             if isroot
-                @test_throws AssertionError MPI.Reduce!(send_arr, recv_arr,
+                @test_throws BoundsError MPI.Reduce!(send_arr, recv_arr,
                                                         length(send_arr),
                                                         op, root,
                                                         MPI.COMM_WORLD)

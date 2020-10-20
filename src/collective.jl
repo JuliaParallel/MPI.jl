@@ -212,7 +212,7 @@ Gather!(sendbuf, recvbuf::UBuffer, root::Integer, comm::Comm) =
 Gather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, root::Integer, comm::Comm) =
     Gather!(sendbuf, UBuffer(recvbuf, length(sendbuf)), root, comm)
 Gather!(sendbuf, recvbuf::Nothing, root::Integer, comm::Comm) =
-    Gather!(sendbuf, UBuffer(), root, comm)
+    Gather!(sendbuf, UBuffer(nothing), root, comm)
 Gather!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
     Gather!(IN_PLACE, recvbuf, root, comm)
 
@@ -224,7 +224,7 @@ Gather!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
 Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
 allocates the output buffer and stores elements in rank order.
 
-`count` should be the same for all processes.
+`sendbuf` should be the same size on all processes.
 
 # See also
 - [`Gather!`](@ref) for the mutating operation.
@@ -237,7 +237,7 @@ $(_doc_external("MPI_Gather"))
 Gather(sendbuf::AbstractArray, root::Integer, comm::Comm) =
     Gather!(sendbuf, Comm_rank(comm) == root ? similar(sendbuf, Comm_size(comm) * length(sendbuf)) : nothing, root, comm)
 Gather(object::T, root::Integer, comm::Comm) where {T} =
-    Gather(Ref(object), Comm_rank(comm) == root ? Array{T}(undef, Comm_size(comm)) : nothing, root, comm)
+    Gather!(Ref(object), Comm_rank(comm) == root ? Array{T}(undef, Comm_size(comm)) : nothing, root, comm)
 
 """
     Gatherv!(sendbuf, recvbuf, root, comm)
