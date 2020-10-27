@@ -57,11 +57,15 @@ Additionally, certain sentinel values can be used, e.g. `MPI_IN_PLACE` or `MPI_B
 """
 MPIPtr
 
+# MPI_IN_PLACE
+
 struct InPlace
 end
+Base.cconvert(::Type{MPIPtr}, ::InPlace) = MPI_IN_PLACE
+
 
 """
-    IN_PLACE
+    MPI.IN_PLACE
 
 A sentinel value that can be passed as a buffer argument for certain collective operations
 to use the same buffer for send and receive operations.
@@ -75,8 +79,13 @@ to use the same buffer for send and receive operations.
 - [`Allgather!`](@ref), [`Allgatherv!`](@ref), [`Alltoall!`](@ref) and
   [`Alltoallv!`](@ref): can be used as the `sendbuf` argument on all processes.
 
+- [`Reduce!`](@ref) (root only), [`Allreduce!`](@ref), [`Scan!`](@ref) and
+  [`Exscan!`](@ref): can be used as `sendbuf` argument.
+
 """
 const IN_PLACE = InPlace()
+
+# TODO: MPI_BOTTOM
 
 
 """
@@ -103,6 +112,10 @@ and `datatype`. Methods are provided for
  - `CUDA.CuArray` if CUDA.jl is loaded
  - `SubArray`s of an `Array` or `CUDA.CuArray` where the layout is contiguous, sequential or
    blocked.
+
+# See also
+
+- [`Buffer_send`](@ref)
 
 """
 struct Buffer{A}
@@ -146,7 +159,7 @@ function Buffer(sub::SubArray{T,N,P,I,false}) where {T,N,P,I<:Tuple{Vararg{Union
     Buffer(parent(sub), Cint(1), datatype)
 end
 
-Buffer(::InPlace) = Buffer(MPI_IN_PLACE, 0, DATATYPE_NULL)
+Buffer(::InPlace) = Buffer(IN_PLACE, 0, DATATYPE_NULL)
 Buffer(::Nothing) = Buffer(nothing, 0, DATATYPE_NULL)
 
 """
@@ -213,7 +226,7 @@ Base.similar(buf::UBuffer) =
     UBuffer(similar(buf.data), buf.count, buf.nchunks, buf.datatype)
 
 UBuffer(::Nothing) = UBuffer(nothing, 0, nothing, DATATYPE_NULL)
-UBuffer(::InPlace) = UBuffer(MPI_IN_PLACE, 0, nothing, DATATYPE_NULL)
+UBuffer(::InPlace) = UBuffer(IN_PLACE, 0, nothing, DATATYPE_NULL)
 
 
 
@@ -244,13 +257,13 @@ struct VBuffer{A}
     """A Julia object referencing a region of memory to be used for communication. It is
     required that the object can be `cconvert`ed to an [`MPIPtr`](@ref)."""
     data::A
-    
+
     """An array containing the length of each chunk."""
     counts::Vector{Cint}
-    
+
     """An array containing the (0-based) displacements of each chunk."""
     displs::Vector{Cint}
-    
+
     """The [`MPI.Datatype`](@ref) stored in the buffer."""
     datatype::Datatype
 end
@@ -274,14 +287,45 @@ function VBuffer(arr::AbstractArray, counts)
 end
 
 VBuffer(::Nothing) = VBuffer(nothing, Cint[], Cint[], DATATYPE_NULL)
-VBuffer(::InPlace) = VBuffer(MPI_IN_PLACE, Cint[], Cint[], DATATYPE_NULL)
+VBuffer(::InPlace) = VBuffer(IN_PLACE, Cint[], Cint[], DATATYPE_NULL)
 
 
+"""
+    MPI.RBuffer
 
+An MPI buffer for reduction operations ([`MPI.Reduce!`](@ref), [`MPI.Allreduce!`](@ref), [`MPI.Scan!`](@ref), [`MPI.Exscan!`](@ref)).
+
+# Fields
+$(DocStringExtensions.FIELDS)
+
+# Usage
+
+    RBuffer(senddata, recvdata[, count, datatype])
+
+Generic constructor.
+
+    RBuffer(senddata, recvdata)
+
+Construct a `Buffer` backed by `senddata` and `recvdata`, automatically determining the
+appropriate `count` and `datatype`.
+
+- `senddata` can be [`MPI.IN_PLACE`](@ref)
+- `recvdata` can be `nothing` on a non-root node with [`MPI.Reduce!`](@ref)
+"""
 struct RBuffer{S,R}
+    """A Julia object referencing a region of memory to be used for the send buffer. It is
+    required that the object can be `cconvert`ed to an [`MPIPtr`](@ref)."""
     senddata::S
+
+    """A Julia object referencing a region of memory to be used for the receive buffer. It is
+    required that the object can be `cconvert`ed to an [`MPIPtr`](@ref)."""
     recvdata::R
+
+    """the number of elements of `datatype` in the buffer. Note that this may not
+    correspond to the number of elements in the array if derived types are used."""
     count::Cint
+
+    """the [`MPI.Datatype`](@ref) stored in the buffer."""
     datatype::Datatype
 end
 
@@ -296,7 +340,7 @@ end
 function RBuffer(::InPlace, recvdata::AbstractArray{T}) where {T}
     count = length(recvdata)
     @assert stride(recvdata,1) == 1
-    RBuffer(MPI_IN_PLACE, recvdata, count, Datatype(T))
+    RBuffer(IN_PLACE, recvdata, count, Datatype(T))
 end
 function RBuffer(senddata::AbstractArray{T}, recvdata::Nothing) where {T}
     count = length(senddata)
@@ -308,7 +352,7 @@ function RBuffer(senddata::Ref{T}, recvdata::Ref{T}) where {T}
     RBuffer(senddata, recvdata, 1, Datatype(T))
 end
 function RBuffer(senddata::InPlace, recvdata::Ref{T}) where {T}
-    RBuffer(MPI_IN_PLACE, recvdata, 1, Datatype(T))
+    RBuffer(IN_PLACE, recvdata, 1, Datatype(T))
 end
 function RBuffer(senddata::Ref{T}, recvdata::Nothing) where {T}
     RBuffer(senddata, nothing, 1, Datatype(T))
@@ -316,4 +360,4 @@ end
 
 
 Base.eltype(rbuf::RBuffer) = eltype(rbuf.senddata)
-Base.eltype(rbuf::RBuffer{SentinelPtr}) = eltype(rbuf.recvdata)
+Base.eltype(rbuf::RBuffer{InPlace}) = eltype(rbuf.recvdata)
