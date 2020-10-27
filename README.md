@@ -16,7 +16,7 @@ Please see the [documentation](https://juliaparallel.github.io/MPI.jl/stable/) f
 
 For help and discussion, we suggest asking on the following venues:
  - ["Julia at Scale" topic on the Julia Discourse](https://discourse.julialang.org/c/domain/parallel/34)
- - #distributed channel on the [Julia Slack](https://julialang.slack.com/) (visit [slackinvite.julialang.org](https://slackinvite.julialang.org/) to join).
+ - #distributed channel on the [Julia Slack](https://julialang.slack.com/) (visit [https://julialang.org/slack/](https://julialang.org/slack/) to join).
 
 # Contributing
 
