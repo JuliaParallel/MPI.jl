@@ -1,0 +1,23 @@
+title: 'MPI.jl: Julia bindings for the Message Passing Interface'
+keywords:
+  - Julia
+  - MPI
+  - distributed computing
+authors:
+  - name: Simon Byrne
+    orcid: 0000-0001-8048-6810
+    affiliation: 1
+  - name: Lucas C. Wilcox
+    affiliation: 2
+  - name: Valentin Churavy
+    orcid: 0000-0002-9033-165X
+    affiliation: 3
+affiliations:
+ - name: California Institute of Technology
+   index: 1
+ - name: Naval Postgraduate School
+   index: 2
+ - name: Massachusetts Institute of Technology
+   index: 3
+date: 21 September 2020
+bibliography: paper.bib
