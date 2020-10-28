@@ -28,7 +28,7 @@ testfiles = sort(filter(istest, readdir(testdir)))
         if f == "test_spawn.jl"
             run(`$cmd -n 1 $(Base.julia_cmd()) $(joinpath(testdir, f))`)
         elseif f == "test_threads.jl"
-            withenv("JULIA_NUM_THREAD" => "4") do
+            withenv("JULIA_NUM_THREADS" => "4") do
                 run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
             end
         elseif f == "test_error.jl"
