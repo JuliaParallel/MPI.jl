@@ -8,7 +8,7 @@
 # Command line utility to call the `mpiexec` binary used by the `MPI.jl` version
 # in the given Julia project.  It has the same syntax as the `mpiexec` binary
 # that would be called, with the additional `--project=...` flag to select a
-# different Julia project.
+# different Julia project and `--compiled-modules=...` to disable module precompilation.
 #
 # Examples of usage (the MPI flags available depend on the MPI implementation
 # called):
@@ -20,7 +20,7 @@
 ### Code:
 
 usage () {
-    echo "Usage: ${0} [--project=...] MPIEXEC_ARGUMENTS..."
+    echo "Usage: ${0} [--project=...] [--compiled-modules=...] MPIEXEC_ARGUMENTS..."
     echo "Call the mpiexec binary in the Julia environment specified by the --project option."
     echo "If no project is specified, the MPI associated with the global Julia environment will be used."
     echo "All other arguments are forwarded to mpiexec."
@@ -31,6 +31,9 @@ for arg; do
     case "${arg}" in
         --project | --project=*)
             PROJECT_ARG="${arg}"
+            ;;
+        --compiled-modules=*)
+            COMPILED_ARG="${arg}"
             ;;
         -h | --help)
             usage
@@ -57,8 +60,9 @@ using MPI
 ENV["JULIA_PROJECT"] = dirname(Base.active_project())
 mpiexec(exe -> run(`$exe $ARGS`))'
 
+# shellcheck disable=SC2086
 if [ -n "${PROJECT_ARG}" ]; then
-    julia "${PROJECT_ARG}" --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
+    julia "${PROJECT_ARG}" $COMPILED_ARG --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
 else
-    julia --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
+    julia $COMPILED_ARG --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
 fi
