@@ -12,9 +12,9 @@ jobs:
     timeout-minutes: 120
     strategy:
       matrix:
+        os: [macos-latest, windows-latest, ubuntu-18.04]
+        julia_version: ["1.3", "1.4", "1.5", "nightly"]
         include:
-          - os: ubuntu-latest
-          - os: windows-latest
           - os: macos-latest
             mpiexec_args: "-host localhost"
 
@@ -34,10 +34,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
-    - name: Set up Julia
-      uses: julia-actions/setup-julia@v1.1.6
+    - uses: julia-actions/setup-julia@latest
       with:
-        version: 1.4
+        version: ${{ matrix.julia_version }}
 
     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
     - name: Cache artifacts
@@ -52,10 +51,5 @@ jobs:
           ${{ runner.os }}-test-
           ${{ runner.os }}-
 
-    - name: Install Project Packages
-      run: |
-        julia --project=@. -e 'using Pkg; Pkg.instantiate(); Pkg.build(verbose=true)'
-
-    - name: Run Unit Tests
-      run: |
-        julia --project=@. -e 'using Pkg; Pkg.test()'
+    - uses: julia-actions/julia-buildpkg@latest
+    - uses: julia-actions/julia-runtest@latest
