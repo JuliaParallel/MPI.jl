@@ -100,7 +100,7 @@ function identify_implementation()
         impl = MicrosoftMPI
         # "Microsoft MPI %u.%u.%u.%u%S"
         # ignore last 2 (build numbers)
-        if (m = match(r"^Microsoft MPI v(\d+.\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
+        if (m = match(r"^Microsoft MPI (\d+.\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
             version = VersionNumber(m.captures[1])
         end
 
