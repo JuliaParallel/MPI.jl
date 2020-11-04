@@ -167,6 +167,7 @@ jobs:
 
     env:
       JULIA_MPI_BINARY: system
+      JULIA_MPIEXEC: "C:\\Program Files\\Microsoft MPI\\Bin\\mpiexec"
 
     steps:
     - name: Cancel Previous Runs
