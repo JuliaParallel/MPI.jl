@@ -67,7 +67,7 @@ end
 function _warn_if_wrong_mpi()
     # warn if we have only one process but environment variables
     # suggest we should have more
-    if Comm_rank(MPI.COMM_WORLD) == 0
+    if Comm_rank(MPI.COMM_WORLD) == 0 && Comm_size(MPI.COMM_WORLD) == 1
         known_envvars = ("MPI_LOCALNRANKS", #MPICH
                          "OMPI_COMM_WORLD_SIZE" # OpenMPI
                          )
