@@ -100,10 +100,10 @@ function Init()
     REFCOUNT[] = 1
     atexit(refcount_dec)
 
-    _warn_if_wrong_mpi()
     for f in mpi_init_hooks
         f()
     end
+    _warn_if_wrong_mpi()
 end
 
 """
@@ -173,10 +173,10 @@ function Init_thread(required::ThreadLevel)
     REFCOUNT[] = 1
     atexit(refcount_dec)
 
-    _warn_if_wrong_mpi()
     for f in mpi_init_hooks
         f()
     end
+    _warn_if_wrong_mpi()
     return provided
 end
 
