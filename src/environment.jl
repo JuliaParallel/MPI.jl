@@ -64,6 +64,21 @@ function refcount_dec()
 end
 
 # Administrative functions
+function _warn_if_wrong_mpi()
+    # warn if we have only one process but environment variables
+    # suggest we should have more
+    if Comm_rank(MPI.COMM_WORLD) == 0 && Comm_size(MPI.COMM_WORLD) == 1
+        known_envvars = ("MPI_LOCALNRANKS", #MPICH
+                         "OMPI_COMM_WORLD_SIZE" # OpenMPI
+                         )
+        if any(v -> haskey(ENV, v) && parse(Int, ENV[v]) > 1, known_envvars)
+            @warn """
+                You appear to have run julia under a different `mpiexec` than the one used by MPI.jl.
+                See the documentation for details.
+            """
+        end
+    end
+end
 """
     Init()
 
@@ -88,6 +103,7 @@ function Init()
     for f in mpi_init_hooks
         f()
     end
+    _warn_if_wrong_mpi()
 end
 
 """
@@ -160,6 +176,7 @@ function Init_thread(required::ThreadLevel)
     for f in mpi_init_hooks
         f()
     end
+    _warn_if_wrong_mpi()
     return provided
 end
 
