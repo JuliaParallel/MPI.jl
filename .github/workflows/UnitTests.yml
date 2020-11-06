@@ -9,7 +9,7 @@ on:
 
 jobs:
   test-jll:
-    timeout-minutes: 120
+    timeout-minutes: 20
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
@@ -60,7 +60,7 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
 
   test-system-brew:
-    timeout-minutes: 120
+    timeout-minutes: 20
     strategy:
       matrix:
         mpi: [mpich, openmpi]
@@ -112,7 +112,7 @@ jobs:
 
 
   test-system-apt:
-    timeout-minutes: 120
+    timeout-minutes: 20
     strategy:
       matrix:
         mpi: [mpich, libopenmpi-dev]
@@ -163,7 +163,7 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
 
   test-system-msmpi:
-    timeout-minutes: 120
+    timeout-minutes: 20
     strategy:
       matrix:
         julia_version: ["1.5", "nightly"]
