@@ -69,7 +69,7 @@ $(_doc_external("MPI_Init"))
 """
 function Init()
     @mpichk ccall((:MPI_Init, libmpi), Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
-    atexit(Finalize)
+    atexit(() -> Finalized() || Finalize())
 
     run_init_hooks()
     _warn_if_wrong_mpi()
@@ -138,8 +138,7 @@ function Init_thread(required::ThreadLevel)
         @warn "Thread level requested = $required, provided = $provided"
     end
 
-    atexit(Finalize)
-
+    atexit(() -> Finalized() || Finalize())
     run_init_hooks()
     _warn_if_wrong_mpi()
     return provided
