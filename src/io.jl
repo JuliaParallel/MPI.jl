@@ -4,7 +4,7 @@ FileHandle() = FileHandle(FILE_NULL.val)
 
 module File
 
-import MPI: MPI, @mpichk, _doc_external, MPIPtr, libmpi, refcount_inc, refcount_dec,
+import MPI: MPI, @mpichk, _doc_external, MPIPtr, libmpi, refcount_inc, refcount_dec, free,
     Comm, MPI_Comm, FileHandle, MPI_File, Info, MPI_Info, FILE_NULL,
     Datatype, MPI_Datatype, MPI_Offset, Status, Buffer, Buffer_send
 import Base: close
@@ -69,6 +69,38 @@ function close(file::FileHandle)
         refcount_dec()
     end
     return nothing
+end
+
+# Info
+"""
+    MPI.File.get_info(file::FileHandle)
+
+Returns the hints for a file that are actually being used by MPI.
+
+# External links
+$(_doc_external("MPI_File_get_info"))
+"""
+function get_info(file::FileHandle)
+    file_info = Info(init=false)
+    @mpichk ccall((:MPI_File_get_info, libmpi), Cint,
+        (MPI_File, Ptr{MPI_Info}), file, file_info)
+    refcount_inc()
+    finalizer(free, file_info)
+    return file_info
+end
+
+"""
+    MPI.File.set_info!(file::FileHandle, info::Info)
+
+Collectively sets new values for the hints associated with a MPI.File.FileHandle.
+
+# External links
+$(_doc_external("MPI_File_set_info"))
+"""
+function set_info!(file::FileHandle, info::Info)
+    @mpichk ccall((:MPI_File_set_info, libmpi), Cint,
+        (MPI_File, MPI_Info), file, info)
+    return file
 end
 
 # View
@@ -422,7 +454,7 @@ $(_doc_external("MPI_File_write_ordered"))
 function write_ordered(file::FileHandle, buf::Buffer)
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     # int MPI_File_write_ordered(MPI_File fh, const void *buf, int count,
-    #              MPI_Datatype datatype, MPI_Status *status)    
+    #              MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint,
                   (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
                   file, buf.data, buf.count, buf.datatype, stat_ref)
@@ -435,7 +467,7 @@ write_ordered(file::FileHandle, buf) = write_ordered(file, Buffer_send(buf))
     SEEK_SET = MPI.MPI_SEEK_SET
     SEEK_CUR = MPI.MPI_SEEK_CUR
     SEEK_END = MPI.MPI_SEEK_END
-end    
+end
 
 """
     MPI.File.seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)
