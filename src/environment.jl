@@ -53,9 +53,10 @@ end
 
 
 """
-    Init()
+    Init(;finalize_atexit=true)
 
-Initialize MPI in the current process.
+Initialize MPI in the current process, and if `finalize_atexit` is true and adds an
+`atexit` hook to call [`MPI.Finalize`](@ref) if it hasn't already been called.
 
 All MPI programs must contain exactly one call to `MPI.Init` or
 [`MPI.Init_thread`](@ref). In particular, note that it is not valid to call `MPI.Init` or
@@ -67,10 +68,12 @@ The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` ar
 # External links
 $(_doc_external("MPI_Init"))
 """
-function Init()
+function Init(;finalize_atexit=true)
     @mpichk ccall((:MPI_Init, libmpi), Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
-    atexit(() -> Finalized() || Finalize())
-
+    if finalize_atexit
+        atexit(() -> Finalized() || Finalize())
+    end
+    
     run_init_hooks()
     _warn_if_wrong_mpi()
 end
@@ -104,10 +107,12 @@ end
 
 
 """
-    Init_thread(required::ThreadLevel)
+    Init_thread(required::ThreadLevel; finalize_atexit=true)
 
-Initialize MPI and the MPI thread environment in the current process. The argument
-specifies the required level of threading support, see [`ThreadLevel`](@ref).
+Initialize MPI and the MPI thread environment in the current process, and if
+`finalize_atexit` is true and adds an `atexit` hook to call [`MPI.Finalize`](@ref) if it
+hasn't already been called. The argument specifies the required level of threading
+support, see [`ThreadLevel`](@ref).
 
 The function will return the provided `ThreadLevel`, and values may be compared via
 inequalities, i.e.
@@ -127,7 +132,7 @@ The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` ar
 # External links
 $(_doc_external("MPI_Init_thread"))
 """
-function Init_thread(required::ThreadLevel)
+function Init_thread(required::ThreadLevel; finalize_atexit=true)
     r_provided = Ref{ThreadLevel}()
     # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
     @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
@@ -138,7 +143,9 @@ function Init_thread(required::ThreadLevel)
         @warn "Thread level requested = $required, provided = $provided"
     end
 
-    atexit(() -> Finalized() || Finalize())
+    if finalize_atexit
+        atexit(() -> Finalized() || Finalize())
+    end
     run_init_hooks()
     _warn_if_wrong_mpi()
     return provided
@@ -183,25 +190,19 @@ end
 """
     Finalize()
 
-Marks MPI state for cleanup. This should be called after [`Init`](@ref), at most once, and
-no further MPI calls (other than [`Initialized`](@ref) or [`Finalized`](@ref)) should be
-made after it is called.
+Marks MPI state for cleanup. This should be called after [`MPI.Init`](@ref) or
+[`MPI.Init_thread`](@ref), and can be called at most once. No further MPI calls (other
+than [`Initialized`](@ref) or [`Finalized`](@ref)) should be made after it is called.
 
-Note that this does not correspond exactly to `MPI_FINALIZE` in the MPI specification. In
-particular:
-
-- It may not finalize MPI immediately. Julia will wait until all MPI-related objects are
-  garbage collected before finalizing MPI. As a result, [`Finalized()`](@ref) may return
-  `false` after `Finalize()` has been called. See [Finalizers](@ref) for more details.
-
-- It is optional: [`Init`](@ref) will automatically insert a hook to finalize MPI when
-  Julia exits.
+[`MPI.Init`](@ref) and [`MPI.Init_thread`](@ref) will automatically insert a hook to
+call this function when Julia exits, if it hasn't already been called.
 
 # External links
 $(_doc_external("MPI_Finalize"))
 """
 function Finalize()
     @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
+    return nothing
 end
 
 
