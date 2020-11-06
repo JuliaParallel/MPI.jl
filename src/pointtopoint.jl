@@ -100,10 +100,9 @@ Request() = Request(REQUEST_NULL.val, nothing)
 isnull(req::Request) = req.val == REQUEST_NULL.val
 
 function free(req::Request)
-    if !isnull(req)
+    if !isnull(req) && !MPI.Finalized()
         @mpichk ccall((:MPI_Request_free, libmpi), Cint, (Ptr{MPI_Request},), req)
         req.buffer = nothing
-        refcount_dec()
     end
     return nothing
 end
@@ -231,7 +230,6 @@ function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
           (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf.data, buf.count, buf.datatype, dest, tag, comm, req)
     req.buffer = buf
-    refcount_inc()
     finalizer(free, req)
     return req
 end
@@ -338,7 +336,6 @@ function Irecv!(buf::Buffer, src::Integer, tag::Integer, comm::Comm)
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf.data, buf.count, buf.datatype, src, tag, comm, req)
     req.buffer = buf
-    refcount_inc()
     finalizer(free, req)
     return req
 end
@@ -410,7 +407,6 @@ function Wait!(req::Request)
                   req, stat_ref)
     if !alreadynull
         req.buffer = nothing
-        refcount_dec()
     end
     stat
 end
@@ -436,7 +432,6 @@ function Test!(req::Request)
     end
     if !alreadynull
         req.buffer = nothing
-        refcount_dec()
     end
     (true, stat_ref[])
 end
@@ -464,7 +459,6 @@ function Waitall!(reqs::Vector{Request})
         if !isnull(req)
             req.val = reqvals[i]
             req.buffer = nothing
-            refcount_dec()
         end
     end
     return stats
@@ -499,7 +493,6 @@ function Testall!(reqs::Vector{Request})
         if !isnull(req)
             req.val = reqvals[i]
             req.buffer = nothing
-            refcount_dec()
         end
     end
     (true, stats)
@@ -535,7 +528,6 @@ function Waitany!(reqs::Vector{Request})
     if !isnull(req)
         req.val = reqvals[i]
         req.buffer = nothing
-        refcount_dec()
     end
     (i, stat_ref[])
 end
@@ -575,7 +567,6 @@ function Testany!(reqs::Vector{Request})
     if !isnull(req)
         req.val = reqvals[i]
         req.buffer = nothing
-        refcount_dec()
     end
     (true, i, stat_ref[])
 end
@@ -615,7 +606,6 @@ function Waitsome!(reqs::Vector{Request})
         if !isnull(req)
             req.val = reqvals[i]
             req.buffer = nothing
-            refcount_dec()
         end
         indices[j] = i
     end
@@ -656,7 +646,6 @@ function Testsome!(reqs::Vector{Request})
         if !isnull(req)
             req.val = reqvals[i]
             req.buffer = nothing
-            refcount_dec()
         end
         indices[j] = i
     end

@@ -19,9 +19,8 @@ const DATATYPE_NULL = _Datatype(MPI_DATATYPE_NULL)
 Datatype() = Datatype(DATATYPE_NULL.val)
 
 function free(dt::Datatype)
-    if dt.val != DATATYPE_NULL.val
+    if dt.val != DATATYPE_NULL.val && !Finalized()
         @mpichk ccall((:MPI_Type_free, libmpi), Cint, (Ptr{MPI_Datatype},), dt)
-        refcount_dec()
     end
     return nothing
 end
@@ -64,7 +63,7 @@ module Types
 import MPI
 import MPI: @mpichk, libmpi, _doc_external,
     Datatype, MPI_Datatype, MPI_Aint,
-    refcount_inc, refcount_dec, free
+    free
 
 """
     lb, extent = MPI.Types.extent(dt::MPI.Datatype)
@@ -101,7 +100,6 @@ function create_contiguous(count::Integer, oldtype::Datatype)
     @mpichk ccall((:MPI_Type_contiguous, libmpi), Cint,
                   (Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   count, oldtype, newtype)
-    refcount_inc()
     finalizer(free, newtype)
     return newtype
 end
@@ -146,7 +144,6 @@ function create_vector(count::Integer, blocklength::Integer, stride::Integer, ol
     @mpichk ccall((:MPI_Type_vector, libmpi), Cint,
                   (Cint, Cint, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   count, blocklength, stride, oldtype, newtype)
-    refcount_inc()
     finalizer(free, newtype)
     return newtype
 end
@@ -184,7 +181,6 @@ function create_subarray(sizes,
                   N, sizes, subsizes, offset,
                   rowmajor ? MPI.MPI_ORDER_C : MPI.MPI_ORDER_FORTRAN,
                   oldtype, newtype)
-    refcount_inc()
     finalizer(free, newtype)
     return newtype
 end
@@ -245,7 +241,6 @@ function create_resized(oldtype::Datatype, lb::Integer, extent::Integer)
     @mpichk ccall((:MPI_Type_create_resized, libmpi), Cint,
                   (MPI_Datatype, Cptrdiff_t, Cptrdiff_t, Ptr{MPI_Datatype}),
                   oldtype, lb, extent, newtype)
-    refcount_inc()
     finalizer(free, newtype)
     return newtype
 end

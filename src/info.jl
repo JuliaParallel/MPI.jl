@@ -33,16 +33,14 @@ function Info(;init=false)
     info = Info(INFO_NULL.val)
     if init
         @mpichk ccall((:MPI_Info_create, libmpi), Cint, (Ptr{MPI_Info},), info)
-        refcount_inc()
         finalizer(free, info)
     end
     return info
 end
 
 function free(info::Info)
-    if info.val != INFO_NULL.val
+    if info.val != INFO_NULL.val && !Finalized()
         @mpichk ccall((:MPI_Info_free, libmpi), Cint, (Ptr{MPI_Info},), info)
-        refcount_dec()
     end
     return nothing
 end

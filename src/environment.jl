@@ -25,43 +25,6 @@ function mpiexec(fn)
     _mpiexec(cmd -> fn(`$cmd $(Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", "")))`))
 end
 
-const REFCOUNT = Threads.Atomic{Int}(-1)
-
-"""
-    refcount_inc()
-
-Increment the MPI reference counter. This should be called at initialization of any object
-which calls an MPI routine in its finalizer. A matching [`refcount_dec`](@ref) should be
-added to the finalizer.
-
-For more details, see [Finalizers](@ref).
-"""
-function refcount_inc()
-    Threads.atomic_add!(REFCOUNT, 1)
-end
-
-"""
-    refcount_dec()
-
-Decrement the MPI reference counter. This should be added after an MPI call in an object
-finalizer, with a matching [`refcount_inc`](@ref) when the object is initialized.
-
-For more details, see [Finalizers](@ref).
-"""
-function refcount_dec()
-    # refcount zero, all objects finalized, now finalize MPI
-    if Threads.atomic_sub!(REFCOUNT, 1) == 1
-        if !Finalized()
-            # MPI can now be finalized, but MPI_Finalize is a collective and can act
-            # like a barrier (this may be implementation specific), if we are terminating
-            # due to a Julia exception, we should calling MPI_Finalize. We thus peek at the
-            # current exception, and only if that field is nothing do we terminate.
-            if ccall(:jl_current_exception, Any, ()) === nothing
-                _Finalize()
-            end
-        end
-    end
-end
 
 # Administrative functions
 function _warn_if_wrong_mpi()
@@ -105,10 +68,8 @@ The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` ar
 $(_doc_external("MPI_Init"))
 """
 function Init()
-    REFCOUNT[] == -1 || error("MPI.REFCOUNT in incorrect state: MPI may only be initialized once per session.")
     @mpichk ccall((:MPI_Init, libmpi), Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
-    REFCOUNT[] = 1
-    atexit(refcount_dec)
+    atexit(Finalize)
 
     run_init_hooks()
     _warn_if_wrong_mpi()
@@ -167,7 +128,6 @@ The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` ar
 $(_doc_external("MPI_Init_thread"))
 """
 function Init_thread(required::ThreadLevel)
-    REFCOUNT[] == -1 || error("MPI.REFCOUNT in incorrect state: MPI may only be initialized once per session.")
     r_provided = Ref{ThreadLevel}()
     # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
     @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
@@ -178,8 +138,7 @@ function Init_thread(required::ThreadLevel)
         @warn "Thread level requested = $required, provided = $provided"
     end
 
-    REFCOUNT[] = 1
-    atexit(refcount_dec)
+    atexit(Finalize)
 
     run_init_hooks()
     _warn_if_wrong_mpi()
@@ -243,26 +202,9 @@ particular:
 $(_doc_external("MPI_Finalize"))
 """
 function Finalize()
-    # calling atexit here is a bit silly, but it's to avoid a case where MPI is finalized
-    # one object early, e.g.
-    #
-    # event         | REFCOUNT
-    # ---------------------
-    # Init()        |   1  : MPI_INIT
-    # new object    |   2  : MPI_X_CREATE
-    # Finalize()    |   1
-    # atexit        |
-    #  refcount_inc |   2  : relies on LIFO ordering
-    #  refcount_dec |   1  : MPI_FINALIZE would otherwise be called here
-    # finalizers    |
-    #  refcount_dec |   0  : MPI_X_FREE, MPI_FINALIZE
-    atexit(refcount_inc)
-    refcount_dec()
-end
-
-function _Finalize()
     @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
 end
+
 
 """
     Abort(comm::Comm, errcode::Integer)
