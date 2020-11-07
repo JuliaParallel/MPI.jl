@@ -67,30 +67,27 @@ function bcast(obj, root::Integer, comm::Comm)
 end
 
 """
-    Scatter!(sendbuf, recvbuf, root::Integer, comm::Comm)
+    Scatter!(sendbuf::Union{UBuffer,Nothing}, recvbuf, root::Integer, comm::Comm)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks,
 sending the `j`-th chunk to the process of rank `j-1` into the `recvbuf` buffer.
 
 `sendbuf` on the root process should be a [`UBuffer`](@ref) (an `Array` can also be
-passed directly if the `count` can be determined from `recvbuf`). On non-root processes it
+passed directly if the sizes can be determined from `recvbuf`). On non-root processes it
 is ignored, and `nothing` can be passed instead.
 
 `recvbuf` is a [`Buffer`](@ref) object, or any object for which `Buffer(recvbuf)` is
 defined. On the root process, it can also be [`MPI.IN_PLACE`](@ref), in which case it is
-unmodified.
-
-For example:
+unmodified. For example:
 ```
 if root == MPI.Comm_rank(comm)
-    Scatter!(UBuffer(buf, count), MPI.IN_PLACE, root, comm)
+    MPI.Scatter!(UBuffer(buf, count), MPI.IN_PLACE, root, comm)
 else
-    Scatter!(nothing, buf, root, comm)        
+    MPI.Scatter!(nothing, buf, root, comm)        
 end
 ```
 
 # See also
-- [`Scatter`](@ref) to allocate the output buffer.
 - [`Scatterv!`](@ref) if the number of elements varies between processes.
 
 # External links
@@ -120,25 +117,27 @@ Scatter!(sendbuf::AbstractArray, recvbuf::Union{Ref,AbstractArray}, root::Intege
     Scatter!(UBuffer(sendbuf,length(recvbuf)), recvbuf, root, comm)    
 
 """
-    Scatterv!(sendbuf, recvbuf, counts, root, comm)
-
+    Scatterv!(sendbuf::Union{VBuffer,Nothing}, recvbuf, root, comm)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks and sends
-the `j`th chunk to the process of rank `j-1` into the `recvbuf` buffer, which must be of
-length at least `count`.
+the `j`th chunk to the process of rank `j-1` into the `recvbuf` buffer.
 
-`recvbuf` can be [`MPI.IN_PLACE`](@ref) on the root process.
+`sendbuf` on the root process should be a [`VBuffer`](@ref). On non-root processes it is
+ignored, and `nothing` can be passed instead.
+
+`recvbuf` is a [`Buffer`](@ref) object, or any object for which `Buffer(recvbuf)` is
+defined. On the root process, it can also be [`MPI.IN_PLACE`](@ref), in which case it is
+unmodified. For example:
 ```
 if root == MPI.Comm_rank(comm)
-    Scatterv!(buf, nothing, counts, root, comm)
+    MPI.Scatterv!(VBuffer(buf, counts), MPI.IN_PLACE, root, comm)
 else
-    Scatterv!(nothing, buf, counts, root, comm)
+    MPI.Scatterv!(nothing, buf, root, comm)
 end
 ```
 
 # See also
-- [`Scatterv`](@ref) for the allocating operation
-- [`Scatter!`](@ref)/[`Scatter`](@ref) if the counts are the same for all processes
+- [`Scatter!`](@ref) if the number of elements are the same for all processes
 
 # External links
 $(_doc_external("MPI_Scatterv"))
@@ -165,26 +164,29 @@ Scatterv!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
 
 
 """
-    Gather!(sendbuf, recvbuf, root::Integer, comm::Comm)
+    Gather!(sendbuf, recvbuf::Union{UBuffer,Nothing}, root::Integer, comm::Comm)
 
 Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
 process stores elements in rank order in the buffer buffer `recvbuf`.
 
-`sendbuf` can be [`MPI.IN_PLACE`](@ref) on the root process, in which case the corresponding entries in
-`recvbuf` are assumed to be already in place (this corresponds the behaviour of
-`MPI_IN_PLACE` in `MPI_Gather`). For example
+`sendbuf` should be a [`Buffer`](@ref) object, or any object for which
+[`Buffer_send`](@ref) is defined, with the same length on all processes, and should be the
+same length on all processes.
+
+On the root process, `sendbuf` can be [`MPI.IN_PLACE`](@ref) on the root process, in which
+case the corresponding entries in `recvbuf` are assumed to be already in place (this
+corresponds the behaviour of `MPI_IN_PLACE` in `MPI_Gather`). For example:
 ```
 if root == MPI.Comm_rank(comm)
-    Gather!(nothing, buf, count, root, comm)
+    MPI.Gather!(MPI.IN_PLACE, UBuffer(buf, count), root, comm)
 else
-    Gather!(buf, nothing, count, root, comm)
+    MPI.Gather!(buf, nothing, root, comm)
 end
 ```
 
-`recvbuf` on the root process should be a buffer of length `count*Comm_size(comm)`, and
-on non-root processes it is ignored and can be `nothing`.
-
-`count` should be the same for all processes.
+`recvbuf` on the root process should be a [`UBuffer`](@ref), or can be an `AbstractArray`
+if the length can be determined from `sendbuf`. On non-root processes it is ignored and
+can be `nothing`.
 
 # See also
 - [`Gather`](@ref) for the allocating operation.
@@ -219,12 +221,13 @@ Gather!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
 
 
 """
-    Gather(sendbuf, root, comm)
+    Gather(sendbuf, root, comm::Comm)
 
 Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
 allocates the output buffer and stores elements in rank order.
 
-`sendbuf` should be the same size on all processes.
+`sendbuf` can be an `AbstractArray` or a scalar, and should be the same length on all
+processes.
 
 # See also
 - [`Gather!`](@ref) for the mutating operation.
@@ -240,13 +243,15 @@ Gather(object::T, root::Integer, comm::Comm) where {T} =
     Gather!(Ref(object), Comm_rank(comm) == root ? Array{T}(undef, Comm_size(comm)) : nothing, root, comm)
 
 """
-    Gatherv!(sendbuf, recvbuf, root, comm)
+    Gatherv!(sendbuf, recvbuf::Union{VBuffer,Nothing}, root, comm)
 
-Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
-the `root` process. The `root` stores elements in rank order in the buffer
-`recvbuf`.
+Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
+stores elements in rank order in the buffer `recvbuf`.
 
-`sendbuf` can be [`MPI.IN_PLACE`](@ref) on the root process, in which case the
+`sendbuf` should be a [`Buffer`](@ref) object, or any object for which
+[`Buffer_send`](@ref) is defined, with the same length on all processes.
+
+On the root process, `sendbuf` can be [`MPI.IN_PLACE`](@ref), in which case the
 corresponding entries in `recvbuf` are assumed to be already in place. For example
 ```
 if root == MPI.Comm_rank(comm)
@@ -255,6 +260,10 @@ else
     Gatherv!(buf, nothing, root, comm)
 end
 ```
+
+`recvbuf` on the root process should be a [`VBuffer`](@ref), or can be an `AbstractArray`
+if the length can be determined from `sendbuf`. On non-root processes it is ignored and
+can be `nothing`.
 
 # See also
 - [`Gatherv`](@ref) for the allocating operation
@@ -291,7 +300,11 @@ Gatherv!(sendbuf, recvbuf::Nothing, root::Integer, comm::Comm) =
 Each process sends the contents of `sendbuf` to the other processes, the result of which
 is stored in rank order into `recvbuf`.
 
-`sendbuf` should be the same size on all processes.
+`sendbuf` can be a [`Buffer`](@ref) object, or any object for which [`Buffer_send`](@ref)
+is defined, and should be the same length on all processes.
+
+`recvbuf` can be a [`UBuffer`](@ref), or can be an `AbstractArray` if the length can be
+determined from `sendbuf`.
 
 If only one buffer `sendrecvbuf` is provided, then on each process the data to send is
 assumed to be in the area where it would receive its own contribution.
@@ -335,7 +348,8 @@ end
 Each process sends the contents of `sendbuf` to the other processes, who store the results
 in rank order allocating the output buffer.
 
-`sendbuf` should be the same size on all processes.
+`sendbuf` can be an `AbstractArray` or a scalar, and should be the same size on all
+processes.
 
 # See also
 - [`Allgather!`](@ref) for the mutating operation
@@ -360,8 +374,11 @@ end
 Each process sends the contents of `sendbuf` to all other process. Each process stores the
 received in the [`VBuffer`](@ref) `recvbuf`.
 
+`sendbuf` can be a [`Buffer`](@ref) object, or any object for which [`Buffer_send`](@ref)
+is defined.
+
 If only one buffer `sendrecvbuf` is provided, then for each process, the data to be sent
-is taken from the interval of `recvbuf` where it would store it's own data.
+is taken from the interval of `recvbuf` where it would store its own data.
 
 # See also
 - [`Allgatherv`](@ref) for the allocating operation
@@ -393,13 +410,12 @@ end
 
 
 """
-    Alltoall!(sendbuf, recvbuf, comm::Comm)
-    Alltoall!(sendrecvbuf, count::Integer, comm::Comm)
+    Alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
+    Alltoall!(sendrecvbuf::UBuffer, comm::Comm)
 
-Every process divides the buffer `sendbuf` into `Comm_size(comm)` chunks of
-length `count`, sending the `j`-th chunk to the `j`-th process.
-Every process stores the data received from the `j`-th process in the `j`-th
-chunk of the buffer `recvbuf`.
+Every process divides the [`UBuffer`](@ref) `sendbuf` into `Comm_size(comm)` chunks of
+equal size, sending the `j`-th chunk to the process of rank `j-1`.  Every process stores
+the data received from rank `j-1` process in the `j`-th chunk of the buffer `recvbuf`.
 
 ```
 rank    send buf                        recv buf
@@ -409,7 +425,7 @@ rank    send buf                        recv buf
  2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν
 ```
 
-If only one buffer `sendrecvbuf` then data is overwritten.
+If only one buffer `sendrecvbuf` is used, then data is overwritten.
 
 # See also
 - [`Alltoall`](@ref) for the allocating operation
@@ -442,10 +458,10 @@ Alltoall!(sendrecvbuf::UBuffer, comm::Comm) =
 """
     Alltoall(sendbuf::UBuffer, comm::Comm)
 
-Every process divides the buffer `sendbuf` into `Comm_size(comm)` chunks of
-length `count`, sending the `j`-th chunk to the `j`-th process.
-Every process allocates the output buffer and stores the data received from the
-`j`-th process in the `j`-th chunk.
+Every process divides the [`UBuffer`](@ref) `sendbuf` into `Comm_size(comm)` chunks of
+equal size, sending the `j`-th chunk to the process of rank `j-1`. Every process allocates
+the output buffer and stores the data received from the process on rank `j-1` in the
+`j`-th chunk.
 
 ```
 rank    send buf                        recv buf
@@ -468,10 +484,10 @@ Alltoall(sendbuf::UBuffer,  comm::Comm) =
 """
     Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
 
-Similar to [`Alltoall!`](@ref), except with different size chunks per process.
+Similar to [`Alltoall!`](@ref), except with different size chunks per process. 
 
 # See also
-- [`Alltoallv`](@ref) for the allocating operation
+- [`VBuffer`](@ref)
 
 # External links
 $(_doc_external("MPI_Alltoallv"))
@@ -503,11 +519,11 @@ end
 
 # mutating
 """
-    Reduce!(sendbuf, recvbuf[, count::Integer=length(sendbuf)], op, root::Integer, comm::Comm)
+    Reduce!(sendbuf, recvbuf, op, root::Integer, comm::Comm)
     Reduce!(sendrecvbuf, op, root::Integer, comm::Comm)
 
-Performs elementwise reduction using the operator `op` on the first `count` elements of
-the buffer `sendbuf` and stores the result in `recvbuf` on the process of rank `root`.
+Performs elementwise reduction using the operator `op` on the buffer `sendbuf` and stores
+the result in `recvbuf` on the process of rank `root`.
 
 On non-root processes `recvbuf` is ignored, and can be `nothing`. 
 
@@ -581,11 +597,11 @@ end
 
 # mutating
 """
-    Allreduce!(sendbuf, recvbuf, op, comm)
-    Allreduce!(sendrecvbuf, op, comm)
+    Allreduce!(sendbuf, recvbuf, op, comm::Comm)
+    Allreduce!(sendrecvbuf, op, comm::Comm)
 
-Performs elementwise reduction using the operator `op` on the first `count` elements of
-the buffer `sendbuf`, storing the result in the `recvbuf` of all processes in the group.
+Performs elementwise reduction using the operator `op` on the buffer `sendbuf`, storing
+the result in the `recvbuf` of all processes in the group.
 
 `Allreduce!` is equivalent to a [`Reduce!`](@ref) operation followed by
 a [`Bcast!`](@ref), but can lead to better performance.

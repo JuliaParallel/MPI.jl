@@ -51,6 +51,7 @@ makedocs(
             "library.md",
             "environment.md",
             "comm.md",
+            "buffers.md",
             "pointtopoint.md",
             "collective.md",
             "onesided.md",

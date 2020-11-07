@@ -91,7 +91,8 @@ const IN_PLACE = InPlace()
 """
     MPI.Buffer
 
-An MPI buffer for communication operations.
+An MPI buffer for communication with a single rank. It is used for point-to-point
+communication and some collective operations.
 
 # Fields
 $(DocStringExtensions.FIELDS)

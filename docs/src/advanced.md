@@ -6,14 +6,6 @@
 MPI.free
 ```
 
-## Buffers
-
-```@docs
-MPI.Buffer
-MPI.Buffer_send
-MPI.MPIPtr
-```
-
 ## Datatype objects
 
 ```@docs
