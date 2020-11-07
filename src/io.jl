@@ -4,7 +4,7 @@ FileHandle() = FileHandle(FILE_NULL.val)
 
 module File
 
-import MPI: MPI, @mpichk, _doc_external, MPIPtr, libmpi,
+import MPI: MPI, @mpichk, _doc_external, MPIPtr, libmpi, Finalized,
     Comm, MPI_Comm, FileHandle, MPI_File, Info, MPI_Info, FILE_NULL,
     Datatype, MPI_Datatype, MPI_Offset, Status, Buffer, Buffer_send
 import Base: close
