@@ -28,7 +28,6 @@ function Win_create(base::AbstractArray{T}, comm::Comm; infokws...) where T
     @mpichk ccall((:MPI_Win_create, libmpi), Cint,
                   (MPIPtr, Cptrdiff_t, Cint, MPI_Info, MPI_Comm, Ptr{MPI_Win}),
                   base, Cptrdiff_t(length(base)*sizeof(T)), sizeof(T), Info(infokws...), comm, win)
-    refcount_inc()
     finalizer(free, win)
     return win
 end
@@ -50,7 +49,6 @@ function Win_create_dynamic(comm::Comm; kwargs...)
     @mpichk ccall((:MPI_Win_create_dynamic, libmpi), Cint,
                   (MPI_Info, MPI_Comm, Ptr{MPI_Win}),
                   Info(kwargs...), comm, win)
-    refcount_inc()
     finalizer(free, win)
     return win
 end
@@ -77,16 +75,14 @@ function Win_allocate_shared(::Type{T}, len::Int, comm::Comm; kwargs...) where T
     @mpichk ccall((:MPI_Win_allocate_shared, libmpi), Cint,
                   (Cptrdiff_t, Cint, MPI_Info, MPI_Comm, Ref{Ptr{T}}, Ptr{MPI_Win}),
                   Cptrdiff_t(len*sizeof(T)), sizeof(T), Info(kwargs...), comm, out_baseptr, win)
-    refcount_inc()
     finalizer(free, win)
     return win, out_baseptr[]
 end
 
 function free(win::Win)
-    if win.val != WIN_NULL.val
+    if win.val != WIN_NULL.val && !Finalized()
         # int MPI_Win_free(MPI_Win *win)
         @mpichk ccall((:MPI_Win_free, libmpi), Cint, (Ptr{MPI_Win},), win)
-        refcount_dec()
     end
     return nothing
 end

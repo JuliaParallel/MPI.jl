@@ -4,7 +4,7 @@ FileHandle() = FileHandle(FILE_NULL.val)
 
 module File
 
-import MPI: MPI, @mpichk, _doc_external, MPIPtr, libmpi, refcount_inc, refcount_dec,
+import MPI: MPI, @mpichk, _doc_external, MPIPtr, libmpi, Finalized,
     Comm, MPI_Comm, FileHandle, MPI_File, Info, MPI_Info, FILE_NULL,
     Datatype, MPI_Datatype, MPI_Offset, Status, Buffer, Buffer_send
 import Base: close
@@ -16,7 +16,6 @@ function open(comm::Comm, filename::AbstractString, amode::Cint, info::Info)
     @mpichk ccall((:MPI_File_open, libmpi), Cint,
                   (MPI_Comm, Cstring, Cint, MPI_Info, Ptr{MPI_File}),
                   comm, filename, amode, info, file)
-    refcount_inc()
     finalizer(close, file)
     file
 end
@@ -62,11 +61,10 @@ function open(comm::Comm, filename::AbstractString;
 end
 
 function close(file::FileHandle)
-    if file.val != FILE_NULL.val
+    if file.val != FILE_NULL.val && !Finalized()
         # int MPI_File_close(MPI_File *fh)
         @mpichk ccall((:MPI_File_close, libmpi), Cint,
                       (Ptr{MPI_File},), file)
-        refcount_dec()
     end
     return nothing
 end

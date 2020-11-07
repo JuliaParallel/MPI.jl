@@ -35,7 +35,6 @@ function Cart_create(comm_old::Comm, ndims::Integer, dims::MPIBuffertype{Cint}, 
                   (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{MPI_Comm}),
                   comm_old, ndims, dims, periods, reorder, comm_cart)
     if comm_cart.val != MPI_COMM_NULL
-        refcount_inc()
         finalizer(free, comm_cart)
     end
     comm_cart
@@ -182,7 +181,6 @@ function Cart_sub(comm::Comm, remain_dims::MPIBuffertype{Cint})
                   (MPI_Comm, Ptr{Cint}, Ptr{MPI_Comm}),
                   comm, remain_dims, comm_sub)
     if comm_sub.val != MPI_COMM_NULL
-        refcount_inc()
         finalizer(free, comm_sub)
     end
     comm_sub

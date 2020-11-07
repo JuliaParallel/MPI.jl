@@ -4,8 +4,6 @@
 
 ```@docs
 MPI.free
-MPI.refcount_inc
-MPI.refcount_dec
 ```
 
 ## Buffers

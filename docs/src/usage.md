@@ -37,29 +37,3 @@ with one-sided operations, but these are not often supported).
 
 If using Open MPI, the status of CUDA support can be checked via the
 [`MPI.has_cuda()`](@ref) function.
-
-## Finalizers
-
-In order to ensure MPI routines are called in the correct order at finalization time,
-MPI.jl maintains a reference count. If you define an object that needs to call an MPI
-routine during its finalization, you should call [`MPI.refcount_inc()`](@ref) when it is
-initialized, and [`MPI.refcount_dec()`](@ref) in its finalizer (after the relevant MPI
-call).
-
-For example
-```julia
-mutable struct MyObject
-    ...
-    function MyObject(args...)
-        obj = new(args...)
-        # MPI call to create object
-        refcount_inc()
-        finalizer(obj) do x
-            # MPI call to free object
-            refcount_dec()
-        end
-        return obj
-    end
-end
-```
-    
