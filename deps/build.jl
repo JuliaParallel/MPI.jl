@@ -77,10 +77,11 @@ if binary == "system"
     end
     
     const mpiexec_cmd = Cmd(mpiexec isa String ? [mpiexec] : mpiexec)
-    @info "Using implementation" libmpi mpiexec_cmd
     
     _doc_external(fname) = ""
     include(joinpath("..","src","implementations.jl"))
+
+    @info "Using implementation" libmpi mpiexec_cmd MPI_LIBRARY_VERSION_STRING
 
     if abi === ""
         # 3. check ABI

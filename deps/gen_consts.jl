@@ -8,13 +8,13 @@
 # It may be possible to work around this by using `cglobal` instead, but we can't know
 # what symbols the constants resolve to without a C compiler.
 
-@info "Uknown MPI ABI: building constants file"
+@info "Unknown MPI ABI: building constants file"
 
 MPI_LIBRARY_PATH = dirname(dlpath(libmpi))
 
-MPI_PATH = get(ENV, "JULIA_MPI_PATH", dirname(MPI_LIBRARY_PATH))
-MPI_INCLUDE_PATH = get(ENV, "JULIA_MPI_INCLUDE_PATH", joinpath(MPI_PATH,"include"))
-mpicc = get(ENV, "JULIA_MPICC", joinpath(MPI_PATH, "bin", "mpicc"))
+MPI_PATH = get(ENV, "JULIA_MPI_PATH", "")
+MPI_INCLUDE_PATH = get(ENV, "JULIA_MPI_INCLUDE_PATH", MPI_PATH == "" ? "" : joinpath(MPI_PATH,"include"))
+mpicc = get(ENV, "JULIA_MPICC", MPI_PATH == "" ? "mpicc" : joinpath(MPI_PATH, "bin", "mpicc"))
 
 if haskey(ENV, "JULIA_MPI_CFLAGS")
     CFLAGS = Base.shell_split(ENV["JULIA_MPI_CFLAGS"])
@@ -23,7 +23,10 @@ else
     if startswith(lname, "lib")
         lname = lname[4:end]
     end
-    CFLAGS = `-l$(lname) -L$(MPI_LIBRARY_PATH) -I$(MPI_INCLUDE_PATH)`
+    CFLAGS = `-l$(lname) -L$(MPI_LIBRARY_PATH)`
+    if MPI_INCLUDE_PATH != ""
+        CFLAGS = `$CFLAGS -I$(MPI_INCLUDE_PATH)`
+    end
 end
 
 # build gen_consts.c

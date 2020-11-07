@@ -46,9 +46,8 @@ Op(::typeof(⊻), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BXOR
 
 
 function free(op::Op)
-    if op.val != OP_NULL.val
+    if op.val != OP_NULL.val && !Finalized()
         @mpichk ccall((:MPI_Op_free, libmpi), Cint, (Ptr{MPI_Op},), op)
-        refcount_dec()
     end
     return nothing
 end
@@ -82,7 +81,6 @@ function Op(f, T=Any; iscommutative=false)
                   (Ptr{Cvoid}, Cint, Ptr{MPI_Op}),
                   fptr, iscommutative, op)
 
-    refcount_inc()
     finalizer(free, op)
     return op
 end
