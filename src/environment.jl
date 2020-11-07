@@ -51,6 +51,18 @@ function run_init_hooks()
     return nothing
 end
 
+function _finalize()
+    # MPI_Finalize is a collective and can act like a barrier (this may be implementation
+    # specific). If we are terminating due to a Julia exception, we shouldn't call
+    # MPI_Finalize. We thus peek at the current exception, and only if that field is
+    # nothing do we terminate.
+    if !Finalized() && ccall(:jl_current_exception, Any, ()) === nothing
+        Finalize()
+    end
+end
+
+
+
 
 """
     Init(;finalize_atexit=true)
@@ -71,9 +83,9 @@ $(_doc_external("MPI_Init"))
 function Init(;finalize_atexit=true)
     @mpichk ccall((:MPI_Init, libmpi), Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
     if finalize_atexit
-        atexit(() -> Finalized() || Finalize())
+        atexit(_finalize)
     end
-    
+
     run_init_hooks()
     _warn_if_wrong_mpi()
 end
@@ -144,7 +156,7 @@ function Init_thread(required::ThreadLevel; finalize_atexit=true)
     end
 
     if finalize_atexit
-        atexit(() -> Finalized() || Finalize())
+        atexit(_finalize)
     end
     run_init_hooks()
     _warn_if_wrong_mpi()
@@ -185,6 +197,7 @@ function Is_thread_main()
                   (Ref{Cint},), r_flag)
     return r_flag[] != 0
 end
+
 
 
 """
