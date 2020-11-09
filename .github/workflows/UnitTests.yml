@@ -201,7 +201,7 @@ jobs:
         EOF
         ./install.sh --silent intel.conf
         popd
-        ls ${HOME}/intel
+        cat ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh
 
     - uses: julia-actions/setup-julia@latest
       with:
@@ -223,7 +223,9 @@ jobs:
     - run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
         julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
-    - uses: julia-actions/julia-runtest@latest
+    - run: |
+        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+        julia --project -e 'using Pkg; Pkg.test()'
 
 
 
