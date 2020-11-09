@@ -201,6 +201,7 @@ jobs:
         EOF
         ./install.sh --silent intel.conf
         popd
+        ls ${HOME}/intel
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
 
     - uses: julia-actions/setup-julia@latest
