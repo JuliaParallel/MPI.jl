@@ -187,7 +187,7 @@ jobs:
 
     - name: Install Intel MPI
       run: |
-        wget http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16546/l_mpi_2019.7.217.tgz
+        wget --no-verbose http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16546/l_mpi_2019.7.217.tgz
         tar -xzf l_mpi_2019.7.217.tgz
         pushd l_mpi_2019.7.217
         cat << EOF > intel.conf
