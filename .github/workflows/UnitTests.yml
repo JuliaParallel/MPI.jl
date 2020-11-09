@@ -185,9 +185,19 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
+    - name: Cache Intel MPI
+      id: cache-intelmpi
+      uses: actions/cache@v2
+      with:
+        path: l_mpi_2019.7.217.tgz
+        key: ${{ runner.os }}-intelmpi-2019.7.217
+
+    - name: Download Intel MPI
+      if: steps.cache-intelmpi.outputs.cache-hit != 'true'
+      run: wget --no-verbose http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16546/l_mpi_2019.7.217.tgz
+
     - name: Install Intel MPI
-      run: |
-        wget --no-verbose http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16546/l_mpi_2019.7.217.tgz
+      run: |        
         tar -xzf l_mpi_2019.7.217.tgz
         pushd l_mpi_2019.7.217
         cat << EOF > intel.conf
@@ -220,10 +230,13 @@ jobs:
           ${{ runner.os }}-test-
           ${{ runner.os }}-
 
-    - run: |
+    # we can't use the usual actions here as we need to ensure the environment variables are set
+    - name: "Build package" 
+      run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
         julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
-    - run: |
+    - name: "Run tests"
+      run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
         julia --project -e 'using Pkg; Pkg.test()'
 
