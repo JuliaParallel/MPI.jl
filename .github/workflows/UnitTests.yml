@@ -189,29 +189,28 @@ jobs:
       id: cache-intelmpi
       uses: actions/cache@v2
       with:
-        path: l_mpi_2019.7.217.tgz
-        key: ${{ runner.os }}-intelmpi-2019.7.217
+        path: l_mpi_2019.9.304.tgz
+        key: ${{ runner.os }}-intelmpi-2019.9.304
 
     - name: Download Intel MPI
       if: steps.cache-intelmpi.outputs.cache-hit != 'true'
-      run: wget --no-verbose http://registrationcenter-download.intel.com/akdlm/irc_nas/tec/16546/l_mpi_2019.7.217.tgz
+      run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
 
     - name: Install Intel MPI
       run: |        
-        tar -xzf l_mpi_2019.7.217.tgz
-        pushd l_mpi_2019.7.217
+        tar -xzf l_mpi_2019.9.304.tgz
+        pushd l_mpi_2019.9.304
         cat << EOF > intel.conf
         ACCEPT_EULA=accept
         CONTINUE_WITH_OPTIONAL_ERROR=yes
         PSET_INSTALL_DIR=${HOME}/intel
-        CONTINUE_WITH_INSTALLDIR_OVERWRITE=no
+        CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
         PSET_MODE=install
         ARCH_SELECTED=ALL
-        COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-psxe-common-doc__noarch;intel-compxe-pset
+        COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
         EOF
         ./install.sh --silent intel.conf
         popd
-        cat ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh
 
     - uses: julia-actions/setup-julia@latest
       with:

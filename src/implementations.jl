@@ -107,10 +107,13 @@ function identify_implementation()
     elseif startswith(MPI_LIBRARY_VERSION_STRING, "Intel")
         impl = IntelMPI
 
-        # TODO: figure out how to parse
         # "Intel(R) MPI Library 2019 Update 4 for Linux* OS"
-        if (m = match(r"^Intel\(R\) MPI Library (\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
+        if (m = match(r"^Intel\(R\) MPI Library (\d+)(?: Update (\d+))?", MPI_LIBRARY_VERSION_STRING)) !== nothing
+            if m.captures[2] === nothing
+                version = VersionNumber(m.captures[1])
+            else
+                version = VersionNumber(m.captures[1]*"."*m.captures[2])
+            end
         end
 
     elseif startswith(MPI_LIBRARY_VERSION_STRING, "MVAPICH2")
