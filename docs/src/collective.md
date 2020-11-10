@@ -10,6 +10,7 @@ MPI.Barrier
 
 ```@docs
 MPI.Bcast!
+MPI.bcast
 ```
 
 ## Gather/Scatter
@@ -31,9 +32,7 @@ MPI.Gatherv
 
 ```@docs
 MPI.Scatter!
-MPI.Scatter
 MPI.Scatterv!
-MPI.Scatterv
 ```
 
 ### All-to-all

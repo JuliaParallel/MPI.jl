@@ -24,19 +24,14 @@ for T in Base.uniontypes(MPI.MPIDatatype)
         
     A = ArrayType{T}(send_vals)
 
-    # Allocating version
-    B = MPI.Alltoallv(A, send_counts, recv_counts, comm)
-    @test B isa ArrayType{T}
-    @test B == ArrayType{T}(recv_vals)
-
     # Non Allocating version
     C = ArrayType{T}(undef, sum(recv_counts))
-    MPI.Alltoallv!(A, C, send_counts, recv_counts, comm)
+    MPI.Alltoallv!(VBuffer(A,send_counts), VBuffer(C,recv_counts), comm)
     @test C == ArrayType{T}(recv_vals)
 
     # Test assertion on wrong output buffer length
     C = ArrayType{T}(undef, sum(recv_counts)-1)
-    @test_throws AssertionError MPI.Alltoallv!(A, C, send_counts, recv_counts, comm)
+    @test_throws AssertionError MPI.Alltoallv!(VBuffer(A,send_counts), VBuffer(C,recv_counts), comm)
 end
 
 MPI.Finalize()

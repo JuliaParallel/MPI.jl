@@ -215,7 +215,7 @@ end
 Starts a nonblocking send of `data` to MPI rank `dest` of communicator `comm` using with
 the message tag `tag`.
 
-`data` can be a `Buffer`, or any object for which [`Buffer_send`](@ref) is defined.
+`data` can be a [`Buffer`](@ref), or any object for which [`Buffer_send`](@ref) is defined.
 
 Returns the [`Request`](@ref) object for the nonblocking send.
 

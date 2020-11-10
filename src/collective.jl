@@ -1,5 +1,3 @@
-const IN_PLACE = MPI_IN_PLACE
-
 """
     Barrier(comm::Comm)
 
@@ -19,28 +17,37 @@ function Barrier(comm::Comm)
 end
 
 """
-    Bcast!(buf[, count=length(buf)], root::Integer, comm::Comm)
+    Bcast!(buf, root::Integer, comm::Comm)
 
-Broadcast the first `count` elements of the buffer `buf` from `root` to all processes.
+Broadcast the buffer `buf` from `root` to all processes in `comm`.
+
+# See also
+- [`bcast`](@ref)
 
 # External links
 $(_doc_external("MPI_Bcast"))
 """
-function Bcast!(buffer, count::Integer,
-                root::Integer, comm::Comm)
-
+function Bcast!(buf::Buffer, root::Integer, comm::Comm)
     # int MPI_Bcast(void* buffer, int count, MPI_Datatype datatype, int root,
     #               MPI_Comm comm)
     @mpichk ccall((:MPI_Bcast, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
-                  buffer, count, Datatype(eltype(buffer)), root, comm)
-    buffer
+                  buf.data, buf.count, buf.datatype, root, comm)
+    return buf.data
+end
+function Bcast!(data, root::Integer, comm::Comm)
+    Bcast!(Buffer(data), root, comm)
 end
 
-function Bcast!(buffer::Union{Ref, AbstractArray}, root::Integer, comm::Comm)
-    Bcast!(buffer, length(buffer), root, comm)
-end
+"""
+    bcast(obj, root::Integer, comm::Comm)
 
+Broadcast the object `obj` from rank `root` to all processes on `comm`. This is able to handle arbitrary data.
+
+# See also
+
+- [`Bcast!`](@ref)
+"""
 function bcast(obj, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     count = Ref{Cint}()
@@ -56,168 +63,130 @@ function bcast(obj, root::Integer, comm::Comm)
     if !isroot
         obj = MPI.deserialize(buf)
     end
-    obj
+    return obj
 end
 
 """
-    Scatter!(sendbuf, recvbuf[, count=length(recvbuf)], root::Integer, comm::Comm)
+    Scatter!(sendbuf::Union{UBuffer,Nothing}, recvbuf, root::Integer, comm::Comm)
 
-Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks of length
-`count`, and sends the `j`-th chunk to the process of rank `j` into the `recvbuf` buffer.
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks,
+sending the `j`-th chunk to the process of rank `j-1` into the `recvbuf` buffer.
 
-`sendbuf` on the root process should be a buffer of length `count*Comm_size(comm)`, and
-on non-root processes it is ignored and can be `nothing`.
+`sendbuf` on the root process should be a [`UBuffer`](@ref) (an `Array` can also be
+passed directly if the sizes can be determined from `recvbuf`). On non-root processes it
+is ignored, and `nothing` can be passed instead.
 
-`recvbuf` can be `nothing` on the root process, in which case it is unmodified (this
-corresponds the behaviour of `MPI_IN_PLACE` in `MPI_Scatter`). For example
+`recvbuf` is a [`Buffer`](@ref) object, or any object for which `Buffer(recvbuf)` is
+defined. On the root process, it can also be [`MPI.IN_PLACE`](@ref), in which case it is
+unmodified. For example:
 ```
 if root == MPI.Comm_rank(comm)
-    Scatter!(buf, nothing, count, root, comm)
+    MPI.Scatter!(UBuffer(buf, count), MPI.IN_PLACE, root, comm)
 else
-    Scatter!(nothing, buf, count, root, comm)        
+    MPI.Scatter!(nothing, buf, root, comm)        
 end
 ```
 
-`count` should be the same for all processes.
-
 # See also
-- [`Scatter`](@ref) to allocate the output buffer.
 - [`Scatterv!`](@ref) if the number of elements varies between processes.
 
 # External links
 $(_doc_external("MPI_Scatter"))
 """
-function Scatter!(sendbuf, recvbuf, count::Integer, root::Integer, comm::Comm)
-    isroot = Comm_rank(comm) == root
-    if isroot
-        @assert sendbuf !== nothing
-        @assert_minlength sendbuf count*Comm_size(comm)
-        if recvbuf === nothing
-            recvbuf = MPI_IN_PLACE
-        end
+function Scatter!(sendbuf::UBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
+    if sendbuf.nchunks !== nothing && Comm_rank(comm) == root
+        @assert sendbuf.nchunks >= Comm_size(comm)
     end
-    @assert_minlength recvbuf count
-    T = recvbuf isa SentinelPtr ? eltype(sendbuf) : eltype(recvbuf)
     # int MPI_Scatter(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                 void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
     #                 MPI_Comm comm)
     @mpichk ccall((:MPI_Scatter, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
-                  sendbuf, count, Datatype(T), recvbuf, count, Datatype(T), root, comm)
-    recvbuf
+                  (MPIPtr, Cint, MPI_Datatype,
+                   MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
+                  sendbuf.data, sendbuf.count, sendbuf.datatype,
+                  recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
+    return recvbuf.data
 end
+Scatter!(sendbuf::UBuffer, recvbuf, root::Integer, comm::Comm) =
+    Scatter!(sendbuf, Buffer(recvbuf), root, comm)
+Scatter!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
+    Scatter!(UBuffer(nothing), recvbuf, root, comm)
 
-function Scatter!(sendbuf::AbstractArray, recvbuf::Union{Ref,AbstractArray}, root::Integer, comm::Comm)
-    Scatter!(sendbuf, recvbuf, length(recvbuf), root, comm)    
-end
+# determine UBuffer count from recvbuf
+Scatter!(sendbuf::AbstractArray, recvbuf::Union{Ref,AbstractArray}, root::Integer, comm::Comm) =
+    Scatter!(UBuffer(sendbuf,length(recvbuf)), recvbuf, root, comm)    
 
 """
-    Scatter(sendbuf, count, root, comm)
+    Scatterv!(sendbuf::Union{VBuffer,Nothing}, recvbuf, root, comm)
 
-Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
-and sends the `j`-th chunk to the process of rank `j`, allocating the output buffer.
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks and sends
+the `j`th chunk to the process of rank `j-1` into the `recvbuf` buffer.
 
-# See also
-- [`Scatter!`](@ref) for the mutating operation.
-- [`Scatterv!`](@ref) if the number of elements varies between processes.
+`sendbuf` on the root process should be a [`VBuffer`](@ref). On non-root processes it is
+ignored, and `nothing` can be passed instead.
 
-# External links
-$(_doc_external("MPI_Scatter"))
-"""
-function Scatter(sendbuf, count::Integer, root::Integer, comm::Comm)
-    Scatter!(sendbuf, similar(sendbuf, count), count, root, comm)
-end
-
-
-"""
-    Scatterv!(sendbuf, recvbuf, counts, root, comm)
-
-Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
-of length `counts[j]` and sends the j-th chunk to the process of rank j into the
-`recvbuf` buffer, which must be of length at least `count`.
-
-`recvbuf` can be `nothing` on the root process, in which case it is unmodified (this
-corresponds the behaviour of `MPI_IN_PLACE` in `MPI_Scatterv`). For example
+`recvbuf` is a [`Buffer`](@ref) object, or any object for which `Buffer(recvbuf)` is
+defined. On the root process, it can also be [`MPI.IN_PLACE`](@ref), in which case it is
+unmodified. For example:
 ```
 if root == MPI.Comm_rank(comm)
-    Scatterv!(buf, nothing, counts, root, comm)
+    MPI.Scatterv!(VBuffer(buf, counts), MPI.IN_PLACE, root, comm)
 else
-    Scatterv!(nothing, buf, counts, root, comm)
+    MPI.Scatterv!(nothing, buf, root, comm)
 end
 ```
 
 # See also
-- [`Scatterv`](@ref) for the allocating operation
-- [`Scatter!`](@ref)/[`Scatter`](@ref) if the counts are the same for all processes
+- [`Scatter!`](@ref) if the number of elements are the same for all processes
 
 # External links
 $(_doc_external("MPI_Scatterv"))
 """
-function Scatterv!(sendbuf, recvbuf, counts::Vector, root::Integer, comm::Comm)
-    rank = Comm_rank(comm)
-    isroot = rank == root
-    if isroot
-        @assert sendbuf !== nothing
-        @assert_minlength sendbuf sum(counts)
+function Scatterv!(sendbuf::VBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
+    if Comm_rank(comm) == root
+        @assert length(sendbuf.counts) >= Comm_size(comm)
     end
-    if recvbuf === nothing
-        recvbuf = MPI_IN_PLACE
-    end
-    @assert_minlength recvbuf counts[rank+1]
-    T = recvbuf isa SentinelPtr ? eltype(sendbuf) : eltype(recvbuf)
-    recvcnt = counts[Comm_rank(comm) + 1]
-    disps = accumulate(+, counts) - counts
     # int MPI_Scatterv(const void* sendbuf, const int sendcounts[],
     #                  const int displs[], MPI_Datatype sendtype, void* recvbuf,
     #                  int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
     @mpichk ccall((:MPI_Scatterv, libmpi), Cint,
-                  (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
-                  sendbuf, counts, disps, Datatype(T), recvbuf, recvcnt, Datatype(T), root, comm)
-    recvbuf
+                  (MPIPtr, Ptr{Cint}, Ptr{Cint},  MPI_Datatype,
+                   MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
+                  sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
+                  recvbuf.data, recvbuf.count, recvbuf.datatype,
+                  root, comm)
+    return recvbuf.data
 end
-
-"""
-    Scatterv(sendbuf, counts, root, comm)
-
-Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks
-of length `counts[j]` and sends the j-th chunk to the process of rank j, which
-allocates the output buffer
-
-# See also
-- [`Scatterv!`](@ref) for the mutating operation
-- [`Scatter!`](@ref)/[`Scatter`](@ref) if the counts are the same for all processes
-
-# External links
-$(_doc_external("MPI_Scatterv"))
-"""
-function Scatterv(sendbuf, counts::Vector, root::Integer, comm::Comm)
-    recvbuf = similar(sendbuf, counts[Comm_rank(comm) + 1])
-    Scatterv!(sendbuf, recvbuf, counts, root, comm)
-end
+Scatterv!(sendbuf::VBuffer, recvbuf, root::Integer, comm::Comm) =
+    Scatterv!(sendbuf, Buffer(recvbuf), root, comm)
+Scatterv!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
+    Scatterv!(VBuffer(nothing), recvbuf, root, comm)
 
 
 """
-    Gather!(sendbuf, recvbuf[, count::Integer=length(sendbuf)], root::Integer, comm::Comm)
+    Gather!(sendbuf, recvbuf::Union{UBuffer,Nothing}, root::Integer, comm::Comm)
 
-Each process sends the first `count` elements of the buffer `sendbuf` to the
-`root` process. The `root` process stores elements in rank order in the buffer
-buffer `recvbuf`.
+Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
+process stores elements in rank order in the buffer buffer `recvbuf`.
 
-`sendbuf` can be `nothing` on the root process, in which case the corresponding entries in
-`recvbuf` are assumed to be already in place (this corresponds the behaviour of
-`MPI_IN_PLACE` in `MPI_Gather`). For example
+`sendbuf` should be a [`Buffer`](@ref) object, or any object for which
+[`Buffer_send`](@ref) is defined, with the same length on all processes, and should be the
+same length on all processes.
+
+On the root process, `sendbuf` can be [`MPI.IN_PLACE`](@ref) on the root process, in which
+case the corresponding entries in `recvbuf` are assumed to be already in place (this
+corresponds the behaviour of `MPI_IN_PLACE` in `MPI_Gather`). For example:
 ```
 if root == MPI.Comm_rank(comm)
-    Gather!(nothing, buf, count, root, comm)
+    MPI.Gather!(MPI.IN_PLACE, UBuffer(buf, count), root, comm)
 else
-    Gather!(buf, nothing, count, root, comm)
+    MPI.Gather!(buf, nothing, root, comm)
 end
 ```
 
-`recvbuf` on the root process should be a buffer of length `count*Comm_size(comm)`, and
-on non-root processes it is ignored and can be `nothing`.
-
-`count` should be the same for all processes.
+`recvbuf` on the root process should be a [`UBuffer`](@ref), or can be an `AbstractArray`
+if the length can be determined from `sendbuf`. On non-root processes it is ignored and
+can be `nothing`.
 
 # See also
 - [`Gather`](@ref) for the allocating operation.
@@ -227,36 +196,38 @@ on non-root processes it is ignored and can be `nothing`.
 # External links
 $(_doc_external("MPI_Gather"))
 """
-function Gather!(sendbuf, recvbuf, count::Integer, root::Integer, comm::Comm)
-    isroot = Comm_rank(comm) == root
-    if isroot
-        @assert recvbuf !== nothing
-        @assert_minlength recvbuf count*Comm_size(comm)
-        if sendbuf === nothing
-            sendbuf = MPI_IN_PLACE
-        end
+function Gather!(sendbuf::Buffer, recvbuf::UBuffer, root::Integer, comm::Comm)
+    if recvbuf.nchunks !== nothing && Comm_rank(comm) == root
+        @assert recvbuf.nchunks >= Comm_size(comm)
     end
-    @assert_minlength sendbuf count
-    T = sendbuf isa SentinelPtr ? eltype(recvbuf) : eltype(sendbuf)
     # int MPI_Gather(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
     #                MPI_Comm comm)
     @mpichk ccall((:MPI_Gather, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
-                  sendbuf, count, Datatype(T), recvbuf, count, Datatype(T), root, comm)
-    isroot ? recvbuf : nothing
+                  sendbuf.data, sendbuf.count, sendbuf.datatype,
+                  recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
+    return recvbuf.data
 end
-function Gather!(sendbuf, recvbuf, root::Integer, comm::Comm)
-    Gather!(sendbuf, recvbuf, length(sendbuf), root, comm)
-end
+Gather!(sendbuf, recvbuf::UBuffer, root::Integer, comm::Comm) =
+    Gather!(Buffer_send(sendbuf), recvbuf, root, comm)
+Gather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, root::Integer, comm::Comm) =
+    Gather!(sendbuf, UBuffer(recvbuf, length(sendbuf)), root, comm)
+Gather!(sendbuf, recvbuf::Nothing, root::Integer, comm::Comm) =
+    Gather!(sendbuf, UBuffer(nothing), root, comm)
+Gather!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
+    Gather!(IN_PLACE, recvbuf, root, comm)
+
+
 
 """
-    Gather(sendbuf[, count=length(sendbuf)], root, comm)
+    Gather(sendbuf, root, comm::Comm)
 
-Each process sends the first `count` elements of the buffer `sendbuf` to the `root`
-process. The `root` allocates the output buffer and stores elements in rank order.
+Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
+allocates the output buffer and stores elements in rank order.
 
-`count` should be the same for all processes.
+`sendbuf` can be an `AbstractArray` or a scalar, and should be the same length on all
+processes.
 
 # See also
 - [`Gather!`](@ref) for the mutating operation.
@@ -266,97 +237,33 @@ process. The `root` allocates the output buffer and stores elements in rank orde
 # External links
 $(_doc_external("MPI_Gather"))
 """
-function Gather(sendbuf, count::Integer, root::Integer, comm::Comm)
-    Gather!(sendbuf, Comm_rank(comm) == root ? similar(sendbuf, Comm_size(comm) * count) : nothing, count, root, comm)
-end
-function Gather(sendbuf::AbstractArray, root::Integer, comm::Comm)
-    Gather(sendbuf, length(sendbuf), root, comm)
-end
-function Gather(object::T, root::Integer, comm::Comm) where {T}
-    Gather!(Ref(object), Comm_rank(comm) == root ? Vector{T}(undef, Comm_size(comm)) : nothing, 1, root, comm)
-end
+Gather(sendbuf::AbstractArray, root::Integer, comm::Comm) =
+    Gather!(sendbuf, Comm_rank(comm) == root ? similar(sendbuf, Comm_size(comm) * length(sendbuf)) : nothing, root, comm)
+Gather(object::T, root::Integer, comm::Comm) where {T} =
+    Gather!(Ref(object), Comm_rank(comm) == root ? Array{T}(undef, Comm_size(comm)) : nothing, root, comm)
 
 """
-    Allgather!(sendbuf, recvbuf[, count::Integer=length(sendbuf)], comm::Comm)
-    Allgather!(sendrecvbuf, count::Integer, comm::Comm)
+    Gatherv!(sendbuf, recvbuf::Union{VBuffer,Nothing}, root, comm)
 
-Each process sends the first `count` elements of `sendbuf` to the other processes, who
-store the results in rank order into `recvbuf`.
+Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
+stores elements in rank order in the buffer `recvbuf`.
 
-`count` should be the same for all processes.
+`sendbuf` should be a [`Buffer`](@ref) object, or any object for which
+[`Buffer_send`](@ref) is defined, with the same length on all processes.
 
-If only one buffer `sendrecvbuf` is provided, then each process send data is assumed to be
-in the area where it would receive it's own contribution.
-
-# See also
-- [`Allgather`](@ref) for the allocating operation
-- [`Allgatherv!`](@ref)/[`Allgatherv`](@ref) if the number of elements varies between processes.
-- [`Gather!`](@ref) to send only to a single root process
-
-# External links
-$(_doc_external("MPI_Allgather"))
-"""
-function Allgather!(sendbuf, recvbuf, count::Integer, comm::Comm)
-    @assert recvbuf !== nothing
-    @assert_minlength recvbuf count*Comm_size(comm)
-    @assert_minlength sendbuf count
-    T = eltype(recvbuf)
-
-    # int MPI_Allgather(const void* sendbuf, int sendcount,
-    #                   MPI_Datatype sendtype, void* recvbuf, int recvcount,
-    #                   MPI_Datatype recvtype, MPI_Comm comm)
-    @mpichk ccall((:MPI_Allgather, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
-                  sendbuf, count, Datatype(T), recvbuf, count, Datatype(T), comm)
-    recvbuf
-end
-function Allgather!(sendrecvbuf, count::Integer, comm::Comm)
-    Allgather!(MPI.IN_PLACE, sendrecvbuf, count, comm)
-end
-
-"""
-    Allgather(sendbuf[, count=length(sendbuf)], comm)
-
-Each process sends the first `count` elements of `sendbuf` to the other processes, who
-store the results in rank order allocating the output buffer.
-
-`count` should be the same for all processes.
-
-# See also
-- [`Allgather!`](@ref) for the mutating operation
-- [`Allgatherv!`](@ref)/[`Allgatherv`](@ref) if the number of elements varies between processes.
-- [`Gather!`](@ref) to send only to a single root process
-
-# External links
-$(_doc_external("MPI_Allgather"))
-"""
-function Allgather(sendbuf, count::Integer, comm::Comm)
-    Allgather!(sendbuf, similar(sendbuf, Comm_size(comm) * count), count, comm)
-end
-function Allgather(sendbuf::AbstractArray, comm::Comm)
-    Allgather(sendbuf, length(sendbuf), comm)
-end
-function Allgather(object::T, comm::Comm) where T
-    Allgather!(Ref(object), Vector{T}(undef, Comm_size(comm)), 1, comm)
-end
-
-"""
-    Gatherv!(sendbuf, recvbuf, counts, root, comm)
-
-Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
-the `root` process. The `root` stores elements in rank order in the buffer
-`recvbuf`.
-
-`sendbuf` can be `nothing` on the root process, in which case the corresponding entries in
-`recvbuf` are assumed to be already in place (this corresponds the behaviour of
-`MPI_IN_PLACE` in `MPI_Gatherv`). For example
+On the root process, `sendbuf` can be [`MPI.IN_PLACE`](@ref), in which case the
+corresponding entries in `recvbuf` are assumed to be already in place. For example
 ```
 if root == MPI.Comm_rank(comm)
-    Gatherv!(nothing, buf, counts, root, comm)
+    Gatherv!(MPI.IN_PLACE, VBuffer(buf, counts), root, comm)
 else
-    Gatherv!(buf, nothing, counts, root, comm)
+    Gatherv!(buf, nothing, root, comm)
 end
 ```
+
+`recvbuf` on the root process should be a [`VBuffer`](@ref), or can be an `AbstractArray`
+if the length can be determined from `sendbuf`. On non-root processes it is ignored and
+can be `nothing`.
 
 # See also
 - [`Gatherv`](@ref) for the allocating operation
@@ -366,59 +273,112 @@ end
 # External links
 $(_doc_external("MPI_Gatherv"))
 """
-function Gatherv!(sendbuf, recvbuf, counts::Vector{Cint}, root::Integer, comm::Comm)
-    isroot = Comm_rank(comm) == root
-    displs = accumulate(+, counts) - counts
-    sendcnt = counts[Comm_rank(comm) + 1]
-    if isroot
-        @assert recvbuf !== nothing
-        @assert_minlength recvbuf sum(counts)
-        if sendbuf === nothing
-            sendbuf = MPI_IN_PLACE
-        end
+function Gatherv!(sendbuf::Buffer, recvbuf::VBuffer, root::Integer, comm::Comm)
+    if Comm_rank(comm) == root
+        @assert length(recvbuf.counts) >= Comm_size(comm)
     end
-    @assert_minlength sendbuf sendcnt
-    T = sendbuf isa SentinelPtr ? eltype(recvbuf) : eltype(sendbuf)
-
     # int MPI_Gatherv(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                 void* recvbuf, const int recvcounts[], const int displs[],
     #                 MPI_Datatype recvtype, int root, MPI_Comm comm)
     @mpichk ccall((:MPI_Gatherv, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm),
-                  sendbuf, sendcnt, Datatype(T), recvbuf, counts, displs, Datatype(T), root, comm)
-    isroot ? recvbuf : nothing
+                  sendbuf.data, sendbuf.count, sendbuf.datatype,
+                  recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, root, comm)
+    return recvbuf.data
 end
+Gatherv!(sendbuf, recvbuf::VBuffer, root::Integer, comm::Comm) =
+    Gatherv!(Buffer_send(sendbuf), recvbuf, root, comm)
+Gatherv!(sendbuf, recvbuf::Nothing, root::Integer, comm::Comm) =
+    Gatherv!(sendbuf, VBuffer(nothing), root, comm)
+
+
 
 """
-    Gatherv(sendbuf, counts, root, comm)
+    Allgather!(sendbuf, recvbuf::UBuffer, comm::Comm)
+    Allgather!(sendrecvbuf::UBuffer, comm::Comm)
 
-Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
-the `root` process. The `root` allocates the output buffer and stores elements
-in rank order.
+Each process sends the contents of `sendbuf` to the other processes, the result of which
+is stored in rank order into `recvbuf`.
+
+`sendbuf` can be a [`Buffer`](@ref) object, or any object for which [`Buffer_send`](@ref)
+is defined, and should be the same length on all processes.
+
+`recvbuf` can be a [`UBuffer`](@ref), or can be an `AbstractArray` if the length can be
+determined from `sendbuf`.
+
+If only one buffer `sendrecvbuf` is provided, then on each process the data to send is
+assumed to be in the area where it would receive its own contribution.
 
 # See also
-- [`Gatherv!`](@ref) for the mutating operation
-- [`Gather!`](@ref)/[`Gather`](@ref)
-- [`Allgatherv!`](@ref)/[`Allgatherv`](@ref) to send the result to all processes
+- [`Allgather`](@ref) for the allocating operation
+- [`Allgatherv!`](@ref)/[`Allgatherv`](@ref) if the number of elements varies between processes.
+- [`Gather!`](@ref) to send only to a single root process
 
 # External links
-$(_doc_external("MPI_Gatherv"))
+$(_doc_external("MPI_Allgather"))
 """
-function Gatherv(sendbuf, counts::Vector{Cint}, root::Integer, comm::Comm)
-    Gatherv!(sendbuf, Comm_rank(comm) == root ? similar(sendbuf, sum(counts)) : nothing, counts, root, comm)
+function Allgather!(sendbuf::Buffer, recvbuf::UBuffer, comm::Comm)
+    if recvbuf.nchunks !== nothing
+        @assert recvbuf.nchunks >= Comm_size(comm)
+    end
+
+    # int MPI_Allgather(const void* sendbuf, int sendcount,
+    #                   MPI_Datatype sendtype, void* recvbuf, int recvcount,
+    #                   MPI_Datatype recvtype, MPI_Comm comm)
+    @mpichk ccall((:MPI_Allgather, libmpi), Cint,
+                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
+                  sendbuf.data, sendbuf.count, sendbuf.datatype,
+                  recvbuf.data, recvbuf.count, recvbuf.datatype, comm)
+    return recvbuf.data
+end
+Allgather!(sendbuf, recvbuf::UBuffer, comm::Comm) =
+    Allgather!(Buffer_send(sendbuf), recvbuf, comm)
+
+Allgather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, comm::Comm) =
+    Allgather!(sendbuf, UBuffer(recvbuf, length(sendbuf)), comm)
+
+
+function Allgather!(sendrecvbuf::UBuffer, comm::Comm)
+    Allgather!(IN_PLACE, sendrecvbuf, comm)
+end
+
+"""
+    Allgather(sendbuf, comm)
+
+Each process sends the contents of `sendbuf` to the other processes, who store the results
+in rank order allocating the output buffer.
+
+`sendbuf` can be an `AbstractArray` or a scalar, and should be the same size on all
+processes.
+
+# See also
+- [`Allgather!`](@ref) for the mutating operation
+- [`Allgatherv!`](@ref)/[`Allgatherv`](@ref) if the number of elements varies between processes.
+- [`Gather!`](@ref) to send only to a single root process
+
+# External links
+$(_doc_external("MPI_Allgather"))
+"""
+function Allgather(sendbuf::AbstractArray, comm::Comm)
+    Allgather!(sendbuf, similar(sendbuf, Comm_size(comm) * length(sendbuf)), comm)
+end
+function Allgather(object::T, comm::Comm) where T
+    Allgather!(Ref(object), Array{T}(undef, Comm_size(comm)), comm)
 end
 
 
 """
-    Allgatherv!(sendbuf, recvbuf, counts, comm)
-    Allgatherv!(sendrecvbuf, counts, comm)
+    Allgatherv!(sendbuf, recvbuf::VBuffer, comm::Comm)
+    Allgatherv!(sendrecvbuf::VBuffer, comm::Comm)
 
-Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
-all other process. Each process stores the received data in rank order in the
-buffer `recvbuf`.
+Each process sends the contents of `sendbuf` to all other process. Each process stores the
+received in the [`VBuffer`](@ref) `recvbuf`.
+
+`sendbuf` can be a [`Buffer`](@ref) object, or any object for which [`Buffer_send`](@ref)
+is defined.
 
 If only one buffer `sendrecvbuf` is provided, then for each process, the data to be sent
-is taken from the interval of `recvbuf` where it would store it's own data.
+is taken from the interval of `recvbuf` where it would store its own data.
 
 # See also
 - [`Allgatherv`](@ref) for the allocating operation
@@ -427,54 +387,35 @@ is taken from the interval of `recvbuf` where it would store it's own data.
 # External links
 $(_doc_external("MPI_Allgatherv"))
 """
-function Allgatherv!(sendbuf, recvbuf, counts::Vector{Cint}, comm::Comm)
-    displs = accumulate(+, counts) - counts
-    sendcnt = counts[Comm_rank(comm) + 1]
-    @assert recvbuf !== nothing
-    @assert_minlength recvbuf sum(counts)
-    @assert_minlength sendbuf sendcnt
-    T = eltype(recvbuf)
+function Allgatherv!(sendbuf::Buffer, recvbuf::VBuffer, comm::Comm)
+    @assert length(recvbuf.counts) >= Comm_size(comm)
 
     # int MPI_Allgatherv(const void* sendbuf, int sendcount,
     #                    MPI_Datatype sendtype, void* recvbuf, const int recvcounts[],
     #                    const int displs[], MPI_Datatype recvtype, MPI_Comm comm)
     @mpichk ccall((:MPI_Allgatherv, libmpi), Cint,
-              (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
-              sendbuf, sendcnt, Datatype(T), recvbuf, counts, displs, Datatype(T), comm)
-    recvbuf
+                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
+                  sendbuf.data, sendbuf.count, sendbuf.datatype,
+                  recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
+                  comm)
+    return recvbuf.data
 end
-function Allgatherv!(sendrecvbuf, counts::Vector{Cint}, comm::Comm)
-    Allgatherv!(MPI_IN_PLACE, sendrecvbuf, counts, comm)
+function Allgatherv!(sendbuf, recvbuf::VBuffer, comm::Comm)
+    Allgatherv!(Buffer_send(sendbuf), recvbuf, comm)
 end
-
-"""
-    Allgatherv(sendbuf, counts, comm)
-
-Each process sends the first `counts[rank]` elements of the buffer `sendbuf` to
-all other process. Each process allocates an output buffer and stores the
-received data in rank order.
-
-# See also
-- [`Allgatherv!`](@ref) for the mutating operation.
-- [`Gatherv!`](@ref)/[`Gatherv`](@ref) to send the result to a single process.
-
-# External links
-$(_doc_external("MPI_Allgatherv"))
-"""
-function Allgatherv(sendbuf, counts::Vector{Cint}, comm::Comm)
-    recvbuf = similar(sendbuf, sum(counts))
-    Allgatherv!(sendbuf, recvbuf, counts, comm)
+function Allgatherv!(sendrecvbuf::VBuffer, comm::Comm)
+    Allgatherv!(IN_PLACE, sendrecvbuf, comm)
 end
 
 
-"""
-    Alltoall!(sendbuf, recvbuf, count::Integer, comm::Comm)
-    Alltoall!(sendrecvbuf, count::Integer, comm::Comm)
 
-Every process divides the buffer `sendbuf` into `Comm_size(comm)` chunks of
-length `count`, sending the `j`-th chunk to the `j`-th process.
-Every process stores the data received from the `j`-th process in the `j`-th
-chunk of the buffer `recvbuf`.
+"""
+    Alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
+    Alltoall!(sendrecvbuf::UBuffer, comm::Comm)
+
+Every process divides the [`UBuffer`](@ref) `sendbuf` into `Comm_size(comm)` chunks of
+equal size, sending the `j`-th chunk to the process of rank `j-1`.  Every process stores
+the data received from rank `j-1` process in the `j`-th chunk of the buffer `recvbuf`.
 
 ```
 rank    send buf                        recv buf
@@ -484,7 +425,7 @@ rank    send buf                        recv buf
  2      α,β,γ,ψ,η,ν                     e,f,E,F,η,ν
 ```
 
-If only one buffer `sendrecvbuf` then data is overwritten.
+If only one buffer `sendrecvbuf` is used, then data is overwritten.
 
 # See also
 - [`Alltoall`](@ref) for the allocating operation
@@ -492,31 +433,35 @@ If only one buffer `sendrecvbuf` then data is overwritten.
 # External links
 $(_doc_external("MPI_Alltoall"))
 """
-function Alltoall!(sendbuf, recvbuf, count::Integer, comm::Comm)
-    buflength = count * Comm_size(comm)
-    @assert_minlength recvbuf buflength
-    @assert_minlength sendbuf buflength    
-    sendbuf isa SentinelPtr || @assert eltype(sendbuf) == eltype(recvbuf)
-    T = eltype(recvbuf)
+function Alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
+    if sendbuf.data !== MPI_IN_PLACE && sendbuf.nchunks !== nothing
+        @assert sendbuf.nchunks >= Comm_size(comm)
+    end
+    if recvbuf.nchunks !== nothing
+        @assert recvbuf.nchunks >= Comm_size(comm)
+    end
     # int MPI_Alltoall(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                  void* recvbuf, int recvcount, MPI_Datatype recvtype,
     #                  MPI_Comm comm)
     @mpichk ccall((:MPI_Alltoall, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
-                  sendbuf, count, Datatype(T), recvbuf, count, Datatype(T), comm)
-    recvbuf
+                  sendbuf.data, sendbuf.count, sendbuf.datatype,
+                  recvbuf.data, recvbuf.count, recvbuf.datatype,
+                  comm)
+    return recvbuf.data
 end
-function Alltoall!(sendrecvbuf, count::Integer, comm::Comm)
-    Alltoall!(MPI_IN_PLACE, recvbuf, count, comm)
-end
+Alltoall!(sendbuf::InPlace, recvbuf::UBuffer, comm::Comm) =
+    Alltoall!(UBuffer(IN_PLACE), recvbuf, comm)
+Alltoall!(sendrecvbuf::UBuffer, comm::Comm) =
+    Alltoall!(IN_PLACE, recvbuf, comm)
 
 """
-    Alltoall(sendbuf, count::Integer, comm::Comm)
+    Alltoall(sendbuf::UBuffer, comm::Comm)
 
-Every process divides the buffer `sendbuf` into `Comm_size(comm)` chunks of
-length `count`, sending the `j`-th chunk to the `j`-th process.
-Every process allocates the output buffer and stores the data received from the
-`j`-th process in the `j`-th chunk.
+Every process divides the [`UBuffer`](@ref) `sendbuf` into `Comm_size(comm)` chunks of
+equal size, sending the `j`-th chunk to the process of rank `j-1`. Every process allocates
+the output buffer and stores the data received from the process on rank `j-1` in the
+`j`-th chunk.
 
 ```
 rank    send buf                        recv buf
@@ -532,55 +477,39 @@ rank    send buf                        recv buf
 # External links
 $(_doc_external("MPI_Alltoall"))
 """
-function Alltoall(sendbuf, count::Integer,  comm::Comm)
-    recvbuf = similar(sendbuf, Comm_size(comm)*count)
-    Alltoall!(sendbuf, recvbuf, count, comm)
-end
+Alltoall(sendbuf::UBuffer,  comm::Comm) =
+    Alltoall!(sendbuf, similar(sendbuf), comm)
+
 
 """
-    Alltoallv!(sendbuf, recvbuf, scounts::Vector, rcounts::Vector, comm::Comm)
+    Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
 
-Similar to [`Alltoall!`](@ref), except with different size chunks per process.
+Similar to [`Alltoall!`](@ref), except with different size chunks per process. 
 
 # See also
-- [`Alltoallv`](@ref) for the allocating operation
+- [`VBuffer`](@ref)
 
 # External links
 $(_doc_external("MPI_Alltoallv"))
 """
-function Alltoallv!(sendbuf, recvbuf, scounts::Vector{Cint}, rcounts::Vector{Cint}, comm::Comm)
-    @assert_minlength sendbuf sum(scounts)
-    @assert_minlength recvbuf sum(rcounts)
-    @assert eltype(sendbuf) == eltype(recvbuf)
-    T = eltype(sendbuf)
-
-    sdispls = accumulate(+, scounts) - scounts
-    rdispls = accumulate(+, rcounts) - rcounts
+function Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
+    if sendbuf.data !== MPI_IN_PLACE
+        @assert length(sendbuf.counts) >= Comm_size(comm)
+    end
+    @assert length(recvbuf.counts) >= Comm_size(comm)
     # int MPI_Alltoallv(const void* sendbuf, const int sendcounts[],
     #                   const int sdispls[], MPI_Datatype sendtype, void* recvbuf,
     #                   const int recvcounts[], const int rdispls[],
     #                   MPI_Datatype recvtype, MPI_Comm comm)
     @mpichk ccall((:MPI_Alltoallv, libmpi), Cint,
-                  (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
-                  sendbuf, scounts, sdispls, Datatype(T), recvbuf, rcounts, rdispls, Datatype(T), comm)
-    recvbuf
-end
-
-"""
-    Alltoallv(sendbuf, recvbuf, scounts::Vector, rcounts::Vector, comm::Comm)
-
-Similar to [`Alltoall`](@ref), except with different size chunks per process.
-
-# See also
-- [`Alltoallv!`](@ref) for the mutating operation
-
-# External links
-$(_doc_external("MPI_Alltoallv"))
-"""
-function Alltoallv(sendbuf, scounts::Vector{Cint},
-                   rcounts::Vector{Cint}, comm::Comm)
-    recvbuf = similar(sendbuf, sum(rcounts))
-    Alltoallv!(sendbuf, recvbuf, scounts, rcounts, comm)
+                  (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
+                   MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
+                   MPI_Comm),
+                  sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
+                  recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
+                  comm)
+    
+    return recvbuf.data
 end
 
 
@@ -590,11 +519,11 @@ end
 
 # mutating
 """
-    Reduce!(sendbuf, recvbuf[, count::Integer=length(sendbuf)], op, root::Integer, comm::Comm)
+    Reduce!(sendbuf, recvbuf, op, root::Integer, comm::Comm)
     Reduce!(sendrecvbuf, op, root::Integer, comm::Comm)
 
-Performs elementwise reduction using the operator `op` on the first `count` elements of
-the buffer `sendbuf` and stores the result in `recvbuf` on the process of rank `root`.
+Performs elementwise reduction using the operator `op` on the buffer `sendbuf` and stores
+the result in `recvbuf` on the process of rank `root`.
 
 On non-root processes `recvbuf` is ignored, and can be `nothing`. 
 
@@ -608,38 +537,27 @@ To perform the reduction in place, provide a single buffer `sendrecvbuf`.
 # External links
 $(_doc_external("MPI_Reduce"))
 """
-function Reduce!(sendbuf, recvbuf, count::Integer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm)
-    isroot = Comm_rank(comm) == root
-    @assert_minlength sendbuf count
-    if isroot
-        @assert recvbuf !== nothing
-        @assert_minlength recvbuf count
-    end
-    T = sendbuf isa SentinelPtr ? eltype(recvbuf) : eltype(sendbuf)
+function Reduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm)
     # int MPI_Reduce(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
     @mpichk ccall((:MPI_Reduce, libmpi), Cint,
                   (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm),
-                  sendbuf, recvbuf, count, Datatype(T), op, root, comm)
-    recvbuf
+                  rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, root, comm)
+    return rbuf.recvdata
 end
 
 # Convert user-provided functions to MPI.Op
-function Reduce!(sendbuf, recvbuf, count::Integer, opfunc, root::Integer, comm::Comm)
-    T = sendbuf isa SentinelPtr ? eltype(recvbuf) : eltype(sendbuf)
-    Reduce!(sendbuf, recvbuf, count, Op(opfunc, T), root, comm)
-end
-function Reduce!(sendbuf::AbstractArray, recvbuf::Union{Nothing,AbstractArray},
-                 op, root::Integer, comm::Comm)
-    Reduce!(sendbuf, recvbuf, length(sendbuf), op, root, comm)
-end
+Reduce!(rbuf::RBuffer, op, root::Integer, comm::Comm) =
+    Reduce!(rbuf, Op(op, eltype(rbuf)), root, comm)
+Reduce!(sendbuf, recvbuf, op, root::Integer, comm::Comm) =
+    Reduce!(RBuffer(sendbuf, recvbuf), op, root, comm)
 
 # inplace
 function Reduce!(buf, op, root::Integer, comm::Comm)
     if Comm_rank(comm) == root
-        Reduce!(MPI_IN_PLACE, buf, length(buf), op, root, comm)
+        Reduce!(IN_PLACE, buf, op, root, comm)
     else
-        Reduce!(buf, nothing, length(buf), op, root, comm)
+        Reduce!(buf, nothing, op, root, comm)
     end
 end
 
@@ -661,13 +579,17 @@ the result `recvbuf` on the process of rank `root`, and `nothing` on non-root pr
 $(_doc_external("MPI_Reduce"))
 """
 function Reduce(sendbuf::AbstractArray, op, root::Integer, comm::Comm)
-    Reduce!(sendbuf, Comm_rank(comm) == root ? similar(sendbuf) : nothing, length(sendbuf), op, root, comm)
+    if Comm_rank(comm) == root 
+        Reduce!(sendbuf, similar(sendbuf), op, root, comm)
+    else
+        Reduce!(sendbuf, nothing, op, root, comm)
+    end
 end
 function Reduce(object::T, op, root::Integer, comm::Comm) where {T}
     if Comm_rank(comm) == root
-        Reduce!(Ref(object), Ref{T}(), 1, op, root, comm)[]
+        Reduce!(Ref(object), Ref{T}(), op, root, comm)[]
     else
-        Reduce!(Ref(object), nothing, 1, op, root, comm)
+        Reduce!(Ref(object), nothing, op, root, comm)
     end
 end
 
@@ -675,11 +597,11 @@ end
 
 # mutating
 """
-    Allreduce!(sendbuf, recvbuf[, count=length(sendbuf)], op, comm)
-    Allreduce!(sendrecvbuf, op, comm)
+    Allreduce!(sendbuf, recvbuf, op, comm::Comm)
+    Allreduce!(sendrecvbuf, op, comm::Comm)
 
-Performs elementwise reduction using the operator `op` on the first `count` elements of
-the buffer `sendbuf`, storing the result in the `recvbuf` of all processes in the group.
+Performs elementwise reduction using the operator `op` on the buffer `sendbuf`, storing
+the result in the `recvbuf` of all processes in the group.
 
 `Allreduce!` is equivalent to a [`Reduce!`](@ref) operation followed by
 a [`Bcast!`](@ref), but can lead to better performance.
@@ -694,30 +616,22 @@ If only one `sendrecvbuf` buffer is provided, then the operation is performed in
 # External links
 $(_doc_external("MPI_Allreduce"))
 """
-function Allreduce!(sendbuf, recvbuf, count::Integer, op::Union{Op,MPI_Op}, comm::Comm)
-    @assert_minlength sendbuf count
-    @assert_minlength recvbuf count
-    sendbuf isa SentinelPtr || @assert eltype(sendbuf) == eltype(recvbuf)
-    T = eltype(recvbuf)
+function Allreduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
     # int MPI_Allreduce(const void* sendbuf, void* recvbuf, int count,
     #                   MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
     @mpichk ccall((:MPI_Allreduce, libmpi), Cint,
                   (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
-                  sendbuf, recvbuf, count, Datatype(T), op, comm)
-    recvbuf
+                  rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
+    rbuf.recvdata
 end
-function Allreduce!(sendbuf, recvbuf, count::Integer, opfunc, comm::Comm)
-    Allreduce!(sendbuf, recvbuf, count, Op(opfunc, eltype(recvbuf)), comm)
-end
-
-function Allreduce!(sendbuf::AbstractArray, recvbuf::AbstractArray, op, comm::Comm)
-    Allreduce!(sendbuf, recvbuf, length(recvbuf), op, comm)
-end
+Allreduce!(rbuf::RBuffer, op, comm::Comm) =
+    Allreduce!(rbuf, Op(op, eltype(rbuf)), comm)
+Allreduce!(sendbuf, recvbuf, op, comm::Comm) =
+    Allreduce!(RBuffer(sendbuf, recvbuf), op, comm)
 
 # inplace
-function Allreduce!(buf, op, comm::Comm)
-    Allreduce!(MPI_IN_PLACE, buf, length(buf), op, comm)
-end
+Allreduce!(buf, op, comm::Comm) =
+    Allreduce!(IN_PLACE, buf, op, comm)
 
 # allocating
 """
@@ -736,24 +650,23 @@ the result in the `recvbuf` of all processes in the group.
 # External links
 $(_doc_external("MPI_Allreduce"))
 """
-function Allreduce(sendbuf::AbstractArray, op, comm::Comm)
-    Allreduce!(sendbuf, similar(sendbuf), length(sendbuf), op, comm)
-end
-function Allreduce(obj::T, op, comm::Comm) where {T}
-    Allreduce!(Ref(obj), Ref{T}(), 1, op, comm)[]
-end
+Allreduce(sendbuf::AbstractArray, op, comm::Comm) =
+    Allreduce!(sendbuf, similar(sendbuf), op, comm)
+Allreduce(obj::T, op, comm::Comm) where {T} =
+    Allreduce!(Ref(obj), Ref{T}(), op, comm)[]
 
 ## Scan
 
 # mutating
 """
-    Scan!(sendbuf, recvbuf[, count::Integer], op, comm::Comm)
-    Scan!(buf[, count::Integer], op, comm::Comm)
+    Scan!(sendbuf, recvbuf, op, comm::Comm)
+    Scan!(sendrecvbuf, op, comm::Comm)
 
 Inclusive prefix reduction (analagous to `accumulate` in Julia): `recvbuf` on rank `i`
 will contain the the result of reducing `sendbuf` by `op` from ranks `0:i`.
 
-If only a single buffer is provided, then operations will be performed in-place in `buf`.
+If only a single buffer `sendrecvbuf` is provided, then operations will be performed
+in-place.
 
 # See also
 - [`Scan`](@ref) to handle allocation of the output buffer
@@ -763,30 +676,22 @@ If only a single buffer is provided, then operations will be performed in-place 
 # External links
 $(_doc_external("MPI_Scan"))
 """
-function Scan!(sendbuf, recvbuf, count::Integer,
-               op::Union{Op,MPI_Op}, comm::Comm)
-    T = eltype(recvbuf)
+function Scan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
     # int MPI_Scan(const void* sendbuf, void* recvbuf, int count,
     #              MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
     @mpichk ccall((:MPI_Scan, libmpi), Cint,
                   (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
-                  sendbuf, recvbuf, count, Datatype(T), op, comm)
-    recvbuf
+                  rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
+    rbuf.recvdata
 end
-function Scan!(sendbuf, recvbuf, count::Integer, opfunc, comm::Comm)
-    Scan!(sendbuf, recvbuf, count, Op(opfunc, eltype(recvbuf)), comm)
-end
-function Scan!(sendbuf::AbstractArray, recvbuf, op, comm::Comm)
-    Scan!(sendbuf, recvbuf, length(sendbuf), op, comm)
-end
+Scan!(rbuf::RBuffer, op, comm::Comm) =
+    Scan!(rbuf, Op(op, eltype(rbuf)), comm)
+Scan!(sendbuf, recvbuf, op, comm::Comm) =
+    Scan!(RBuffer(sendbuf, recvbuf), op, comm)
 
 # inplace
-function Scan!(buf, count::Integer, opfunc, comm::Comm)
-    Scan!(MPI_IN_PLACE, buf, count, Op(opfunc, eltype(sendbuf)), comm)
-end
-function Scan!(buf, opfunc, comm::Comm)
-    Scan!(buf, length(buf), Op(opfunc, eltype(sendbuf)), comm)
-end
+Scan!(buf, op, comm::Comm) =
+    Scan!(IN_PLACE, buf, op, comm)
 
 # allocating
 """
@@ -806,28 +711,24 @@ type.
 # External links
 $(_doc_external("MPI_Scan"))
 """
-function Scan(sendbuf::AbstractArray, op, comm::Comm)
+Scan(sendbuf::AbstractArray, op, comm::Comm) =
     Scan!(sendbuf, similar(sendbuf), op, comm)
-end
-function Scan(object::T, op, comm::Comm) where {T}
-    Scan!(Ref(object), Ref{T}(), 1, op, comm)[]
-end
+Scan(object::T, op, comm::Comm) where {T} =
+    Scan!(Ref(object), Ref{T}(), op, comm)[]
 
 ## Exscan
-
 # mutating
-
 """
-    Exscan!(sendbuf, recvbuf[, count::Integer], op, comm::Comm)
-    Exscan!(buf[, count::Integer], op, comm::Comm)
+    Exscan!(sendbuf, recvbuf, op, comm::Comm)
+    Exscan!(sendrecvbuf, op, comm::Comm)
 
 Exclusive prefix reduction (analagous to `accumulate` in Julia): `recvbuf` on rank `i`
 will contain the the result of reducing `sendbuf` by `op` from ranks `0:i-1`. The
 `recvbuf` on rank `0` is ignored, and the `recvbuf` on rank `1` will contain the contents
 of `sendbuf` on rank `0`.
 
-If only a single `buf` is provided, then operations are performed in-place, and `buf` on
-rank 0 will remain unchanged.
+If only a single `sendrecvbuf` is provided, then operations are performed in-place, and
+`buf` on rank 0 will remain unchanged.
 
 # See also
 - [`Exscan`](@ref) to handle allocation of the output buffer
@@ -837,30 +738,22 @@ rank 0 will remain unchanged.
 # External links
 $(_doc_external("MPI_Exscan"))
 """
-function Exscan!(sendbuf, recvbuf, count::Integer,
-                op::Union{Op,MPI_Op}, comm::Comm)
-    T = eltype(recvbuf)
+function Exscan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
     # int MPI_Exscan(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
     @mpichk ccall((:MPI_Exscan, libmpi), Cint,
           (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
-          sendbuf, recvbuf, count, Datatype(T), op, comm)
-    recvbuf
+          rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
+    rbuf.recvdata
 end
-function Exscan!(sendbuf, recvbuf, count::Integer, opfunc, comm::Comm)
-    Exscan!(sendbuf, recvbuf, count, Op(opfunc, eltype(recvbuf)), comm)
-end
-function Exscan!(sendbuf::AbstractArray, recvbuf::AbstractArray, op, comm::Comm)
-    Exscan!(sendbuf, recvbuf, length(sendbuf), op, comm)
-end
+Exscan!(rbuf::RBuffer, op, comm::Comm) =
+    Exscan!(rbuf, Op(op, eltype(rbuf)), comm)
+Exscan!(sendbuf, recvbuf, op, comm::Comm) =
+    Exscan!(RBuffer(sendbuf, recvbuf), op, comm)
 
 # inplace
-function Exscan!(buf, count::Integer, opfunc, comm::Comm)
-    Exscan!(MPI_IN_PLACE, buf, count, Op(opfunc, eltype(buf)), comm)
-end
-function Exscan!(buf, op, comm::Comm)
-    Exscan!(buf, length(buf), op, comm)
-end
+Exscan!(buf, op, comm::Comm) =
+    Exscan!(IN_PLACE, buf, op, comm)
 
 
 # allocating
@@ -880,9 +773,7 @@ of `sendbuf` on rank `0`.
 # External links
 $(_doc_external("MPI_Scan"))
 """
-function Exscan(sendbuf::AbstractArray, op, comm::Comm)
+Exscan(sendbuf::AbstractArray, op, comm::Comm) =
     Exscan!(sendbuf, similar(sendbuf), op, comm)
-end
-function Exscan(object::T, op, comm::Comm) where {T}
-    Exscan!(Ref(object), Ref{T}(), 1, op, comm)[]
-end
+Exscan(object::T, op, comm::Comm) where {T} =
+    Exscan!(Ref(object), Ref{T}(), op, comm)[]

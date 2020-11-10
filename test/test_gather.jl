@@ -31,14 +31,18 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     if isroot
         @test C isa Vector{T}
         @test C == Vector{T}(1:sz)
+    else
+        @test C === nothing
     end
 
-    # Allocating, explicit length
-    A = ArrayType{T}([MPI.Comm_rank(comm) + 1, 0])
-    C = MPI.Gather(A, 1, root, comm)
+    # Allocating, array
+    A = ArrayType{T}([MPI.Comm_rank(comm) + 1])
+    C = MPI.Gather(A, root, comm)
     if isroot
         @test C isa ArrayType{T}
         @test C == ArrayType{T}(1:MPI.Comm_size(comm))
+    else
+        @test C === nothing
     end
 
     # Allocating, view
@@ -52,7 +56,11 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     # Non Allocating
     A = ArrayType{T}(fill(T(rank+1), 4))
     C = ArrayType{T}(undef, 4sz)
-    MPI.Gather!(A, C, length(A), root, comm)
+    MPI.Gather!(A, C, root, comm)
+    if isroot
+        @test C == ArrayType{T}(repeat(1:sz, inner=4))
+    end
+    MPI.Gather!(A, UBuffer(C,4), root, comm)
     if isroot
         @test C == ArrayType{T}(repeat(1:sz, inner=4))
     end
@@ -63,9 +71,9 @@ for T in Base.uniontypes(MPI.MPIDatatype)
         A = ArrayType{T}(fill(T(rank+1), 4*sz))
     end
     if root == MPI.Comm_rank(comm)
-        MPI.Gather!(nothing, A, 4, root, comm)
+        MPI.Gather!(MPI.IN_PLACE, UBuffer(A,4), root, comm)
     else
-        MPI.Gather!(A, nothing, 4, root, comm)
+        MPI.Gather!(A, nothing, root, comm)
     end
     if isroot
         @test A == ArrayType{T}(repeat(1:sz, inner=4))

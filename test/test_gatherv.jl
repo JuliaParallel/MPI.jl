@@ -21,15 +21,10 @@ check = collect(Iterators.flatten([fill(r, counts[r+1]) for r = 0:size-1]))
 
 for T in Base.uniontypes(MPI.MPIDatatype)
     A = ArrayType(fill(T(rank), mod(rank,2) + 1))
-    B = MPI.Gatherv(A, counts, root, comm)
-    if isroot
-        @test B isa ArrayType{T}
-        @test B == ArrayType{T}(check)
-    end
 
     # Test passing the output buffer
     B = ArrayType{T}(undef, sum(counts))
-    MPI.Gatherv!(A, B, counts, root, comm)
+    MPI.Gatherv!(A, isroot ? VBuffer(B, counts) : nothing, root, comm)
     if isroot
         @test B == ArrayType{T}(check)
     end
@@ -37,15 +32,16 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     # Test assertion when output size is too small
     B = ArrayType{T}(undef, sum(counts)-1)
     if isroot
-        @test_throws AssertionError MPI.Gatherv!(A, B, counts, root, comm)
+        @test_throws AssertionError MPI.Gatherv!(A, VBuffer(B, counts), root, comm)
     end
 
     # Test explicit MPI_IN_PLACE
-    B = ArrayType(fill(T(rank), sum(counts)))
-    if root == MPI.Comm_rank(comm)
-        MPI.Gatherv!(nothing, B, counts, root, comm)
+    if isroot
+        B = ArrayType(fill(T(rank), sum(counts)))
+        MPI.Gatherv!(MPI.IN_PLACE, VBuffer(B, counts), root, comm)
     else
-        MPI.Gatherv!(B, nothing, counts, root, comm)
+        B = ArrayType(fill(T(rank), counts[rank+1]))
+        MPI.Gatherv!(B, nothing, root, comm)
     end
     if isroot
         @test B == ArrayType{T}(check)

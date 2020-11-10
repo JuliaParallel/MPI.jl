@@ -66,7 +66,6 @@ for T = [Int]
             recv_arr = ArrayType{T}(undef, size(send_arr).-1)
             if isroot
                 @test_throws AssertionError MPI.Reduce!(send_arr, recv_arr,
-                                                        length(send_arr),
                                                         op, root,
                                                         MPI.COMM_WORLD)
             end
@@ -79,9 +78,9 @@ for T = [Int]
             end
 
             # Allocating version
-            val = MPI.Reduce(2, op, root, MPI.COMM_WORLD)
+            r = MPI.Reduce(2, op, root, MPI.COMM_WORLD)
             if isroot
-                @test val == sz*2
+                @test r == sz*2
             end
             
             recv_arr = MPI.Reduce(send_arr, op, root, MPI.COMM_WORLD)
