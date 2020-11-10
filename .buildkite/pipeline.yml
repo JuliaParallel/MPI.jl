@@ -1,0 +1,21 @@
+steps:
+  # Julia versions
+
+  - label: "Julia 1.5"
+    plugins:
+      - JuliaCI/julia#v0.2:
+          version: 1.5
+    env:
+      JULIA_MPI_BINARY: system
+      JULIA_MPI_TEST_ARRAYTYPE: CuArray
+      JULIA_MPI_TEST_NPROCS: 2
+      JULIA_MPIEXEC_ARGS: "--allow-run-as-root"
+    command: |
+      apt-get install -y openmpi-bin libopenmpi-dev
+      ompi_info
+      julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
+      julia --project -e 'using Pkg; Pkg.test()'
+    agents:
+      queue: "juliagpu"
+      cuda: "*"
+
