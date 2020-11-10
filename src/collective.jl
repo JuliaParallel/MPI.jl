@@ -631,7 +631,7 @@ Allreduce!(sendbuf, recvbuf, op, comm::Comm) =
 
 # inplace
 Allreduce!(buf, op, comm::Comm) =
-    Allreduce!(IN_PLACE, buf, length(buf), op, comm)
+    Allreduce!(IN_PLACE, buf, op, comm)
 
 # allocating
 """
@@ -653,7 +653,7 @@ $(_doc_external("MPI_Allreduce"))
 Allreduce(sendbuf::AbstractArray, op, comm::Comm) =
     Allreduce!(sendbuf, similar(sendbuf), op, comm)
 Allreduce(obj::T, op, comm::Comm) where {T} =
-    Allreduce!(Ref(obj), Ref{T}(), 1, op, comm)[]
+    Allreduce!(Ref(obj), Ref{T}(), op, comm)[]
 
 ## Scan
 
@@ -714,7 +714,7 @@ $(_doc_external("MPI_Scan"))
 Scan(sendbuf::AbstractArray, op, comm::Comm) =
     Scan!(sendbuf, similar(sendbuf), op, comm)
 Scan(object::T, op, comm::Comm) where {T} =
-    Scan!(Ref(object), Ref{T}(), 1, op, comm)[]
+    Scan!(Ref(object), Ref{T}(), op, comm)[]
 
 ## Exscan
 # mutating
@@ -776,4 +776,4 @@ $(_doc_external("MPI_Scan"))
 Exscan(sendbuf::AbstractArray, op, comm::Comm) =
     Exscan!(sendbuf, similar(sendbuf), op, comm)
 Exscan(object::T, op, comm::Comm) where {T} =
-    Exscan!(Ref(object), Ref{T}(), 1, op, comm)[]
+    Exscan!(Ref(object), Ref{T}(), op, comm)[]

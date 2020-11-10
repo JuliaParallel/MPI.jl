@@ -18,19 +18,19 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Allocating version
     a = ArrayType(fill(T(rank), size))
-    b = MPI.Alltoall(a, 1, comm)
+    b = MPI.Alltoall(UBuffer(a, 1), comm)
     @test b isa ArrayType{T}
     @test b == ArrayType{T}(0:size-1)
 
     # Non Allocating version
     a = ArrayType(fill(T(rank),size))
     b = ArrayType{T}(undef, size*1)
-    MPI.Alltoall!(a, b, 1, comm)
+    MPI.Alltoall!(UBuffer(a,1), UBuffer(b,1), comm)
     @test b == ArrayType{T}(0:size-1)
 
     # IN_PLACE version
     a = ArrayType{T}(fill(T(rank),size))
-    MPI.Alltoall!(MPI.IN_PLACE, a, 1, comm)
+    MPI.Alltoall!(MPI.IN_PLACE, UBuffer(a,1), comm)
     @test a == ArrayType{T}(0:size-1)
 end
 

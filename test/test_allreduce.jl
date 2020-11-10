@@ -35,8 +35,7 @@ for T = [Int]
 
             # Assertions when output buffer too small
             recv_arr = ArrayType{T}(undef, size(send_arr).-1)
-            @test_throws BoundsError MPI.Allreduce!(send_arr, recv_arr,
-                                                       length(send_arr),
+            @test_throws AssertionError MPI.Allreduce!(send_arr, recv_arr,
                                                        op, MPI.COMM_WORLD)
             # IN_PLACE
             recv_arr = copy(send_arr)

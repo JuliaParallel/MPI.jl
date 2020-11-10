@@ -4,7 +4,7 @@ using Libdl, Serialization
 using Requires
 using DocStringExtensions
 
-export mpiexec
+export mpiexec, UBuffer, VBuffer
 
 function serialize(x)
     s = IOBuffer()
