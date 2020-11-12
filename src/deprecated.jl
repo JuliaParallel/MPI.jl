@@ -45,9 +45,9 @@ import Base: @deprecate
            Scatterv!(nothing, similar(sendbuf, counts[Comm_rank(comm) + 1]), root, comm), false)
 
 @deprecate(Gather!(sendbuf, recvbuf, count::Integer, root::Integer, comm::Comm),
-           Gather!(sendbuf, UBuffer(recvbuf, count), root, comm), false)
+           Gather!(sendbuf, MPI.Comm_rank(comm) == root ? UBuffer(recvbuf, count) : nothing, root, comm), false)
 @deprecate(Gather!(sendbuf::AbstractArray, recvbuf, count::Integer, root::Integer, comm::Comm),
-           Gather!(view(sendbuf, 1:count), UBuffer(recvbuf, count), root, comm), false)
+           Gather!(view(sendbuf, 1:count), MPI.Comm_rank(comm) == root ? UBuffer(recvbuf, count) : nothing, root, comm), false)
 @deprecate(Gather!(sendbuf::Nothing, recvbuf, count::Integer, root::Integer, comm::Comm),
            Gather!(MPI.IN_PLACE, UBuffer(recvbuf, count), root, comm), false)
 @deprecate(Gather!(sendbuf, recvbuf::Nothing, count::Integer, root::Integer, comm::Comm),
@@ -61,9 +61,9 @@ import Base: @deprecate
            Gather(view(sendbuf, 1:count), root, comm), false)
 
 @deprecate(Gatherv!(sendbuf, recvbuf, counts::Vector{Cint}, root::Integer, comm::Comm),
-           Gatherv!(sendbuf, VBuffer(recvbuf, counts), root, comm), false)
+           Gatherv!(sendbuf, MPI.Comm_rank(comm) == root ? VBuffer(recvbuf, counts) : nothing, root, comm), false)
 @deprecate(Gatherv!(sendbuf::AbstractArray, recvbuf, counts::Vector{Cint}, root::Integer, comm::Comm),
-           Gatherv!(view(sendbuf,1:counts[MPI.Comm_rank(comm)+1]), VBuffer(recvbuf, counts), root, comm), false)
+           Gatherv!(view(sendbuf,1:counts[MPI.Comm_rank(comm)+1]), MPI.Comm_rank(comm) == root ? VBuffer(recvbuf, counts) : nothing, root, comm), false)
 @deprecate(Gatherv!(sendbuf::Nothing, recvbuf, counts::Vector{Cint}, root::Integer, comm::Comm),
            Gatherv!(MPI.IN_PLACE, VBuffer(recvbuf, counts), root, comm), false)
 @deprecate(Gatherv!(sendbuf, recvbuf::Nothing, counts::Vector{Cint}, root::Integer, comm::Comm),
