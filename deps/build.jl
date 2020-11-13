@@ -71,7 +71,7 @@ if binary == "system"
     mpiexec = get(config, "mpiexec", path == "" ? "mpiexec" : joinpath(path, "bin", "mpiexec"))
     abi     = get(config, "abi", "")
 
-    const libmpi = find_library(library, path == "" ? [] : [joinpath(path, "lib")])
+    const libmpi = find_library(library, path == "" ? [] : [joinpath(path, "lib"), joinpath(path, "lib64")])
     if libmpi == ""
         error("libmpi could not be found")
     end
