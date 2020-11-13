@@ -231,7 +231,7 @@ processes.
 
 # See also
 - [`Gather!`](@ref) for the mutating operation.
-- [`Gatherv!`](@ref)/[`Gatherv`](@ref) if the number of elements varies between processes.
+- [`Gatherv!`](@ref) if the number of elements varies between processes.
 - [`Allgather!`](@ref)/[`Allgather`](@ref) to send the result to all processes.
 
 # External links
@@ -268,7 +268,7 @@ can be `nothing`.
 # See also
 - [`Gatherv`](@ref) for the allocating operation
 - [`Gather!`](@ref)
-- [`Allgatherv!`](@ref)/[`Allgatherv`](@ref) to send the result to all processes
+- [`Allgatherv!`](@ref) to send the result to all processes
 
 # External links
 $(_doc_external("MPI_Gatherv"))
@@ -311,7 +311,7 @@ assumed to be in the area where it would receive its own contribution.
 
 # See also
 - [`Allgather`](@ref) for the allocating operation
-- [`Allgatherv!`](@ref)/[`Allgatherv`](@ref) if the number of elements varies between processes.
+- [`Allgatherv!`](@ref) if the number of elements varies between processes.
 - [`Gather!`](@ref) to send only to a single root process
 
 # External links
@@ -353,7 +353,7 @@ processes.
 
 # See also
 - [`Allgather!`](@ref) for the mutating operation
-- [`Allgatherv!`](@ref)/[`Allgatherv`](@ref) if the number of elements varies between processes.
+- [`Allgatherv!`](@ref) if the number of elements varies between processes.
 - [`Gather!`](@ref) to send only to a single root process
 
 # External links
@@ -382,7 +382,7 @@ is taken from the interval of `recvbuf` where it would store its own data.
 
 # See also
 - [`Allgatherv`](@ref) for the allocating operation
-- [`Gatherv!`](@ref)/[`Gatherv`](@ref) to send the result to a single process
+- [`Gatherv!`](@ref) to send the result to a single process
 
 # External links
 $(_doc_external("MPI_Allgatherv"))
