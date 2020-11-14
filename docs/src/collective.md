@@ -18,14 +18,12 @@ MPI.bcast
 ### Gather
 
 ```@docs
-MPI.Allgather!
-MPI.Allgather
-MPI.Allgatherv!
-MPI.Allgatherv
 MPI.Gather!
 MPI.Gather
 MPI.Gatherv!
-MPI.Gatherv
+MPI.Allgather!
+MPI.Allgather
+MPI.Allgatherv!
 ```
 
 ### Scatter
