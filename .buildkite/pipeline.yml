@@ -9,12 +9,25 @@ steps:
       JULIA_MPI_BINARY: system
       JULIA_MPI_TEST_ARRAYTYPE: CuArray
       JULIA_MPI_TEST_NPROCS: 2
-      JULIA_MPIEXEC_ARGS: "--allow-run-as-root"
-    command: |
-      apt-get install -y openmpi-bin libopenmpi-dev
-      ompi_info
-      julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
-      julia --project -e 'using Pkg; Pkg.test()'
+      JULIA_MPI_PATH: "${HOME}/openmpi"
+      OPENMPI_VER:      '4.0'
+      OPENMPI_VER_FULL: '4.0.5'
+      OMPI_ALLOW_RUN_AS_ROOT: 1
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+    command:
+      - echo '--- Building Open MPI'
+      - curl https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
+      - tar -xzf openmpi.tar.gz
+      - pushd openmpi-$${OPENMPI_VER_FULL}
+      - ./configure --with-cuda --prefix="$${JULIA_MPI_PATH}"
+      - make -j 2
+      - make install
+      - popd
+      - $${JULIA_MPI_PATH}/bin/ompi_info
+      - echo '--- Building package'
+      - julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
+      - echo '--- Running tests'
+      - julia --project -e 'using Pkg; Pkg.test()'
     agents:
       queue: "juliagpu"
       cuda: "*"
