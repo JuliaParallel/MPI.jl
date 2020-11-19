@@ -4,6 +4,8 @@ using Test, MPI
 using DoubleFloats
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     import CUDA
+    CUDA.version()
+    CUDA.precompile_runtime()
     ArrayType = CUDA.CuArray
 else
     ArrayType = Array
