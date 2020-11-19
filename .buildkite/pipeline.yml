@@ -50,7 +50,7 @@ steps:
     if: build.message !~ /\[skip tests\]/
     timeout_in_minutes: 60
     env:
-      JULIA_MPI_TEST_ARRAYTYPE: Array
+      JULIA_MPI_TEST_ARRAYTYPE: CuArray
       JULIA_MPI_TEST_NPROCS: 2
       JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
       OMPI_ALLOW_RUN_AS_ROOT: 1
@@ -90,7 +90,7 @@ steps:
     if: build.message !~ /\[skip tests\]/
     timeout_in_minutes: 60
     env:
-      JULIA_MPI_TEST_ARRAYTYPE: Array
+      JULIA_MPI_TEST_ARRAYTYPE: CuArray
       JULIA_MPI_TEST_NPROCS: 2
       JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
       OMPI_ALLOW_RUN_AS_ROOT: 1

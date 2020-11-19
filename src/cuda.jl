@@ -1,6 +1,7 @@
 import .CUDA
 
 function Base.cconvert(::Type{MPIPtr}, buf::CUDA.CuArray{T}) where T
+    CUDA.synchronize(CUDA.stream())
     Base.cconvert(CUDA.CuPtr{T}, buf) # returns DeviceBuffer
 end
 
