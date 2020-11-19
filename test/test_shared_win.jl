@@ -36,9 +36,9 @@ function main()
         mpi_shared_array(node_comm, Float32, (100, 2); owner_rank=owner_rank)
 
     if node_rank == 0
-        (@view shared_arr[:, 1]) .= 1:100
+        shared_arr[:, 1] .= 1:100
     elseif node_rank == 1
-        (@view shared_arr[:, 2]) .= 901:1000
+        shared_arr[:, 2] .= 901:1000
     end
 
     MPI.Barrier(node_comm) # finish writing before reading
