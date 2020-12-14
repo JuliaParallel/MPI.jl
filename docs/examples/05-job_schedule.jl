@@ -3,6 +3,8 @@
 # assigns one element to each slave to compute the operation.
 # When the worker is finished, the master sends another element
 # until each element is added 100
+# Inspired on
+# https://www.hpc.ntnu.no/ntnu-hpc-group/vilje/user-guide/software/mpi-and-mpi-io-training-tutorial/basic-mpi/job-queue
 
 using MPI
 
