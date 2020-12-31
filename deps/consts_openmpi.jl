@@ -10,29 +10,29 @@ const MPI_Status_Tag_offset = 4
 const MPI_Status_Error_offset = 8
 
 const MPI_Info = Ptr{Cvoid}
-MPI_Info_f2c(c::Cint) = ccall((:MPI_Info_f2c,libmpi),MPI_Info,(Cint,),c)
+MPI_Info_f2c(c::Cint) = ccall(:MPI_Info_f2c,MPI_Info,(Cint,),c)
 const MPI_INFO_NULL = Cint(0)
 
 const MPI_Win = Ptr{Cvoid}
-MPI_Win_f2c(c::Cint) = ccall((:MPI_Win_f2c,libmpi),MPI_Win,(Cint,),c)
+MPI_Win_f2c(c::Cint) = ccall(:MPI_Win_f2c,MPI_Win,(Cint,),c)
 const MPI_WIN_NULL = Cint(0)
 
 const MPI_Comm = Ptr{Cvoid}
-MPI_Comm_f2c(c::Cint) = ccall((:MPI_Comm_f2c,libmpi),MPI_Comm,(Cint,),c)
+MPI_Comm_f2c(c::Cint) = ccall(:MPI_Comm_f2c,MPI_Comm,(Cint,),c)
 const MPI_COMM_NULL = Cint(2)
 const MPI_COMM_SELF = Cint(1)
 const MPI_COMM_WORLD = Cint(0)
 
 const MPI_Request = Ptr{Cvoid}
-MPI_Request_f2c(c::Cint) = ccall((:MPI_Request_f2c,libmpi),MPI_Request,(Cint,),c)
+MPI_Request_f2c(c::Cint) = ccall(:MPI_Request_f2c,MPI_Request,(Cint,),c)
 const MPI_REQUEST_NULL = Cint(0)
 
 const MPI_File = Ptr{Cvoid}
-MPI_File_f2c(c::Cint) = ccall((:MPI_File_f2c,libmpi),MPI_File,(Cint,),c)
+MPI_File_f2c(c::Cint) = ccall(:MPI_File_f2c,MPI_File,(Cint,),c)
 const MPI_FILE_NULL = Cint(0)
 
 const MPI_Op = Ptr{Cvoid}
-MPI_Op_f2c(c::Cint) = ccall((:MPI_Op_f2c,libmpi),MPI_Op,(Cint,),c)
+MPI_Op_f2c(c::Cint) = ccall(:MPI_Op_f2c,MPI_Op,(Cint,),c)
 const MPI_OP_NULL = Cint(0)
 const MPI_BAND = Cint(6)
 const MPI_BOR = Cint(8)
@@ -50,7 +50,7 @@ const MPI_REPLACE = Cint(13)
 const MPI_NO_OP = Cint(14)
 
 const MPI_Datatype = Ptr{Cvoid}
-MPI_Datatype_f2c(c::Cint) = ccall((:MPI_Type_f2c,libmpi),MPI_Datatype,(Cint,),c)
+MPI_Datatype_f2c(c::Cint) = ccall(:MPI_Type_f2c,MPI_Datatype,(Cint,),c)
 const MPI_DATATYPE_NULL = Cint(0)
 const MPI_PACKED = Cint(2)
 const MPI_CHAR = Cint(34)

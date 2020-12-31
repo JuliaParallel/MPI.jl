@@ -37,6 +37,9 @@ try
 catch e
     error("MPI.jl not properly configured, please run `Pkg.build(\"MPI\")`.")
 end
+
+const dlmpi = Ref{Ptr{Nothing}}(0)
+
 include("implementations.jl")
 include("error.jl")
 include("handle.jl")
@@ -57,21 +60,16 @@ include("deprecated.jl")
 
 function __init__()
 
-    @static if Sys.isunix()
-        # need to open libmpi with RTLD_GLOBAL flag for Linux, before
-        # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
-        # at least on Ubuntu 15.10
-        Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-    end
+    dlmpi[] = Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
 
     __init__deps()
-    
+
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
     if !haskey(ENV, "UCX_MEMTYPE_CACHE")
         ENV["UCX_MEMTYPE_CACHE"] = "no"
     end
-    
+
     # Julia multithreading uses SIGSEGV to sync thread
     # https://docs.julialang.org/en/v1/devdocs/debuggingtips/#Dealing-with-signals-1
     # By default, UCX will error if this occurs (issue #337)

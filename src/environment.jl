@@ -81,7 +81,7 @@ The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` ar
 $(_doc_external("MPI_Init"))
 """
 function Init(;finalize_atexit=true)
-    @mpichk ccall((:MPI_Init, libmpi), Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
+    @mpichk ccall(:MPI_Init, Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
     if finalize_atexit
         atexit(_finalize)
     end
@@ -147,7 +147,7 @@ $(_doc_external("MPI_Init_thread"))
 function Init_thread(required::ThreadLevel; finalize_atexit=true)
     r_provided = Ref{ThreadLevel}()
     # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
-    @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
+    @mpichk ccall(:MPI_Init_thread, Cint,
                   (Ptr{Cint},Ptr{Cvoid}, ThreadLevel, Ref{ThreadLevel}),
                   C_NULL, C_NULL, required, r_provided)
     provided = r_provided[]
@@ -176,7 +176,7 @@ function Query_thread()
     r_provided = Ref{ThreadLevel}()
 
     # int MPI_Query_thread(int *provided)
-    @mpichk ccall((:MPI_Query_thread, libmpi), Cint,
+    @mpichk ccall(:MPI_Query_thread, Cint,
                   (Ref{ThreadLevel},), r_provided)
     return r_provided[]
 end
@@ -193,7 +193,7 @@ $(_doc_external("MPI_Is_thread_main"))
 function Is_thread_main()
     r_flag = Ref{Cint}()
     # int MPI_Is_thread_main(int *flag)
-    @mpichk ccall((:MPI_Is_thread_main, libmpi), Cint,
+    @mpichk ccall(:MPI_Is_thread_main, Cint,
                   (Ref{Cint},), r_flag)
     return r_flag[] != 0
 end
@@ -214,7 +214,7 @@ call this function when Julia exits, if it hasn't already been called.
 $(_doc_external("MPI_Finalize"))
 """
 function Finalize()
-    @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
+    @mpichk ccall(:MPI_Finalize, Cint, ())
     return nothing
 end
 
@@ -230,7 +230,7 @@ or POSIX environment should handle this as a return errorcode from the main prog
 $(_doc_external("MPI_Abort"))
 """
 function Abort(comm::Comm, errcode::Integer)
-    @mpichk ccall((:MPI_Abort, libmpi), Cint, (MPI_Comm, Cint), comm, errcode)
+    @mpichk ccall(:MPI_Abort, Cint, (MPI_Comm, Cint), comm, errcode)
 end
 
 """
@@ -246,7 +246,7 @@ $(_doc_external("MPI_Intialized"))
 """
 function Initialized()
     flag = Ref{Cint}()
-    @mpichk ccall((:MPI_Initialized, libmpi), Cint, (Ptr{Cint},), flag)
+    @mpichk ccall(:MPI_Initialized, Cint, (Ptr{Cint},), flag)
     flag[] != 0
 end
 
@@ -262,16 +262,16 @@ $(_doc_external("MPI_Finalized"))
 """
 function Finalized()
     flag = Ref{Cint}()
-    @mpichk ccall((:MPI_Finalized, libmpi), Cint, (Ptr{Cint},), flag)
+    @mpichk ccall(:MPI_Finalized, Cint, (Ptr{Cint},), flag)
     flag[] != 0
 end
 
 function Wtick()
-    @mpicall ccall((:MPI_Wtick, libmpi), Cdouble, ())
+    @mpicall ccall(:MPI_Wtick, Cdouble, ())
 end
 
 function Wtime()
-    @mpicall ccall((:MPI_Wtime, libmpi), Cdouble, ())
+    @mpicall ccall(:MPI_Wtime, Cdouble, ())
 end
 
 
@@ -291,7 +291,7 @@ function has_cuda()
         # Only Open MPI provides a function to check CUDA support
         @static if MPI_LIBRARY == OpenMPI
             # int MPIX_Query_cuda_support(void)
-            return 0 != ccall((:MPIX_Query_cuda_support, libmpi), Cint, ())
+            return 0 != ccall(:MPIX_Query_cuda_support, Cint, ())
         elseif MPI_LIBRARY == IBMSpectrumMPI
             return true
         else

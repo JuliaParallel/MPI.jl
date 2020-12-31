@@ -8,7 +8,7 @@ $(_doc_external("MPI_Dims_create"))
 """
 function Dims_create!(nnodes::Integer, ndims::Integer, dims::MPIBuffertype{T}) where {T <: Integer}
     # int MPI_Dims_create(int nnodes, int ndims, int dims[])
-    @mpichk ccall((:MPI_Dims_create, libmpi), Cint,
+    @mpichk ccall(:MPI_Dims_create, Cint,
                   (Cint, Cint, Ptr{Cint}), nnodes, ndims, dims)
 end
 
@@ -31,7 +31,7 @@ function Cart_create(comm_old::Comm, ndims::Integer, dims::MPIBuffertype{Cint}, 
     comm_cart = Comm()
     # int MPI_Cart_create(MPI_Comm comm_old, int ndims, const int dims[],
     #                     const int periods[], int reorder, MPI_Comm *comm_cart)
-    @mpichk ccall((:MPI_Cart_create, libmpi), Cint,
+    @mpichk ccall(:MPI_Cart_create, Cint,
                   (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{MPI_Comm}),
                   comm_old, ndims, dims, periods, reorder, comm_cart)
     if comm_cart.val != MPI_COMM_NULL
@@ -59,7 +59,7 @@ $(_doc_external("MPI_Cart_rank"))
 function Cart_rank(comm::Comm, coords::MPIBuffertype{Cint})
     rank = Ref{Cint}()
     # int MPI_Cart_rank(MPI_Comm comm, const int coords[], int *rank)
-    @mpichk ccall((:MPI_Cart_rank, libmpi), Cint,
+    @mpichk ccall(:MPI_Cart_rank, Cint,
                   (MPI_Comm, Ptr{Cint}, Ptr{Cint}),
                   comm, coords, rank)
     Int(rank[])
@@ -73,9 +73,9 @@ end
 """
     dims, periods, coords = Cart_get(comm::Comm)
 
-Obtain information on the Cartesian topology of dimension `N` underlying the 
+Obtain information on the Cartesian topology of dimension `N` underlying the
 communicator `comm`. This is specified by two `Cint` arrays of `N` elements
-for the number of processes and periodicity properties along each Cartesian dimension. 
+for the number of processes and periodicity properties along each Cartesian dimension.
 A third `Cint` array is returned, containing the Cartesian coordinates of the calling process.
 
 # External links
@@ -88,7 +88,7 @@ function Cart_get(comm::Comm)
     periods = Cint[-1 for i = 1:maxdims]
     coords  = Cint[-1 for i = 1:maxdims]
     # int MPI_Cart_get(MPI_Comm comm, int maxdims, int dims[], int periods[], int coords[])
-    @mpichk ccall((:MPI_Cart_get, libmpi), Cint,
+    @mpichk ccall(:MPI_Cart_get, Cint,
                   (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
                   comm, maxdims, dims, periods, coords)
     return dims, periods, coords
@@ -105,7 +105,7 @@ $(_doc_external("MPI_Cartdim_get"))
 function Cartdim_get(comm::Comm)
     dims = Ref{Cint}()
     # int MPI_Cartdim_get(MPI_Comm comm, int *ndims)
-    @mpichk ccall((:MPI_Cartdim_get, libmpi), Cint,
+    @mpichk ccall(:MPI_Cartdim_get, Cint,
                   (MPI_Comm, Ptr{Cint}),
                   comm, dims)
     return Int(dims[])
@@ -122,7 +122,7 @@ $(_doc_external("MPI_Cart_coords"))
 function Cart_coords!(comm::Comm, rank::Integer, coords::MPIBuffertype{Cint})
     maxdims = Cartdim_get(comm)
     # int MPI_Cart_coords(MPI_Comm comm, int rank, int maxdims, int coords[])
-    @mpichk ccall((:MPI_Cart_coords, libmpi), Cint,
+    @mpichk ccall(:MPI_Cart_coords, Cint,
                   (MPI_Comm, Cint, Cint, Ptr{Cint}),
                   comm, rank, maxdims, coords)
 end
@@ -156,7 +156,7 @@ function Cart_shift(comm::Comm, direction::Integer, disp::Integer)
     rank_dest   = Ref{Cint}()
     # int MPI_Cart_shift(MPI_Comm comm, int direction, int disp,
     #                    int *rank_source, int *rank_dest)
-    @mpichk ccall((:MPI_Cart_shift, libmpi), Cint,
+    @mpichk ccall(:MPI_Cart_shift, Cint,
                   (MPI_Comm, Cint, Cint, Ptr{Cint}, Ptr{Cint}),
                   comm, direction, disp, rank_source, rank_dest)
     Int(rank_source[]), Int(rank_dest[])
@@ -177,7 +177,7 @@ $(_doc_external("MPI_Cart_sub"))
 function Cart_sub(comm::Comm, remain_dims::MPIBuffertype{Cint})
     comm_sub = Comm()
     # int MPI_Cart_sub(MPI_Comm comm, const int remain_dims[], MPI_Comm *comm_new)
-    @mpichk ccall((:MPI_Cart_sub, libmpi), Cint,
+    @mpichk ccall(:MPI_Cart_sub, Cint,
                   (MPI_Comm, Ptr{Cint}, Ptr{MPI_Comm}),
                   comm, remain_dims, comm_sub)
     if comm_sub.val != MPI_COMM_NULL

@@ -24,7 +24,7 @@ const MPI_Request = Cint
 const MPI_REQUEST_NULL = Cint(738197504)
 
 const MPI_File = Ptr{Cvoid}
-MPI_File_f2c(c::Cint) = ccall((:MPI_File_f2c,libmpi),MPI_File,(Cint,),c)
+MPI_File_f2c(c::Cint) = ccall(:MPI_File_f2c,MPI_File,(Cint,),c)
 const MPI_FILE_NULL = Cint(0)
 
 const MPI_Op = Cint

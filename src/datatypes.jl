@@ -20,7 +20,7 @@ Datatype() = Datatype(DATATYPE_NULL.val)
 
 function free(dt::Datatype)
     if dt.val != DATATYPE_NULL.val && !Finalized()
-        @mpichk ccall((:MPI_Type_free, libmpi), Cint, (Ptr{MPI_Datatype},), dt)
+        @mpichk ccall(:MPI_Type_free, Cint, (Ptr{MPI_Datatype},), dt)
     end
     return nothing
 end
@@ -57,7 +57,7 @@ for (mpiname, T) in [
         end
     end
 end
-    
+
 module Types
 
 import MPI
@@ -78,7 +78,7 @@ function extent(dt::Datatype)
     extent = Ref{MPI_Aint}()
     # int MPI_Type_get_extent(MPI_Datatype datatype, MPI_Aint *lb,
     #          MPI_Aint *extent)
-    @mpichk ccall((:MPI_Type_get_extent, libmpi), Cint,
+    @mpichk ccall(:MPI_Type_get_extent, Cint,
                   (MPI_Datatype, Ptr{MPI_Aint}, Ptr{MPI_Aint}),
                   dt, lb, extent)
     return lb[], extent[]
@@ -97,7 +97,7 @@ $(_doc_external("MPI_Type_contiguous"))
 """
 function create_contiguous(count::Integer, oldtype::Datatype)
     newtype = Datatype()
-    @mpichk ccall((:MPI_Type_contiguous, libmpi), Cint,
+    @mpichk ccall(:MPI_Type_contiguous, Cint,
                   (Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   count, oldtype, newtype)
     finalizer(free, newtype)
@@ -109,7 +109,7 @@ end
     MPI.Types.create_vector(count::Integer, blocklength::Integer, stride::Integer, oldtype::MPI.Datatype)
 
 Create a derived [`Datatype`](@ref) that replicates `oldtype` into locations that
-consist of equally spaced blocks. 
+consist of equally spaced blocks.
 
 Note that [`MPI.Types.commit!`](@ref) must be used before the datatype can be used for
 communication.
@@ -141,7 +141,7 @@ function create_vector(count::Integer, blocklength::Integer, stride::Integer, ol
     newtype = Datatype()
     # int MPI_Type_vector(int count, int blocklength, int stride,
     #          MPI_Datatype oldtype, MPI_Datatype *newtype)
-    @mpichk ccall((:MPI_Type_vector, libmpi), Cint,
+    @mpichk ccall(:MPI_Type_vector, Cint,
                   (Cint, Cint, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   count, blocklength, stride, oldtype, newtype)
     finalizer(free, newtype)
@@ -151,7 +151,7 @@ end
 """
     MPI.Types.create_subarray(sizes, subsizes, offset, oldtype::Datatype;
                               rowmajor=false)
-    
+
 Creates a derived [`Datatype`](@ref) describing an `N`-dimensional subarray of size
 `subsizes` of an `N`-dimensional array of size `sizes` and element type `oldtype`, with
 the first element offset by `offset` (i.e. the 0-based index of the first element).
@@ -174,9 +174,9 @@ function create_subarray(sizes,
     sizes = sizes isa Vector{Cint} ? sizes : Cint[s for s in sizes]
     subsizes = subsizes isa Vector{Cint} ? subsizes : Cint[s for s in subsizes]
     offset = offset isa Vector{Cint} ? offset : Cint[s for s in offset]
-    
+
     newtype = Datatype()
-    @mpichk ccall((:MPI_Type_create_subarray, libmpi), Cint,
+    @mpichk ccall(:MPI_Type_create_subarray, Cint,
                   (Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   N, sizes, subsizes, offset,
                   rowmajor ? MPI.MPI_ORDER_C : MPI.MPI_ORDER_FORTRAN,
@@ -209,7 +209,7 @@ function create_struct(blocklengths, displacements, types)
     #                            MPI_Datatype *newtype)
     GC.@preserve types begin
         mpi_types = [t.val for t in types]
-        @mpichk ccall((:MPI_Type_create_struct, libmpi), Cint,
+        @mpichk ccall(:MPI_Type_create_struct, Cint,
                       (Cint, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}),
                       N, blocklengths, displacements, mpi_types, newtype)
     end
@@ -238,7 +238,7 @@ function create_resized(oldtype::Datatype, lb::Integer, extent::Integer)
     newtype = Datatype()
     # int MPI_Type_create_resized(MPI_Datatype oldtype, MPI_Aint lb,
     #              MPI_Aint extent, MPI_Datatype *newtype)
-    @mpichk ccall((:MPI_Type_create_resized, libmpi), Cint,
+    @mpichk ccall(:MPI_Type_create_resized, Cint,
                   (MPI_Datatype, Cptrdiff_t, Cptrdiff_t, Ptr{MPI_Datatype}),
                   oldtype, lb, extent, newtype)
     finalizer(free, newtype)
@@ -256,7 +256,7 @@ $(_doc_external("MPI_Type_commit"))
 """
 function commit!(newtype::Datatype)
     # int MPI_Type_commit(MPI_Datatype *datatype)
-    @mpichk ccall((:MPI_Type_commit, libmpi), Cint,
+    @mpichk ccall(:MPI_Type_commit, Cint,
                   (Ptr{MPI_Datatype},), newtype)
 end
 
@@ -315,6 +315,6 @@ end # module
 
 function Get_address(location)
     addr = Ref{Cptrdiff_t}(0)
-    @mpichk ccall((:MPI_Get_address, libmpi), Cint, (Ptr{Cvoid}, Ref{MPI_Aint}), location, addr)
+    @mpichk ccall(:MPI_Get_address, Cint, (Ptr{Cvoid}, Ref{MPI_Aint}), location, addr)
     return addr[]
 end

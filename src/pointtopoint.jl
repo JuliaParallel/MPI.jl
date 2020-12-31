@@ -101,7 +101,7 @@ isnull(req::Request) = req.val == REQUEST_NULL.val
 
 function free(req::Request)
     if !isnull(req) && !MPI.Finalized()
-        @mpichk ccall((:MPI_Request_free, libmpi), Cint, (Ptr{MPI_Request},), req)
+        @mpichk ccall(:MPI_Request_free, Cint, (Ptr{MPI_Request},), req)
         req.buffer = nothing
     end
     return nothing
@@ -119,7 +119,7 @@ $(_doc_external("MPI_Probe"))
 """
 function Probe(src::Integer, tag::Integer, comm::Comm)
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
-    @mpichk ccall((:MPI_Probe, libmpi), Cint,
+    @mpichk ccall(:MPI_Probe, Cint,
           (Cint, Cint, MPI_Comm, Ptr{Status}),
           src, tag, comm, stat_ref)
     stat_ref[]
@@ -137,7 +137,7 @@ $(_doc_external("MPI_Iprobe"))
 function Iprobe(src::Integer, tag::Integer, comm::Comm)
     flag = Ref{Cint}()
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
-    @mpichk ccall((:MPI_Iprobe, libmpi), Cint,
+    @mpichk ccall(:MPI_Iprobe, Cint,
           (Cint, Cint, MPI_Comm, Ptr{Cint}, Ptr{Status}),
           src, tag, comm, flag, stat_ref)
     if flag[] == 0
@@ -158,7 +158,7 @@ $(_doc_external("MPI_Get_count"))
 """
 function Get_count(stat::Status, datatype::Datatype)
     count = Ref{Cint}()
-    @mpichk ccall((:MPI_Get_count, libmpi), Cint,
+    @mpichk ccall(:MPI_Get_count, Cint,
                   (Ptr{Status}, MPI_Datatype, Ptr{Cint}),
                   Ref(stat), datatype, count)
     Int(count[])
@@ -178,7 +178,7 @@ $(_doc_external("MPI_Send"))
 function Send(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
     # int MPI_Send(const void* buf, int count, MPI_Datatype datatype, int dest,
     #              int tag, MPI_Comm comm)
-    @mpichk ccall((:MPI_Send, libmpi), Cint,
+    @mpichk ccall(:MPI_Send, Cint,
           (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm),
           buf.data, buf.count, buf.datatype, dest, tag, comm)
     return nothing
@@ -226,7 +226,7 @@ function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
     req = Request()
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
-    @mpichk ccall((:MPI_Isend, libmpi), Cint,
+    @mpichk ccall(:MPI_Isend, Cint,
           (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf.data, buf.count, buf.datatype, dest, tag, comm, req)
     req.buffer = buf
@@ -260,8 +260,8 @@ Completes a blocking receive into the buffer `data` from MPI rank `src` of commu
 Returns the [`Status`](@ref) of the receive.
 
 # See also
-- [`Recv`](@ref) 
-- [`recv`](@ref) 
+- [`Recv`](@ref)
+- [`recv`](@ref)
 
 # External links
 $(_doc_external("MPI_Recv"))
@@ -270,7 +270,7 @@ function Recv!(buf::Buffer, src::Integer, tag::Integer, comm::Comm)
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     # int MPI_Recv(void* buf, int count, MPI_Datatype datatype, int source,
     #              int tag, MPI_Comm comm, MPI_Status *status)
-    @mpichk ccall((:MPI_Recv, libmpi), Cint,
+    @mpichk ccall(:MPI_Recv, Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{Status}),
                   buf.data, buf.count, buf.datatype, src, tag, comm, stat_ref)
     return stat_ref[]
@@ -287,8 +287,8 @@ Completes a blocking receive of an object of type `T` from MPI rank `src` of com
 Returns a tuple of the object of type `T` and the [`Status`](@ref) of the receive.
 
 # See also
-- [`Recv!`](@ref) 
-- [`recv`](@ref) 
+- [`Recv!`](@ref)
+- [`recv`](@ref)
 
 # External links
 $(_doc_external("MPI_Recv"))
@@ -329,10 +329,10 @@ Returns the [`Request`](@ref) for the nonblocking receive.
 $(_doc_external("MPI_Irecv"))
 """
 function Irecv!(buf::Buffer, src::Integer, tag::Integer, comm::Comm)
-    req = Request()    
+    req = Request()
     # int MPI_Irecv(void* buf, int count, MPI_Datatype datatype, int source,
     #               int tag, MPI_Comm comm, MPI_Request *request)
-    @mpichk ccall((:MPI_Irecv, libmpi), Cint,
+    @mpichk ccall(:MPI_Irecv, Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf.data, buf.count, buf.datatype, src, tag, comm, req)
     req.buffer = buf
@@ -377,7 +377,7 @@ function Sendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
     #                        void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
     #                    MPI_Comm comm, MPI_Status *status)
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
-    @mpichk ccall((:MPI_Sendrecv, libmpi), Cint,
+    @mpichk ccall(:MPI_Sendrecv, Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint,
                    MPIPtr, Cint, MPI_Datatype, Cint, Cint,
                    MPI_Comm, Ptr{Status}),
@@ -402,7 +402,7 @@ function Wait!(req::Request)
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     alreadynull = isnull(req)
     # int MPI_Wait(MPI_Request *request, MPI_Status *status)
-    @mpichk ccall((:MPI_Wait, libmpi), Cint,
+    @mpichk ccall(:MPI_Wait, Cint,
                   (Ptr{MPI_Request}, Ptr{Status}),
                   req, stat_ref)
     if !alreadynull
@@ -424,7 +424,7 @@ function Test!(req::Request)
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     alreadynull = isnull(req)
     # int MPI_Test(MPI_Request *request, int *flag, MPI_Status *status)
-    @mpichk ccall((:MPI_Test, libmpi), Cint,
+    @mpichk ccall(:MPI_Test, Cint,
                   (Ptr{MPI_Request}, Ptr{Cint}, Ptr{Status}),
                   req, flag, stat_ref)
     if flag[] == 0
@@ -451,7 +451,7 @@ function Waitall!(reqs::Vector{Request})
     stats = fill(STATUS_EMPTY, count)
     # int MPI_Waitall(int count, MPI_Request array_of_requests[],
     #                 MPI_Status array_of_statuses[])
-    @mpichk ccall((:MPI_Waitall, libmpi), Cint,
+    @mpichk ccall(:MPI_Waitall, Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Status}),
                   count, reqvals, stats)
     for i in 1:count
@@ -482,7 +482,7 @@ function Testall!(reqs::Vector{Request})
     stats = fill(STATUS_EMPTY, count)
     # int MPI_Testall(int count, MPI_Request array_of_requests[], int *flag,
     #                 MPI_Status array_of_statuses[])
-    @mpichk ccall((:MPI_Testall, libmpi), Cint,
+    @mpichk ccall(:MPI_Testall, Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Status}),
                   count, reqvals, flag, stats)
     if flag[] == 0
@@ -517,7 +517,7 @@ function Waitany!(reqs::Vector{Request})
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     # int MPI_Waitany(int count, MPI_Request array_of_requests[], int *index,
     #                 MPI_Status *status)
-    @mpichk ccall((:MPI_Waitany, libmpi), Cint,
+    @mpichk ccall(:MPI_Waitany, Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Status}),
                   count, reqvals, ind, stat_ref)
     if ind[] == MPI_UNDEFINED
@@ -554,7 +554,7 @@ function Testany!(reqs::Vector{Request})
     stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     # int MPI_Testany(int count, MPI_Request array_of_requests[], int *index,
     #                 int *flag, MPI_Status *status)
-    @mpichk ccall((:MPI_Testany, libmpi), Cint,
+    @mpichk ccall(:MPI_Testany, Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{Status}),
                   count, reqvals, ind, flag, stat_ref)
     if flag[] == 0
@@ -591,7 +591,7 @@ function Waitsome!(reqs::Vector{Request})
     # int MPI_Waitsome(int incount, MPI_Request array_of_requests[],
     #                  int *outcount, int array_of_indices[],
     #                  MPI_Status array_of_statuses[])
-    @mpichk ccall((:MPI_Waitsome, libmpi), Cint,
+    @mpichk ccall(:MPI_Waitsome, Cint,
           (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{Status}),
           count, reqvals, outcnt, inds, stats)
     outcount = Int(outcnt[])
@@ -631,7 +631,7 @@ function Testsome!(reqs::Vector{Request})
     # int MPI_Testsome(int incount, MPI_Request array_of_requests[],
     #                  int *outcount, int array_of_indices[],
     #                  MPI_Status array_of_statuses[])
-    @mpichk ccall((:MPI_Testsome, libmpi), Cint,
+    @mpichk ccall(:MPI_Testsome, Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{Status}),
                   count, reqvals, outcnt, inds, stats)
     outcount = outcnt[]
@@ -665,6 +665,6 @@ $(_doc_external("MPI_Cancel"))
 """
 function Cancel!(req::Request)
     # int MPI_Cancel(MPI_Request *request)
-    @mpichk ccall((:MPI_Cancel, libmpi), Cint, (Ptr{MPI_Request},), req)
+    @mpichk ccall(:MPI_Cancel, Cint, (Ptr{MPI_Request},), req)
     nothing
 end

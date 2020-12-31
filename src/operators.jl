@@ -47,7 +47,7 @@ Op(::typeof(⊻), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BXOR
 
 function free(op::Op)
     if op.val != OP_NULL.val && !Finalized()
-        @mpichk ccall((:MPI_Op_free, libmpi), Cint, (Ptr{MPI_Op},), op)
+        @mpichk ccall(:MPI_Op_free, Cint, (Ptr{MPI_Op},), op)
     end
     return nothing
 end
@@ -74,10 +74,10 @@ function Op(f, T=Any; iscommutative=false)
     end
     w = OpWrapper{typeof(f),T}(f)
     fptr = @cfunction($w, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype}))
-    
+
     op = Op(OP_NULL.val, fptr)
     # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
-    @mpichk ccall((:MPI_Op_create, libmpi), Cint,
+    @mpichk ccall(:MPI_Op_create, Cint,
                   (Ptr{Cvoid}, Cint, Ptr{MPI_Op}),
                   fptr, iscommutative, op)
 

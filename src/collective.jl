@@ -12,7 +12,7 @@ $(_doc_external("MPI_Barrier"))
 """
 function Barrier(comm::Comm)
     # int MPI_Barrier(MPI_Comm comm)
-    @mpichk ccall((:MPI_Barrier, libmpi), Cint, (MPI_Comm,), comm)
+    @mpichk ccall(:MPI_Barrier, Cint, (MPI_Comm,), comm)
     return nothing
 end
 
@@ -30,7 +30,7 @@ $(_doc_external("MPI_Bcast"))
 function Bcast!(buf::Buffer, root::Integer, comm::Comm)
     # int MPI_Bcast(void* buffer, int count, MPI_Datatype datatype, int root,
     #               MPI_Comm comm)
-    @mpichk ccall((:MPI_Bcast, libmpi), Cint,
+    @mpichk ccall(:MPI_Bcast, Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
                   buf.data, buf.count, buf.datatype, root, comm)
     return buf.data
@@ -83,7 +83,7 @@ unmodified. For example:
 if root == MPI.Comm_rank(comm)
     MPI.Scatter!(UBuffer(buf, count), MPI.IN_PLACE, root, comm)
 else
-    MPI.Scatter!(nothing, buf, root, comm)        
+    MPI.Scatter!(nothing, buf, root, comm)
 end
 ```
 
@@ -100,7 +100,7 @@ function Scatter!(sendbuf::UBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
     # int MPI_Scatter(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                 void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
     #                 MPI_Comm comm)
-    @mpichk ccall((:MPI_Scatter, libmpi), Cint,
+    @mpichk ccall(:MPI_Scatter, Cint,
                   (MPIPtr, Cint, MPI_Datatype,
                    MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
                   sendbuf.data, sendbuf.count, sendbuf.datatype,
@@ -114,7 +114,7 @@ Scatter!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
 
 # determine UBuffer count from recvbuf
 Scatter!(sendbuf::AbstractArray, recvbuf::Union{Ref,AbstractArray}, root::Integer, comm::Comm) =
-    Scatter!(UBuffer(sendbuf,length(recvbuf)), recvbuf, root, comm)    
+    Scatter!(UBuffer(sendbuf,length(recvbuf)), recvbuf, root, comm)
 
 """
     Scatterv!(sendbuf::Union{VBuffer,Nothing}, recvbuf, root, comm)
@@ -149,7 +149,7 @@ function Scatterv!(sendbuf::VBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
     # int MPI_Scatterv(const void* sendbuf, const int sendcounts[],
     #                  const int displs[], MPI_Datatype sendtype, void* recvbuf,
     #                  int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
-    @mpichk ccall((:MPI_Scatterv, libmpi), Cint,
+    @mpichk ccall(:MPI_Scatterv, Cint,
                   (MPIPtr, Ptr{Cint}, Ptr{Cint},  MPI_Datatype,
                    MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
                   sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
@@ -203,7 +203,7 @@ function Gather!(sendbuf::Buffer, recvbuf::UBuffer, root::Integer, comm::Comm)
     # int MPI_Gather(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
     #                MPI_Comm comm)
-    @mpichk ccall((:MPI_Gather, libmpi), Cint,
+    @mpichk ccall(:MPI_Gather, Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
                   sendbuf.data, sendbuf.count, sendbuf.datatype,
                   recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
@@ -280,7 +280,7 @@ function Gatherv!(sendbuf::Buffer, recvbuf::VBuffer, root::Integer, comm::Comm)
     # int MPI_Gatherv(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                 void* recvbuf, const int recvcounts[], const int displs[],
     #                 MPI_Datatype recvtype, int root, MPI_Comm comm)
-    @mpichk ccall((:MPI_Gatherv, libmpi), Cint,
+    @mpichk ccall(:MPI_Gatherv, Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm),
                   sendbuf.data, sendbuf.count, sendbuf.datatype,
                   recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, root, comm)
@@ -325,7 +325,7 @@ function Allgather!(sendbuf::Buffer, recvbuf::UBuffer, comm::Comm)
     # int MPI_Allgather(const void* sendbuf, int sendcount,
     #                   MPI_Datatype sendtype, void* recvbuf, int recvcount,
     #                   MPI_Datatype recvtype, MPI_Comm comm)
-    @mpichk ccall((:MPI_Allgather, libmpi), Cint,
+    @mpichk ccall(:MPI_Allgather, Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
                   sendbuf.data, sendbuf.count, sendbuf.datatype,
                   recvbuf.data, recvbuf.count, recvbuf.datatype, comm)
@@ -393,7 +393,7 @@ function Allgatherv!(sendbuf::Buffer, recvbuf::VBuffer, comm::Comm)
     # int MPI_Allgatherv(const void* sendbuf, int sendcount,
     #                    MPI_Datatype sendtype, void* recvbuf, const int recvcounts[],
     #                    const int displs[], MPI_Datatype recvtype, MPI_Comm comm)
-    @mpichk ccall((:MPI_Allgatherv, libmpi), Cint,
+    @mpichk ccall(:MPI_Allgatherv, Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
                   sendbuf.data, sendbuf.count, sendbuf.datatype,
                   recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
@@ -443,7 +443,7 @@ function Alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
     # int MPI_Alltoall(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                  void* recvbuf, int recvcount, MPI_Datatype recvtype,
     #                  MPI_Comm comm)
-    @mpichk ccall((:MPI_Alltoall, libmpi), Cint,
+    @mpichk ccall(:MPI_Alltoall, Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
                   sendbuf.data, sendbuf.count, sendbuf.datatype,
                   recvbuf.data, recvbuf.count, recvbuf.datatype,
@@ -484,7 +484,7 @@ Alltoall(sendbuf::UBuffer,  comm::Comm) =
 """
     Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
 
-Similar to [`Alltoall!`](@ref), except with different size chunks per process. 
+Similar to [`Alltoall!`](@ref), except with different size chunks per process.
 
 # See also
 - [`VBuffer`](@ref)
@@ -501,14 +501,14 @@ function Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
     #                   const int sdispls[], MPI_Datatype sendtype, void* recvbuf,
     #                   const int recvcounts[], const int rdispls[],
     #                   MPI_Datatype recvtype, MPI_Comm comm)
-    @mpichk ccall((:MPI_Alltoallv, libmpi), Cint,
+    @mpichk ccall(:MPI_Alltoallv, Cint,
                   (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
                    MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
                    MPI_Comm),
                   sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
                   recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
                   comm)
-    
+
     return recvbuf.data
 end
 
@@ -525,7 +525,7 @@ end
 Performs elementwise reduction using the operator `op` on the buffer `sendbuf` and stores
 the result in `recvbuf` on the process of rank `root`.
 
-On non-root processes `recvbuf` is ignored, and can be `nothing`. 
+On non-root processes `recvbuf` is ignored, and can be `nothing`.
 
 To perform the reduction in place, provide a single buffer `sendrecvbuf`.
 
@@ -540,7 +540,7 @@ $(_doc_external("MPI_Reduce"))
 function Reduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm)
     # int MPI_Reduce(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
-    @mpichk ccall((:MPI_Reduce, libmpi), Cint,
+    @mpichk ccall(:MPI_Reduce, Cint,
                   (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm),
                   rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, root, comm)
     return rbuf.recvdata
@@ -579,7 +579,7 @@ the result `recvbuf` on the process of rank `root`, and `nothing` on non-root pr
 $(_doc_external("MPI_Reduce"))
 """
 function Reduce(sendbuf::AbstractArray, op, root::Integer, comm::Comm)
-    if Comm_rank(comm) == root 
+    if Comm_rank(comm) == root
         Reduce!(sendbuf, similar(sendbuf), op, root, comm)
     else
         Reduce!(sendbuf, nothing, op, root, comm)
@@ -619,7 +619,7 @@ $(_doc_external("MPI_Allreduce"))
 function Allreduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
     # int MPI_Allreduce(const void* sendbuf, void* recvbuf, int count,
     #                   MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
-    @mpichk ccall((:MPI_Allreduce, libmpi), Cint,
+    @mpichk ccall(:MPI_Allreduce, Cint,
                   (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
                   rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
@@ -679,7 +679,7 @@ $(_doc_external("MPI_Scan"))
 function Scan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
     # int MPI_Scan(const void* sendbuf, void* recvbuf, int count,
     #              MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
-    @mpichk ccall((:MPI_Scan, libmpi), Cint,
+    @mpichk ccall(:MPI_Scan, Cint,
                   (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
                   rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
@@ -741,7 +741,7 @@ $(_doc_external("MPI_Exscan"))
 function Exscan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
     # int MPI_Exscan(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
-    @mpichk ccall((:MPI_Exscan, libmpi), Cint,
+    @mpichk ccall(:MPI_Exscan, Cint,
           (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
           rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
