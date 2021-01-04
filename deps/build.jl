@@ -80,9 +80,6 @@ if binary == "system"
     
     _doc_external(fname) = ""
     
-    if Sys.isunix()
-        Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-    end
     include(joinpath("..","src","implementations.jl"))
 
     @info "Using implementation" libmpi mpiexec_cmd MPI_LIBRARY_VERSION_STRING

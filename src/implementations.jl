@@ -1,5 +1,9 @@
 const use_stdcall = startswith(basename(libmpi), "msmpi")
 
+if Sys.isunix()
+    Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+end
+
 macro mpicall(expr)
     @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
 
