@@ -1,5 +1,6 @@
 const use_stdcall = startswith(basename(libmpi), "msmpi")
 
+# This is required in addition to __init__() so that we can call library at precompilation time.
 if Sys.isunix()
     Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
 end
