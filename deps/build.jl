@@ -79,6 +79,7 @@ if binary == "system"
     const mpiexec_cmd = Cmd(mpiexec isa String ? [mpiexec] : mpiexec)
     
     _doc_external(fname) = ""
+    
     include(joinpath("..","src","implementations.jl"))
 
     @info "Using implementation" libmpi mpiexec_cmd MPI_LIBRARY_VERSION_STRING

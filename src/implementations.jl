@@ -1,7 +1,19 @@
 const use_stdcall = startswith(basename(libmpi), "msmpi")
 
+# This is required in addition to __init__() so that we can call library at precompilation time.
+if Sys.isunix()
+    Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+end
+
 macro mpicall(expr)
     @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
+
+    # On unix systems we call the global symbols to allow for LD_PRELOAD interception
+    # It can be emulated in Windows (via Libdl.dllist), but this is not fast.
+    if Sys.isunix() && expr.args[2].head == :tuple
+        expr.args[2] = expr.args[2].args[1]
+    end
+
     # Microsoft MPI uses stdcall calling convention
     # this only affects 32-bit Windows
     # unfortunately we need to use ccall to call Get_library_version
