@@ -408,7 +408,7 @@ function Wait!(req::Request)
     if !alreadynull
         req.buffer = nothing
     end
-    stat
+    stat_ref[]
 end
 
 """
