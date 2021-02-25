@@ -185,10 +185,11 @@ is used for \verb MPI.Scatterv!  and \verb MPI.Gatherv! .
 
 For contiguous arrays the buffer will determine the default MPI datatype based on the
 element type of the underlying array: for standard integer, floating point and complex
-number types, MPI.jl will use the predefined MPI datatypes. For other types such as
-user-defined structs MPI.jl, or if the buffer is a strided view, MPI.jl will build and
-commit a corresponding MPI user-defined type. A lower-level, C-like interface for manually
-constructing and committing MPI datatypes is also available.
+number types, MPI.jl will use the predefined MPI datatypes. For other Julia bitstypes
+(primitive types or immutable structs with fields that are also bitstypes), or if the
+buffer is a strided view, MPI.jl will build and commit a corresponding MPI user-defined
+type. A lower-level, C-like interface for manually constructing and committing MPI
+datatypes is also available.
 
 Similarly, for MPI collective reduction operations (\verb MPI.Reduce , \verb MPI.Scan ,
 etc.), MPI.jl will convert Julia functions to MPI operator objects, either mapping to
@@ -284,16 +285,15 @@ mpitask = Threads.@spawn MPI.Wait!(request)
 \end{lstlisting}
 however concurrency will be limited by the available threads.
 
-Julia's distributed computing model, on the Distributed standard library, is based on
-remote procedure calls. The MPIClusterManagers.jl package builds on MPI.jl to allow both
-MPI and Distributed operations, as well as use MPI as a communication protocol for
-Distributed.
+Julia's Distributed standard library is based on remote procedure calls. The
+MPIClusterManagers.jl package builds on MPI.jl to allow both MPI and Distributed
+operations, as well as use of MPI as a communication protocol for Distributed.
 
-One useful feature Distributed package is that it enables interactive distributed
+One useful feature of the Distributed library is that it enables interactive distributed
 computing through a REPL or notebook interface. Unfortunately attempts to provide similar
 functionality for MPI.jl have so far had limited success. The input and output redirection
-imposed by the MPI launchers input and output, and the limitations of MPI dynamic process
-management mean that it has been difficult to come up with a good solution.
+imposed by the MPI launchers make it difficult to run interactive sessions, and though has
+some facility for dynamic process management, it does not work outside the launcher.
 
 \section{Examples}
 \label{sec:examples}
@@ -334,10 +334,14 @@ end
 
 \begin{figure}[t]
 \centerline{\includegraphics[width=0.5\textwidth]{pingpong.pdf}}
-\caption{MPI ping pong benchmark in C, Julia (MPI.jl) and Python
-(mpi4py) using arrays of 64-bit floating-point numbers. Benchmarks were
-performed using Open MPI 4.0.4, using two processes on different nodes
-connected by EDR InfiniBand.\label{fig:pingpong}}
+\caption{MPI ping pong benchmark in C, Julia (MPI.jl) and Python (mpi4py) using arrays of
+  64-bit floating-point numbers. For reference, the cost of serializing and deserializing
+  an array (Serialization in Julia, pickle in Python) are also shown.
+
+  Benchmarks were performed using Open MPI 4.0.4, using two processes on different nodes
+  connected by EDR InfiniBand, Julia 1.5.2 with MPI.jl 0.15.1, and Python 3.8.5 with
+  mpi4py 3.0.3.
+  \label{fig:pingpong}}
 \end{figure}
 
 Figure \ref{fig:pingpong} compares the ping pong benchmark implemented in
@@ -348,8 +352,8 @@ smaller message sizes, likely due to the intepreter overhead of Python.
 In addition, for MPI.jl and mpi4py we also compare the lowercase
 ``generic'' \verb MPI.send  and \verb MPI.recv  functions, which are able to
 handle arbitrary objects. Here MPI.jl is still faster than mpi4py for
-small messages, but slower for medium-sized messages. We suspect this is
-due to garbage collection pauses in the Julia runtime.
+small messages, but slower for medium-sized messages. This appears to largely
+be determined by the relative performance of the serialization in each language.
 
 \subsection{Minimum-spanning tree broadcast}
 \label{sec:minimum-spanning-tree-broadcast}
