@@ -8,6 +8,8 @@ for (label, filename, color, linestyle) in [
     ("MPI.jl generic", "julia-generic.csv", 3, :dash),
     ("mpi4py", "python.csv", 2, :solid),
     ("mpi4py generic", "python-generic.csv", 2, :dash),
+    ("Julia Serialize", "serialize.csv", 3, :dot),
+    ("Python pickle", "pickle.csv", 2, :dot),
 ]
         
     D = readdlm(filename, ',')
@@ -17,3 +19,4 @@ end
 
 savefig(p, "pingpong.pdf")
 savefig(p, "pingpong.svg")
+

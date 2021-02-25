@@ -6,7 +6,7 @@ MPI.Init()
 
 function pingpong(T, bufsize, iters)
 
-    buffer = zeros(T, bufsize)
+    buffer = rand(T, bufsize)
 
     rank = MPI.Comm_rank(MPI.COMM_WORLD)
     tag = 0

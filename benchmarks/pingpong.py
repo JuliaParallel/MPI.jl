@@ -5,7 +5,7 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
 def pingpong(bufsize, iters):
-    buffer = numpy.zeros(bufsize, dtype='d')
+    buffer = numpy.rand(bufsize)
     tag = 0
 
     comm.Barrier()

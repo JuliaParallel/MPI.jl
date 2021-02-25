@@ -23,4 +23,13 @@ MPI.mpiexec() do cmd
     run(`mpicc -std=c99 $(joinpath(DIR, "pingpong.c")) -o $(joinpath(DIR, "pingpong"))`)
     run(pipeline(`$cmd -n 2 $(joinpath(DIR, "pingpong"))`,
                  stdout=joinpath(DIR, "c.csv")))
+
+
+    @info "Running bench-serialize.jl"
+    run(pipeline(`$(Base.julia_cmd()) --project=$DIR $(joinpath(DIR, "bench-serialize.jl"))`,
+                 stdout=joinpath(DIR, "serialize.csv")))
+
+    @info "Running bench-pickle.jl"
+    run(pipeline(`python3 $(joinpath(DIR, "bench-pickle.py"))`,
+                 stdout=joinpath(DIR, "pickle.csv")))
 end

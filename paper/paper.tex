@@ -89,8 +89,8 @@ MPI.Waitall!([recv_req, send_req])
 print("$rank: Received $recv_buf\n")
 \end{lstlisting}
 
-This can be run using the MPI launcher (typically called
-\verb mpiexec .
+This can be run using the MPI launcher, typically called
+\verb mpiexec :
 
 \begin{verbatim}
 $ mpiexec -n 3 julia sendrecv.jl

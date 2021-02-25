@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+srand((unsigned) time(&t));
+
 
 double pingpong(int bufsize, int iters) {
   double *buffer = (double *)malloc(bufsize * sizeof(double));
   for (int i=0; i<bufsize; i++) {
-    buffer[i] = 0;
+    buffer[i] = rand();
   }
   
   int tag = 0;
