@@ -4,7 +4,7 @@ import pickle
 
 
 def runpickle(bufsize, iters):
-    buffer = numpy.rand(bufsize)
+    buffer = numpy.random.rand(bufsize)
     tag = 0
 
     tic = time.time()

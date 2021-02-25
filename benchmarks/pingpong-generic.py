@@ -7,7 +7,7 @@ rank = comm.Get_rank()
 assert comm.Get_size() == 2
 
 def pingpong(bufsize, iters):
-    buffer = numpy.rand(bufsize)
+    buffer = numpy.random.rand(bufsize)
     tag = 0
 
     comm.Barrier()
