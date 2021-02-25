@@ -119,8 +119,8 @@ blocking receive operations return their output buffers.
 \subsection{Functionality}
 
 Most commonly-used MPI functionality is currently available via the package, including
-point-to-point (blocking and nonblocking), collective, and one-sided communication
-operations as well as MPI I/O operations.
+dynamic process management and operations for point-to-point (blocking and nonblocking),
+collective, one-sided and I/O.
 
 The MPI 3.1 standard lists several hundred functions: limited maintainer resources means
 that the addition of features is mainly driven by needs of the contributors and requests
@@ -292,8 +292,14 @@ operations, as well as use of MPI as a communication protocol for Distributed.
 One useful feature of the Distributed library is that it enables interactive distributed
 computing through a REPL or notebook interface. Unfortunately attempts to provide similar
 functionality for MPI.jl have so far had limited success. The input and output redirection
-imposed by the MPI launchers make it difficult to run interactive sessions, and though has
-some facility for dynamic process management, it does not work outside the launcher.
+imposed by the MPI launchers make it difficult to run MPI sessions interactively.
+
+Most common MPI implementations support ``singleton'' initialization where a single
+process started outside a launcher can call \verb MPI_Init . This is widely used by Julia
+projects which support both interactive serial and batch parallel functionality. Though
+the MPI standard encourages implementations to allow such singleton processes to connect
+with each other, we have yet to find any implementations which support such operation.
+
 
 \section{Examples}
 \label{sec:examples}
@@ -337,7 +343,6 @@ end
 \caption{MPI ping pong benchmark in C, Julia (MPI.jl) and Python (mpi4py) using arrays of
   64-bit floating-point numbers. For reference, the cost of serializing and deserializing
   an array (Serialization in Julia, pickle in Python) are also shown.
-
   Benchmarks were performed using Open MPI 4.0.4, using two processes on different nodes
   connected by EDR InfiniBand, Julia 1.5.2 with MPI.jl 0.15.1, and Python 3.8.5 with
   mpi4py 3.0.3.
