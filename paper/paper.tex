@@ -47,7 +47,7 @@ addition of a specific piece of functionality.
 
 Major changes to the codebase were typically precipitated by changes in the Julia language
 itself, modifications to the build system to support different MPI implementations (see
-section \ref{sec:application-binary-interface}) or addition of support for new
+section \ref{sec:application-binary-interface}), or addition of support for new
 platforms. The interface has stayed remarkably consistent over time, the only major change
 at the highest level being the recent addition of buffer types (section
 \ref{sec:buffers-datatypes-and-operators}).
@@ -155,7 +155,7 @@ provided.
 \label{sec:buffers-datatypes-and-operators}
 
 In C and Fortran, MPI communication functions require three arguments
-(address, count and element datatype) to specify their input and/or
+(address, count, and element datatype) to specify their input and/or
 output buffers e.g.~the \verb MPI_Send  signature in C has six
 arguments:
 \begin{lstlisting}[language = C]
@@ -184,7 +184,7 @@ the receive buffer for \verb MPI.Gather! ; similarly the \verb VBuffer (``variab
 is used for \verb MPI.Scatterv!  and \verb MPI.Gatherv! .
 
 For contiguous arrays the buffer will determine the default MPI datatype based on the
-element type of the underlying array: for standard integer, floating point and complex
+element type of the underlying array: for standard integer, floating point, and complex
 number types, MPI.jl will use the predefined MPI datatypes. For other Julia bitstypes
 (primitive types or immutable structs with fields that are also bitstypes), or if the
 buffer is a strided view, MPI.jl will build and commit a corresponding MPI user-defined
@@ -213,7 +213,7 @@ work reasonably well and require minimal user intervention:
 \item
   Attempt to identify the MPI implementation by querying
   \verb MPI_Get_library_version , and use predefined constants and
-  types if known to be compatible with MPICH, Open MPI or Microsoft MPI.
+  types if known to be compatible with MPICH, Open MPI, or Microsoft MPI.
   This should cover most MPI implementations released since the completion of the
   MPICH ABI compatibility initiative in 2016.
 \item
@@ -252,7 +252,7 @@ such as integration with the Spack package manager \cite{spack}.
 \subsection{Combining with other modes of Julia parallelism}
 
 Julia itself provides three models of parallelism: asynchronous tasks/coroutines (green
-threading), simultaneous multi-threading and distributed computing.
+threading), simultaneous multi-threading, and distributed computing.
 
 Though MPI nonblocking operations act in a similar manner to tasks, they can't be
 integrated directly with Julia's runtime scheduler as MPI does not provide a mechanism to
@@ -340,7 +340,7 @@ end
 
 \begin{figure}[t]
 \centerline{\includegraphics[width=0.5\textwidth]{pingpong.pdf}}
-\caption{MPI ping pong benchmark in C, Julia (MPI.jl) and Python (mpi4py) using arrays of
+\caption{MPI ping pong benchmark in C, Julia (MPI.jl), and Python (mpi4py) using arrays of
   64-bit floating-point numbers. For reference, the cost of serializing and deserializing
   an array (Serialization in Julia, pickle in Python) are also shown.
   Benchmarks were performed using Open MPI 4.0.4, using two processes on different nodes
@@ -462,7 +462,7 @@ Vicentini, Keno Fischer, Maurizio Tomasi, Yuichi Motoyama, Tom Abel,
 Jane Herriman, Ernesto Vargas, Elliot Saba, Rohan McLure, Randy Lai,
 Mike Nolta, Josh Milthorpe, Michel Schanen, Kiran Pamnany, Joaquim Dias
 Garcia, Jonathan Goldfarb, Chris Hill, Balazs Nemeth, Alberto F. Martin,
-Ali Ramadhan, Viral Shah, Sacha Verweij, Kristoffer Carlsson, Joel Mason
+Ali Ramadhan, Viral Shah, Sacha Verweij, Kristoffer Carlsson, Joel Mason,
 and Yao Lu.
 
 This research was made possible by the generosity of Eric and Wendy
