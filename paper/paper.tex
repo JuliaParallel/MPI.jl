@@ -416,7 +416,7 @@ requires two rounds of communication (first to sum $x_i$ and broadcast the mean,
 \]
 can be done in one communication operation (by summing both $x_i^2$ and $x_i$), but suffers from numerical cancellation error. The pooled variance formula is a numerically stable way of computing the variance of $x$ from the means and variances of a partitioning $(x^{(k)})_{k=1}^K$ of $x$:
 \[
-  \mathrm{Var}(x) = \sum_k \frac{n^{(k)}}{n} \left[ \mathrm{Var}(x^{(k)}) + \bar x^{(k)} (\bar x^{(k)} - \bar x) \right]
+  \mathrm{Var}(x) = \sum_k \frac{n^{(k)}}{n} \left[ \mathrm{Var}(x^{(k)}) + \bar x^{(k)} (\bar x^{(k)} - \bar x) \right].
 \]
 This can applied recursively as a custom reduction operator on objects containing the mean, variance and length of each element of the partition, requiring only a single \verb MPI.Reduce  operation:
 
