@@ -42,15 +42,21 @@ the CliMA Earth system modelling project \cite{clima}.
 MPI.jl originated as a repository developed by Lucas Wilcox in July 2012, 4 months after
 Julia was first publicly announced. It was registered in the Julia package registry in
 2014, and since then has evolved considerably along with the Julia language itself. It has
-so far received contributions from 51 people: many of these are users who required the
+so far received contributions from 51 people, many of which are users who required the
 addition of a specific piece of functionality.
 
-Major changes to the codebase were typically precipitated by changes in the Julia language
-itself, modifications to the build system to support different MPI implementations (see
-section \ref{sec:application-binary-interface}), or addition of support for new
-platforms. The interface has stayed remarkably consistent over time, the only major change
-at the highest level being the recent addition of buffer types (section
-\ref{sec:buffers-datatypes-and-operators}).
+For most of its history, the maintainers have practiced a light touch: most new features
+were added by users. The only major changes to the codebase were typically
+precipitated by changes in the Julia language itself, or modifications to the build system
+to support different MPI implementations or platforms (section
+\ref{sec:application-binary-interface}).
+
+In the past two years there have been some larger architectural changes while
+keeping the overall interface consistent. These changes including CUDA-aware support and the
+addition of buffer types (section \ref{sec:buffers-datatypes-and-operators}), automatic
+installation of binary dependencies (section \ref{sec:binary-support}), and moving code
+that integrated with Julia's Distributed standard library to a new package (section
+\ref{sec:julia-parallelism}).
 
 \section{Simple example and running MPI programs}
 \label{sec:simple-example}
@@ -126,7 +132,9 @@ The MPI 3.1 standard lists several hundred functions: limited maintainer resourc
 that the addition of features is mainly driven by needs of the contributors and requests
 by users, and so lesser-used MPI features are not yet available. This includes
 neighbourhood and non-blocking collectives, persistent operations,
-buffered/synchronous/ready point-to-point operations.
+buffered/synchronous/ready point-to-point operations. Addition of these features should
+not require any major architectural changes, and shold be able to leverage much of the
+work below.
 
 \subsection{Allocation and serialization}
 \label{sec:allocation-and-serialization}
@@ -246,10 +254,12 @@ There are similar challenges when working with external libraries which also dep
 MPI, such as HDF5 and PETSc. For example, HDF5.jl has recently added MPI support, but it
 requires that the user provide their own HDF5 library that has been correctly linked
 against the same MPI library used by MPI.jl. This makes it difficult to distribute Julia
-packages that make use of such functionality. We are investigating ways to improve this,
-such as integration with the Spack package manager \cite{spack}.
+programs that make use of such functionality in a reproducible manner. We are
+investigating ways to improve this, such as integration with the Spack package manager
+\cite{spack}.
 
 \subsection{Combining with other modes of Julia parallelism}
+\label{sec:julia-parallelism}
 
 Julia itself provides three models of parallelism: asynchronous tasks/coroutines (green
 threading), simultaneous multi-threading, and distributed computing.
@@ -285,7 +295,8 @@ mpitask = Threads.@spawn MPI.Wait!(request)
 \end{lstlisting}
 however concurrency will be limited by the available threads.
 
-Julia's Distributed standard library is based on remote procedure calls. The
+Julia's Distributed standard library is based on remote procedure calls. This is widely
+used, though by default only supports IP socket-based communication. The
 MPIClusterManagers.jl package builds on MPI.jl to allow both MPI and Distributed
 operations, as well as use of MPI as a communication protocol for Distributed.
 
@@ -298,7 +309,8 @@ Most common MPI implementations support ``singleton'' initialization where a sin
 process started outside a launcher can call \verb MPI_Init . This is widely used by Julia
 projects which support both interactive serial and batch parallel functionality. Though
 the MPI standard encourages implementations to allow such singleton processes to connect
-with each other, we have yet to find any implementations which support such operation.
+using the client/server interfaces, we have yet to find any implementations which support
+such operations.
 
 
 \section{Examples}
@@ -359,6 +371,9 @@ In addition, for MPI.jl and mpi4py we also compare the lowercase
 handle arbitrary objects. Here MPI.jl is still faster than mpi4py for
 small messages, but slower for medium-sized messages. This appears to largely
 be determined by the relative performance of the serialization in each language.
+mpi4py is changing its choice of pickle protocol in its next release, which
+may affect these numbers.
+
 
 \subsection{Minimum-spanning tree broadcast}
 \label{sec:minimum-spanning-tree-broadcast}
