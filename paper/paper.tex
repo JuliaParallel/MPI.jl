@@ -14,7 +14,7 @@
 MPI.jl is a Julia package for using the Message Passing Interface (MPI),
 a standardized and widely-supported communication interface for
 distributed computing, with multiple open source and proprietary
-implementions. It roughly follows the C MPI interface, with some
+implementations. It roughly follows the C MPI interface, with some
 additional conveniences afforded by the Julia language such as automatic
 handling of buffer lengths and datatypes.
 
@@ -28,14 +28,14 @@ billion-dollar supercomputers. Despite its age, it supports several
 models of communication, and significant engineering effort goes into
 optimizing performance and supporting the latest networking hardware.
 
-Although Julia provides its own suite of distibuted computing tools via
+Although Julia provides its own suite of distributed computing tools via
 the Distributed standard library, it is based on a controller/worker
 model and is currently unable to leverage fast networking hardware such
 as InfiniBand, which limits its scalability to large problems. MPI.jl
 leverages the well-established and proven technology, including
 extensions such as the CUDA-aware interfaces for multi-GPU
 communication. It is being used by multiple Julia projects, including
-the CliMA Earth system modelling project \cite{clima}.
+the CliMA Earth system modeling project \cite{clima}.
 
 \subsection{History}
 
@@ -61,7 +61,7 @@ that integrated with Julia's Distributed standard library to a new package (sect
 \section{Simple example and running MPI programs}
 \label{sec:simple-example}
 
-Most MPI programs utilise a single-program, multiple-data (SPMD) model
+Most MPI programs utilize a single-program, multiple-data (SPMD) model
 where multiple processes all run the same program and communicate via
 messages, with their data determined by the process rank (a 0-based
 ordering of the processes).
@@ -111,7 +111,7 @@ $ mpiexec -n 3 julia sendrecv.jl
 Although MPI.jl mirrors the C MPI interface quite closely, it does take advantage of
 several features of the Julia language to improve usability. Many of these changes were
 heavily influenced by the mpi4py package \cite{dalcin2011parallel} which provides MPI
-bindings for Python, and has a similar aim of making MPI functionality easily useable in a
+bindings for Python, and has a similar aim of making MPI functionality easily usable in a
 high-level, dynamic language.
 
 The C and Fortran MPI interfaces require that users manually
@@ -131,9 +131,9 @@ collective, one-sided and I/O.
 The MPI 3.1 standard lists several hundred functions: limited maintainer resources means
 that the addition of features is mainly driven by needs of the contributors and requests
 by users, and so lesser-used MPI features are not yet available. This includes
-neighbourhood and non-blocking collectives, persistent operations,
+neighborhood and non-blocking collectives, persistent operations,
 buffered/synchronous/ready point-to-point operations. Addition of these features should
-not require any major architectural changes, and shold be able to leverage much of the
+not require any major architectural changes, and should be able to leverage much of the
 work below.
 
 \subsection{Allocation and serialization}
@@ -193,8 +193,8 @@ is used for \verb MPI.Scatterv!  and \verb MPI.Gatherv! .
 
 For contiguous arrays the buffer will determine the default MPI datatype based on the
 element type of the underlying array: for standard integer, floating point, and complex
-number types, MPI.jl will use the predefined MPI datatypes. For other Julia bitstypes
-(primitive types or immutable structs with fields that are also bitstypes), or if the
+number types, MPI.jl will use the predefined MPI datatypes. For other Julia bits types
+(primitive types or immutable structs with fields that are also bits types), or if the
 buffer is a strided view, MPI.jl will build and commit a corresponding MPI user-defined
 type. A lower-level, C-like interface for manually constructing and committing MPI
 datatypes is also available.
@@ -210,7 +210,7 @@ both custom datatypes and custom operators.
 \subsection{Application binary interface}
 \label{sec:application-binary-interface}
 
-The MPI standard specifies C and Fortran appilication programming
+The MPI standard specifies C and Fortran application programming
 interfaces (API), but not an application binary interface (ABI).
 Consequently, datatypes and enum values vary between different
 implementations, and require parsing C headers to extract their precise
@@ -307,8 +307,8 @@ imposed by the MPI launchers make it difficult to run MPI sessions interactively
 
 Most common MPI implementations support ``singleton'' initialization where a single
 process started outside a launcher can call \verb MPI_Init . This is widely used by Julia
-projects which support both interactive serial and batch parallel functionality. Though
-the MPI standard encourages implementations to allow such singleton processes to connect
+MPI projects which support both interactive serial and batch parallel functionality. Though
+the MPI standard encourages implementations to allow singleton processes to connect
 using the client/server interfaces, we have yet to find any implementations which support
 such operations.
 
@@ -364,7 +364,7 @@ end
 Figure \ref{fig:pingpong} compares the ping pong benchmark implemented in
 C, Julia using MPI.jl, and Python using mpi4py. The MPI.jl benchmark
 exhibits similar performance to C, whereas mpi4py is notable slower for
-smaller message sizes, likely due to the intepreter overhead of Python.
+smaller message sizes, likely due to the interpreter overhead of Python.
 
 In addition, for MPI.jl and mpi4py we also compare the lowercase
 ``generic'' \verb MPI.send  and \verb MPI.recv  functions, which are able to
