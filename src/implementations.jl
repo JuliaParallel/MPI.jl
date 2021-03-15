@@ -11,7 +11,7 @@ macro mpicall(expr)
     # On unix systems we call the global symbols to allow for LD_PRELOAD interception
     # It can be emulated in Windows (via Libdl.dllist), but this is not fast.
     if Sys.isunix() && expr.args[2].head == :tuple &&
-            expr.args[2].args[1] != :(:MPI_Get_library_version)
+            (VERSION ≥ v"1.5-" || expr.args[2].args[1] ≠ :(:MPI_Get_library_version))
         expr.args[2] = expr.args[2].args[1]
     end
 
