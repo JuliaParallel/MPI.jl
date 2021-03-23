@@ -132,7 +132,7 @@ MPI.Sendrecv!(a, dest_rank, 2,
 
 @test b == [(comm_rank+1) % comm_size, (comm_rank+1) % comm_size, (comm_rank+1) % comm_size]
 
-@test MPI.Waitall!([]) == MPI.Status[]
+@test MPI.Waitall!(Request[]) == MPI.Status[]
 
 MPI.Finalize()
 # @test MPI.Finalized()
