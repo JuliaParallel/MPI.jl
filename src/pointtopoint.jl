@@ -447,6 +447,7 @@ $(_doc_external("MPI_Waitall"))
 """
 function Waitall!(reqs::Vector{Request})
     count = length(reqs)
+    count == 0 && return []
     reqvals = [reqs[i].val for i in 1:count]
     stats = fill(STATUS_EMPTY, count)
     # int MPI_Waitall(int count, MPI_Request array_of_requests[],
