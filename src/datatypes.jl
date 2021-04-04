@@ -213,6 +213,7 @@ function create_struct(blocklengths, displacements, types)
                       (Cint, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}),
                       N, blocklengths, displacements, mpi_types, newtype)
     end
+    finalizer(free, newtype)
     return newtype
 end
 
