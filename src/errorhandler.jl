@@ -19,6 +19,11 @@ function free(errh::ErrorHandler)
     return nothing
 end
 
+function set_default_error_handler_return()
+    set_errorhandler!(COMM_SELF, ERRORS_RETURN)
+    set_errorhandler!(COMM_WORLD, ERRORS_RETURN)
+end
+
 """
     MPI.get_errorhandler(comm::MPI.Comm)
     MPI.get_errorhandler(win::MPI.Win)
@@ -68,3 +73,5 @@ function set_errorhandler!(file::File.FileHandle, errh::ErrorHandler)
     @mpichk ccall((:MPI_File_set_errhandler, libmpi), Cint, (MPI_File, MPI_Errhandler), file, errh)
     return nothing
 end
+
+
