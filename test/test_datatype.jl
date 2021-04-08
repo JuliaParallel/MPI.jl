@@ -48,6 +48,11 @@ end
     end
 end
 
+@testset "Unique return type" begin
+    dt = MPI.Datatype(Boundary)
+    @test dt ===  MPI.Datatype(Boundary)
+end
+
 struct Boundary2
     a::UInt32
     b::Tuple{Int, UInt8}
