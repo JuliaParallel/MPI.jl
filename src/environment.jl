@@ -65,10 +65,12 @@ end
 
 
 """
-    Init(;finalize_atexit=true)
+    Init(;finalize_atexit=true, errors_return=true)
 
-Initialize MPI in the current process, and if `finalize_atexit` is true and adds an
-`atexit` hook to call [`MPI.Finalize`](@ref) if it hasn't already been called.
+Initialize MPI in the current process. The keyword options:
+
+- `finalize_atexit`: if true, adds an `atexit` hook to call [`MPI.Finalize`](@ref) if it hasn't already been called.
+- `errors_return`: if true, will set the default error handlers for [`MPI.COMM_SELF`](@ref) and [`MPI.COMM_WORLD`](@ref) to be `MPI.ERRORS_RETURN`. MPI errors will appear as Julia exceptions.
 
 All MPI programs must contain exactly one call to `MPI.Init` or
 [`MPI.Init_thread`](@ref). In particular, note that it is not valid to call `MPI.Init` or
@@ -80,13 +82,16 @@ The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` ar
 # External links
 $(_doc_external("MPI_Init"))
 """
-function Init(;finalize_atexit=true)
+function Init(;finalize_atexit=true, errors_return=true)
     @mpichk ccall((:MPI_Init, libmpi), Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
     if finalize_atexit
         atexit(_finalize)
     end
 
     run_init_hooks()
+    if errors_return
+        set_default_error_handler_return()
+    end
     _warn_if_wrong_mpi()
 end
 
@@ -119,12 +124,16 @@ end
 
 
 """
-    Init_thread(required::ThreadLevel; finalize_atexit=true)
+    Init_thread(required::ThreadLevel; finalize_atexit=true, errors_return=true)
 
-Initialize MPI and the MPI thread environment in the current process, and if
-`finalize_atexit` is true and adds an `atexit` hook to call [`MPI.Finalize`](@ref) if it
-hasn't already been called. The argument specifies the required level of threading
+Initialize MPI and the MPI thread environment in the current process. The argument specifies the required level of threading
 support, see [`ThreadLevel`](@ref).
+
+The keyword options are:
+
+- `finalize_atexit`: if true, adds an `atexit` hook to call [`MPI.Finalize`](@ref) if it hasn't already been called.
+- `errors_return`: if true, will set the default error handlers for [`MPI.COMM_SELF`](@ref) and [`MPI.COMM_WORLD`](@ref) to be `MPI.ERRORS_RETURN`. MPI errors will appear as Julia exceptions.
+
 
 The function will return the provided `ThreadLevel`, and values may be compared via
 inequalities, i.e.
@@ -144,7 +153,7 @@ The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` ar
 # External links
 $(_doc_external("MPI_Init_thread"))
 """
-function Init_thread(required::ThreadLevel; finalize_atexit=true)
+function Init_thread(required::ThreadLevel; finalize_atexit=true, errors_return=true)
     r_provided = Ref{ThreadLevel}()
     # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
     @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
@@ -159,6 +168,9 @@ function Init_thread(required::ThreadLevel; finalize_atexit=true)
         atexit(_finalize)
     end
     run_init_hooks()
+    if errors_return
+        set_default_error_handler_return()
+    end
     _warn_if_wrong_mpi()
     return provided
 end

@@ -51,6 +51,7 @@ include("collective.jl")
 include("topology.jl")
 include("onesided.jl")
 include("io.jl")
+include("errorhandler.jl")
 include("mpiexec_wrapper.jl")
 
 include("deprecated.jl")

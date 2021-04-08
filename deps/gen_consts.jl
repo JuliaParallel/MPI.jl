@@ -98,6 +98,10 @@ MPI_handle = [
         :MPI_COMM_SELF,
         :MPI_COMM_WORLD,
     ],
+    :MPI_Errhandler => [
+        :MPI_ERRORS_ARE_FATAL,
+        :MPI_ERRORS_RETURN,
+    ],
     :MPI_Request => [
         :MPI_REQUEST_NULL,
     ],
