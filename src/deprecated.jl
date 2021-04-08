@@ -165,3 +165,13 @@ import Base: @deprecate
            Exscan!(view(sendrecvbuf, 1:count), op, comm), false)
 @deprecate(Exscan!(sendrecvbuf, count::Integer, op, comm::Comm),
            Exscan!(sendrecvbuf, op, comm), false)
+
+
+@deprecate(Get(origin_buffer, count::Integer, target_rank::Integer, target_disp::Integer, win::Win),
+           Get(view(origin_buffer, 1:count), target_rank, target_disp, win), false)
+@deprecate(Put(origin_buffer, count::Integer, target_rank::Integer, target_disp::Integer, win::Win),
+           Put(view(origin_buffer, 1:count), target_rank, target_disp, win), false)
+@deprecate(Accumulate(origin_buffer, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win),
+           Accumulate(view(origin_buffer, 1:count), target_rank, target_disp, op, win), false)
+@deprecate(Get_accumulate(origin_buffer, result_buffer, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win),
+           Get_accumulate(view(origin_buffer,1:count), view(result_buffer,1:count), target_rank, target_disp, op, win), false)
