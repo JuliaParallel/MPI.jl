@@ -32,6 +32,11 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     a = ArrayType{T}(fill(T(rank),size))
     MPI.Alltoall!(MPI.IN_PLACE, UBuffer(a,1), comm)
     @test a == ArrayType{T}(0:size-1)
+
+    # One-argument IN_PLACE version
+    a = ArrayType{T}(fill(T(rank),size))
+    MPI.Alltoall!(UBuffer(a,1), comm)
+    @test a == ArrayType{T}(0:size-1)
 end
 
 MPI.Finalize()
