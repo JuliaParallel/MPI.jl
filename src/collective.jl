@@ -453,7 +453,7 @@ end
 Alltoall!(sendbuf::InPlace, recvbuf::UBuffer, comm::Comm) =
     Alltoall!(UBuffer(IN_PLACE), recvbuf, comm)
 Alltoall!(sendrecvbuf::UBuffer, comm::Comm) =
-    Alltoall!(IN_PLACE, recvbuf, comm)
+    Alltoall!(IN_PLACE, sendrecvbuf, comm)
 
 """
     Alltoall(sendbuf::UBuffer, comm::Comm)
