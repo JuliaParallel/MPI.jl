@@ -160,7 +160,7 @@ function Get(origin::Union{AbstractArray,Ref}, target_rank::Integer, win::Win)
     Get(Buffer(origin), target_rank, 0, win)
 end
 
-function Put(origin_buf::Buffer, count::Integer, target_rank::Integer, target_disp::Integer, win::Win)
+function Put(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win::Win)
     # int MPI_Put(const void *origin_addr, int origin_count,
     #             MPI_Datatype origin_datatype, int target_rank,
     #             MPI_Aint target_disp, int target_count,
