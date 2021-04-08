@@ -308,6 +308,7 @@ function Datatype(::Type{T}; commit=true) where T
     if commit
         commit!(dt)
     end
+    @eval Datatype(::Type{$T}) = $dt
     return dt
 end
 
