@@ -156,9 +156,10 @@ function Get(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win
                   origin_buf.data, origin_buf.count, origin_buf.datatype,
                   target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
 end
-function Get(origin::Union{AbstractArray,Ref}, target_rank::Integer, win::Win)
-    Get(Buffer(origin), target_rank, 0, win)
-end
+Get(origin::Union{AbstractArray,Ref}, target_rank::Integer, target_disp::Integer, win::Win) =
+    Get(Buffer(origin), target_rank, target_disp, win)
+Get(origin, target_rank::Integer, win::Win) =
+    Get(origin, target_rank, 0, win)
 
 function Put(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win::Win)
     # int MPI_Put(const void *origin_addr, int origin_count,
@@ -170,9 +171,10 @@ function Put(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win
                   origin_buf.data, origin_buf.count, origin_buf.datatype,
                   target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
 end
-function Put(origin::Union{AbstractArray,Ref}, target_rank::Integer, win::Win)
-    Put(Buffer(origin), target_rank, 0, win)
-end
+Put(origin::Union{AbstractArray,Ref}, target_rank::Integer, target_disp::Integer, win::Win) =
+    Put(Buffer(origin), target_rank, target_disp, win)
+Put(origin, target_rank::Integer, win::Win) =
+    Put(origin, target_rank, 0, win)
 
 # TODO: come up with a nicer interface
 function Fetch_and_op(sourceval, returnval, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
