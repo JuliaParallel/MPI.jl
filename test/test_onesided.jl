@@ -26,7 +26,7 @@ MPI.Win_fence(0, win)
 if rank != 0
   MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 0, 0, win)
   received[1] = rank
-  MPI.Put(received, 1, 0, rank, win)
+  MPI.Put(view(received,1:1), 0, rank, win)
   MPI.Win_unlock(0, win)
 else
   buf[1] = 0
@@ -54,7 +54,7 @@ if rank == 0
   MPI.Win_unlock(0,win)
   MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 1, 0, win)
   result = similar(buf)
-  MPI.Get_accumulate(buf, result, length(buf), 1, 0, MPI.SUM, win)
+  MPI.Get_accumulate(buf, result, 1, 0, MPI.SUM, win)
   MPI.Win_unlock(1,win)
   @test all(result .== 3)
 end
@@ -67,7 +67,7 @@ if rank == 1
   fill!(buf,-2)
   MPI.Win_unlock(1,win)
   MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 0, 0, win)
-  MPI.Accumulate(buf, length(buf), 0, 0, MPI.SUM, win)
+  MPI.Accumulate(buf, 0, 0, MPI.SUM, win)
   MPI.Win_unlock(0,win)
   MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 1, 0, win)
   fill!(buf,1)
