@@ -156,7 +156,7 @@ function Get(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win
                   origin_buf.data, origin_buf.count, origin_buf.datatype,
                   target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
 end
-Get(origin::Union{AbstractArray,Ref}, target_rank::Integer, target_disp::Integer, win::Win) =
+Get(origin, target_rank::Integer, target_disp::Integer, win::Win) =
     Get(Buffer(origin), target_rank, target_disp, win)
 Get(origin, target_rank::Integer, win::Win) =
     Get(origin, target_rank, 0, win)
@@ -171,8 +171,8 @@ function Put(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win
                   origin_buf.data, origin_buf.count, origin_buf.datatype,
                   target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
 end
-Put(origin::Union{AbstractArray,Ref}, target_rank::Integer, target_disp::Integer, win::Win) =
-    Put(Buffer(origin), target_rank, target_disp, win)
+Put(origin, target_rank::Integer, target_disp::Integer, win::Win) =
+    Put(Buffer_send(origin), target_rank, target_disp, win)
 Put(origin, target_rank::Integer, win::Win) =
     Put(origin, target_rank, 0, win)
 
@@ -199,7 +199,7 @@ function Accumulate(origin_buf::Buffer, target_rank::Integer, target_disp::Integ
                   target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
 end
 Accumulate(origin, target_rank::Integer, target_disp::Integer, op::Op, win::Win) =
-    Accumulate(Buffer(origin), target_rank, target_disp, op, win)
+    Accumulate(Buffer_send(origin), target_rank, target_disp, op, win)
 
 function Get_accumulate(origin_buf::Buffer, result_buf::Buffer, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
     # int MPI_Get_accumulate(const void *origin_addr, int origin_count,
@@ -216,4 +216,4 @@ function Get_accumulate(origin_buf::Buffer, result_buf::Buffer, target_rank::Int
                   target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
 end
 Get_accumulate(origin, result, target_rank::Integer, target_disp::Integer, op::Op, win::Win) =
-    Get_accumulate(Buffer(origin), Buffer(result), target_rank, target_disp, op, win)
+    Get_accumulate(Buffer_send(origin), Buffer(result), target_rank, target_disp, op, win)
