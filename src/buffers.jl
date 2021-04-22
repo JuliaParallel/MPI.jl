@@ -92,9 +92,7 @@ const IN_PLACE = InPlace()
     MPI.Buffer
 
 An MPI buffer for communication with a single rank. It is used for point-to-point
-and one-sided communication as well as some collective operations. Use of the `Buffer`
-interface is encouraged for custom data types for which [`MPI.Datatype`](@ref) is not
-predifined.
+and one-sided operations, as well as some collective operations. Operations will implicitly construct a `Buffer` when required via the generic constructor, but it can be advantageous to manually construct `Buffer`s when doing so incurs additional overhead, for example when using a non-predefined [`MPI.Datatype`](@ref).
 
 # Fields
 $(DocStringExtensions.FIELDS)

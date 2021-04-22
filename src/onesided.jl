@@ -212,9 +212,11 @@ end
     Accumulate(origin, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
 
 Combine the content of the `origin` buffer into the target buffer (specified by `win` and
-displacement `target_disp`) with reduction operator `op` (see [`Op`](@ref)) on the remote
-rank `target_rank` using remote memory access.
-`origin` can be a [`Buffer`](@ref), or any object for which `Buffer(origin)` is defined.
+displacement `target_disp`) with reduction operator `op` on the remote rank
+`target_rank` using remote memory access.
+
+`origin` can be a [`Buffer`](@ref), or any object for which [`Buffer_send(origin)`](@ref) is defined.
+`op` can be any predefined [`Op`](@ref) (custom operators are not supported).
 
 # External links
 $(_doc_external("MPI_Accumulate"))
@@ -236,10 +238,12 @@ Accumulate(origin, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
     Get_accumulate(origin, result, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
 
 Combine the content of the `origin` buffer into the target buffer (specified by `win` and
-displacement `target_disp`) with reduction operator `op` (see [`Op`](@ref)) on the remote
+displacement `target_disp`) with reduction operator `op` on the remote
 rank `target_rank` using remote memory access. `Get_accumulate` also returns the
-content of the target buffer before accumulation in the buffer `result`.
-`origin` can be a [`Buffer`](@ref), or any object for which `Buffer(origin)` is defined.
+content of the target buffer _before_ accumulation into the `result` buffer.
+
+`origin` can be a [`Buffer`](@ref), or any object for which `Buffer_send(origin)` is defined, `result` can be a [`Buffer`](@ref), or any object for which `Buffer(result)` is defined.
+`op` can be any predefined [`Op`](@ref) (custom operators are not supported).
 
 # External links
 $(_doc_external("MPI_Get_accumulate"))
