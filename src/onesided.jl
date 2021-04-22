@@ -146,6 +146,16 @@ end
 
 # TODO: add some sort of "remote buffer": a way to specify different datatypes/counts
 
+"""
+    Get(origin, target_rank::Integer, [target_disp::Integer], win::Win)
+
+Copies data from the memory window `win` on the remote rank `target_rank` into `origin`
+(with diplacement `target_disp`) using remote memory access.
+`origin` can be a [`Buffer`](@ref), or any object for which `Buffer(origin)` is defined.
+
+# External links
+$(_doc_external("MPI_Get"))
+"""
 function Get(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win::Win)
     # int MPI_Get(void *origin_addr, int origin_count,
     #             MPI_Datatype origin_datatype, int target_rank,
@@ -161,6 +171,16 @@ Get(origin, target_rank::Integer, target_disp::Integer, win::Win) =
 Get(origin, target_rank::Integer, win::Win) =
     Get(origin, target_rank, 0, win)
 
+"""
+    Put(origin, target_rank::Integer, [target_disp::Integer], win::Win)
+
+Copies data from `origin` into memory window `win` on remote rank `target_rank`
+(with diplacement `target_disp`) using remote memory access.
+`origin` can be a [`Buffer`](@ref), or any object for which [`Buffer_send(origin)`](@ref) is defined.
+
+# External links
+$(_doc_external("MPI_Put"))
+"""
 function Put(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win::Win)
     # int MPI_Put(const void *origin_addr, int origin_count,
     #             MPI_Datatype origin_datatype, int target_rank,
@@ -188,6 +208,19 @@ function Fetch_and_op(sourceval, returnval, target_rank::Integer, target_disp::I
                   sourceval, returnval, Datatype(T), target_rank, target_disp, op, win)
 end
 
+"""
+    Accumulate(origin, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
+
+Combine the content of the `origin` buffer into the target buffer (specified by `win` and
+displacement `target_disp`) with reduction operator `op` on the remote rank
+`target_rank` using remote memory access.
+
+`origin` can be a [`Buffer`](@ref), or any object for which [`Buffer_send(origin)`](@ref) is defined.
+`op` can be any predefined [`Op`](@ref) (custom operators are not supported).
+
+# External links
+$(_doc_external("MPI_Accumulate"))
+"""
 function Accumulate(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
     # int MPI_Accumulate(const void *origin_addr, int origin_count,
     #                    MPI_Datatype origin_datatype, int target_rank,
@@ -201,6 +234,20 @@ end
 Accumulate(origin, target_rank::Integer, target_disp::Integer, op::Op, win::Win) =
     Accumulate(Buffer_send(origin), target_rank, target_disp, op, win)
 
+"""
+    Get_accumulate(origin, result, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
+
+Combine the content of the `origin` buffer into the target buffer (specified by `win` and
+displacement `target_disp`) with reduction operator `op` on the remote
+rank `target_rank` using remote memory access. `Get_accumulate` also returns the
+content of the target buffer _before_ accumulation into the `result` buffer.
+
+`origin` can be a [`Buffer`](@ref), or any object for which `Buffer_send(origin)` is defined, `result` can be a [`Buffer`](@ref), or any object for which `Buffer(result)` is defined.
+`op` can be any predefined [`Op`](@ref) (custom operators are not supported).
+
+# External links
+$(_doc_external("MPI_Get_accumulate"))
+"""
 function Get_accumulate(origin_buf::Buffer, result_buf::Buffer, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
     # int MPI_Get_accumulate(const void *origin_addr, int origin_count,
     #                        MPI_Datatype origin_datatype, void *result_addr,
