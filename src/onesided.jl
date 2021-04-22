@@ -151,9 +151,7 @@ end
 
 Copies data from the memory window `win` on the remote rank `target_rank` into `origin`
 (with diplacement `target_disp`) using remote memory access.
-It is strongly encouraged to use the [`Buffer`](@ref) interface by passing an
-instance of [`Buffer`](@ref) for `origin`,
-but `origin` can also be an [`AbstractArray`](@ref) or [`Ref`](@ref).
+`origin` can be a [`Buffer`](@ref), or any object for which `Buffer(origin)` is defined.
 
 # External links
 $(_doc_external("MPI_Get"))
@@ -178,9 +176,7 @@ Get(origin, target_rank::Integer, win::Win) =
 
 Copies data from `origin` into memory window `win` on remote rank `target_rank`
 (with diplacement `target_disp`) using remote memory access.
-It is strongly encouraged to use the [`Buffer`](@ref) interface by passing an
-instance of [`Buffer`](@ref) for `origin`,
-but `origin` can also be an [`AbstractArray`](@ref) or [`Ref`](@ref).
+`origin` can be a [`Buffer`](@ref), or any object for which [`Buffer_send(origin)`](@ref) is defined.
 
 # External links
 $(_doc_external("MPI_Put"))
@@ -218,8 +214,7 @@ end
 Combine the content of the `origin` buffer into the target buffer (specified by `win` and
 displacement `target_disp`) with reduction operator `op` (see [`Op`](@ref)) on the remote
 rank `target_rank` using remote memory access.
-It is strongly encouraged to use the [`Buffer`](@ref) interface by passing an
-instance of [`Buffer`](@ref) for `origin`.
+`origin` can be a [`Buffer`](@ref), or any object for which `Buffer(origin)` is defined.
 
 # External links
 $(_doc_external("MPI_Accumulate"))
@@ -244,8 +239,7 @@ Combine the content of the `origin` buffer into the target buffer (specified by 
 displacement `target_disp`) with reduction operator `op` (see [`Op`](@ref)) on the remote
 rank `target_rank` using remote memory access. `Get_accumulate` also returns the
 content of the target buffer before accumulation in the buffer `result`.
-It is strongly encouraged to use the [`Buffer`](@ref) interface by passing
-instances of [`Buffer`](@ref) for `origin` and for `result`.
+`origin` can be a [`Buffer`](@ref), or any object for which `Buffer(origin)` is defined.
 
 # External links
 $(_doc_external("MPI_Get_accumulate"))
