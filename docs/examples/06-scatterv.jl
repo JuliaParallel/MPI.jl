@@ -7,17 +7,11 @@ using MPI
 """
     split_count(N::Integer, n::Integer)
 
-Return a vector of `n` counts which are approximately equally sized and sum to `N`.
+Return a vector of `n` integers which are approximately equally sized and sum to `N`.
 """
 function split_count(N::Integer, n::Integer)
-    counts = zeros(Int64, n)
-    q = cld(N, n)
-    for i = 1:n
-        q = min(N,q)        
-        counts[i] = q
-        N -= q
-    end
-    return counts
+    q,r = divrem(N, n)
+    return [i <= r ? q+1 : q for i = 1:n]
 end
 
 
@@ -30,7 +24,7 @@ comm_size = MPI.Comm_size(comm)
 root = 0
 
 if rank == root
-    M, N = 4, 7
+    M, N = 4, 8
 
     test = Float64[i for i = 1:M, j = 1:N]
     output = similar(test)
