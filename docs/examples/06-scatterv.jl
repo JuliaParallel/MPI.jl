@@ -24,7 +24,7 @@ comm_size = MPI.Comm_size(comm)
 root = 0
 
 if rank == root
-    M, N = 4, 8
+    M, N = 4, 7
 
     test = Float64[i for i = 1:M, j = 1:N]
     output = similar(test)
@@ -43,7 +43,7 @@ if rank == root
     test_vbuf = VBuffer(test, counts) # VBuffer for scatter
     output_vbuf = VBuffer(output, counts) # VBuffer for gather
 else
-    # these don't need to be defined on non-root processes
+    # these variables can be set to `nothing` on non-root processes
     sizes = nothing
     output_vbuf = test_vbuf = VBuffer(nothing)
 end
