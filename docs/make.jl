@@ -7,7 +7,8 @@ EXAMPLES = [
     "Broadcast" => "examples/02-broadcast.md",
     "Reduce" => "examples/03-reduce.md",
     "Send/receive" => "examples/04-sendrecv.md",
-    "Job Scheduling" => "examples/05-job_schedule.md"
+    "Job Scheduling" => "examples/05-job_schedule.md",
+    "Scatterv and Gatherv" => "examples/06-scatterv.md",
 ]
 
 examples_md_dir = joinpath(@__DIR__,"src/examples")
