@@ -5,18 +5,21 @@ A `Datatype` represents the layout of the data in memory.
 
 # Usage
 
-    Datatype(T; commit=true)
+    Datatype(T)
 
-Either return the predefined `Datatype` or create a new `Datatype` for the Julia type
-`T`. If `commit=true`, then the [`Types.commit!`](@ref) operation will also be applied so
-that it can be used for communication operations.
+Either return the predefined `Datatype` corresponding to `T`, or create a new `Datatype`
+for the Julia type `T`, calling [`Types.commit!`](@ref) so that it can be used for
+communication operations.
 
 Note that this can only be called on types for which `isbitstype(T)` is `true`.
 """
 @mpi_handle Datatype MPI_Datatype
 
 const DATATYPE_NULL = _Datatype(MPI_DATATYPE_NULL)
-Datatype() = Datatype(DATATYPE_NULL.val)
+
+const MPI_Datatype_default = MPI_Datatype == Cint ? MPI_DATATYPE_NULL : C_NULL
+Datatype() = Datatype(MPI_Datatype_default)
+    
 
 function free(dt::Datatype)
     if dt.val != DATATYPE_NULL.val && !Finalized()
@@ -25,6 +28,86 @@ function free(dt::Datatype)
     return nothing
 end
 
+# attributes
+function _type_null_copy_fn(oldtype::MPI_Datatype, type_keyval::Cint,
+                            extra_state::Ptr{Cvoid},
+                            attribute_val_in::Ptr{Cvoid}, attribute_val_out::Ptr{Cvoid},
+                            flag::Ptr{Cint})
+    unsafe_store!(flag, Cint(0))
+    return MPI_SUCCESS
+end
+function _type_null_delete_fn(oldtype::MPI_Datatype, type_keyval::Cint,
+                           attribute_val_in::Ptr{Cvoid}, extra_state::Ptr{Cvoid})
+    return MPI_SUCCESS
+end
+
+function create_keyval(::Type{Datatype})
+    ref = Ref(Cint(0))
+    @mpichk ccall((:MPI_Type_create_keyval, libmpi), Cint,
+                  (Ptr{Cvoid},
+                   Ptr{Cvoid},
+                   Ptr{Cint},
+                   Ptr{Cvoid}),
+                  @cfunction(_type_null_copy_fn,Cint,(MPI_Datatype, Cint, Ptr{Cvoid},
+                                                      Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint})),
+                  @cfunction(_type_null_delete_fn,Cint,(MPI_Datatype, Cint, Ptr{Cvoid},
+                                                      Ptr{Cvoid})),
+                  ref, C_NULL)
+    return ref[]
+end
+function set_attr!(datatype::Datatype, keyval::Cint, attrval::Ptr{Cvoid})
+    @mpichk ccall((:MPI_Type_set_attr, libmpi), Cint,
+                  (MPI_Datatype, Cint, Ptr{Cvoid}), datatype, keyval, attrval)
+    return nothing
+end
+function get_attr(datatype::Datatype, keyval::Cint)
+    flagref = Ref(Cint(0))
+    attrref = Ref{Ptr{Cvoid}}(C_NULL)
+    @mpichk ccall((:MPI_Type_get_attr, libmpi), Cint,
+                  (MPI_Datatype, Cint, Ptr{Ptr{Cvoid}}, Ptr{Cint}), datatype, keyval, attrref, flagref)
+    if flagref[] == 0
+        return nothing
+    end
+    return attrref[]
+end
+function del_attr!(datatype::Datatype, keyval::Cint)
+    flagref = Ref(Cint(0))
+    attrref = Ref{Ptr{Cvoid}}(C_NULL)
+    @mpichk ccall((:MPI_Type_delete_attr, libmpi), Cint,
+                  (MPI_Datatype, Cint), datatype, keyval)
+    return nothing
+end
+
+# names
+function get_name(datatype::Datatype)
+    buffer = Array{UInt8}(undef, MPI_MAX_OBJECT_NAME)
+    lenref = Ref{Cint}()
+    @mpichk ccall((:MPI_Type_get_name, libmpi), Cint,
+                  (MPI_Datatype, Ptr{UInt8}, Ptr{Cint}),                  
+                  datatype, buffer, lenref)
+    String(resize!(buffer, lenref[]))
+end
+
+# datatype attribute to store Julia type
+const JULIA_TYPE_PTR_ATTR = Ref(Cint(0))
+push!(mpi_init_hooks, () -> JULIA_TYPE_PTR_ATTR[] = create_keyval(Datatype))
+
+"""
+    to_type(datatype::Datatype)
+
+Return the Julia type corresponding to the MPI [`Datatype`](@ref) `datatype`, or `nothing`
+if it doesn't correspond directly.
+"""
+function to_type(datatype::Datatype)
+    ptr = get_attr(datatype, JULIA_TYPE_PTR_ATTR[])
+    if isnothing(ptr)
+        return ptr
+    end
+    return unsafe_pointer_to_objref(ptr)
+end
+
+
+# predefined
 for (mpiname, T) in [
     :INT8_T            => Int8
     :UINT8_T           => UInt8
@@ -53,11 +136,47 @@ for (mpiname, T) in [
     @eval if @isdefined($(Symbol(:MPI_,mpiname)))
         const $mpiname = _Datatype($(Symbol(:MPI_,mpiname)))
         if !hasmethod(Datatype, Tuple{Type{$T}})
-            Datatype(::Type{$T}; commit=true) = $mpiname
+            Datatype(::Type{$T}) = $mpiname
+            push!(mpi_init_hooks, () -> set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T)))
         end
     end
 end
-    
+
+
+@generated function Datatype(::Type{T}) where {T}
+    newtype = Datatype()
+    quote
+        datatype = $newtype
+        # lazily initialize so that it can be safely precompiled
+        if datatype.val === MPI.MPI_Datatype_default
+            Types.create!(datatype, T)
+            Types.commit!(datatype)
+            set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
+        end
+        return datatype
+    end
+end
+
+
+function Base.show(io::IO, datatype::Datatype)
+    juliatype = to_type(datatype)
+    show(io, Datatype)
+    print(io, '(')
+    if isnothing(juliatype)
+        show(io, datatype.val)
+    else
+        show(io, juliatype)
+    end
+    print(io, ')')
+    name = get_name(datatype)
+    if name != ""
+        print(io, ": ")
+        print(io, name)
+    end
+end
+        
+
+
 module Types
 
 import MPI
@@ -96,13 +215,16 @@ communication.
 $(_doc_external("MPI_Type_contiguous"))
 """
 function create_contiguous(count::Integer, oldtype::Datatype)
-    newtype = Datatype()
+    finalizer(free, create_contiguous!(Datatype(), count, oldtype))
+end
+
+function create_contiguous!(newtype::Datatype, count::Integer, oldtype::Datatype)
     @mpichk ccall((:MPI_Type_contiguous, libmpi), Cint,
                   (Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   count, oldtype, newtype)
-    finalizer(free, newtype)
     return newtype
 end
+
 
 
 """
@@ -138,13 +260,14 @@ where each segment represents an `Int64`.
 $(_doc_external("MPI_Type_vector"))
 """
 function create_vector(count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
-    newtype = Datatype()
+    finalizer(free, create_vector!(Datatype(), count, blocklength, stride, oldtype))
+end
+function create_vector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
     # int MPI_Type_vector(int count, int blocklength, int stride,
     #          MPI_Datatype oldtype, MPI_Datatype *newtype)
     @mpichk ccall((:MPI_Type_vector, libmpi), Cint,
                   (Cint, Cint, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   count, blocklength, stride, oldtype, newtype)
-    finalizer(free, newtype)
     return newtype
 end
 
@@ -165,23 +288,22 @@ communication.
 # External links
 $(_doc_external("MPI_Type_create_subarray"))
 """
-function create_subarray(sizes,
-                         subsizes,
-                         offset,
-                         oldtype::Datatype;
+function create_subarray(sizes, subsizes, offset, oldtype::Datatype;
                          rowmajor=false)
+    finalizer(free, create_subarray!(Datatype(), sizes, subsizes, offset, oldtype; rowmajor=rowmajor))
+end
+function create_subarray!(newtype::Datatype, sizes, subsizes, offset, oldtype::Datatype;
+                          rowmajor=false)
     @assert (N = length(sizes)) == length(subsizes) == length(offset)
     sizes = sizes isa Vector{Cint} ? sizes : Cint[s for s in sizes]
     subsizes = subsizes isa Vector{Cint} ? subsizes : Cint[s for s in subsizes]
     offset = offset isa Vector{Cint} ? offset : Cint[s for s in offset]
     
-    newtype = Datatype()
     @mpichk ccall((:MPI_Type_create_subarray, libmpi), Cint,
                   (Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   N, sizes, subsizes, offset,
                   rowmajor ? MPI.MPI_ORDER_C : MPI.MPI_ORDER_FORTRAN,
                   oldtype, newtype)
-    finalizer(free, newtype)
     return newtype
 end
 
@@ -197,11 +319,12 @@ communication.
 $(_doc_external("MPI_Type_create_struct"))
 """
 function create_struct(blocklengths, displacements, types)
+    finalizer(free, create_struct!(Datatype(), blocklengths, displacements, types))
+end
+function create_struct!(newtype::Datatype, blocklengths, displacements, types)
     @assert (N = length(blocklengths)) == length(displacements) == length(types)
     blocklengths = blocklengths isa Vector{Cint} ? blocklengths : Cint[s for s in blocklengths]
     displacements = displacements isa Vector{MPI_Aint} ? displacements : MPI_Aint[s for s in displacements]
-
-    newtype = Datatype()
     # int MPI_Type_create_struct(int count,
     #                            const int array_of_blocklengths[],
     #                            const MPI_Aint array_of_displacements[],
@@ -213,7 +336,6 @@ function create_struct(blocklengths, displacements, types)
                       (Cint, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}),
                       N, blocklengths, displacements, mpi_types, newtype)
     end
-    finalizer(free, newtype)
     return newtype
 end
 
@@ -236,13 +358,14 @@ communication.
 $(_doc_external("MPI_Type_create_resized"))
 """
 function create_resized(oldtype::Datatype, lb::Integer, extent::Integer)
-    newtype = Datatype()
+    finalizer(free, create_resized(Datatype(), oldtype, lb, extent))
+end
+function create_resized!(newtype::Datatype, oldtype::Datatype, lb::Integer, extent::Integer)
     # int MPI_Type_create_resized(MPI_Datatype oldtype, MPI_Aint lb,
     #              MPI_Aint extent, MPI_Datatype *newtype)
     @mpichk ccall((:MPI_Type_create_resized, libmpi), Cint,
                   (MPI_Datatype, Cptrdiff_t, Cptrdiff_t, Ptr{MPI_Datatype}),
                   oldtype, lb, extent, newtype)
-    finalizer(free, newtype)
     return newtype
 end
 
@@ -250,7 +373,8 @@ end
 """
     MPI.Types.commit!(newtype::Datatype)
 
-Commits a [`Datatype`](@ref) so that it can be used for communication.
+Commits the [`Datatype`](@ref) `newtype` so that it can be used for communication.
+Returns `newtype`.
 
 # External links
 $(_doc_external("MPI_Type_commit"))
@@ -259,10 +383,10 @@ function commit!(newtype::Datatype)
     # int MPI_Type_commit(MPI_Datatype *datatype)
     @mpichk ccall((:MPI_Type_commit, libmpi), Cint,
                   (Ptr{MPI_Datatype},), newtype)
+    return newtype
 end
 
-
-function Datatype(::Type{T}; commit=true) where T
+function create!(newtype::Datatype, ::Type{T}) where {T}
     if !isbitstype(T)
         throw(ArgumentError("Type must be isbitstype"))
     end
@@ -299,17 +423,14 @@ function Datatype(::Type{T}; commit=true) where T
             else
                 push!(blocklengths, 1)
                 push!(displacements, offset)
-                push!(types, Datatype(F; commit=false))
+                push!(types, Datatype(F))
                 Fprev = F
             end
         end
     end
-    dt = create_struct(blocklengths, displacements, types)
-    if commit
-        commit!(dt)
-    end
-    return dt
+    create_struct!(newtype, blocklengths, displacements, types)
 end
+
 
 end # module
 

@@ -281,8 +281,8 @@ Recv!(buf, src::Integer, tag::Integer, comm::Comm) =
 """
     Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm)
 
-Completes a blocking receive of an object of type `T` from MPI rank `src` of communicator
-`comm` using with the message tag `tag`.
+Completes a blocking receive of a single object of type `T` from MPI rank `src` of
+communicator `comm` using with the message tag `tag`.
 
 Returns a tuple of the object of type `T` and the [`Status`](@ref) of the receive.
 
