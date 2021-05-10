@@ -17,6 +17,7 @@ MPI.Types.create_subarray
 MPI.Types.create_struct
 MPI.Types.create_resized
 MPI.Types.commit!
+MPI.Types.duplicate
 ```
 
 ## Operator objects

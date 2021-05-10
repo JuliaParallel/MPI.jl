@@ -369,6 +369,22 @@ function create_resized!(newtype::Datatype, oldtype::Datatype, lb::Integer, exte
     return newtype
 end
 
+"""
+    MPI.Types.duplicate(oldtype::Datatype)
+
+Duplicates the datatype `oldtype`.
+
+# External links
+$(_doc_external("MPI_Type_dup"))
+"""
+function duplicate!(newtype::Datatype, oldtype::Datatype)
+    # int MPI_Type_dup(MPI_Datatype oldtype, MPI_Datatype * newtype)
+    @mpichk ccall((:MPI_Type_dup, libmpi), Cint,
+                  (MPI_Datatype, Ptr{MPI_Datatype}),
+                  oldtype, newtype)
+    return newtype
+end
+duplicate(oldtype::Datatype) = duplicate!(Datatype(), oldtype::Datatype)
 
 """
     MPI.Types.commit!(newtype::Datatype)
@@ -400,7 +416,7 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
         disp = 0
         for (i,basetype) in (8 => Datatype(UInt64), 4 => Datatype(UInt32), 2 => Datatype(UInt16), 1 => Datatype(UInt8))
             if sz == i
-                return basetype
+                return MPI.Types.duplicate!(newtype, basetype)
             end
             blk, szrem = divrem(szrem, i)
             if blk != 0
