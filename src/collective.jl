@@ -113,11 +113,25 @@ Scatter!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
     Scatter!(UBuffer(nothing), recvbuf, root, comm)
 
 # determine UBuffer count from recvbuf
-Scatter!(sendbuf::AbstractArray, recvbuf::Union{Ref,AbstractArray}, root::Integer, comm::Comm) =
+Scatter!(sendbuf::AbstractArray{T}, recvbuf::Union{Ref{T},AbstractArray{T}}, root::Integer, comm::Comm) where {T} =
     Scatter!(UBuffer(sendbuf,length(recvbuf)), recvbuf, root, comm)    
 
 """
-    Scatterv!(sendbuf::Union{VBuffer,Nothing}, recvbuf, root, comm)
+    Scatter(sendbuf, T, root::Integer, comm::Comm)
+
+Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks,
+sending the `j`-th chunk to the process of rank `j-1` as an object of type `T`.
+
+# See also
+- [`Scatter!`](@ref)
+"""
+function Scatter(sendbuf, ::Type{T}, root::Integer, comm::Comm) where {T}
+    Scatter!(sendbuf, Ref{T}(), root, comm)[]
+end
+
+
+"""
+    Scatterv!(sendbuf, T, root, comm)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks and sends
 the `j`th chunk to the process of rank `j-1` into the `recvbuf` buffer.

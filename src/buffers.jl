@@ -147,7 +147,7 @@ function Buffer(sub::Base.FastContiguousSubArray)
 end
 function Buffer(sub::Base.FastSubArray)
     datatype = Types.create_vector(length(sub), 1, sub.stride1,
-                                   Datatype(eltype(sub); commit=false))
+                                   Datatype(eltype(sub)))
     Types.commit!(datatype)
     Buffer(sub, Cint(1), datatype)
 end
@@ -155,13 +155,20 @@ function Buffer(sub::SubArray{T,N,P,I,false}) where {T,N,P,I<:Tuple{Vararg{Union
     datatype = Types.create_subarray(size(parent(sub)),
                                      map(length, sub.indices),
                                      map(i -> first(i)-1, sub.indices),
-                                     Datatype(eltype(sub), commit=false))
+                                     Datatype(eltype(sub)))
     Types.commit!(datatype)
     Buffer(parent(sub), Cint(1), datatype)
 end
 
+# NTuple: avoid creating a new datatype if possible
+function Buffer(data::Ref{NTuple{N,T}}) where {N,T}
+    Buffer(data, Cint(N), Datatype(T))
+end
+
+
 Buffer(::InPlace) = Buffer(IN_PLACE, 0, DATATYPE_NULL)
 Buffer(::Nothing) = Buffer(nothing, 0, DATATYPE_NULL)
+
 
 """
     Buffer_send(data)

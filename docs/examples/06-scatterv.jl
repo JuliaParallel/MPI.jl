@@ -36,6 +36,7 @@ if rank == root
 
     # store sizes in 2 * comm_size Array
     sizes = vcat(M_counts', N_counts')
+    size_ubuf = UBuffer(sizes, 2)
 
     # store number of values to send to each rank in comm_size length Vector
     counts = vec(prod(sizes, dims=1))
@@ -44,7 +45,7 @@ if rank == root
     output_vbuf = VBuffer(output, counts) # VBuffer for gather
 else
     # these variables can be set to `nothing` on non-root processes
-    sizes = nothing
+    size_ubuf = UBuffer(nothing)
     output_vbuf = test_vbuf = VBuffer(nothing)
 end
 
@@ -58,8 +59,8 @@ if rank == root
 end 
 MPI.Barrier(comm)
 
-local_M, local_N = MPI.Scatter!(sizes, zeros(Int, 2), root, comm)
-local_test = MPI.Scatterv!(test_vbuf, zeros(Float64, local_M, local_N), root, comm)
+local_size = MPI.Scatter(size_ubuf, NTuple{2,Int}, root, comm)
+local_test = MPI.Scatterv!(test_vbuf, zeros(Float64, local_size), root, comm)
 
 for i = 0:comm_size-1
     if rank == i
