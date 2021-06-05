@@ -69,12 +69,14 @@ end
 
 
 function Op(f, T=Any; iscommutative=false)
-    if MPI_LIBRARY == MicrosoftMPI && Sys.WORD_SIZE == 32
+    @static if MPI_LIBRARY == MicrosoftMPI && Sys.WORD_SIZE == 32
         error("User-defined reduction operators are not supported on 32-bit Windows.\nSee https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.")
+    elseif Sys.ARCH ∈ (:aarch64, :ppc64le, :powerpc64le) || startswith(lowercase(String(Sys.ARCH)), "arm")
+        error("User-defined reduction operators are currently not supported on non-Intel architectures.\nSee https://github.com/JuliaParallel/MPI.jl/issues/404 for more details.")
     end
     w = OpWrapper{typeof(f),T}(f)
     fptr = @cfunction($w, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype}))
-    
+
     op = Op(OP_NULL.val, fptr)
     # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
     @mpichk ccall((:MPI_Op_create, libmpi), Cint,
@@ -84,4 +86,3 @@ function Op(f, T=Any; iscommutative=false)
     finalizer(free, op)
     return op
 end
-
