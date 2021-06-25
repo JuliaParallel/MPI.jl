@@ -134,5 +134,19 @@ MPI.Sendrecv!(a, dest_rank, 2,
 
 @test MPI.Waitall!(MPI.Request[]) == MPI.Status[]
 
+root = 0
+g = x -> x^2 + 2x - 1
+if MPI.Comm_rank(comm) == root + 1
+    done, f, stat = MPI.irecv( root, root+32, comm )
+    if done
+        @test f(3) == g(3)
+        @test f(5) == g(5)
+        @test f(7) == g(7)
+    end
+elseif MPI.Comm_rank(comm) == root
+    f = g
+    sreq = MPI.isend(f, dst, rank+32, comm)
+end
+
 MPI.Finalize()
 # @test MPI.Finalized()
