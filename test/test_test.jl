@@ -30,7 +30,7 @@ sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
 reqs = [sreq,rreq]
 
-(inds,stats) = MPI.Waitsome!(reqs)
+inds = MPI.Waitsome(reqs)
 @test !isempty(inds)
 for ind in inds
     (onedone,stat) = MPI.Test!(reqs[ind])
@@ -45,14 +45,12 @@ if done && ind != 0
     @test stat == MPI.STATUS_EMPTY    
 end
 
-MPI.Waitall!(reqs)
+MPI.Waitall(reqs)
 
-(inds, stats) = MPI.Waitsome!(reqs)
+inds = MPI.Waitsome(reqs)
 @test isempty(inds)
-@test isempty(stats)
-(inds, stats) = MPI.Testsome!(reqs)
+inds = MPI.Testsome(reqs)
 @test isempty(inds)
-@test isempty(stats)
 
 MPI.Finalize()
 @test MPI.Finalized()

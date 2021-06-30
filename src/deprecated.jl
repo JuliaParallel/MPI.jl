@@ -206,3 +206,15 @@ import Base: @deprecate
 
 @deprecate(Accumulate(origin, rank, disp, op, win), Accumulate!(origin, rank, disp, op, win), false)
 @deprecate(Get_accumulate(origin, result, rank, disp, op, win), Get_accumulate!(origin, result, rank, disp, op, win), false)
+
+@deprecate(Wait!(req::Request), (status = Ref(MPI.STATUS_EMPTY); MPI.Wait(req, status); status[]), false)
+@deprecate(Test!(req::Request), (status = Ref(MPI.STATUS_EMPTY); flag = MPI.Test(req, status); (flag, status[])), false)
+
+@deprecate(Waitall!(reqs::Vector{Request}), (statuses = fill(MPI.STATUS_EMPTY, length(reqs)); MPI.Waitall(reqs, statuses); statuses), false)
+@deprecate(Testall!(reqs::Vector{Request}), (statuses = fill(MPI.STATUS_EMPTY, length(reqs)); flag = MPI.Testall(reqs, statuses); (flag, statuses)), false)
+
+@deprecate(Waitany!(reqs::Vector{Request}), (status = Ref(MPI.STATUS_EMPTY); i = MPI.Waitany(reqs, status); (something(i,0), status[])), false)
+@deprecate(Testany!(reqs::Vector{Request}), (status = Ref(MPI.STATUS_EMPTY); i = MPI.Testany(reqs, status); (i !== false, i isa Integer ? i : 0, status[])), false)
+
+@deprecate(Waitsome!(reqs::Vector{Request}), (statuses = fill(MPI.STATUS_EMPTY, length(reqs)); inds = something(MPI.Waitsome(reqs, statuses), Int[]); (inds, resize!(statuses, length(inds)))), false)
+@deprecate(Testsome!(reqs::Vector{Request}), (statuses = fill(MPI.STATUS_EMPTY, length(reqs)); inds = something(MPI.Testsome(reqs, statuses), Int[]); (inds, resize!(statuses, length(inds)))), false)

@@ -23,8 +23,8 @@ src  = mod(rank-1, comm_size)
     req_send = MPI.Isend(@view(X[:,1]), dest, 0, comm)
     req_recv = MPI.Irecv!(Y, src, 0, comm)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Wait(req_send)
+    MPI.Wait(req_recv)
     
     @test Y == X[:,1] .- rank .+ src
 
@@ -33,8 +33,8 @@ src  = mod(rank-1, comm_size)
     req_send = MPI.Isend(Y, dest, 1, comm)
     req_recv = MPI.Irecv!(@view(X[3:4,1]), src, 1, comm)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Wait(req_send)
+    MPI.Wait(req_recv)
 
     @test X[3:4,1] == Y
 end
@@ -45,8 +45,8 @@ end
     req_send = MPI.Isend(@view(X[2,:]), dest, 0, comm)
     req_recv = MPI.Irecv!(Y, src, 0, comm)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Wait(req_send)
+    MPI.Wait(req_recv)
     
     @test Y == X[2,:] .- rank .+ src
 
@@ -55,8 +55,8 @@ end
     req_send = MPI.Isend(Y, dest, 1, comm)
     req_recv = MPI.Irecv!(@view(X[3,1:2]), src, 1, comm)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Wait(req_send)
+    MPI.Wait(req_recv)
 
     @test X[3,1:2] == Y
 end
@@ -67,8 +67,8 @@ end
     req_send = MPI.Isend(@view(X[2:3,3:4]), dest, 0, comm)
     req_recv = MPI.Irecv!(Y, src, 0, comm)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Wait(req_send)
+    MPI.Wait(req_recv)
     
     @test Y == X[2:3,3:4] .- rank .+ src
 
@@ -77,8 +77,8 @@ end
     req_send = MPI.Isend(Y, dest, 1, comm)
     req_recv = MPI.Irecv!(@view(X[3:4,1:2]), src, 1, comm)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Wait(req_send)
+    MPI.Wait(req_recv)
 
     @test X[3:4,1:2] == Y
 end
