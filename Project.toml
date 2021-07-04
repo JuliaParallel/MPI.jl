@@ -24,8 +24,7 @@ julia = "1"
 [extras]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 DoubleFloats = "497a8b3b-efae-58df-a0af-a86822472b78"
-Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["CUDA", "DoubleFloats", "Pkg", "Test"]
+test = ["CUDA", "DoubleFloats", "Test"]
