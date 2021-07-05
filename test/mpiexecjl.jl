@@ -13,15 +13,20 @@ using MPI
         mpiexecjl = joinpath(dir, "mpiexecjl")
         julia = joinpath(Sys.BINDIR, Base.julia_exename())
         example = joinpath(@__DIR__, "..", "docs", "examples", "01-hello.jl")
-        p = run(`$(mpiexecjl) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
+        env = ["JULIA_BINDIR" => Sys.BINDIR]
+        p = withenv(env...) do
+            run(`$(mpiexecjl) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
+        end
         @test success(p)
         # Test help messages
         for help_flag in ("-h", "--help")
-            help_message = read(`$(mpiexecjl) --project=$(dir) --help`, String)
+            help_message = withenv(env...) do
+                read(`$(mpiexecjl) --project=$(dir) --help`, String)
+            end
             @test occursin(r"Usage:.*MPIEXEC_ARGUMENTS", help_message)
         end
         # Without arguments, or only with the `--project` option, the wrapper will fail
-        @test !success(`$(mpiexecjl) --project=$(dir)`)
-        @test !success(`$(mpiexecjl)`)
+        @test !withenv(() -> success(`$(mpiexecjl) --project=$(dir)`), env...)
+        @test !withenv(() -> success(`$(mpiexecjl)`), env...)
     end
 end
