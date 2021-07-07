@@ -411,6 +411,19 @@ function Wait!(req::Request)
     stat_ref[]
 end
 
+function Base.wait(req::Request)
+    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    alreadynull = isnull(req)
+    errcode = @threadcall((:MPI_Wait, libmpi), Cint,
+                          (Ptr{MPI_Request}, Ptr{Status}),
+                          req, stat_ref)
+    errcode == MPI_SUCCESS || throw(MPIError(errcode))
+    if !alreadynull
+        req.buffer = nothing
+    end
+    stat_ref[]
+end
+
 """
     (flag, status) = Test!(req::Request)
 
