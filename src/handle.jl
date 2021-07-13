@@ -32,6 +32,9 @@ macro mpi_handle(def, mpiname=nothing, extrafields...)
 
         # allows us to pass XX objects directly into MPI_XX ccall signatures
         function Base.cconvert(::Type{$mpiname}, obj::$name)
+            obj
+        end
+        function Base.unsafe_convert(::Type{$mpiname}, obj::$name)
             obj.val
         end
         # allows us to pass XX objects directly into Ptr{MPI_XX} ccall signatures
