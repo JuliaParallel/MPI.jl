@@ -20,13 +20,11 @@ jobs:
             julia_arch: x86
         include:
           - os: macos-latest
-            mpiexec_args: "-host localhost"
 
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
     env:
-      MPICH_INTERFACE_HOSTNAME: localhost
       JULIA_MPIEXEC_ARGS: ${{ matrix.mpiexec_args }}
 
     steps:
