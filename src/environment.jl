@@ -82,6 +82,9 @@ function Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true
     if threadlevel isa Symbol
         threadlevel = ThreadLevel(threadlevel)
     end
+    if MPI.Finalized()
+        error("MPI cannot be initialized after MPI.Finalize has been called.")
+    end
     if MPI.Initialized()
         provided = Query_thread()
         if provided < threadlevel
