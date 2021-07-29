@@ -183,3 +183,7 @@ import Base: @deprecate
            Get_accumulate(view(origin_buffer,1:count), view(result_buffer,1:count), target_rank, target_disp, op, win), false)
 @deprecate(Get_accumulate(origin_buffer::Ref, result_buffer::Ref, count::Integer, target_rank::Integer, target_disp::Integer, op::Op, win::Win),
            Get_accumulate(origin_buffer, result_buffer, target_rank, target_disp, op, win), false)
+
+
+# Deprecated in v0.19
+@deprecate(Init_thread(required::ThreadLevel; kwargs...), Init(;threadlevel=required, kwargs...), false)

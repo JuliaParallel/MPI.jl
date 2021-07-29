@@ -51,48 +51,70 @@ function run_init_hooks()
     return nothing
 end
 
-function _finalize()
-    # MPI_Finalize is a collective and can act like a barrier (this may be implementation
-    # specific). If we are terminating due to a Julia exception, we shouldn't call
-    # MPI_Finalize. We thus peek at the current exception, and only if that field is
-    # nothing do we terminate.
-    if !Finalized() && ccall(:jl_current_exception, Any, ()) === nothing
-        Finalize()
-    end
-end
-
-
-
 
 """
-    Init(;finalize_atexit=true, errors_return=true)
+    Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true)
 
 Initialize MPI in the current process. The keyword options:
 
-- `finalize_atexit`: if true, adds an `atexit` hook to call [`MPI.Finalize`](@ref) if it hasn't already been called.
-- `errors_return`: if true, will set the default error handlers for [`MPI.COMM_SELF`](@ref) and [`MPI.COMM_WORLD`](@ref) to be `MPI.ERRORS_RETURN`. MPI errors will appear as Julia exceptions.
+- `threadlevel`: either `:single`, `:funneled`, `:serialized` (default),
+  `:multiple`, or an instance of [`ThreadLevel`](@ref).
+- `finalize_atexit`: if `true` (default), adds an `atexit` hook to call
+  [`MPI.Finalize`](@ref) if it hasn't already been called.
+- `errors_return`: if `true` (default), will set the default error handlers for
+  [`MPI.COMM_SELF`](@ref) and [`MPI.COMM_WORLD`](@ref) to be
+  `MPI.ERRORS_RETURN`. MPI errors will then appear as Julia exceptions.
 
-All MPI programs must contain exactly one call to `MPI.Init` or
-[`MPI.Init_thread`](@ref). In particular, note that it is not valid to call `MPI.Init` or
-`MPI.Init_thread` again after calling [`MPI.Finalize`](@ref).
+It will return the [`ThreadLevel`](@ref) value which MPI is initialized at.
 
-The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` are
+All MPI programs must call this function at least once before calling any other
+MPI operations: the only MPI functions that may be called before `MPI.Init` are
 [`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
+
+It is safe to call `MPI.Init` multiple times, however it is not valid to call
+it after calling [`MPI.Finalize`](@ref).
 
 # External links
 $(_doc_external("MPI_Init"))
+$(_doc_external("MPI_Init_thread"))
 """
-function Init(;finalize_atexit=true, errors_return=true)
-    @mpichk ccall((:MPI_Init, libmpi), Cint, (Ptr{Cint},Ptr{Cint}), C_NULL, C_NULL)
-    if finalize_atexit
-        atexit(_finalize)
+function Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true)
+    if threadlevel isa Symbol
+        threadlevel = ThreadLevel(threadlevel)
     end
+    if MPI.Finalized()
+        error("MPI cannot be initialized after MPI.Finalize has been called.")
+    end
+    if MPI.Initialized()
+        provided = Query_thread()
+        if provided < threadlevel
+            @warn "MPI already initialized with thread level $provided, requested = $threadlevel"
+        end
+    else
+        provided = _init_thread(threadlevel)
+        if provided < threadlevel
+            @warn "MPI thread level requested = $required, provided = $provided"
+        end
 
-    run_init_hooks()
-    if errors_return
-        set_default_error_handler_return()
+        if finalize_atexit
+            atexit() do
+                # MPI_Finalize is a collective and can act like a barrier (this may be implementation
+                # specific). If we are terminating due to a Julia exception, we shouldn't call
+                # MPI_Finalize. We thus peek at the current exception, and only if that field is
+                # nothing do we terminate.
+                if !Finalized() && ccall(:jl_current_exception, Any, ()) === nothing
+                    Finalize()
+                end
+            end
+        end
+
+        run_init_hooks()
+        if errors_return
+            set_default_error_handler_return()
+        end
+        _warn_if_wrong_mpi()
     end
-    _warn_if_wrong_mpi()
+    return provided
 end
 
 """
@@ -121,59 +143,22 @@ An Enum denoting the level of threading support in the current process:
     THREAD_SERIALIZED = MPI_THREAD_SERIALIZED
     THREAD_MULTIPLE   = MPI_THREAD_MULTIPLE
 end
+ThreadLevel(threadlevel::Symbol) =
+    threadlevel == :single ? THREAD_SINGLE :
+    threadlevel == :funneled ? THREAD_FUNNELED :
+    threadlevel == :serialized ? THREAD_SERIALIZED :
+    threadlevel == :multiple ? THREAD_MULTIPLE :
+    error("Invalid threadlevel: must be one of :single, :funneled, :serialized, or :multiple")
 
-
-"""
-    Init_thread(required::ThreadLevel; finalize_atexit=true, errors_return=true)
-
-Initialize MPI and the MPI thread environment in the current process. The argument specifies the required level of threading
-support, see [`ThreadLevel`](@ref).
-
-The keyword options are:
-
-- `finalize_atexit`: if true, adds an `atexit` hook to call [`MPI.Finalize`](@ref) if it hasn't already been called.
-- `errors_return`: if true, will set the default error handlers for [`MPI.COMM_SELF`](@ref) and [`MPI.COMM_WORLD`](@ref) to be `MPI.ERRORS_RETURN`. MPI errors will appear as Julia exceptions.
-
-
-The function will return the provided `ThreadLevel`, and values may be compared via
-inequalities, i.e.
-
-```julia
-provided = Init_thread(required)
-@assert provided >= required
-```
-
-All MPI programs must contain exactly one call to [`MPI.Init`](@ref) or
-`MPI.Init_thread`. In particular, note that it is not valid to call `MPI.Init` or
-`MPI.Init_thread` again after calling [`MPI.Finalize`](@ref).
-
-The only MPI functions that may be called before `MPI.Init`/`MPI.Init_thread` are
-[`MPI.Initialized`](@ref) and [`MPI.Finalized`](@ref).
-
-# External links
-$(_doc_external("MPI_Init_thread"))
-"""
-function Init_thread(required::ThreadLevel; finalize_atexit=true, errors_return=true)
+function _init_thread(required::ThreadLevel)
     r_provided = Ref{ThreadLevel}()
     # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
     @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
-                  (Ptr{Cint},Ptr{Cvoid}, ThreadLevel, Ref{ThreadLevel}),
-                  C_NULL, C_NULL, required, r_provided)
-    provided = r_provided[]
-    if provided < required
-        @warn "Thread level requested = $required, provided = $provided"
-    end
-
-    if finalize_atexit
-        atexit(_finalize)
-    end
-    run_init_hooks()
-    if errors_return
-        set_default_error_handler_return()
-    end
-    _warn_if_wrong_mpi()
-    return provided
+                    (Ptr{Cint},Ptr{Cvoid}, ThreadLevel, Ref{ThreadLevel}),
+                    C_NULL, C_NULL, required, r_provided)
+    return r_provided[]
 end
+
 
 """
     Query_thread()
@@ -226,7 +211,9 @@ call this function when Julia exits, if it hasn't already been called.
 $(_doc_external("MPI_Finalize"))
 """
 function Finalize()
-    @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
+    if !MPI.Finalized()
+        @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
+    end
     return nothing
 end
 
