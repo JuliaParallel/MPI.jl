@@ -8,7 +8,7 @@ else
     ArrayType = Array
 end
 
-provided = MPI.Init_thread(MPI.THREAD_MULTIPLE)
+provided = MPI.Init(threadlevel=:multiple)
 
 @test MPI.THREAD_SINGLE <= provided <= MPI.THREAD_MULTIPLE
 @test MPI.Query_thread() == provided
