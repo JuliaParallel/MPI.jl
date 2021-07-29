@@ -51,17 +51,6 @@ function run_init_hooks()
     return nothing
 end
 
-function _finalize()
-    # MPI_Finalize is a collective and can act like a barrier (this may be implementation
-    # specific). If we are terminating due to a Julia exception, we shouldn't call
-    # MPI_Finalize. We thus peek at the current exception, and only if that field is
-    # nothing do we terminate.
-    if !Finalized() && ccall(:jl_current_exception, Any, ()) === nothing
-        Finalize()
-    end
-end
-
-
 
 """
     Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true)
@@ -105,7 +94,15 @@ function Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true
         end
 
         if finalize_atexit
-            atexit(_finalize)
+            atexit() do
+                # MPI_Finalize is a collective and can act like a barrier (this may be implementation
+                # specific). If we are terminating due to a Julia exception, we shouldn't call
+                # MPI_Finalize. We thus peek at the current exception, and only if that field is
+                # nothing do we terminate.
+                if !Finalized() && ccall(:jl_current_exception, Any, ()) === nothing
+                    Finalize()
+                end
+            end
         end
 
         run_init_hooks()
@@ -211,7 +208,9 @@ call this function when Julia exits, if it hasn't already been called.
 $(_doc_external("MPI_Finalize"))
 """
 function Finalize()
-    @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
+    if !MPI.Finalized()
+        @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
+    end
     return nothing
 end
 
