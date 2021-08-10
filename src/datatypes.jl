@@ -19,7 +19,7 @@ const DATATYPE_NULL = _Datatype(MPI_DATATYPE_NULL)
 
 const MPI_Datatype_default = MPI_Datatype == Cint ? MPI_DATATYPE_NULL : C_NULL
 Datatype() = Datatype(MPI_Datatype_default)
-    
+
 
 function free(dt::Datatype)
     if dt.val != DATATYPE_NULL.val && !Finalized()
@@ -80,12 +80,13 @@ end
 
 # names
 function get_name(datatype::Datatype)
+    MPI.Initialized() || return ""
     buffer = Array{UInt8}(undef, MPI_MAX_OBJECT_NAME)
     lenref = Ref{Cint}()
     @mpichk ccall((:MPI_Type_get_name, libmpi), Cint,
-                  (MPI_Datatype, Ptr{UInt8}, Ptr{Cint}),                  
+                  (MPI_Datatype, Ptr{UInt8}, Ptr{Cint}),
                   datatype, buffer, lenref)
-    String(resize!(buffer, lenref[]))
+    return String(resize!(buffer, lenref[]))
 end
 
 # datatype attribute to store Julia type
@@ -99,11 +100,13 @@ Return the Julia type corresponding to the MPI [`Datatype`](@ref) `datatype`, or
 if it doesn't correspond directly.
 """
 function to_type(datatype::Datatype)
-    ptr = get_attr(datatype, JULIA_TYPE_PTR_ATTR[])
-    if isnothing(ptr)
-        return ptr
+    if MPI.Initialized()
+        ptr = get_attr(datatype, JULIA_TYPE_PTR_ATTR[])
+        if !isnothing(ptr)
+            return unsafe_pointer_to_objref(ptr)
+        end
     end
-    return unsafe_pointer_to_objref(ptr)
+    return nothing
 end
 
 
@@ -159,9 +162,9 @@ end
 
 
 function Base.show(io::IO, datatype::Datatype)
-    juliatype = to_type(datatype)
     show(io, Datatype)
     print(io, '(')
+    juliatype = to_type(datatype)
     if isnothing(juliatype)
         show(io, datatype.val)
     else
@@ -174,7 +177,7 @@ function Base.show(io::IO, datatype::Datatype)
         print(io, name)
     end
 end
-        
+
 
 
 module Types
@@ -231,7 +234,7 @@ end
     MPI.Types.create_vector(count::Integer, blocklength::Integer, stride::Integer, oldtype::MPI.Datatype)
 
 Create a derived [`Datatype`](@ref) that replicates `oldtype` into locations that
-consist of equally spaced blocks. 
+consist of equally spaced blocks.
 
 Note that [`MPI.Types.commit!`](@ref) must be used before the datatype can be used for
 communication.
@@ -274,7 +277,7 @@ end
 """
     MPI.Types.create_subarray(sizes, subsizes, offset, oldtype::Datatype;
                               rowmajor=false)
-    
+
 Creates a derived [`Datatype`](@ref) describing an `N`-dimensional subarray of size
 `subsizes` of an `N`-dimensional array of size `sizes` and element type `oldtype`, with
 the first element offset by `offset` (i.e. the 0-based index of the first element).
@@ -298,7 +301,7 @@ function create_subarray!(newtype::Datatype, sizes, subsizes, offset, oldtype::D
     sizes = sizes isa Vector{Cint} ? sizes : Cint[s for s in sizes]
     subsizes = subsizes isa Vector{Cint} ? subsizes : Cint[s for s in subsizes]
     offset = offset isa Vector{Cint} ? offset : Cint[s for s in offset]
-    
+
     @mpichk ccall((:MPI_Type_create_subarray, libmpi), Cint,
                   (Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   N, sizes, subsizes, offset,

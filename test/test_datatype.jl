@@ -1,7 +1,13 @@
 using Test
 using MPI
 
+# issue #490
+@test startswith(sprint(show, MPI.Datatype(Float64)), "MPI.Datatype")
+
 MPI.Init()
+
+@test sprint(show, MPI.Datatype(Float64)) == "MPI.Datatype(Float64): MPI_DOUBLE"
+
 
 comm_size = MPI.Comm_size(MPI.COMM_WORLD)
 comm_rank = MPI.Comm_rank(MPI.COMM_WORLD)
