@@ -18,7 +18,7 @@ end
 nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS","")
 nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
 testdir = @__DIR__
-istest(f) = endswith(f, ".jl") && startswith(f, "test_")
+istest(f) = endswith(f, ".jl") && startswith(f, "test_shared")
 testfiles = sort(filter(istest, readdir(testdir)))
 
 @info "Running MPI tests" ArrayType nprocs
