@@ -459,7 +459,7 @@ function Waitall!(reqs::Vector{Request})
         req = reqs[i]
         if !isnull(req)
             req.val = reqvals[i]
-            req.buffer = nothing
+            Base.setfield!(req, :buffer, nothing)
         end
     end
     return stats
