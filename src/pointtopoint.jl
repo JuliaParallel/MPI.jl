@@ -406,7 +406,7 @@ function Wait!(req::Request)
                   (Ptr{MPI_Request}, Ptr{Status}),
                   req, stat_ref)
     if !alreadynull
-        req.buffer = nothing
+        Base.setfield!(req, :buffer, nothing)
     end
     stat_ref[]
 end
