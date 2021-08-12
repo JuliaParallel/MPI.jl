@@ -41,6 +41,9 @@ macro mpi_handle(def, mpiname=nothing, extrafields...)
         function Base.unsafe_convert(::Type{Ptr{$mpiname}}, obj::$name)
             convert(Ptr{$mpiname}, pointer_from_objref(obj))
         end
+        function Base.cconvert(::Type{Core.LLVMPtr{$mpiname, AS}}, obj::$name) where AS
+            obj
+        end
         function Base.unsafe_convert(::Type{Core.LLVMPtr{$mpiname, AS}}, obj::$name) where AS
             reinterpret(Core.LLVMPtr{$mpiname, AS}, pointer_from_objref(obj))
         end
