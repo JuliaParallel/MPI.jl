@@ -403,7 +403,7 @@ function Wait!(req::Request)
     alreadynull = isnull(req)
     # int MPI_Wait(MPI_Request *request, MPI_Status *status)
     @mpichk ccall((:MPI_Wait, libmpi), Cint,
-                  (Ptr{MPI_Request}, Ptr{Status}),
+                  (Core.LLVMPtr{MPI_Request,0}, Core.LLVMPtr{Status,0}),
                   req, stat_ref)
     if !alreadynull
         Base.setfield!(req, :buffer, nothing)
@@ -453,7 +453,7 @@ function Waitall!(reqs::Vector{Request})
     # int MPI_Waitall(int count, MPI_Request array_of_requests[],
     #                 MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Waitall, libmpi), Cint,
-                  (Cint, Ptr{MPI_Request}, Ptr{Status}),
+                  (Cint, Core.LLVMPtr{MPI_Request,0}, Core.LLVMPtr{Status,0}),
                   count, reqvals, stats)
     for i in 1:count
         req = reqs[i]
