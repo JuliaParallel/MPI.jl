@@ -16,11 +16,13 @@ macro mpi_handle(def, mpiname=nothing, extrafields...)
         end
 
         # const initializer
-        function $(esc(_name))(ival::Cint, extraargs...)
+        function $(esc(_name))(ival::Union{Cint,Culong}, extraargs...)
             # We check the type used for handles, as a proxy for
             # detecting which MPI implementation is used. This lets us
             # decide whether we need to convert handles from Fortran
             # to C. (This mechanism should be improved.)
+            # TODO: Check whether we can just test `$mpiname ===
+            # typeof(ival)`.
             if $mpiname == Cint || $mpiname == Culong
                 # MPICH, MPItrampoline, and Microsoft MPI use the C handles
                 return $name(ival, extraargs...)
