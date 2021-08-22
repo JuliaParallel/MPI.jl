@@ -65,7 +65,7 @@ if binary == "system"
     @info "using system MPI"
     library = get(config, "library", "")
     if library == ""
-        library = ["libmpi", "libmpi_ibm", "msmpi", "libmpich"]
+        library = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"]
     end
     path    = get(config, "path", "")
     mpiexec = get(config, "mpiexec", path == "" ? "mpiexec" : joinpath(path, "bin", "mpiexec"))
@@ -106,6 +106,8 @@ if binary == "system"
     end
     if abi == "MPICH"
         abi_incl = :(include("consts_mpich.jl"))
+    elseif abi == "MPItrampoline"
+        abi_incl = :(include("consts_mpitrampoline.jl"))
     elseif abi == "OpenMPI"
         abi_incl = :(include("consts_openmpi.jl"))
     elseif abi == "MicrosoftMPI"
@@ -131,11 +133,13 @@ if binary == "system"
             end
 
             # error if a jll is loaded.
-            @require(MPICH_jll        = "7cb0a576-ebde-5e09-9194-50597f1243b4",
+            @require(MPICH_jll         = "7cb0a576-ebde-5e09-9194-50597f1243b4",
                      error("MPICH_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
-            @require(MicrosoftMPI_jll = "9237b28f-5490-5468-be7b-bb81f5f5e6cf",
+            @require(MPItrampoline_jll = "f1f71cc9-e9ae-5b93-9b94-4fe0e1ad3748",
+                     error("MPItrampoline_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
+            @require(MicrosoftMPI_jll  = "9237b28f-5490-5468-be7b-bb81f5f5e6cf",
                      error("MicrosoftMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
-            @require(OpenMPI_jll      = "fe0851c0-eecd-5654-98d4-656369965a5c",
+            @require(OpenMPI_jll       = "fe0851c0-eecd-5654-98d4-656369965a5c",
                      error("OpenMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
         end
     end
