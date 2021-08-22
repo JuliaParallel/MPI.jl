@@ -1,7 +1,7 @@
 # https://github.com/eschnett/MPItrampoline/mpi.h
 # https://github.com/eschnett/MPItrampoline/mpi-constants.inc
 
-getsym(T, sym) = unsafe_load(cglobal((sym, libmpitrampoline), T))
+getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
 
 # Simple types
 
