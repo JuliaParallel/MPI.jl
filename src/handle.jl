@@ -17,9 +17,15 @@ macro mpi_handle(def, mpiname=nothing, extrafields...)
 
         # const initializer
         function $(esc(_name))(ival::Cint, extraargs...)
-            if $mpiname == Cint
+            # We check the type used for handles, as a proxy for
+            # detecting which MPI implementation is used. This lets us
+            # decide whether we need to convert handles from Fortran
+            # to C. (This mechanism should be improved.)
+            if $mpiname == Cint || $mpiname == Culong
+                # MPICH, MPItrampoline, and Microsoft MPI use the C handles
                 return $name(ival, extraargs...)
             else
+                # OpenMPI uses Fortran handles which need to be translated
                 x = $name(C_NULL, extraargs...)
                 push!(mpi_init_hooks, () -> x.val = $mpiname_f2c(ival))
                 return x
