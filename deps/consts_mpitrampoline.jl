@@ -291,4 +291,4 @@ const MPI_REQUEST_NULL = getsym(MPI_Request, "MPI_REQUEST_NULL")
 const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 0)
 const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 0)
 
-const MPI_WIN_NULL = getsym(MPI_WIn, "MPI_WIN_NULL")
+const MPI_WIN_NULL = getsym(MPI_Win, "MPI_WIN_NULL")
