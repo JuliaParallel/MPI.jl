@@ -17,7 +17,7 @@ Note that this can only be called on types for which `isbitstype(T)` is `true`.
 
 const DATATYPE_NULL = _Datatype(MPI_DATATYPE_NULL)
 
-const MPI_Datatype_default = MPI_Datatype == Cint ? MPI_DATATYPE_NULL : C_NULL
+const MPI_Datatype_default = MPI_Datatype == Cint || MPI_Datatype == Culong ? MPI_DATATYPE_NULL : C_NULL
 Datatype() = Datatype(MPI_Datatype_default)
 
 
