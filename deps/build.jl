@@ -12,10 +12,10 @@ update_config = false
 
 
 # MPI.toml has 4 keys
-#  binary   = "" (default) | "system" | "MPICH_jll" | "OpenMPI_jll" | "MicrosoftMPI_jll"
+#  binary   = "" (default) | "system" | "MPICH_jll" | "MPItrampoline_jll" | "OpenMPI_jll" | "MicrosoftMPI_jll"
 #  path     = "" (default) | top-level directory location
 #  library  = "" (default) | library name/path | list of library names/paths
-#  abi      = "" (default) | "MPICH" | "OpenMPI" | "MicrosoftMPI" | "unknown"
+#  abi      = "" (default) | "MPICH" | "MPItrampoline" | "OpenMPI" | "MicrosoftMPI" | "unknown"
 #  mpiexec  = "" (default) | executable name/path | [executable name/path, extra args...]
 
 
@@ -164,7 +164,7 @@ elseif binary == ""
             end
         end
     end
-elseif binary ==  "MPICH_jll"
+elseif binary == "MPICH_jll"
     @info "using MPICH_jll"
     deps = quote
         using MPICH_jll
@@ -173,7 +173,18 @@ elseif binary ==  "MPICH_jll"
         const mpiexec_path = MPICH_jll.mpiexec_path
         __init__deps() = nothing
     end
-elseif binary ==  "OpenMPI_jll"
+elseif binary == "MPItrampoline_jll"
+    @info "using MPItrampoline_jll"
+    deps = quote
+        using MPItrampoline_jll
+        include("consts_mpitrampoline.jl")
+        # TODO: This mpiexec is the wrong one; it needs to come from
+        # MPIwrapper instead, which is only known at run time
+        const _mpiexec = MPItrampoline_jll.mpiexec
+        const mpiexec_path = MPItrampoline_jll.mpiexec_path
+        __init__deps() = nothing
+    end
+elseif binary == "OpenMPI_jll"
     @info "using OpenMPI_jll"
     deps = quote
         using OpenMPI_jll
@@ -188,7 +199,7 @@ elseif binary ==  "OpenMPI_jll"
             ENV["OPAL_PREFIX"] = OpenMPI_jll.artifact_dir
         end
     end
-elseif binary ==  "MicrosoftMPI_jll"
+elseif binary == "MicrosoftMPI_jll"
     @info "using MicrosoftMPI_jll"
     deps = quote
         using MicrosoftMPI_jll
@@ -214,7 +225,12 @@ end
 
 # only update deps.jl if it has changed.
 # allows users to call Pkg.build("MPI") without triggering another round of precompilation
-deps_str = string(remove_line_numbers(deps))
+deps_str =
+    """
+    # This file has been generated automatically.
+    # It will be overwritten the next time `Pkg.build("MPI")` is called.
+    """ +
+    string(remove_line_numbers(deps))
 
 if !isfile("deps.jl") || deps_str != read("deps.jl", String)
     write("deps.jl", deps_str)
