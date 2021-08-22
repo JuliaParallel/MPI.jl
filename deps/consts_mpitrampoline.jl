@@ -5,9 +5,6 @@ getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
 
 # Compile-time constants
 
-const MPI_VERSION = 3
-const MPI_SUBVERSION = 1
-
 const MPI_MAX_ERROR_STRING = 1024
 const MPI_MAX_INFO_KEY = 256
 const MPI_MAX_INFO_VAL = 1024
