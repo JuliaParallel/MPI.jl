@@ -3,6 +3,19 @@
 
 getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
 
+# Compile-time constants
+
+const int MPI_VERSION = 3
+const int MPI_SUBVERSION = 1
+
+const int MPI_MAX_ERROR_STRING = 1024
+const int MPI_MAX_INFO_KEY = 256
+const int MPI_MAX_INFO_VAL = 1024
+const int MPI_MAX_LIBRARY_VERSION_STRING = 8192
+const int MPI_MAX_OBJECT_NAME = 128
+const int MPI_MAX_PORT_NAME = 256
+const int MPI_MAX_PROCESSOR_NAME = 128
+
 # Simple types
 
 const MPI_Aint = Clong

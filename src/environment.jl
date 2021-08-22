@@ -137,7 +137,7 @@ An Enum denoting the level of threading support in the current process:
 - [`Init_thread`](@ref)
 - [`Query_thread`](@ref)
 """
-@enum ThreadLevel begin
+@enum ThreadLevel::Cint begin
     THREAD_SINGLE     = MPI_THREAD_SINGLE
     THREAD_FUNNELED   = MPI_THREAD_FUNNELED
     THREAD_SERIALIZED = MPI_THREAD_SERIALIZED
