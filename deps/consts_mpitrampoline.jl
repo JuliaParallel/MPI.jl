@@ -89,6 +89,7 @@ const MPI_COMBINER_VECTOR         = getsym(Cint, "MPI_COMBINER_VECTOR")
 
 const MPI_COMM_TYPE_SHARED = getsym(Cint, "MPI_COMM_TYPE_SHARED")
 
+# File operation constants
 const MPI_DISTRIBUTE_BLOCK  = getsym(Cint, "MPI_DISTRIBUTE_BLOCK")
 const MPI_DISTRIBUTE_CYCLIC = getsym(Cint, "MPI_DISTRIBUTE_CYCLIC")
 const MPI_DISTRIBUTE_NONE   = getsym(Cint, "MPI_DISTRIBUTE_NONE")
@@ -171,8 +172,14 @@ const MPI_MODE_SEQUENTIAL      = getsym(Cint, "MPI_MODE_SEQUENTIAL")
 const MPI_MODE_UNIQUE_OPEN     = getsym(Cint, "MPI_MODE_UNIQUE_OPEN")
 const MPI_MODE_WRONLY          = getsym(Cint, "MPI_MODE_WRONLY")
 
+# File operation constants
 const MPI_ORDER_C       = getsym(Cint, "MPI_ORDER_C")
 const MPI_ORDER_FORTRAN = getsym(Cint, "MPI_ORDER_FORTRAN")
+
+# File operation constants
+const MPI_SEEK_CUR = getsym(Cint, "MPI_SEEK_CUR")
+const MPI_SEEK_END = getsym(Cint, "MPI_SEEK_END")
+const MPI_SEEK_SET = getsym(Cint, "MPI_SEEK_SET")
 
 const MPI_THREAD_SINGLE     = getsym(Cint, "MPI_THREAD_SINGLE")
 const MPI_THREAD_FUNNELED   = getsym(Cint, "MPI_THREAD_FUNNELED")
