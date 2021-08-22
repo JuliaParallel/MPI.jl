@@ -229,7 +229,7 @@ deps_str =
     """
     # This file has been generated automatically.
     # It will be overwritten the next time `Pkg.build("MPI")` is called.
-    """ +
+    """ *
     string(remove_line_numbers(deps))
 
 if !isfile("deps.jl") || deps_str != read("deps.jl", String)
