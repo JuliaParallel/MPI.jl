@@ -199,11 +199,11 @@ const MPI_THREAD_MULTIPLE   = getsym(Cint, "MPI_THREAD_MULTIPLE")
 const MPI_UNWEIGHTED    = getsym(Ptr{Cint}, "MPI_UNWEIGHTED")
 const MPI_WEIGHTS_EMPTY = getsym(Ptr{Cint}, "MPI_WEIGHTS_EMPTY")
 
-# const MPI_BOTTOM = getsym(Ptr{Cvoid}, "MPI_BOTTOM")
-const MPI_BOTTOM = reinterpret(SentinelPtr, 0)
+const MPI_BOTTOM = getsym(Ptr{Cvoid}, "MPI_BOTTOM")
+# const MPI_BOTTOM = reinterpret(SentinelPtr, 0)
 
-# const MPI_IN_PLACE = getsym(Ptr{Cvoid}, "MPI_IN_PLACE")
-const MPI_IN_PLACE = reinterpret(SentinelPtr, 1)
+const MPI_IN_PLACE = getsym(Ptr{Cvoid}, "MPI_IN_PLACE")
+# const MPI_IN_PLACE = reinterpret(SentinelPtr, 1)
 
 const MPI_COMM_NULL  = getsym(MPI_Comm, "MPI_COMM_NULL")
 const MPI_COMM_SELF  = getsym(MPI_Comm, "MPI_COMM_SELF")
@@ -308,9 +308,9 @@ const MPI_SUM     = getsym(MPI_Op, "MPI_SUM")
 
 const MPI_REQUEST_NULL = getsym(MPI_Request, "MPI_REQUEST_NULL")
 
-# const MPI_STATUS_IGNORE   = getsym(Ptr{MPI_Status}, "MPI_STATUS_IGNORE")
-# const MPI_STATUSES_IGNORE = getsym(Ptr{MPI_Status}, "MPI_STATUSES_IGNORE")
-const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 0)
-const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 0)
+const MPI_STATUS_IGNORE   = getsym(Ptr{MPI_Status}, "MPI_STATUS_IGNORE")
+const MPI_STATUSES_IGNORE = getsym(Ptr{MPI_Status}, "MPI_STATUSES_IGNORE")
+# const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 0)
+# const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 0)
 
 const MPI_WIN_NULL = getsym(MPI_Win, "MPI_WIN_NULL")
