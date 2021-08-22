@@ -1,10 +1,5 @@
 # https://github.com/pmodels/mpich/blob/master/src/include/mpi.h.in
 
-@show libmpitrampoline
-const libmpitrampoline_handle = Libc.Libdl.dlopen(libmpitrampoline)
-@show libmpitrampoline_handle
-getval(T, sym) = unsafe_load(Ptr{T}(libmpitrampoline_handle, sym))
-
 const MPI_Aint = Int
 const MPI_Count = Int64
 const MPI_Offset = Int64
@@ -15,11 +10,11 @@ const MPI_Status_Error_offset = 4 * (sizeof(Int) == 8 ? 8 : 7)
 const MPI_Status_size = 4 * (sizeof(Int) == 8 ? 10 : 8)
 
 const MPI_Info = Culong
-const MPI_INFO_NULL = getval(Culong "MPI_INFO_NULL")
+const MPI_INFO_NULL = unsafe_load(cglobal(("MPI_INFO_NULL", libmpitrampoline), Culong))
 @show MPI_INFO_NULL
 
 const MPI_Win = Culong
-const MPI_WIN_NULL = getval(Culong, "MPI_WIN_NULL")
+const MPI_WIN_NULL = unsafe_load(cglobal(("MPI_WIN_NULL", libmpitrampoline), Culong))
 
 const MPI_Comm = Culong
 const MPI_COMM_NULL = Cint(67108864)
