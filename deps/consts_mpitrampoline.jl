@@ -5,30 +5,35 @@ getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
 
 # Simple types
 
-const MPI_Aint = Int
-const MPI_Count = Int64
-const MPI_Fint = Int32
-const MPI_Offset = Int64
+const MPI_Aint = Clong
+const MPI_Count = Clonglong
+const MPI_Fint = Cint
+const MPI_Offset = Clonglong
+@assert sizeof(MPI_Aint) == sizeof(Ptr)
+@assert sizeof(MPI_Count) == 8
+@assert sizeof(MPI_Fint) == 4
+@assert sizeof(MPI_Offset) == 8
 
 # Handles
 
-const MPI_Comm = Int
-const MPI_Datatype = Int
-const MPI_Errhandler = Int
-const MPI_File = Int
-const MPI_Group = Int
-const MPI_Info = Int
-const MPI_Message = Int
-const MPI_Op = Int
-const MPI_Request = Int
-const MPI_Win = Int
+const MPI_Comm = Culong
+const MPI_Datatype = Culong
+const MPI_Errhandler = Culong
+const MPI_File = Culong
+const MPI_Group = Culong
+const MPI_Info = Culong
+const MPI_Message = Culong
+const MPI_Op = Culong
+const MPI_Request = Culong
+const MPI_Win = Culong
+@assert sizeof(MPI_Comm) == sizeof(Ptr)
 
 # Status
 
-const MPI_Status_Source_offset = 4 * (sizeof(Int) == 8 ? 6 : 5)
-const MPI_Status_Tag_offset = 4 * (sizeof(Int) == 8 ? 7 : 6)
-const MPI_Status_Error_offset = 4 * (sizeof(Int) == 8 ? 8 : 7)
-const MPI_Status_size = 4 * (sizeof(Int) == 8 ? 10 : 8)
+const MPI_Status_Source_offset = 4 * (sizeof(Ptr) == 8 ? 6 : 5)
+const MPI_Status_Tag_offset = 4 * (sizeof(Ptr) == 8 ? 7 : 6)
+const MPI_Status_Error_offset = 4 * (sizeof(Ptr) == 8 ? 8 : 7)
+const MPI_Status_size = 4 * (sizeof(Ptr) == 8 ? 10 : 8)
 
 # Constants
 
