@@ -40,10 +40,22 @@ const MPI_Win = Culong
 
 # Status
 
-const MPI_Status_Source_offset = 4 * (sizeof(Ptr) == 8 ? 6 : 5)
-const MPI_Status_Tag_offset = 4 * (sizeof(Ptr) == 8 ? 7 : 6)
-const MPI_Status_Error_offset = 4 * (sizeof(Ptr) == 8 ? 8 : 7)
-const MPI_Status_size = 4 * (sizeof(Ptr) == 8 ? 10 : 8)
+struct MPI_Status
+    _pad1::Cint
+    _pad2::Cint
+    _pad3::Cint
+    _pad4::Cint
+    _pad5::Culong
+    source::Cint
+    tag::Cint
+    error::Cint
+end
+if sizeof(Ptr) == 8
+    @assert sizeof(MPI_Status) == 10 * sizeof(Cint)
+else
+    @assert sizeof(MPI_Status) == 8 * sizeof(Cint)
+end
+const Status = MPI_Status
 
 # Constants
 
