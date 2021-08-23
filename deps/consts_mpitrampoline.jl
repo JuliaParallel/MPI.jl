@@ -230,7 +230,7 @@ const MPI_COMM_NULL_COPY_FN = getsym(Ptr{Cvoid}, "MPI_COMM_NULL_COPY_FN")
 const MPI_COMM_NULL_DELETE_FN = getsym(Ptr{Cvoid}, "MPI_COMM_NULL_DELETE_FN")
 
 # MPI_Copy_function*
-const MPI_NULL_COPY_FN = getsym(Ptr{Cvoid}), "MPI_NULL_COPY_FN")
+const MPI_NULL_COPY_FN = getsym(Ptr{Cvoid}, "MPI_NULL_COPY_FN")
 
 const MPI_2DOUBLE_PRECISION       = getsym(MPI_Datatype, "MPI_2DOUBLE_PRECISION")
 const MPI_2INT                    = getsym(MPI_Datatype, "MPI_2INT")
