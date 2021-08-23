@@ -221,6 +221,17 @@ const MPI_COMM_NULL  = getsym(MPI_Comm, "MPI_COMM_NULL")
 const MPI_COMM_SELF  = getsym(MPI_Comm, "MPI_COMM_SELF")
 const MPI_COMM_WORLD = getsym(MPI_Comm, "MPI_COMM_WORLD")
 
+
+# MPI_Comm_copy_attr_function*
+const MPI_COMM_DUP_FN       = getsym(Ptr{Cvoid}, "MPI_COMM_DUP_FN")
+const MPI_COMM_NULL_COPY_FN = getsym(Ptr{Cvoid}, "MPI_COMM_NULL_COPY_FN")
+
+# MPI_Comm_delete_attr_function*
+const MPI_COMM_NULL_DELETE_FN = getsym(Ptr{Cvoid}, "MPI_COMM_NULL_DELETE_FN")
+
+# MPI_Copy_function*
+const MPI_NULL_COPY_FN = getsym(Ptr{Cvoid}), "MPI_NULL_COPY_FN")
+
 const MPI_2DOUBLE_PRECISION       = getsym(MPI_Datatype, "MPI_2DOUBLE_PRECISION")
 const MPI_2INT                    = getsym(MPI_Datatype, "MPI_2INT")
 const MPI_2INTEGER                = getsym(MPI_Datatype, "MPI_2INTEGER")
@@ -287,6 +298,9 @@ const MPI_UNSIGNED_LONG_LONG      = getsym(MPI_Datatype, "MPI_UNSIGNED_LONG_LONG
 const MPI_UNSIGNED_SHORT          = getsym(MPI_Datatype, "MPI_UNSIGNED_SHORT")
 const MPI_WCHAR                   = getsym(MPI_Datatype, "MPI_WCHAR")
 
+# MPI_Delete_function*
+const MPI_NULL_DELETE_FN = getsym(Ptr{Void}, "MPI_NULL_DELETE_FN")
+
 const MPI_ERRHANDLER_NULL  = getsym(MPI_Errhandler, "MPI_ERRHANDLER_NULL")
 const MPI_ERRORS_ARE_FATAL = getsym(MPI_Errhandler, "MPI_ERRORS_ARE_FATAL")
 const MPI_ERRORS_RETURN    = getsym(MPI_Errhandler, "MPI_ERRORS_RETURN")
@@ -325,4 +339,18 @@ const MPI_STATUSES_IGNORE = getsym(Ptr{MPI_Status}, "MPI_STATUSES_IGNORE")
 # const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 0)
 # const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 0)
 
+# MPI_Type_copy_attr_function*
+const MPI_TYPE_DUP_FN       = getsym(Ptr{Cvoid}, "MPI_TYPE_DUP_FN")
+const MPI_TYPE_NULL_COPY_FN = getsym(Ptr{Cvoid}, "MPI_TYPE_NULL_COPY_FN")
+
+# MPI_Type_delete_attr_function*
+const MPI_TYPE_NULL_DELETE_FN = getsym(Ptr{Cvoid}, "MPI_TYPE_NULL_DELETE_FN")
+
 const MPI_WIN_NULL = getsym(MPI_Win, "MPI_WIN_NULL")
+
+# MPI_Win_copy_attr_function*
+const MPI_WIN_DUP_FN       = getsym(Ptr{Cvoid}, "MPI_WIN_DUP_FN")
+const MPI_WIN_NULL_COPY_FN = getsym(Ptr{Cvoid}, "MPI_WIN_NULL_COPY_FN")
+
+# MPI_Win_delete_attr_function*
+const MPI_WIN_NULL_DELETE_FN = getsym(Ptr{Cvoid}, "MPI_WIN_NULL_DELETE_FN")
