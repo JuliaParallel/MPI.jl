@@ -299,7 +299,7 @@ const MPI_UNSIGNED_SHORT          = getsym(MPI_Datatype, "MPI_UNSIGNED_SHORT")
 const MPI_WCHAR                   = getsym(MPI_Datatype, "MPI_WCHAR")
 
 # MPI_Delete_function*
-const MPI_NULL_DELETE_FN = getsym(Ptr{Void}, "MPI_NULL_DELETE_FN")
+const MPI_NULL_DELETE_FN = getsym(Ptr{Cvoid}, "MPI_NULL_DELETE_FN")
 
 const MPI_ERRHANDLER_NULL  = getsym(MPI_Errhandler, "MPI_ERRHANDLER_NULL")
 const MPI_ERRORS_ARE_FATAL = getsym(MPI_Errhandler, "MPI_ERRORS_ARE_FATAL")
