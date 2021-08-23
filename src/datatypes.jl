@@ -29,17 +29,17 @@ function free(dt::Datatype)
 end
 
 # attributes
-function _type_null_copy_fn(oldtype::MPI_Datatype, type_keyval::Cint,
-                            extra_state::Ptr{Cvoid},
-                            attribute_val_in::Ptr{Cvoid}, attribute_val_out::Ptr{Cvoid},
-                            flag::Ptr{Cint})
-    unsafe_store!(flag, Cint(0))
-    return MPI_SUCCESS
-end
-function _type_null_delete_fn(oldtype::MPI_Datatype, type_keyval::Cint,
-                           attribute_val_in::Ptr{Cvoid}, extra_state::Ptr{Cvoid})
-    return MPI_SUCCESS
-end
+# function _type_null_copy_fn(oldtype::MPI_Datatype, type_keyval::Cint,
+#                             extra_state::Ptr{Cvoid},
+#                             attribute_val_in::Ptr{Cvoid}, attribute_val_out::Ptr{Cvoid},
+#                             flag::Ptr{Cint})
+#     unsafe_store!(flag, Cint(0))
+#     return MPI_SUCCESS
+# end
+# function _type_null_delete_fn(oldtype::MPI_Datatype, type_keyval::Cint,
+#                            attribute_val_in::Ptr{Cvoid}, extra_state::Ptr{Cvoid})
+#     return MPI_SUCCESS
+# end
 
 function create_keyval(::Type{Datatype})
     ref = Ref(Cint(0))
@@ -48,10 +48,12 @@ function create_keyval(::Type{Datatype})
                    Ptr{Cvoid},
                    Ptr{Cint},
                    Ptr{Cvoid}),
-                  @cfunction(_type_null_copy_fn,Cint,(MPI_Datatype, Cint, Ptr{Cvoid},
-                                                      Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint})),
-                  @cfunction(_type_null_delete_fn,Cint,(MPI_Datatype, Cint, Ptr{Cvoid},
-                                                      Ptr{Cvoid})),
+                  # @cfunction(_type_null_copy_fn,Cint,(MPI_Datatype, Cint, Ptr{Cvoid},
+                  #                                     Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint})),
+                  # @cfunction(_type_null_delete_fn,Cint,(MPI_Datatype, Cint, Ptr{Cvoid},
+                  #                                     Ptr{Cvoid})),
+                  MPI_TYPE_NULL_COPY_FN,
+                  MPI_TYPE_NULL_DELETE_FN,
                   ref, C_NULL)
     return ref[]
 end
