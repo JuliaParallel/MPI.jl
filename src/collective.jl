@@ -131,7 +131,7 @@ end
 
 
 """
-    Scatterv!(sendbuf, T, root, comm)
+    Scatterv!(sendbuf, recvbuf, root, comm)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks and sends
 the `j`th chunk to the process of rank `j-1` into the `recvbuf` buffer.
