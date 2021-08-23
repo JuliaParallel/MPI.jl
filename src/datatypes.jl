@@ -361,7 +361,7 @@ communication.
 $(_doc_external("MPI_Type_create_resized"))
 """
 function create_resized(oldtype::Datatype, lb::Integer, extent::Integer)
-    finalizer(free, create_resized(Datatype(), oldtype, lb, extent))
+    finalizer(free, create_resized!(Datatype(), oldtype, lb, extent))
 end
 function create_resized!(newtype::Datatype, oldtype::Datatype, lb::Integer, extent::Integer)
     # int MPI_Type_create_resized(MPI_Datatype oldtype, MPI_Aint lb,
