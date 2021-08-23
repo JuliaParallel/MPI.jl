@@ -164,7 +164,7 @@ elseif binary == ""
             end
         end
     end
-elseif binary ==  "MPICH_jll"
+elseif binary == "MPICH_jll"
     @info "using MPICH_jll"
     deps = quote
         using MPICH_jll
@@ -173,7 +173,7 @@ elseif binary ==  "MPICH_jll"
         const mpiexec_path = MPICH_jll.mpiexec_path
         __init__deps() = nothing
     end
-elseif binary ==  "OpenMPI_jll"
+elseif binary == "OpenMPI_jll"
     @info "using OpenMPI_jll"
     deps = quote
         using OpenMPI_jll
@@ -188,7 +188,7 @@ elseif binary ==  "OpenMPI_jll"
             ENV["OPAL_PREFIX"] = OpenMPI_jll.artifact_dir
         end
     end
-elseif binary ==  "MicrosoftMPI_jll"
+elseif binary == "MicrosoftMPI_jll"
     @info "using MicrosoftMPI_jll"
     deps = quote
         using MicrosoftMPI_jll
@@ -214,7 +214,12 @@ end
 
 # only update deps.jl if it has changed.
 # allows users to call Pkg.build("MPI") without triggering another round of precompilation
-deps_str = string(remove_line_numbers(deps))
+deps_str =
+    """
+    # This file has been generated automatically.
+    # It will be overwritten the next time `Pkg.build("MPI")` is called.
+    """ *
+    string(remove_line_numbers(deps))
 
 if !isfile("deps.jl") || deps_str != read("deps.jl", String)
     write("deps.jl", deps_str)
