@@ -219,8 +219,7 @@ const MPI_IN_PLACE = getsym(Ptr{Cvoid}, "MPI_IN_PLACE")
 
 const MPI_COMM_NULL  = getsym(MPI_Comm, "MPI_COMM_NULL")
 const MPI_COMM_SELF  = getsym(MPI_Comm, "MPI_COMM_SELF")
-const MPI_COMM_WORLD = getsym(MPI_Comm, "MPI_COMM_WORLD")
-
+const MPI_COMM_WORLD = @show getsym(MPI_Comm, "MPI_COMM_WORLD")
 
 # MPI_Comm_copy_attr_function*
 const MPI_COMM_DUP_FN       = getsym(Ptr{Cvoid}, "MPI_COMM_DUP_FN")

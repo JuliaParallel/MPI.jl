@@ -59,9 +59,10 @@ include("deprecated.jl")
 function __init__()
 
     @static if Sys.isunix()
-        # need to open libmpi with RTLD_GLOBAL flag for Linux, before
-        # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
-        # at least on Ubuntu 15.10
+        # - need to open libmpi with RTLD_GLOBAL flag for Linux,
+        #   before any ccall
+        # - cannot use RTLD_DEEPBIND; this leads to segfaults at least
+        #   on Ubuntu 15.10
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
 
@@ -73,7 +74,7 @@ function __init__()
         ENV["UCX_MEMTYPE_CACHE"] = "no"
     end
     
-    # Julia multithreading uses SIGSEGV to sync thread
+    # Julia multithreading uses SIGSEGV to sync threads
     # https://docs.julialang.org/en/v1/devdocs/debuggingtips/#Dealing-with-signals-1
     # By default, UCX will error if this occurs (issue #337)
     if !haskey(ENV, "UCX_ERROR_SIGNALS")

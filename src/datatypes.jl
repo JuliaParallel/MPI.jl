@@ -73,8 +73,6 @@ function get_attr(datatype::Datatype, keyval::Cint)
     return attrref[]
 end
 function del_attr!(datatype::Datatype, keyval::Cint)
-    flagref = Ref(Cint(0))
-    attrref = Ref{Ptr{Cvoid}}(C_NULL)
     @mpichk ccall((:MPI_Type_delete_attr, libmpi), Cint,
                   (MPI_Datatype, Cint), datatype, keyval)
     return nothing
@@ -82,7 +80,8 @@ end
 
 # names
 function get_name(datatype::Datatype)
-    MPI.Initialized() || return ""
+    #TODO MPI.Initialized() || return ""
+    @assert MPI.Initialized()
     buffer = Array{UInt8}(undef, MPI_MAX_OBJECT_NAME)
     lenref = Ref{Cint}()
     @mpichk ccall((:MPI_Type_get_name, libmpi), Cint,
@@ -102,12 +101,13 @@ Return the Julia type corresponding to the MPI [`Datatype`](@ref) `datatype`, or
 if it doesn't correspond directly.
 """
 function to_type(datatype::Datatype)
-    if MPI.Initialized()
+    @assert MPI.Initialized()
+    #TODO if MPI.Initialized()
         ptr = get_attr(datatype, JULIA_TYPE_PTR_ATTR[])
         if !isnothing(ptr)
             return unsafe_pointer_to_objref(ptr)
         end
-    end
+    #TODO end
     return nothing
 end
 
