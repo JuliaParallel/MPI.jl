@@ -352,6 +352,8 @@ const _constants = Tuple{Type,Symbol}[
     (Ptr{Cvoid}, :MPI_WIN_NULL_DELETE_FN),
 ]
 
+# Idea: Store MPI constants in `const` global variables with a
+# `mutable` type instead of mutable global variables
 for (i,(tp,nm)) in enumerate(_constants)
     @eval $nm = $tp($i)
 end
@@ -361,36 +363,75 @@ end
 _getsym(T::Type, sym::Symbol) = unsafe_load(cglobal((sym, libmpi), T))
 
 function init_mpitrampoline_constants()
-    # Idea: Store MPI constants in `const` global variables with a `mutable` type
+
+    # We're not checking this because these changes should be fine
+    # # Ensure things didn't change since MPI was configured.
+    # library_version = Get_library_version()
+    # version = Get_version()
+    # @assert library_version == MPI_LIBRARY_VERSION_STRING
+    # @assert version == MPI_VERSION
 
     for (tp,nm) in _constants
         @eval $nm = _getsym($tp, $(QuoteNode(nm)))
     end
 
-    for (tp,nm) in _constants
-        nms = String(nm)
-        @assert startswith(nms, "MPI_")
-        nms′ = nms[5:end]
-        nm′ = Symbol(nms′)
-        @eval $nm′.val = $nm
-    end
+    # for (tp,nm) in _constants
+    #     nms = String(nm)
+    #     @assert startswith(nms, "MPI_")
+    #     nms′ = nms[5:end]
+    #     nm′ = Symbol(nms′)
+    #     @eval $nm′.val = $nm
+    # end
+    
+    # Update all constants
+    # TODO: Instead of this, initialized them later
 
-    # COMM_NULL.val  = MPI_COMM_NULL
-    # COMM_SELF.val  = MPI_COMM_SELF
-    # COMM_WORLD.val = MPI_COMM_WORLD
-    # 
-    # IDENT.val     = MPI_IDENT
-    # CONGRUENT.val = MPI_CONGRUENT
-    # SIMILAR.val   = MPI_SIMILAR
-    # UNEQUAL.val   = MPI_UNEQUAL
-    # 
-    # File.SEEK_SET.val = MPI_SEEK_SET
-    # File.SEEK_CUR.val = MPI_SEEK_CUR
-    # File.SEEK_END.val = MPI_SEEK_END
-    # 
-    # THREAD_SINGLE.val     = MPI_THREAD_SINGLE
-    # THREAD_FUNNELED.val   = MPI_THREAD_FUNNELED
-    # THREAD_SERIALIZED.val = MPI_THREAD_SERIALIZED
-    # THREAD_MULTIPLE.val   = MPI_THREAD_MULTIPLE
+    IDENT.val     = MPI_IDENT
+    CONGRUENT.val = MPI_CONGRUENT
+    SIMILAR.val   = MPI_SIMILAR
+    UNEQUAL.val   = MPI_UNEQUAL
 
+    LOCK_EXCLUSIVE.val = MPI_LOCK_EXCLUSIVE
+    LOCK_SHARED.val    = MPI_LOCK_SHARED
+
+    File.SEEK_SET.val = MPI_SEEK_SET
+    File.SEEK_CUR.val = MPI_SEEK_CUR
+    File.SEEK_END.val = MPI_SEEK_END
+    
+    THREAD_SINGLE.val     = MPI_THREAD_SINGLE
+    THREAD_FUNNELED.val   = MPI_THREAD_FUNNELED
+    THREAD_SERIALIZED.val = MPI_THREAD_SERIALIZED
+    THREAD_MULTIPLE.val   = MPI_THREAD_MULTIPLE
+
+    COMM_NULL.val  = MPI_COMM_NULL
+    COMM_SELF.val  = MPI_COMM_SELF
+    COMM_WORLD.val = MPI_COMM_WORLD
+    
+    FILE_NULL.val = MPI_FILE_NULL
+
+    INFO_NULL.val = MPI_INFO_NULL
+
+    ERRORS_ARE_FATAL.val = MPI_ERRORS_ARE_FATAL
+    ERRORS_RETURN.val    = MPI_ERRORS_RETURN
+
+    BAND.val    = MPI_BAND
+    BOR.val     = MPI_BOR
+    BXOR.val    = MPI_BXOR
+    LAND.val    = MPI_LAND
+    LOR.val     = MPI_LOR
+    LXOR.val    = MPI_LXOR
+    MAX.val     = MPI_MAX
+    MIN.val     = MPI_MIN
+    NO_OP.val   = MPI_NO_OP
+    OP_NULL.val = MPI_OP_NULL
+    PROD.val    = MPI_PROD
+    REPLACE.val = MPI_REPLACE
+    SUM.val     = MPI_SUM
+
+    REQUEST_NULL.val = MPI_REQUEST_NULL
+
+    WIN_NULL.val = MPI_WIN_NULL
+
+    # No need to update this
+    # STATUS_EMPTY
 end
