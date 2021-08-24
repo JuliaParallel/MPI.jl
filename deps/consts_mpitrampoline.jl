@@ -1,7 +1,11 @@
 # https://github.com/eschnett/MPItrampoline/mpi.h
 # https://github.com/eschnett/MPItrampoline/mpi-constants.inc
 
-getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
+# getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
+function getsym(T, sym)
+    ptr = cglobal((sym, libmpi), T)
+    unsafe_load(ptr)
+end
 
 # Compile-time constants
 
