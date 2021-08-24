@@ -368,8 +368,8 @@ function init_mpitrampoline_constants()
     global MPI_COMM_WORLD = getsym(MPI_Comm, "MPI_COMM_WORLD")
 
     @show COMM_NULL
-    global COMM_NULL  = Comm(MPI_COMM_NULL)
+    COMM_NULL .val = MPI_COMM_NULL
     @show COMM_NULL
-    global COMM_SELF  = Comm(MPI_COMM_SELF)
-    global COMM_WORLD = Comm(MPI_COMM_WORLD)
+    COMM_SELF .val = MPI_COMM_SELF
+    COMM_WORLD.val = MPI_COMM_WORLD
 end

@@ -5,7 +5,7 @@ An MPI Communicator object.
 """
 @mpi_handle Comm MPI_Comm
 
-global COMM_NULL = _Comm(MPI_COMM_NULL)
+const COMM_NULL = _Comm(MPI_COMM_NULL)
 
 """
     MPI.COMM_WORLD
@@ -13,14 +13,14 @@ global COMM_NULL = _Comm(MPI_COMM_NULL)
 A communicator containing all processes with which the local rank can communicate at
 initialization. In a typical "static-process" model, this will be all processes.
 """
-global COMM_WORLD = _Comm(MPI_COMM_WORLD)
+const COMM_WORLD = _Comm(MPI_COMM_WORLD)
 
 """
     MPI.COMM_SELF
 
 A communicator containing only the local process.
 """
-global COMM_SELF = _Comm(MPI_COMM_SELF)
+const COMM_SELF = _Comm(MPI_COMM_SELF)
 
 Comm() = Comm(COMM_NULL.val)
 
