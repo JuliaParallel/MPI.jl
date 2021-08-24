@@ -150,6 +150,8 @@ ThreadLevel(threadlevel::Symbol) =
     threadlevel == :serialized ? THREAD_SERIALIZED :
     threadlevel == :multiple ? THREAD_MULTIPLE :
     error("Invalid threadlevel: must be one of :single, :funneled, :serialized, or :multiple")
+Base.:(==)(tl1::ThreadLevel, tl2::ThreadLevel) = tl1.val == tl2.val
+Base.isless(tl1::ThreadLevel, tl2::ThreadLevel) = tl1.val < tl2.val
 
 function _init_thread(required::ThreadLevel)
     r_provided = Ref{Cint}()
