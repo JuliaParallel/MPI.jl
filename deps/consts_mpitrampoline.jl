@@ -1,12 +1,7 @@
 # https://github.com/eschnett/MPItrampoline/mpi.h
 # https://github.com/eschnett/MPItrampoline/mpi-constants.inc
 
-# getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
-function getsym(T, sym)
-    @show :getsym T sym
-    cg = @show cglobal((sym, libmpi), T)
-    @show unsafe_load(cg)
-end
+getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
 
 # Compile-time constants
 
@@ -61,6 +56,8 @@ else
     @assert sizeof(MPI_Status) == 8 * sizeof(Cint)
 end
 const Status = MPI_Status
+
+################################################################################
 
 # Constants
 
@@ -225,9 +222,9 @@ const MPI_IN_PLACE = getsym(Ptr{Cvoid}, "MPI_IN_PLACE")
 #TODO const MPI_COMM_NULL  = getsym(MPI_Comm, "MPI_COMM_NULL")
 #TODO const MPI_COMM_SELF  = getsym(MPI_Comm, "MPI_COMM_SELF")
 #TODO const MPI_COMM_WORLD = getsym(MPI_Comm, "MPI_COMM_WORLD")
-@show "loading module"
+# @show "loading module"
 MPI_COMM_NULL  = MPI_Comm(0)   # getsym(MPI_Comm, "MPI_COMM_NULL")
-@show MPI_COMM_NULL
+# @show MPI_COMM_NULL
 MPI_COMM_SELF  = MPI_Comm(0)   # getsym(MPI_Comm, "MPI_COMM_SELF")
 MPI_COMM_WORLD = MPI_Comm(0)   # getsym(MPI_Comm, "MPI_COMM_WORLD")
 
@@ -345,8 +342,6 @@ const MPI_REQUEST_NULL = getsym(MPI_Request, "MPI_REQUEST_NULL")
 
 const MPI_STATUS_IGNORE   = getsym(Ptr{MPI_Status}, "MPI_STATUS_IGNORE")
 const MPI_STATUSES_IGNORE = getsym(Ptr{MPI_Status}, "MPI_STATUSES_IGNORE")
-# const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 0)
-# const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 0)
 
 # MPI_Type_copy_attr_function*
 const MPI_TYPE_DUP_FN       = getsym(Ptr{Cvoid}, "MPI_TYPE_DUP_FN")
@@ -364,19 +359,21 @@ const MPI_WIN_NULL_COPY_FN = getsym(Ptr{Cvoid}, "MPI_WIN_NULL_COPY_FN")
 # MPI_Win_delete_attr_function*
 const MPI_WIN_NULL_DELETE_FN = getsym(Ptr{Cvoid}, "MPI_WIN_NULL_DELETE_FN")
 
+################################################################################
+
 function init_mpitrampoline_constants()
     # Idea: Store MPI constants in `const` global variables with a `mutable` type
 
-    @show "initializing module"
-    @show MPI_COMM_NULL
+    # @show "initializing module"
+    # @show MPI_COMM_NULL
     global MPI_COMM_NULL  = getsym(MPI_Comm, "MPI_COMM_NULL")
-    @show MPI_COMM_NULL
+    # @show MPI_COMM_NULL
     global MPI_COMM_SELF  = getsym(MPI_Comm, "MPI_COMM_SELF")
     global MPI_COMM_WORLD = getsym(MPI_Comm, "MPI_COMM_WORLD")
 
-    @show COMM_NULL
+    # @show COMM_NULL
     COMM_NULL.val  = MPI_COMM_NULL
-    @show COMM_NULL
+    # @show COMM_NULL
     COMM_SELF.val  = MPI_COMM_SELF
     COMM_WORLD.val = MPI_COMM_WORLD
 end
