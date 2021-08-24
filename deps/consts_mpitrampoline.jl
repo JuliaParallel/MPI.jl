@@ -1,7 +1,12 @@
 # https://github.com/eschnett/MPItrampoline/mpi.h
 # https://github.com/eschnett/MPItrampoline/mpi-constants.inc
 
-getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
+# getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
+function getsym(T, sym)
+    @show :getsym T sym
+    cg = @show cglobal((sym, libmpi), T)
+    @show unsafe_load(cg)
+end
 
 # Compile-time constants
 
@@ -360,6 +365,8 @@ const MPI_WIN_NULL_COPY_FN = getsym(Ptr{Cvoid}, "MPI_WIN_NULL_COPY_FN")
 const MPI_WIN_NULL_DELETE_FN = getsym(Ptr{Cvoid}, "MPI_WIN_NULL_DELETE_FN")
 
 function init_mpitrampoline_constants()
+    # Idea: Store MPI constants in `const` global variables with a `mutable` type
+
     @show "initializing module"
     @show MPI_COMM_NULL
     global MPI_COMM_NULL  = getsym(MPI_Comm, "MPI_COMM_NULL")
