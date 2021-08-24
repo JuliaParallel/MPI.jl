@@ -3,8 +3,11 @@
 
 # getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
 function getsym(T, sym)
-    ptr = cglobal((sym, libmpi), T)
-    unsafe_load(ptr)
+    ptr = cglobal((sym, libmpi))
+    @assert ptr != C_NULL
+    ptrT = Ptr{T}(ptr)
+    @assert ptr != C_NULL
+    unsafe_load(ptrT)
 end
 
 # Compile-time constants
