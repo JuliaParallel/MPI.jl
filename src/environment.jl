@@ -152,12 +152,12 @@ ThreadLevel(threadlevel::Symbol) =
     error("Invalid threadlevel: must be one of :single, :funneled, :serialized, or :multiple")
 
 function _init_thread(required::ThreadLevel)
-    r_provided = Ref{ThreadLevel}()
+    r_provided = Ref{Cint}()
     # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
     @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
-                    (Ptr{Cint},Ptr{Cvoid}, ThreadLevel, Ref{ThreadLevel}),
-                    C_NULL, C_NULL, required, r_provided)
-    return r_provided[]
+                    (Ptr{Cint},Ptr{Cvoid}, Cint, Ref{Cint}),
+                    C_NULL, C_NULL, required.val, r_provided)
+    return ThreadLevel(r_provided[])
 end
 
 
@@ -171,12 +171,12 @@ Returns a [`ThreadLevel`](@ref) value denoting
 $(_doc_external("MPI_Query_thread"))
 """
 function Query_thread()
-    r_provided = Ref{ThreadLevel}()
+    r_provided = Ref{Cint}()
 
     # int MPI_Query_thread(int *provided)
     @mpichk ccall((:MPI_Query_thread, libmpi), Cint,
-                  (Ref{ThreadLevel},), r_provided)
-    return r_provided[]
+                  (Ref{Cint},), r_provided)
+    return ThreadLevel(r_provided[])
 end
 
 """
