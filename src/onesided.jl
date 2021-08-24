@@ -3,7 +3,7 @@
 const WIN_NULL = _Win(MPI_WIN_NULL)
 Win() = Win(WIN_NULL.val)
 
-struct LockType
+mutable struct LockType
     val::Cint
 end
 const LOCK_EXCLUSIVE = LockType(MPI_LOCK_EXCLUSIVE)
