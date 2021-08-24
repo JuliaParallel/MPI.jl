@@ -186,7 +186,7 @@ elseif binary == "MPItrampoline_jll"
         # MPIwrapper instead, which is only known at run time
         const _mpiexec = MPItrampoline_jll.mpiexec
         const mpiexec_path = MPItrampoline_jll.mpiexec_path
-        __init__deps() = nothing
+        __init__deps() = init_mpitrampoline_constants()
     end
 elseif binary == "OpenMPI_jll"
     @info "using OpenMPI_jll"

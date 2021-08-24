@@ -70,6 +70,7 @@ An enum corresponding to known MPI implementations
 @enum MPIImpl begin
     UnknownMPI
     MPICH
+    MPItrampoline
     OpenMPI
     MicrosoftMPI
     IntelMPI
@@ -96,9 +97,16 @@ function identify_implementation()
 
     if startswith(MPI_LIBRARY_VERSION_STRING, "MPICH")
         impl = MPICH
-        # "MPICH Version:\t%s\n" /  "MPICH2 Version:\t%s\n"
+        # "MPICH Version:\t%s\n" / "MPICH2 Version:\t%s\n"
         if (m = match(r"^MPICH2? Version:\t(\d+.\d+.\d+\w*)\n", MPI_LIBRARY_VERSION_STRING)) !== nothing
             version = VersionNumber(m.captures[1])
+        end
+
+    elseif startswith(MPI_LIBRARY_VERSION_STRING, "MPItrampoline") || startswith(MPI_LIBRARY_VERSION_STRING, "MPIwrapper")
+        impl = MPItrampoline
+        # "MPItrampoline %d.%d.%d," / "MPIwrapper %d.%d.%d,"
+        if (m = match(r"^MPI(wrapper|trampoline) (\d+.\d+.\d+),", MPI_LIBRARY_VERSION_STRING)) !== nothing
+            version = VersionNumber(m.captures[2])
         end
 
     elseif startswith(MPI_LIBRARY_VERSION_STRING, "Open MPI")
