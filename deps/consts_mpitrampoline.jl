@@ -369,7 +369,7 @@ function init_mpitrampoline_constants()
     @show MPI_COMM_WORLD
     for (tp,nm) in _constants
         @show tp nm
-        @eval $nm = _getsym($tp, $nm)
+        @eval $nm = _getsym($tp, nm)
     end
     @show MPI_COMM_WORLD
 
