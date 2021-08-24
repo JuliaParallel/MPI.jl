@@ -360,7 +360,7 @@ end
 
 ################################################################################
 
-_getsym(T, sym) = unsafe_load(cglobal((sym, libmpi), T))
+_getsym(T::Type, sym::Symbol) = unsafe_load(cglobal((sym, libmpi), T))
 
 function init_mpitrampoline_constants()
     # Idea: Store MPI constants in `const` global variables with a `mutable` type
@@ -368,6 +368,7 @@ function init_mpitrampoline_constants()
     @show "initializing module"
     @show MPI_COMM_WORLD
     for (tp,nm) in _constants
+        @show tp nm
         @eval $nm = _getsym($tp, $nm)
     end
     @show MPI_COMM_WORLD
