@@ -354,7 +354,7 @@ const _constants = Tuple{Type,Symbol}[
 
 @show "loading module"
 for (i,(tp,nm)) in enumerate(_constants)
-    @eval $nm = $tp(i)
+    @eval $nm = $tp($i)
 end
 @show MPI_COMM_WORLD
 
