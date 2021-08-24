@@ -1,5 +1,6 @@
 using Test
 using MPI
+using StaticArrays
 
 # issue #490
 @test startswith(sprint(show, MPI.Datatype(Float64)), "MPI.Datatype")
@@ -148,6 +149,37 @@ end
 
     # check received array
     @test arr_recv == [nothing for i = 1:100]
+end
+
+struct Particle
+    x::Float32
+    y::Float32
+    z::Float32
+    velocity::Float32
+    name::SVector{10,Char}
+    mass::Float64
+end
+@testset "create_X" begin
+    # create_vector
+    RowType = MPI.Types.create_vector(N, 1, N, MPI.DOUBLE)
+    @test typeof(RowType) == MPI.Datatype
+    
+    # create_subarray
+    SubMatrixType = MPI.Types.create_subarray((8, 8), (4, 4), (0, 0), MPI.INT64_T)
+    @test typeof(SubMatrixType) == MPI.Datatype
+
+    # create_struct + _resized
+    oldtypes = MPI.Datatype.([Float32, Char, Float64])
+    len = [4, 10, 1]
+    disp = Vector{Int}(undef, 3)
+    disp[1] = 0
+    disp[2] = disp[1] + 4 * sizeof(Float32)
+    disp[3] = disp[2] + 10 * sizeof(Char)
+
+    tmp = MPI.Types.create_struct(len, disp, oldtypes)
+    @test typeof(tmp) == MPI.Datatype
+    ParticleMPI = MPI.Types.create_resized(tmp, 0, sizeof(Particle))
+    @test typeof(ParticleMPI) == MPI.Datatype
 end
 
 
