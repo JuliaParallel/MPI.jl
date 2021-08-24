@@ -221,9 +221,10 @@ const MPI_IN_PLACE = getsym(Ptr{Cvoid}, "MPI_IN_PLACE")
 #TODO const MPI_COMM_SELF  = getsym(MPI_Comm, "MPI_COMM_SELF")
 #TODO const MPI_COMM_WORLD = getsym(MPI_Comm, "MPI_COMM_WORLD")
 @show "loading module"
-MPI_COMM_NULL  = @show getsym(MPI_Comm, "MPI_COMM_NULL")
-MPI_COMM_SELF  = getsym(MPI_Comm, "MPI_COMM_SELF")
-MPI_COMM_WORLD = getsym(MPI_Comm, "MPI_COMM_WORLD")
+MPI_COMM_NULL  = nothing   # getsym(MPI_Comm, "MPI_COMM_NULL")
+@show MPI_COMM_NULL
+MPI_COMM_SELF  = nothing   # getsym(MPI_Comm, "MPI_COMM_SELF")
+MPI_COMM_WORLD = nothing   # getsym(MPI_Comm, "MPI_COMM_WORLD")
 
 # MPI_Comm_copy_attr_function*
 const MPI_COMM_DUP_FN       = getsym(Ptr{Cvoid}, "MPI_COMM_DUP_FN")
@@ -360,7 +361,9 @@ const MPI_WIN_NULL_DELETE_FN = getsym(Ptr{Cvoid}, "MPI_WIN_NULL_DELETE_FN")
 
 function init_mpitrampoline_constants()
     @show "initializing module"
-    global MPI_COMM_NULL  = @show getsym(MPI_Comm, "MPI_COMM_NULL")
+    @show MPI_COMM_NULL
+    global MPI_COMM_NULL  = getsym(MPI_Comm, "MPI_COMM_NULL")
+    @show MPI_COMM_NULL
     global MPI_COMM_SELF  = getsym(MPI_Comm, "MPI_COMM_SELF")
     global MPI_COMM_WORLD = getsym(MPI_Comm, "MPI_COMM_WORLD")
 end
