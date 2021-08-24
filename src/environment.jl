@@ -137,12 +137,13 @@ An Enum denoting the level of threading support in the current process:
 - [`Init_thread`](@ref)
 - [`Query_thread`](@ref)
 """
-@enum ThreadLevel::Cint begin
-    THREAD_SINGLE     = MPI_THREAD_SINGLE
-    THREAD_FUNNELED   = MPI_THREAD_FUNNELED
-    THREAD_SERIALIZED = MPI_THREAD_SERIALIZED
-    THREAD_MULTIPLE   = MPI_THREAD_MULTIPLE
+mutable struct ThreadLevel
+    val::Cint
 end
+const THREAD_SINGLE     = ThreadLevel(MPI_THREAD_SINGLE)
+const THREAD_FUNNELED   = ThreadLevel(MPI_THREAD_FUNNELED)
+const THREAD_SERIALIZED = ThreadLevel(MPI_THREAD_SERIALIZED)
+const THREAD_MULTIPLE   = ThreadLevel(MPI_THREAD_MULTIPLE)
 ThreadLevel(threadlevel::Symbol) =
     threadlevel == :single ? THREAD_SINGLE :
     threadlevel == :funneled ? THREAD_FUNNELED :

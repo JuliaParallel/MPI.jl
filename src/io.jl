@@ -429,11 +429,12 @@ end
 write_ordered(file::FileHandle, buf) = write_ordered(file, Buffer_send(buf))
 
 # seek
-@enum Seek begin
-    SEEK_SET = MPI.MPI_SEEK_SET
-    SEEK_CUR = MPI.MPI_SEEK_CUR
-    SEEK_END = MPI.MPI_SEEK_END
-end    
+mutable struct Seek
+    val::Cint
+end
+const SEEK_SET = Seek(MPI.MPI_SEEK_SET)
+const SEEK_CUR = Seek(MPI.MPI_SEEK_CUR)
+const SEEK_END = Seek(MPI.MPI_SEEK_END)
 
 """
     MPI.File.seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)

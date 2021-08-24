@@ -188,13 +188,13 @@ An enum denoting the result of [`Comm_compare`](@ref):
 
  - `MPI.UNEQUAL`: otherwise
 """
-@enum Comparison begin
-    IDENT     = MPI_IDENT
-    CONGRUENT = MPI_CONGRUENT
-    SIMILAR   = MPI_SIMILAR
-    UNEQUAL   = MPI_UNEQUAL
+mutable struct Comparison
+    val::Cint
 end
-
+const IDENT     = Comparison(MPI_IDENT)
+const CONGRUENT = Comparison(MPI_CONGRUENT)
+const SIMILAR   = Comparison(MPI_SIMILAR)
+const UNEQUAL   = Comparison(MPI_UNEQUAL)
 
 """
     Comm_compare(comm1::Comm, comm2::Comm)::MPI.Comparison

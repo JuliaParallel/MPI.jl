@@ -352,11 +352,9 @@ const _constants = Tuple{Type,Symbol}[
     (Ptr{Cvoid}, :MPI_WIN_NULL_DELETE_FN),
 ]
 
-@show "loading module"
 for (i,(tp,nm)) in enumerate(_constants)
     @eval $nm = $tp($i)
 end
-@show MPI_COMM_WORLD
 
 ################################################################################
 
@@ -365,17 +363,34 @@ _getsym(T::Type, sym::Symbol) = unsafe_load(cglobal((sym, libmpi), T))
 function init_mpitrampoline_constants()
     # Idea: Store MPI constants in `const` global variables with a `mutable` type
 
-    @show "initializing module"
-    @show MPI_COMM_WORLD
     for (tp,nm) in _constants
-        @show tp nm
         @eval $nm = _getsym($tp, $(QuoteNode(nm)))
     end
-    @show MPI_COMM_WORLD
 
-    @show COMM_WORLD
-    COMM_NULL.val  = MPI_COMM_NULL
-    COMM_SELF.val  = MPI_COMM_SELF
-    COMM_WORLD.val = MPI_COMM_WORLD
-    @show COMM_WORLD
+    for (tp,nm) in _constants
+        nms = String(nm)
+        @assert startswith(nms, "MPI_")
+        nms′ = nms[5:end]
+        nm′ = Symbol(nms′)
+        @eval $nm′.val = $nm
+    end
+
+    # COMM_NULL.val  = MPI_COMM_NULL
+    # COMM_SELF.val  = MPI_COMM_SELF
+    # COMM_WORLD.val = MPI_COMM_WORLD
+    # 
+    # IDENT.val     = MPI_IDENT
+    # CONGRUENT.val = MPI_CONGRUENT
+    # SIMILAR.val   = MPI_SIMILAR
+    # UNEQUAL.val   = MPI_UNEQUAL
+    # 
+    # File.SEEK_SET.val = MPI_SEEK_SET
+    # File.SEEK_CUR.val = MPI_SEEK_CUR
+    # File.SEEK_END.val = MPI_SEEK_END
+    # 
+    # THREAD_SINGLE.val     = MPI_THREAD_SINGLE
+    # THREAD_FUNNELED.val   = MPI_THREAD_FUNNELED
+    # THREAD_SERIALIZED.val = MPI_THREAD_SERIALIZED
+    # THREAD_MULTIPLE.val   = MPI_THREAD_MULTIPLE
+
 end
