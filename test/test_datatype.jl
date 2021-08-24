@@ -161,7 +161,7 @@ struct Particle
 end
 @testset "create_X" begin
     # create_vector
-    RowType = MPI.Types.create_vector(N, 1, N, MPI.DOUBLE)
+    RowType = MPI.Types.create_vector(8, 1, 8, MPI.DOUBLE)
     @test typeof(RowType) == MPI.Datatype
     
     # create_subarray
