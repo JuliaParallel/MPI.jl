@@ -407,6 +407,32 @@ function init_mpitrampoline_constants()
     COMM_SELF.val  = MPI_COMM_SELF
     COMM_WORLD.val = MPI_COMM_WORLD
     
+    BYTE.val               = MPI_BYTE
+    CHAR.val               = MPI_CHAR
+    C_DOUBLE_COMPLEX.val   = MPI_C_DOUBLE_COMPLEX
+    C_FLOAT_COMPLEX.val    = MPI_C_FLOAT_COMPLEX
+    DOUBLE.val             = MPI_DOUBLE
+    FLOAT.val              = MPI_FLOAT
+    INT.val                = MPI_INT
+    INT16_T.val            = MPI_INT16_T
+    INT32_T.val            = MPI_INT32_T
+    INT64_T.val            = MPI_INT64_T
+    INT8_T.val             = MPI_INT8_T
+    LONG.val               = MPI_LONG
+    LONG_LONG.val          = MPI_LONG_LONG
+    SHORT.val              = MPI_SHORT
+    SIGNED_CHAR.val        = MPI_SIGNED_CHAR
+    UINT16_T.val           = MPI_UINT16_T
+    UINT32_T.val           = MPI_UINT32_T
+    UINT64_T.val           = MPI_UINT64_T
+    UINT8_T.val            = MPI_UINT8_T
+    UNSIGNED.val           = MPI_UNSIGNED
+    UNSIGNED_CHAR.val      = MPI_UNSIGNED_CHAR
+    UNSIGNED_LONG.val      = MPI_UNSIGNED_LONG
+    UNSIGNED_LONG_LONG.val = MPI_UNSIGNED_LONG_LONG
+    UNSIGNED_SHORT.val     = MPI_UNSIGNED_SHORT
+    WCHAR.val              = MPI_WCHAR
+
     FILE_NULL.val = MPI_FILE_NULL
 
     INFO_NULL.val = MPI_INFO_NULL

@@ -114,29 +114,31 @@ end
 
 # predefined
 for (mpiname, T) in [
-    :INT8_T            => Int8
-    :UINT8_T           => UInt8
-    :INT16_T           => Int16
-    :UINT16_T          => UInt16
-    :INT32_T           => Int32
-    :UINT32_T          => UInt32
-    :INT64_T           => Int64
-    :UINT64_T          => UInt64
-    :BYTE              => UInt8
-    :SHORT             => Cshort
-    :UNSIGNED_SHORT    => Cushort
-    :INT               => Cint
-    :UNSIGNED          => Cuint
-    :LONG              => Clong
-    :UNSIGNED_LONG     => Culong
-    :CHAR              => Cchar
-    :SIGNED_CHAR       => Cchar
-    :UNSIGNED_CHAR     => Cuchar
-    :WCHAR             => Cwchar_t
-    :FLOAT             => Float32
-    :DOUBLE            => Float64
-    :C_FLOAT_COMPLEX   => ComplexF32
-    :C_DOUBLE_COMPLEX  => ComplexF64]
+    :INT8_T             => Int8
+    :UINT8_T            => UInt8
+    :INT16_T            => Int16
+    :UINT16_T           => UInt16
+    :INT32_T            => Int32
+    :UINT32_T           => UInt32
+    :INT64_T            => Int64
+    :UINT64_T           => UInt64
+    :BYTE               => UInt8
+    :SHORT              => Cshort
+    :UNSIGNED_SHORT     => Cushort
+    :INT                => Cint
+    :UNSIGNED           => Cuint
+    :LONG               => Clong
+    :UNSIGNED_LONG      => Culong
+    :LONG_LONG          => Clonglong
+    :UNSIGNED_LONG_LONG => Culonglong
+    :CHAR               => Cchar
+    :SIGNED_CHAR        => Cchar
+    :UNSIGNED_CHAR      => Cuchar
+    :WCHAR              => Cwchar_t
+    :FLOAT              => Float32
+    :DOUBLE             => Float64
+    :C_FLOAT_COMPLEX    => ComplexF32
+    :C_DOUBLE_COMPLEX   => ComplexF64]
 
     @eval if @isdefined($(Symbol(:MPI_,mpiname)))
         const $mpiname = _Datatype($(Symbol(:MPI_,mpiname)))
