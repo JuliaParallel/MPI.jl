@@ -1,6 +1,5 @@
 using Test
 using MPI
-using StaticArrays
 
 # issue #490
 @test startswith(sprint(show, MPI.Datatype(Float64)), "MPI.Datatype")
@@ -156,7 +155,7 @@ struct Particle
     y::Float32
     z::Float32
     velocity::Float32
-    name::SVector{10,Char}
+    name::Char
     mass::Float64
 end
 @testset "create_X" begin
@@ -170,11 +169,11 @@ end
 
     # create_struct + _resized
     oldtypes = MPI.Datatype.([Float32, Char, Float64])
-    len = [4, 10, 1]
+    len = [4, 1, 1]
     disp = Vector{Int}(undef, 3)
     disp[1] = 0
     disp[2] = disp[1] + 4 * sizeof(Float32)
-    disp[3] = disp[2] + 10 * sizeof(Char)
+    disp[3] = disp[2] + sizeof(Char)
 
     tmp = MPI.Types.create_struct(len, disp, oldtypes)
     @test typeof(tmp) == MPI.Datatype
