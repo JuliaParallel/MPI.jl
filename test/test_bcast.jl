@@ -46,7 +46,7 @@ res = MPI.Bcast(B, root, comm)
 
 # Bcast: vector
 A = rand(3)
-B = MPI.Comm_rank(comm) == root ? A : zeros(A)
+B = MPI.Comm_rank(comm) == root ? A : zeros(3)
 res = MPI.Bcast(B, root, comm)
 @test typeof(res) == typeof(A)
 @test res == A
