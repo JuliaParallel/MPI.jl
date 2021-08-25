@@ -48,7 +48,7 @@ end
 
 MPI.Barrier(comm)
 
-if rank == 0
+if rank == 0 && size > 1
   MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 0, 0, win)
   fill!(buf, 2)
   MPI.Win_unlock(0,win)
