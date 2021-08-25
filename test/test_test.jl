@@ -38,20 +38,20 @@ reqs = [sreq,rreq]
 for ind in inds
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
-    @test Get_tag(stat) == MPI.MPI_ANY_TAG
-    @test Get_source(stat) == MPI.MPI_ANY_SOURCE
-    @test Get_error(stat) == MPI.MPI_SUCCESS
-    @test Get_count(stat, Float64) == 0
+    @test MPI.Get_tag(stat) == MPI.MPI_ANY_TAG
+    @test MPI.Get_source(stat) == MPI.MPI_ANY_SOURCE
+    @test MPI.Get_error(stat) == MPI.MPI_SUCCESS
+    @test MPI.Get_count(stat, Float64) == 0
 end
 
 (done, ind, stats) = MPI.Testany!(reqs)
 if done && ind != MPI.MPI_UNDEFINED
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
-    @test Get_tag(stat) == MPI.MPI_ANY_TAG
-    @test Get_source(stat) == MPI.MPI_ANY_SOURCE
-    @test Get_error(stat) == MPI.MPI_SUCCESS
-    @test Get_count(stat, Float64) == 0
+    @test MPI.Get_tag(stat) == MPI.MPI_ANY_TAG
+    @test MPI.Get_source(stat) == MPI.MPI_ANY_SOURCE
+    @test MPI.Get_error(stat) == MPI.MPI_SUCCESS
+    @test MPI.Get_count(stat, Float64) == 0
 end
 
 MPI.Waitall!(reqs)
