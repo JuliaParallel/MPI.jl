@@ -195,6 +195,7 @@ const IDENT     = Comparison(MPI_IDENT)
 const CONGRUENT = Comparison(MPI_CONGRUENT)
 const SIMILAR   = Comparison(MPI_SIMILAR)
 const UNEQUAL   = Comparison(MPI_UNEQUAL)
+Base.:(==)(tl1::Comparison, tl2::Comparison) = tl1.val == tl2.val
 
 """
     Comm_compare(comm1::Comm, comm2::Comm)::MPI.Comparison
@@ -210,4 +211,3 @@ function Comm_compare(comm1::Comm, comm2::Comm)
                   (MPI_Comm, MPI_Comm, Ptr{Cint}), comm1, comm2, result)
     return Comparison(result[])
 end
-Base.:(==)(tl1::Comm, tl2::Comm) = tl1.val == tl2.val
