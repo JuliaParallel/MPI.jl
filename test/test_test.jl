@@ -41,7 +41,7 @@ for ind in inds
         @test MPI.Get_source(stat) == mod(rank-1, size)
     end
     @test MPI.Get_error(stat) == MPI.MPI_SUCCESS
-    @test MPI.Get_count(stat) == N
+    @test MPI.Get_count(stat, Float64) == N
 end
 
 (done, ind, stats) = MPI.Testany!(reqs)
@@ -54,7 +54,7 @@ if done && ind != MPI.UNDEFINED
         @test MPI.Get_source(stat) == mod(rank-1, size)
     end
     @test MPI.Get_error(stat) == MPI.MPI_SUCCESS
-    @test MPI.Get_count(stat) == N
+    @test MPI.Get_count(stat, Float64) == N
 end
 
 MPI.Waitall!(reqs)
