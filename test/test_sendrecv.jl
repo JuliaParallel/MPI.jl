@@ -76,6 +76,7 @@ sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 req_arr = [sreq,rreq]
 (inds, stats) = MPI.Waitsome!(req_arr)
 for i in inds
+    global done
     (done, status) = MPI.Test!( req_arr[i] )
     @test done
 end
