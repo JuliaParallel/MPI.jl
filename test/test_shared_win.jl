@@ -27,6 +27,8 @@ function main()
     MPI.Init()
 
     global_comm = MPI.COMM_WORLD
+    MPI.Comm_size(global_comm) <= 1 && return
+
     group_comm_id = 1
     node_rank = MPI.Comm_rank(global_comm) # do this differently in real code
     node_comm = MPI.Comm_split(global_comm, group_comm_id, node_rank)
