@@ -80,7 +80,6 @@ end
 
 # names
 function get_name(datatype::Datatype)
-    #TODO MPI.Initialized() || return ""
     @assert MPI.Initialized()
     buffer = Array{UInt8}(undef, MPI_MAX_OBJECT_NAME)
     lenref = Ref{Cint}()
@@ -175,8 +174,8 @@ function Base.show(io::IO, datatype::Datatype)
         show(io, juliatype)
     end
     print(io, ')')
-    name = get_name(datatype)
-    if name != ""
+    if MPI.Initialized() && !MPI.Finalized()
+        name = get_name(datatype)
         print(io, ": ")
         print(io, name)
     end
