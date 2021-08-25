@@ -26,41 +26,48 @@ recv_mesg_expected = ArrayType{Float64}(undef,N)
 fill!(send_mesg, Float64(rank))
 fill!(recv_mesg_expected, Float64(src))
 
-rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
+rreq = MPI.Irecv!(recv_mesg, src, src+32, comm)
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
 stats = MPI.Waitall!([sreq, rreq])
+stats::Vector{MPI.Status}
 @test rreq isa MPI.Request
 @test sreq isa MPI.Request
 @test MPI.Get_source(stats[2]) == src
 @test MPI.Get_tag(stats[2]) == src+32
+@test MPI.Get_count(stats[2], Float64) == N
 @test recv_mesg == recv_mesg_expected
 
 (done, stats) = MPI.Testall!([sreq, rreq])
 @test done
 
-if rank == 0
-    MPI.send(send_mesg, dst, rank+32, comm)
-    recv_mesg = recv_mesg_expected
-elseif rank == size-1
-    (recv_mesg, _) = MPI.recv(src, src+32, comm)
-else
-    (recv_mesg, _) = MPI.recv(src, src+32, comm)
-    MPI.send(send_mesg, dst, rank+32, comm)
+
+if size > 1
+    if rank == 0
+        MPI.send(send_mesg, dst, rank+32, comm)
+        recv_mesg = recv_mesg_expected
+    elseif rank == size-1
+        (recv_mesg, _) = MPI.recv(src, src+32, comm)
+    else
+        (recv_mesg, _) = MPI.recv(src, src+32, comm)
+        MPI.send(send_mesg, dst, rank+32, comm)
+    end
+    @test recv_mesg == recv_mesg_expected
 end
-@test recv_mesg == recv_mesg_expected
 
 
-if rank == 0
-    MPI.Send(Float64(rank), dst, rank+32, comm)
-    recv_val = Float64(src)
-elseif rank == size-1
-    (recv_val, _) = MPI.Recv(Float64, src, src+32, comm)
-else
-    (recv_val, _) = MPI.Recv(Float64, src, src+32, comm)
-    MPI.Send(Float64(rank), dst, rank+32, comm)
+if size > 1
+    if rank == 0
+        MPI.Send(Float64(rank), dst, rank+32, comm)
+        recv_val = Float64(src)
+    elseif rank == size-1
+        (recv_val, _) = MPI.Recv(Float64, src, src+32, comm)
+    else
+        (recv_val, _) = MPI.Recv(Float64, src, src+32, comm)
+        MPI.Send(Float64(rank), dst, rank+32, comm)
+    end
+    @test recv_val == Float64(src)
 end
-@test recv_val == Float64(src)
 
 
 rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
