@@ -80,7 +80,6 @@ end
 
 # names
 function get_name(datatype::Datatype)
-    @assert MPI.Initialized()
     buffer = Array{UInt8}(undef, MPI_MAX_OBJECT_NAME)
     lenref = Ref{Cint}()
     @mpichk ccall((:MPI_Type_get_name, libmpi), Cint,
@@ -100,13 +99,12 @@ Return the Julia type corresponding to the MPI [`Datatype`](@ref) `datatype`, or
 if it doesn't correspond directly.
 """
 function to_type(datatype::Datatype)
-    @assert MPI.Initialized()
-    #TODO if MPI.Initialized()
+    if MPI.Initialized() && !MPI.Finalized()
         ptr = get_attr(datatype, JULIA_TYPE_PTR_ATTR[])
         if !isnothing(ptr)
             return unsafe_pointer_to_objref(ptr)
         end
-    #TODO end
+    end
     return nothing
 end
 
