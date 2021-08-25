@@ -54,6 +54,8 @@ else
     @assert sizeof(MPI_Status) == 8 * sizeof(Cint)
 end
 const Status = MPI_Status
+# A value to initialize undefined Status values
+const STATUS_EMPTY = MPI_Status()
 
 ################################################################################
 
