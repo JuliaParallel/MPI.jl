@@ -33,6 +33,8 @@ stats = MPI.Waitall!([sreq, rreq])
 stats::Vector{MPI.Status}
 @test rreq isa MPI.Request
 @test sreq isa MPI.Request
+@show stats
+dump(stats)
 @test MPI.Get_source(stats[2]) == src
 @test MPI.Get_tag(stats[2]) == src+32
 @test MPI.Get_count(stats[2], Float64) == N
