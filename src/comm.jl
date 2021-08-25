@@ -205,8 +205,8 @@ Compare two communicators, returning an element of the [`Comparison`](@ref) enum
 $(_doc_external("MPI_Comm_compare"))
 """
 function Comm_compare(comm1::Comm, comm2::Comm)
-    result = Ref{Comparison}()
+    result = Ref{Cint}()
     @mpichk ccall((:MPI_Comm_compare, libmpi), Cint,
-                  (MPI_Comm, MPI_Comm, Ptr{Comparison}), comm1, comm2, result)
-    result[]
+                  (MPI_Comm, MPI_Comm, Ptr{Cint}), comm1, comm2, result)
+    return Comparison(result[])
 end
