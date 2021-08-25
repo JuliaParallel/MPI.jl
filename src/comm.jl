@@ -210,3 +210,4 @@ function Comm_compare(comm1::Comm, comm2::Comm)
                   (MPI_Comm, MPI_Comm, Ptr{Cint}), comm1, comm2, result)
     return Comparison(result[])
 end
+Base.:(==)(tl1::Comm, tl2::Comm) = tl1.val == tl2.val
