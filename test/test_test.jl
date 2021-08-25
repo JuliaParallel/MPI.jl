@@ -31,19 +31,27 @@ sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 reqs = [sreq,rreq]
 
 # Note: This Waitsome! sets the respective requests to REQUEST_NULL.
-# The calls to Test! etc. further below will not do anything. This
-# test case needs to be redesigned.
+# The calls to Test! etc. further below will not do anything, and will
+# return an empty status (as defined e.g. in MPI 3.1, section 3.7.3).
 (inds,stats) = MPI.Waitsome!(reqs)
 @test !isempty(inds)
 for ind in inds
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
+    @test Get_tag(stat) == MPI.MPI_ANY_TAG
+    @test Get_source(stat) == MPI.MPI_ANY_SOURCE
+    @test Get_error(stat) == MPI.MPI_SUCCESS
+    @test Get_count(stat, Float64) == 0
 end
 
 (done, ind, stats) = MPI.Testany!(reqs)
 if done && ind != MPI.MPI_UNDEFINED
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
+    @test Get_tag(stat) == MPI.MPI_ANY_TAG
+    @test Get_source(stat) == MPI.MPI_ANY_SOURCE
+    @test Get_error(stat) == MPI.MPI_SUCCESS
+    @test Get_count(stat, Float64) == 0
 end
 
 MPI.Waitall!(reqs)
