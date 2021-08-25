@@ -39,9 +39,9 @@ for ind in inds
         # Only defined for receive
         @test MPI.Get_tag(stat) == 0
         @test MPI.Get_source(stat) == mod(rank-1, size)
+        @test MPI.Get_count(stat, Float64) == N
     end
     @test MPI.Get_error(stat) == MPI.MPI_SUCCESS
-    @test MPI.Get_count(stat, Float64) == N
 end
 
 (done, ind, stats) = MPI.Testany!(reqs)
