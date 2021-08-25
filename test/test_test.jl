@@ -45,7 +45,7 @@ for ind in inds
 end
 
 (done, ind, stats) = MPI.Testany!(reqs)
-if done && ind != MPI.MPI_UNDEFINED
+if done && ind != 0   # should be MPI.MPI_UNDEFINED?
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
     @test MPI.Get_tag(stat) == MPI.MPI_ANY_TAG
