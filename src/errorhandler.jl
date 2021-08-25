@@ -40,19 +40,19 @@ function get_errorhandler(comm::Comm)
     result = Ref(MPI_ERRHANDLER_NULL)
     @mpichk ccall((:MPI_Comm_get_errhandler, libmpi), Cint, (MPI_Comm, Ptr{MPI_Errhandler}), comm, result)
     # finalizer(free, errh)
-    return result[]
+    return ErrorHandler(result[])
 end
 function get_errorhandler(win::Win)
     # errh = ErrorHandler(ERRORS_ARE_FATAL.val)
     result = Ref(MPI_ERRHANDLER_NULL)
     @mpichk ccall((:MPI_Win_get_errhandler, libmpi), Cint, (MPI_Win, Ptr{MPI_Errhandler}), win, result)
-    return result[]
+    return ErrorHandler(result[])
 end
 function get_errorhandler(file::File.FileHandle)
     # errh = ErrorHandler(ERRORS_ARE_FATAL.val)
     result = Ref(MPI_ERRHANDLER_NULL)
     @mpichk ccall((:MPI_File_get_errhandler, libmpi), Cint, (MPI_File, Ptr{MPI_Errhandler}), file, result)
-    return result[]
+    return ErrorHandler(result[])
 end
 
 """
@@ -66,15 +66,15 @@ Set the [`ErrorHandler`](@ref) for the relevant MPI object.
 - [`get_errorhandler`](@ref)
 """
 function set_errorhandler!(comm::Comm, errh::ErrorHandler)
-    @mpichk ccall((:MPI_Comm_set_errhandler, libmpi), Cint, (MPI_Comm, MPI_Errhandler), comm, errh)
+    @mpichk ccall((:MPI_Comm_set_errhandler, libmpi), Cint, (MPI_Comm, MPI_Errhandler), comm, errh.val)
     return nothing
 end
 function set_errorhandler!(win::Win, errh::ErrorHandler)
-    @mpichk ccall((:MPI_Win_set_errhandler, libmpi), Cint, (MPI_Win, MPI_Errhandler), win, errh)
+    @mpichk ccall((:MPI_Win_set_errhandler, libmpi), Cint, (MPI_Win, MPI_Errhandler), win, errh.val)
     return nothing
 end
 function set_errorhandler!(file::File.FileHandle, errh::ErrorHandler)
-    @mpichk ccall((:MPI_File_set_errhandler, libmpi), Cint, (MPI_File, MPI_Errhandler), file, errh)
+    @mpichk ccall((:MPI_File_set_errhandler, libmpi), Cint, (MPI_File, MPI_Errhandler), file, errh.val)
     return nothing
 end
 
