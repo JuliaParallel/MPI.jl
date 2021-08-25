@@ -33,6 +33,7 @@ reqs = [sreq,rreq]
 (inds,stats) = MPI.Waitsome!(reqs)
 @test !isempty(inds)
 for ind in inds
+    @test reqs[ind] == MPI.REQUEST_NULL
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
     if ind == 2
