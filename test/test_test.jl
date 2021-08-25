@@ -41,7 +41,7 @@ for ind in inds
 end
 
 (done, ind, stats) = MPI.Testany!(reqs)
-if done && ind != MPI.UNDEFINED
+if done && ind != MPI.MPI_UNDEFINED
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
 end
