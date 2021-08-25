@@ -456,7 +456,7 @@ function seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)
     # int MPI_File_seek_shared(MPI_File fh, MPI_Offset offset, int whence)
     @mpichk ccall((:MPI_File_seek_shared, libmpi), Cint,
                   (MPI_File, MPI_Offset, Cint),
-                  file, offset, whence)
+                  file, offset, whence.val)
 end
 
 """
