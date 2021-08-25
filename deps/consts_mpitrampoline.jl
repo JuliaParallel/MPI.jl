@@ -55,7 +55,7 @@ else
 end
 const Status = MPI_Status
 # A value to initialize undefined Status values
-const STATUS_EMPTY = MPI_Status()
+const STATUS_EMPTY = MPI_Status(-1, -1, -1, -1, -1 % Culong, -1, -1, -1)
 
 ################################################################################
 
