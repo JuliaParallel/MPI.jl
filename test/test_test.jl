@@ -37,7 +37,7 @@ for ind in inds
     @test onedone
     if ind == 2
         # Only defined for receive
-        @test MPI.Get_tag(stat) == 0
+        @test MPI.Get_tag(stat) == mod(rank-1, size) + 32
         @test MPI.Get_source(stat) == mod(rank-1, size)
         @test MPI.Get_count(stat, Float64) == N
     end
@@ -50,11 +50,11 @@ if done && ind != MPI.UNDEFINED
     @test onedone
     if ind == 2
         # Only defined for receive
-        @test MPI.Get_tag(stat) == 0
+        @test MPI.Get_tag(stat) == mod(rank-1, size) + 32
         @test MPI.Get_source(stat) == mod(rank-1, size)
+        @test MPI.Get_count(stat, Float64) == N
     end
     @test MPI.Get_error(stat) == MPI.MPI_SUCCESS
-    @test MPI.Get_count(stat, Float64) == N
 end
 
 MPI.Waitall!(reqs)
