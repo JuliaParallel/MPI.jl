@@ -29,15 +29,10 @@ fill!(recv_mesg_expected, Float64(src))
 rreq = MPI.Irecv!(recv_mesg, src, src+32, comm)
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
-@show sreq rreq
 stats = MPI.Waitall!([sreq, rreq])
 stats::Vector{MPI.Status}
 @test rreq isa MPI.Request
 @test sreq isa MPI.Request
-@show sreq rreq
-@show MPI.MPI_ANY_SOURCE MPI.MPI_ANY_TAG
-@show stats
-dump(stats)
 @test MPI.Get_source(stats[2]) == src
 @test MPI.Get_tag(stats[2]) == src+32
 @test MPI.Get_count(stats[2], Float64) == N
