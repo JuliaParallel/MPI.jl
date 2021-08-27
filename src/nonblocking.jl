@@ -175,7 +175,7 @@ Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, Datatype(T))
 
 
 """
-    status = Wait(req::Request[, status::Ref{Status}])::Nothing
+    Wait(req::Request[, status::Ref{Status}])::Nothing
 
 Block until the request `req` is complete and deallocated. Returns the [`Status`](@ref) of the request.
 
@@ -195,8 +195,9 @@ function Wait(req::Request, status::Union{Ref{Status},Nothing}=nothing)
     return nothing
 end
 
+
 """
-    Test(req::Request[, status::Ref{Status}])::Bool
+    Test(req::Request)::Bool
 
 Check if the request `req` is complete. If so, the request is deallocated and `true` is returned. Otherwise `false` is returned.
 
@@ -268,7 +269,7 @@ end
 
 
 """
-    Waitall(reqs::AbstractVector{Request}[, statuses::Vector{Status}])::Nothing
+    Waitall(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
 
 Block until all active requests in the array `reqs` are complete.
 
@@ -293,7 +294,7 @@ end
 Waitall(reqs::AbstractVector{Request}, args...) = Waitall(RequestSet(reqs), args...)
 
 """
-    Testall(reqs::AbstractVector{Request}[, statuses::Vector{Status}])::Bool
+    flag = Testall(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
 
 Check if all active requests in the array `reqs` are complete. If so, the requests are
 deallocated and `true` is returned. Otherwise no requests are modified, and `false` is
@@ -320,13 +321,13 @@ end
 Testall(reqs::Vector{Request}, args...) = Testall(RequestSet(reqs), args...)
 
 """
-    Waitany(reqs::AbstractVector{Request}[, status::Ref{Status}])::Union{Int, Nothing}
+    idx = Waitany(reqs::AbstractVector{Request}[, status::Ref{Status}])
 
 Blocks until one of the requests in the array `reqs` is complete: if more than one is
-complete, one is chosen arbitrarily. The request is deallocated and the index of the
-completed request is returned.
+complete, one is chosen arbitrarily. The request is deallocated and the (1-based) index
+`idx` of the completed request is returned.
 
-If there are no active requests, then `nothing` is returned.
+If there are no active requests, then `idx = nothing`.
 
 The optional `status` argument can be used to obtain the return `Status` of the request.
 
@@ -352,16 +353,16 @@ end
 Waitany(reqs::Vector{Request}, args...) = Waitany(RequestSet(reqs), args...)
 
 """
-    Testany(reqs::AbstractVector{Request}[, status::Ref{Status}])::Union{Int, Bool, Nothing}
+    flag, idx = Testany(reqs::AbstractVector{Request}[, status::Ref{Status}])
 
-Check if any one of the requests in the array `reqs` is complete.
+Checks if any one of the requests in the array `reqs` is complete.
 
-If one or more requests are complete, then one is chosen arbitrarily, deallocated and its
-index is returned.
+If one or more requests are complete, then one is chosen arbitrarily, deallocated. `flag =
+true` and its (1-based) index `idx` is returned.
 
-If there are no completed requests, then `false` is returned.
+If there are no completed requests, then `flag = false` and `idx = nothing` is returned.
 
-If there are no active requests, then `nothing` is returned.
+If there are no active requests, `flag = true` and `idx = nothing`.
 
 The optional `status` argument can be used to obtain the return `Status` of the request.
 
@@ -370,22 +371,22 @@ $(_doc_external("MPI_Testany"))
 """
 function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     ref_idx = Ref{Cint}()
-    flag = Ref{Cint}()
+    rflag = Ref{Cint}()
     n = length(reqs)
     # int MPI_Testany(int count, MPI_Request array_of_requests[], int *index,
     #                 int *flag, MPI_Status *status)
     @mpichk ccall((:MPI_Testany, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, MPIPtr),
-                  n, reqs.vals, ref_idx, flag, something(status, MPI_STATUS_IGNORE))
+                  n, reqs.vals, ref_idx, rflag, something(status, MPI_STATUS_IGNORE))
     idx = ref_idx[]
-    if flag[] == 0
-        return false
-    elseif idx == MPI_UNDEFINED
-        return nothing
+    flag = rflag[] != 0
+    
+    if idx == MPI_UNDEFINED
+        return flag, nothing
     end
     i = Int(idx) + 1
     update!(reqs, i)
-    return i
+    return flag, i
 end
 Testany(reqs::Vector{Request}, args...) = Testany(RequestSet(reqs), args...)
 

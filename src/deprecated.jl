@@ -214,7 +214,7 @@ import Base: @deprecate
 @deprecate(Testall!(reqs::Vector{Request}), (statuses = fill(MPI.STATUS_EMPTY, length(reqs)); flag = MPI.Testall(reqs, statuses); (flag, statuses)), false)
 
 @deprecate(Waitany!(reqs::Vector{Request}), (status = Ref(MPI.STATUS_EMPTY); i = MPI.Waitany(reqs, status); (something(i,0), status[])), false)
-@deprecate(Testany!(reqs::Vector{Request}), (status = Ref(MPI.STATUS_EMPTY); i = MPI.Testany(reqs, status); (i !== false, i isa Integer ? i : 0, status[])), false)
+@deprecate(Testany!(reqs::Vector{Request}), (status = Ref(MPI.STATUS_EMPTY); (flag, i) = MPI.Testany(reqs, status); (flag, i isa Integer ? i : 0, status[])), false)
 
 @deprecate(Waitsome!(reqs::Vector{Request}), (statuses = fill(MPI.STATUS_EMPTY, length(reqs)); inds = something(MPI.Waitsome(reqs, statuses), Int[]); (inds, resize!(statuses, length(inds)))), false)
 @deprecate(Testsome!(reqs::Vector{Request}), (statuses = fill(MPI.STATUS_EMPTY, length(reqs)); inds = something(MPI.Testsome(reqs, statuses), Int[]); (inds, resize!(statuses, length(inds)))), false)
