@@ -1,5 +1,5 @@
 """
-    MPI.Errhandler
+    MPI.ErrorHandler
 
 An MPI error handler object. Currently only two are supported:
 
@@ -31,56 +31,56 @@ function free(errh::Errhandler)
     return nothing
 end
 
-function set_default_error_handler_return()
-    set_errorhandler!(COMM_SELF, ERRORS_RETURN)
-    set_errorhandler!(COMM_WORLD, ERRORS_RETURN)
+function set_default_errhandler_return()
+    set_errhandler!(COMM_SELF, ERRORS_RETURN)
+    set_errhandler!(COMM_WORLD, ERRORS_RETURN)
 end
 
 """
-    MPI.get_errorhandler(comm::MPI.Comm)
-    MPI.get_errorhandler(win::MPI.Win)
-    MPI.get_errorhandler(file::MPI.File.FileHandle)
+    MPI.get_errhandler(comm::MPI.Comm)
+    MPI.get_errhandler(win::MPI.Win)
+    MPI.get_errhandler(file::MPI.File.FileHandle)
 
 Get the current [`Errhandler`](@ref) for the relevant MPI object.
 
 # See also
-- [`set_errorhandler!`](@ref)
+- [`set_errhandler!`](@ref)
 """
-function get_errorhandler(comm::Comm)
+function get_errhandler(comm::Comm)
     errh = Errhandler()
     @mpichk ccall((:MPI_Comm_get_errhandler, libmpi), Cint, (MPI_Comm, Ptr{MPI_Errhandler}), comm, errh)
     return errh
 end
-function get_errorhandler(win::Win)
+function get_errhandler(win::Win)
     errh = Errhandler()
     @mpichk ccall((:MPI_Win_get_errhandler, libmpi), Cint, (MPI_Win, Ptr{MPI_Errhandler}), win, errh)
     return errh
 end
-function get_errorhandler(file::File.FileHandle)
+function get_errhandler(file::File.FileHandle)
     errh = Errhandler()
     @mpichk ccall((:MPI_File_get_errhandler, libmpi), Cint, (MPI_File, Ptr{MPI_Errhandler}), file, errh)
     return errh
 end
 
 """
-    MPI.set_errorhandler!(comm::MPI.Comm, errh::Errhandler)
-    MPI.set_errorhandler!(win::MPI.Win, errh::Errhandler)
-    MPI.set_errorhandler!(file::MPI.File.FileHandle, errh::Errhandler)
+    MPI.set_errhandler!(comm::MPI.Comm, errh::Errhandler)
+    MPI.set_errhandler!(win::MPI.Win, errh::Errhandler)
+    MPI.set_errhandler!(file::MPI.File.FileHandle, errh::Errhandler)
 
 Set the [`Errhandler`](@ref) for the relevant MPI object.
 
 # See also
-- [`get_errorhandler`](@ref)
+- [`get_errhandler`](@ref)
 """
-function set_errorhandler!(comm::Comm, errh::Errhandler)
+function set_errhandler!(comm::Comm, errh::Errhandler)
     @mpichk ccall((:MPI_Comm_set_errhandler, libmpi), Cint, (MPI_Comm, MPI_Errhandler), comm, errh)
     return nothing
 end
-function set_errorhandler!(win::Win, errh::Errhandler)
+function set_errhandler!(win::Win, errh::Errhandler)
     @mpichk ccall((:MPI_Win_set_errhandler, libmpi), Cint, (MPI_Win, MPI_Errhandler), win, errh)
     return nothing
 end
-function set_errorhandler!(file::File.FileHandle, errh::Errhandler)
+function set_errhandler!(file::File.FileHandle, errh::Errhandler)
     @mpichk ccall((:MPI_File_set_errhandler, libmpi), Cint, (MPI_File, MPI_Errhandler), file, errh)
     return nothing
 end

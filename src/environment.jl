@@ -110,7 +110,7 @@ function Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true
 
         run_init_hooks()
         if errors_return
-            set_default_error_handler_return()
+            set_default_errhandler_return()
         end
         _warn_if_wrong_mpi()
     end
