@@ -83,12 +83,13 @@ function isend(obj, dest::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Recv!(data, src::Integer, tag::Integer, comm::Comm)
+    data = Recv!(recvbuf, src::Integer, tag::Integer, comm::Comm, nothing)
+    data, status = Recv!(recvbuf, src::Integer, tag::Integer, comm::Comm, MPI.Status)
 
-Completes a blocking receive into the buffer `data` from MPI rank `src` of communicator
+Completes a blocking receive into the buffer `recvbuf` from MPI rank `src` of communicator
 `comm` using with the message tag `tag`.
 
-`data` can be a [`Buffer`](@ref), or any object for which `Buffer(data)` is defined.
+`recvbuf` can be a [`Buffer`](@ref), or any object for which `Buffer(recvbuf)` is defined.
 
 Returns the [`Status`](@ref) of the receive.
 
@@ -99,20 +100,25 @@ Returns the [`Status`](@ref) of the receive.
 # External links
 $(_doc_external("MPI_Recv"))
 """
-function Recv!(buf::Buffer, src::Integer, tag::Integer, comm::Comm)
-    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+function Recv!(recvbuf::Buffer, src::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing})
     # int MPI_Recv(void* buf, int count, MPI_Datatype datatype, int source,
     #              int tag, MPI_Comm comm, MPI_Status *status)
     @mpichk ccall((:MPI_Recv, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{Status}),
-                  buf.data, buf.count, buf.datatype, src, tag, comm, stat_ref)
-    return stat_ref[]
+                  recvbuf.data, recvbuf.count, recvbuf.datatype, src, tag, comm, something(status, MPI_STATUS_IGNORE))
+    return recvbuf.data
 end
-Recv!(buf, src::Integer, tag::Integer, comm::Comm) =
-    Recv!(Buffer(buf), src, tag, comm)
+Recv!(recvbuf, src::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing}) =
+    Recv!(Buffer(recvbuf), src, tag, comm, status)
+function Recv!(recvbuf, src::Integer, tag::Integer, comm::Comm, ::Type{Status})
+    status = Ref{Status}()
+    data = Recv!(recvbuf, src, tag, comm, status)
+    return data, status[]
+end
 
 """
-    Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm)
+    data = Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm, nothing)
+    data, status = Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm, MPI.Status)
 
 Completes a blocking receive of a single object of type `T` from MPI rank `src` of
 communicator `comm` using with the message tag `tag`.
@@ -126,10 +132,14 @@ Returns a tuple of the object of type `T` and the [`Status`](@ref) of the receiv
 # External links
 $(_doc_external("MPI_Recv"))
 """
-function Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm) where T
-    buf = Ref{T}()
-    stat = Recv!(buf, src, tag, comm)
-    (buf[], stat)
+function Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing}) where T
+    data = Recv!(Ref{T}(), src, tag, comm, status)
+    return data[]
+end
+function Recv(::Type{T}, src::Integer, tag::Integer, comm::Comm, ::Type{Status}) where T
+    status = Ref{Status}()
+    val = Recv(T, src, tag, comm, status)
+    return val, status[]
 end
 
 """
@@ -140,13 +150,20 @@ Completes a blocking receive of a serialized object from MPI rank `src` of commu
 
 Returns the deserialized object and the [`Status`](@ref) of the receive.
 """
-function recv(src::Integer, tag::Integer, comm::Comm)
+function recv(src::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
     stat = Probe(src, tag, comm)
     count = Get_count(stat, UInt8)
     buf = Array{UInt8}(undef, count)
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
-    (MPI.deserialize(buf), stat)
+    return MPI.deserialize(buf)
 end
+function recv(src::Integer, tag::Integer, comm::Comm, ::Type{Status})
+    status = Ref{Status}()
+    val = recv(src, tag, comm, status)
+    return val, status[]
+end
+
+
 
 """
     Irecv!(data, src::Integer, tag::Integer, comm::Comm)
@@ -188,9 +205,14 @@ function irecv(src::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Sendrecv!(sendbuf, dest::Integer, sendtag::Integer,
-              recvbuf, source::Integer, recvtag::Integer,
-              comm::Comm)
+    data = Sendrecv!(
+            sendbuf, dest::Integer, sendtag::Integer,
+            recvbuf, source::Integer, recvtag::Integer,
+            comm::Comm, nothing)
+    data, status = Sendrecv!(
+            sendbuf, dest::Integer, sendtag::Integer,
+            recvbuf, source::Integer, recvtag::Integer,
+            comm::Comm, MPI.Status)
 
 Complete a blocking send-receive operation over the MPI communicator `comm`. Send
 `sendcount` elements of type `sendtype` from `sendbuf` to the MPI rank `dest` using message
@@ -205,20 +227,24 @@ $(_doc_external("MPI_Sendrecv"))
 """
 function Sendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
                    recvbuf::Buffer, source::Integer, recvtag::Integer,
-                   comm::Comm)
+                   comm::Comm, status::Union{Ref{Status}, Nothing})
     # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,   int sendtag,
     #                        void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
     #                    MPI_Comm comm, MPI_Status *status)
-    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
     @mpichk ccall((:MPI_Sendrecv, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint,
                    MPIPtr, Cint, MPI_Datatype, Cint, Cint,
                    MPI_Comm, Ptr{Status}),
                   sendbuf.data, sendbuf.count, sendbuf.datatype, dest, sendtag,
                   recvbuf.data, recvbuf.count, recvbuf.datatype, source, recvtag,
-                  comm, stat_ref)
-    return stat_ref[]
+                  comm, status)
+    return recvbuf.data
 end
-Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm) =
-    Sendrecv!(Buffer(sendbuf), dest, sendtag, Buffer(recvbuf), source, recvtag, comm)
+Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing}) =
+    Sendrecv!(Buffer(sendbuf), dest, sendtag, Buffer(recvbuf), source, recvtag, comm, status)
 
+function Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm, ::Type{Status})
+    status = Ref{Status}()
+    data = Sendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, status)
+    return data, status[]
+end
