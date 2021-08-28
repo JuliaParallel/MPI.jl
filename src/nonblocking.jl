@@ -175,11 +175,12 @@ Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, Datatype(T))
 
 
 """
-    Wait(req::Request[, status::Ref{Status}])::Nothing
+    Wait(req::Request)
+    status = Wait(req::Request, Status)
 
-Block until the request `req` is complete and deallocated. Returns the [`Status`](@ref) of the request.
+Block until the request `req` is complete and deallocated. 
 
-`status` can be used to obtain the `Status` of the request if completed.
+The `Status` argument returns the `Status` of the completed request.
 
 # External links
 $(_doc_external("MPI_Wait"))
@@ -194,14 +195,19 @@ function Wait(req::Request, status::Union{Ref{Status},Nothing}=nothing)
     end
     return nothing
 end
-
+function Wait(req::Request, ::Type{Status})
+    status = Ref{Status}()
+    Wait(req, status)
+    return status[]
+end
 
 """
-    Test(req::Request)::Bool
+    flag = Test(req::Request)
+    flag, status = Test(req::Request, Status)
 
-Check if the request `req` is complete. If so, the request is deallocated and `true` is returned. Otherwise `false` is returned.
+Check if the request `req` is complete. If so, the request is deallocated and `flag = true` is returned. Otherwise `flag = false`.
 
-`status` can be used to obtain the `Status` of the request if completed.
+The `Status` argument additionally returns the `Status` of the completed request.
 
 # External links
 $(_doc_external("MPI_Test"))
@@ -217,6 +223,12 @@ function Test(req::Request, status::Union{Ref{Status},Nothing}=nothing)
     end
     return flag[] != 0
 end
+function Test(req::Request, ::Type{Status})
+    status = Ref{Status}()
+    flag = Test(req, status)
+    return flag, status[]
+end
+
 
 """
     RequestSet(requests::Vector{Request})
@@ -270,11 +282,12 @@ end
 
 """
     Waitall(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
+    statuses = Waitall(reqs::AbstractVector{Request}, Status)
 
 Block until all active requests in the array `reqs` are complete.
 
-The optional `statuses` argument can be used to obtain the return `Status` of each
-request.
+The optional `statuses` or `Status` argument can be used to obtain the return `Status` of
+each request.
 
 # External links
 $(_doc_external("MPI_Waitall"))
@@ -291,17 +304,24 @@ function Waitall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothin
     update!(reqs)
     return nothing
 end
+function Waitall(reqs::RequestSet, ::Type{Status})
+    statuses = Array{Status}(undef, length(reqs))
+    Waitall(reqs, statuses)
+    return statuses
+end
 Waitall(reqs::AbstractVector{Request}, args...) = Waitall(RequestSet(reqs), args...)
+
 
 """
     flag = Testall(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
+    flag, statuses = Testall(reqs::AbstractVector{Request}, Status)
 
 Check if all active requests in the array `reqs` are complete. If so, the requests are
 deallocated and `true` is returned. Otherwise no requests are modified, and `false` is
 returned.
 
-The optional `statuses` argument can be used to obtain the return `Status` of each
-request.
+The optional `statuses` or `Status` argument can be used to obtain the return `Status` of
+each request.
 
 # External links
 $(_doc_external("MPI_Testall"))
@@ -318,16 +338,22 @@ function Testall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothin
     update!(reqs)
     return flag[] != 0
 end
+function Testall(reqs::RequestSet, ::Type{Status})
+    statuses = Array{Status}(undef, length(reqs))
+    flag = Testall(reqs, statuses)
+    return flag, statuses
+end
 Testall(reqs::Vector{Request}, args...) = Testall(RequestSet(reqs), args...)
 
 """
-    idx = Waitany(reqs::AbstractVector{Request}[, status::Ref{Status}])
+    i = Waitany(reqs::AbstractVector{Request}[, status::Ref{Status}])
+    i, status = Waitany(reqs::AbstractVector{Request}, Status)
 
 Blocks until one of the requests in the array `reqs` is complete: if more than one is
 complete, one is chosen arbitrarily. The request is deallocated and the (1-based) index
-`idx` of the completed request is returned.
+`i` of the completed request is returned.
 
-If there are no active requests, then `idx = nothing`.
+If there are no active requests, then `i = nothing`.
 
 The optional `status` argument can be used to obtain the return `Status` of the request.
 
@@ -350,10 +376,16 @@ function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     update!(reqs, i)
     return i
 end
+function Waitany(reqs::RequestSet, ::Type{Status})
+    status = Ref{Status}()
+    i = Waitany(reqs, status)
+    return i, status[]
+end
 Waitany(reqs::Vector{Request}, args...) = Waitany(RequestSet(reqs), args...)
 
 """
     flag, idx = Testany(reqs::AbstractVector{Request}[, status::Ref{Status}])
+    flag, idx, status = Testany(reqs::AbstractVector{Request}, Status)
 
 Checks if any one of the requests in the array `reqs` is complete.
 
@@ -388,15 +420,20 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     update!(reqs, i)
     return flag, i
 end
+function Testany(reqs::RequestSet, ::Type{Status})
+    status = Ref{Status}()
+    flag, i = Testany(reqs, status)
+    return flag, i, status[]
+end
 Testany(reqs::Vector{Request}, args...) = Testany(RequestSet(reqs), args...)
 
 """
-    Waitsome(reqs::AbstractVector{Request}[, statuses::Vector{Status}])::Union{Vector{Int}, Nothing}
+    inds = Waitsome(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
 
 Block until at least one of the active requests in the array `reqs` is complete. The
-completed requests are deallocated, and an array of their indices in `reqs` is returned.
+completed requests are deallocated, and an array `inds` of their indices in `reqs` is returned.
 
-If there are no active requests, then the function returns `nothing`.
+If there are no active requests, then `inds = nothing`.
 
 The optional `statuses` argument can be used to obtain the return `Status` of each
 completed request.
@@ -424,10 +461,16 @@ function Waitsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     update!(reqs)    
     return [Int(idxs[i]) + 1 for i = 1:nout]
 end
+function Waitsome(reqs::RequestSet, ::Type{Status})
+    statuses = Array{Status}(undef, length(reqs))
+    inds = Waitsome(reqs, statuses)
+    resize!(statuses, length(inds))
+    return inds, statuses
+end
 Waitsome(reqs::Vector{Request}, args...) = Waitsome(RequestSet(reqs), args...)
 
 """
-    Testsome(reqs::AbstractVector{Request}[, statuses::Vector{Status}])::Union{Vector{Int}, Nothing}
+    inds = Testsome(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
 
 Similar to [`Waitsome`](@ref) except that if no operations have completed it will return
 an empty array.
@@ -459,6 +502,12 @@ function Testsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     end
     update!(reqs)
     return [Int(idxs[i]) + 1 for i = 1:nout]
+end
+function Testsome(reqs::RequestSet, ::Type{Status})
+    statuses = Array{Status}(undef, length(reqs))
+    inds = Testsome(reqs, statuses)
+    resize!(statuses, length(inds))
+    return inds, statuses
 end
 Testsome(reqs::Vector{Request}, args...) = Testsome(RequestSet(reqs), args...)
 
