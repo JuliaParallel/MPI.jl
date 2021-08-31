@@ -364,7 +364,21 @@ end
 
 ################################################################################
 
-_getsym(T::Type, sym::Symbol) = unsafe_load(cglobal((sym, libmpi), T))
+# Calling this function crashes. Maybe `cglobal` needs literal arguments?
+# _getsym(T::Type, sym::Symbol) = unsafe_load(cglobal((sym, libmpi), T))
+
+@eval begin
+    function _init_constants()
+        $(
+            [
+                quote
+                    global $nm = unsafe_load(cglobal(($(QuoteNode(nm)), libmpi), $tp))
+                end
+                for (tp,nm) in _constants
+                    ]
+            ...)
+    end
+end
 
 function init_mpitrampoline_constants()
 
@@ -375,9 +389,7 @@ function init_mpitrampoline_constants()
     # @assert library_version == MPI_LIBRARY_VERSION_STRING
     # @assert version == MPI_VERSION
 
-    for (tp,nm) in _constants
-        @eval $nm = _getsym($tp, $(QuoteNode(nm)))
-    end
+    _init_constants()
 
     # for (tp,nm) in _constants
     #     nms = String(nm)
@@ -388,7 +400,7 @@ function init_mpitrampoline_constants()
     # end
     
     # Update all constants
-    # TODO: Instead of this, initialized them later
+    # TODO: Instead of this, initialize them later
 
     IDENT.val     = MPI_IDENT
     CONGRUENT.val = MPI_CONGRUENT
