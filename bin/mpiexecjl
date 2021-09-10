@@ -51,16 +51,47 @@ if [ -z "${*}" ]; then
     exit 1
 fi
 
-# shellcheck disable=SC2016
-SCRIPT='
-using MPI
-ENV["JULIA_PROJECT"] = dirname(Base.active_project())
-mpiexec(exe -> run(`$exe $ARGS`))'
 if [ -n "${JULIA_BINDIR}" ]; then
     JULIA_CMD="${JULIA_BINDIR}/julia"
 else
     JULIA_CMD="julia"
 fi
+
+if [ -z "${MPITRAMPOLINE_LIB}" ]; then
+    # Find paths to MPICH_jll
+
+    # Note: This requires that `MPICH_jll` is a dependency of the
+    # current project, although it MUST NOT be used (aka imported,
+    # loaded). Doing so would have two simultaneously active MPI
+    # implementations (both MPItrampoline and MPICH), which would lead
+    # to name conflicts and likely segfaults. (There would be two
+    # incompatible functions `MPI_Init`.)
+
+    # TODO: Do this only when MPI.jl uses MPItrampoline, although this
+    # is harmless otherwise.
+    # TODO: Cache this; recalculate this only when MPI.jl is rebuilt.
+
+    # shellcheck disable=SC2016
+    SCRIPT='
+using MPICH_jll
+libmpi = MPICH_jll.get_libmpi_path()
+libmpicxx = MPICH_jll.get_libmpicxx_path()
+libmpifort = MPICH_jll.get_libmpifort_path()
+mpiexec = MPICH_jll.get_mpiexec_path()
+libmpiwrapper = "$(MPICH_jll.artifact_dir)/lib/libmpiwrapper.so"
+println("export MPITRAMPOLINE_PRELOAD='\''$libmpi:$libmpicxx:$libmpifort'\'';")
+println("export MPITRAMPOLINE_MPIEXEC='\''$mpiexec'\'';")
+println("export MPITRAMPOLINE_LIB='\''$libmpiwrapper'\'';")
+'
+    eval $("${JULIA_CMD}" -e "${SCRIPT}")
+fi
+
+# shellcheck disable=SC2016
+SCRIPT='
+using MPI
+ENV["JULIA_PROJECT"] = dirname(Base.active_project())
+mpiexec(exe -> run(`$exe $ARGS`))
+'
 
 if [ -n "${PROJECT_ARG}" ]; then
     "${JULIA_CMD}" "${PROJECT_ARG}" --color=yes --startup-file=no -q --compile=min -O0 -e "${SCRIPT}" -- "${@}"
