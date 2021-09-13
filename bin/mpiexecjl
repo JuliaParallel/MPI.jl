@@ -70,14 +70,13 @@ if [ -z "${MPITRAMPOLINE_LIB}" ]; then
 using MPItrampoline_jll
 artifact_dir = MPItrampoline_jll.artifact_dir
 libmpiwrapper = "$artifact_dir/lib/libmpiwrapper.so"
-mpich_dir = "$artifact_dir/lib/mpich"
-mpiexec = "$mpich_dir/bin/mpiexec"
-libmpi = "$mpich_dir/lib/libmpi.dylib"
-libmpicxx = "$mpich_dir/lib/libmpicxx.dylib"
-libmpifort = "$mpich_dir/lib/libmpifort.dylib"
+mpich_mpiexec = MPItrampoline_jll.mpich_mpiexec_path
+mpich_libmpi = MPItrampoline_jll.mpich_libmpi
+mpich_libmpicxx = MPItrampoline_jll.mpich_libmpicxx
+mpich_libmpifort = MPItrampoline_jll.mpich_libmpifort
 println("export MPITRAMPOLINE_LIB='\''$libmpiwrapper'\'';")
-println("export MPITRAMPOLINE_MPIEXEC='\''$mpiexec'\'';")
-println("export MPITRAMPOLINE_PRELOAD='\''$libmpi:$libmpicxx:$libmpifort'\'';")
+println("export MPITRAMPOLINE_MPIEXEC='\''$mpich_mpiexec'\'';")
+println("export MPITRAMPOLINE_PRELOAD='\''$mpich_libmpi:$mpich_libmpicxx:$mpich_libmpifort'\'';")
 '
     eval $("${JULIA_CMD}" -e "${SCRIPT}" 2>/dev/null)
 fi
