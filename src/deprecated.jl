@@ -206,3 +206,21 @@ import Base: @deprecate
 
 @deprecate(Accumulate(origin, rank, disp, op, win), Accumulate!(origin, rank, disp, op, win), false)
 @deprecate(Get_accumulate(origin, result, rank, disp, op, win), Get_accumulate!(origin, result, rank, disp, op, win), false)
+
+@deprecate(Wait!(req::Request), MPI.Wait(req, MPI.Status), false)
+@deprecate(Test!(req::Request), MPI.Test(req, MPI.Status), false)
+
+@deprecate(Waitall!(reqs::Vector{Request}), MPI.Waitall(reqs, MPI.Status), false)
+@deprecate(Testall!(reqs::Vector{Request}), MPI.Testall(reqs, MPI.Status), false)
+
+@deprecate(Waitany!(reqs::Vector{Request}), ((i, status) = MPI.Waitany(reqs, MPI.Status); (something(i,0), status)), false)
+@deprecate(Testany!(reqs::Vector{Request}), ((flag, i, status) = MPI.Testany(reqs, MPI.Status); (flag, i isa Integer ? i : 0, status)), false)
+
+@deprecate(Waitsome!(reqs::Vector{Request}), ((inds, statuses) = MPI.Waitsome(reqs, MPI.Status); (something(inds, Int[]), statuses)), false)
+@deprecate(Testsome!(reqs::Vector{Request}), ((inds, statuses) = MPI.Testsome(reqs, MPI.Status); (something(inds, Int[]), statuses)), false)
+
+@deprecate(Recv!(recvbuf, src::Integer, tag::Integer, comm::Comm), Recv!(recvbuf, src, tag, comm, MPI.Status)[2], false)
+@deprecate(Recv(T, src::Integer, tag::Integer, comm::Comm), Recv(recvbuf, src, tag, comm, MPI.Status), false)
+@deprecate(recv(T, src::Integer, tag::Integer, comm::Comm), recv(recvbuf, src, tag, comm, MPI.Status), false)
+@deprecate(Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm),
+           Sendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, MPI.Status)[2], false)
