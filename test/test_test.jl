@@ -35,14 +35,18 @@ reqs = [sreq,rreq]
 for ind in inds
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
-    @test stat == MPI.STATUS_EMPTY
+    @test stat.source == MPI.MPI_ANY_SOURCE
+    @test stat.tag == MPI.MPI_ANY_TAG
+    @test stat.error == MPI.MPI_SUCCESS
 end
 
 (done, ind, stats) = MPI.Testany!(reqs)
 if done && ind != 0
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
-    @test stat == MPI.STATUS_EMPTY    
+    @test stat.source == MPI.MPI_ANY_SOURCE
+    @test stat.tag == MPI.MPI_ANY_TAG
+    @test stat.error == MPI.MPI_SUCCESS
 end
 
 MPI.Waitall!(reqs)
