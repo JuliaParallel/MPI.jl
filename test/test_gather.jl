@@ -20,14 +20,14 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Allocating
     A = ArrayType{T}(fill(T(rank+1), 4))
-    C = MPI.Gather(A, root, comm)
+    C = MPI.Gather(A, comm; root=root)
     if isroot
         @test C isa ArrayType{T}
         @test C == ArrayType{T}(repeat(1:sz, inner=4))
     end
 
     # Allocating, object
-    C = MPI.Gather(T(rank+1), root, comm)
+    C = MPI.Gather(T(rank+1), comm; root=root)
     if isroot
         @test C isa Vector{T}
         @test C == Vector{T}(1:sz)
@@ -37,7 +37,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Allocating, array
     A = ArrayType{T}([MPI.Comm_rank(comm) + 1])
-    C = MPI.Gather(A, root, comm)
+    C = MPI.Gather(A, comm; root=root)
     if isroot
         @test C isa ArrayType{T}
         @test C == ArrayType{T}(1:MPI.Comm_size(comm))
@@ -47,7 +47,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Allocating, view
     A = ArrayType{T}([MPI.Comm_rank(comm) + 1, 0])
-    C = MPI.Gather(view(A, 1:1), root, comm)
+    C = MPI.Gather(view(A, 1:1), comm; root=root)
     if isroot
         @test C isa ArrayType{T}
         @test C == ArrayType{T}(1:MPI.Comm_size(comm))
@@ -56,11 +56,11 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     # Non Allocating
     A = ArrayType{T}(fill(T(rank+1), 4))
     C = ArrayType{T}(undef, 4sz)
-    MPI.Gather!(A, C, root, comm)
+    MPI.Gather!(A, C, comm; root=root)
     if isroot
         @test C == ArrayType{T}(repeat(1:sz, inner=4))
     end
-    MPI.Gather!(A, UBuffer(C,4), root, comm)
+    MPI.Gather!(A, UBuffer(C,4), comm; root=root)
     if isroot
         @test C == ArrayType{T}(repeat(1:sz, inner=4))
     end
@@ -71,9 +71,9 @@ for T in Base.uniontypes(MPI.MPIDatatype)
         A = ArrayType{T}(fill(T(rank+1), 4*sz))
     end
     if root == MPI.Comm_rank(comm)
-        MPI.Gather!(MPI.IN_PLACE, UBuffer(A,4), root, comm)
+        MPI.Gather!(MPI.IN_PLACE, UBuffer(A,4), comm; root=root)
     else
-        MPI.Gather!(A, nothing, root, comm)
+        MPI.Gather!(A, nothing, comm; root=root)
     end
     if isroot
         @test A == ArrayType{T}(repeat(1:sz, inner=4))

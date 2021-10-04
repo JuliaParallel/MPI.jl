@@ -19,21 +19,21 @@ send_arr = [ArrayType{Int}([i]) for i = 1:nsends]
 recv_arr = [ArrayType{Int}(undef,1) for i = 1:nsends]
 
 # send to self
-send_reqs = [MPI.Isend(send_arr[i], myrank, i, MPI.COMM_WORLD) for i = 1:nsends]
-recv_reqs = [MPI.Irecv!(recv_arr[i], myrank, i, MPI.COMM_WORLD) for i = 1:nsends]
+send_reqs = [MPI.Isend(send_arr[i], MPI.COMM_WORLD; dest=myrank, tag=i) for i = 1:nsends]
+recv_reqs = [MPI.Irecv!(recv_arr[i], MPI.COMM_WORLD; source=myrank, tag=i) for i = 1:nsends]
 
 send_check = zeros(Int, nsends)
 recv_check = zeros(Int, nsends)
 
 for i = 1:nsends
-    idx, stat = MPI.Waitany!(send_reqs)
+    idx = MPI.Waitany(send_reqs)
     @test send_reqs[idx] == MPI.REQUEST_NULL
     send_check[idx] += 1
 end
 @test send_check == ones(Int, nsends)
 
 for i = 1:nsends
-    idx, stat = MPI.Waitany!(recv_reqs)
+    idx = MPI.Waitany(recv_reqs)
     @test recv_reqs[idx] == MPI.REQUEST_NULL
     recv_check[idx] += 1
 end

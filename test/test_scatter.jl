@@ -22,24 +22,24 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Non Allocating version
     B = ArrayType{T}(undef, 1)
-    MPI.Scatter!(A, B, root, comm)
+    MPI.Scatter!(A, B, comm; root=root)
     @test Array(B)[1] == T(rank+1)
 
     # In place version
     B = isroot ? copy(A) : ArrayType{T}(undef, 1)
     if root == MPI.Comm_rank(comm)
-        MPI.Scatter!(UBuffer(B,1), MPI.IN_PLACE, root, comm)
+        MPI.Scatter!(UBuffer(B,1), MPI.IN_PLACE, comm; root=root)
     else
-        MPI.Scatter!(nothing, B, root, comm)
+        MPI.Scatter!(nothing, B, comm; root=root)
     end
     @test Array(B)[1] == T(rank+1)
 
     # Test throwing
     if isroot
         B = ArrayType{T}(undef, 0)
-        @test_throws DivideError MPI.Scatter!(A, B, root, comm)
+        @test_throws DivideError MPI.Scatter!(A, B, comm; root=root)
         B = ArrayType{T}(undef, 8)
-        @test_throws AssertionError MPI.Scatter!(A, B, root, comm)
+        @test_throws AssertionError MPI.Scatter!(A, B, comm; root=root)
     end
 end
 

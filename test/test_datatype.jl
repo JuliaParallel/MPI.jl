@@ -42,8 +42,7 @@ end
     arr_recv = Array{Boundary}(undef, 3)
     req_recv = MPI.Irecv!(arr_recv, src, 1, MPI.COMM_WORLD)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Waitall([req_send, req_recv])
 
     # check received array
     for i=1:3
@@ -70,8 +69,7 @@ end
     req_send = MPI.Isend(arr, dest, 1, MPI.COMM_WORLD)
     req_recv = MPI.Irecv!(arr_recv, src, 1, MPI.COMM_WORLD)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Waitall([req_send, req_recv])
 
     # check received array
     for i=1:3
@@ -87,7 +85,7 @@ primitive type Primitive16 16 end
 primitive type Primitive24 24 end
 primitive type Primitive80 80 end
 
-@testset for PrimitiveType in (Primitive16, Primitive24, Primitive80)        
+@testset for PrimitiveType in (Primitive16, Primitive24, Primitive80)
     sz = sizeof(PrimitiveType)
     al = Base.datatype_alignment(PrimitiveType)
     @test MPI.Types.extent(MPI.Datatype(PrimitiveType)) == (0, cld(sz,al)*al)
@@ -96,15 +94,14 @@ primitive type Primitive80 80 end
         # alignment is broken on earlier Julia versions
         continue
     end
-    
+
     arr = [Core.Intrinsics.trunc_int(PrimitiveType, UInt128(comm_rank + i)) for i = 1:4]
-    arr_recv = Array{PrimitiveType}(undef,4)    
-    
+    arr_recv = Array{PrimitiveType}(undef,4)
+
     recv_req = MPI.Irecv!(arr_recv, src, 2, MPI.COMM_WORLD)
     send_req = MPI.Isend(arr, dest, 2, MPI.COMM_WORLD)
 
-    MPI.Wait!(recv_req)
-    MPI.Wait!(send_req)
+    MPI.Waitall([recv_req, send_req])
 
     @test arr_recv == [Core.Intrinsics.trunc_int(PrimitiveType, UInt128(src + i)) for i = 1:4]
 end
@@ -122,8 +119,7 @@ end
     req_send = MPI.Isend(arr, dest, 1, MPI.COMM_WORLD)
     req_recv = MPI.Irecv!(arr_recv, src, 1, MPI.COMM_WORLD)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Waitall([req_recv, req_send ])
 
     # check received array
     @test arr_recv == [(UInt8(src),UInt8(i),UInt8(0)) for i = 1:8]
@@ -143,8 +139,7 @@ end
     req_send = MPI.Isend(arr, dest, 1, MPI.COMM_WORLD)
     req_recv = MPI.Irecv!(arr_recv, src, 1, MPI.COMM_WORLD)
 
-    MPI.Wait!(req_send)
-    MPI.Wait!(req_recv)
+    MPI.Waitall([req_recv, req_send ])
 
     # check received array
     @test arr_recv == [nothing for i = 1:100]
@@ -162,7 +157,7 @@ end
     # create_vector
     RowType = MPI.Types.create_vector(8, 1, 8, MPI.DOUBLE)
     @test typeof(RowType) == MPI.Datatype
-    
+
     # create_subarray
     SubMatrixType = MPI.Types.create_subarray((8, 8), (4, 4), (0, 0), MPI.INT64_T)
     @test typeof(SubMatrixType) == MPI.Datatype

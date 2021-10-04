@@ -14,10 +14,6 @@ MPI.Init()
 
 comm = MPI.COMM_WORLD
 
-function bcast_array(A, root)
-
-end
-
 root = 0
 Random.seed!(17)
 matsize = (17,17)
@@ -25,14 +21,14 @@ matsize = (17,17)
 for T in Base.uniontypes(MPI.MPIDatatype)
     A = ArrayType(rand(T, matsize))
     B = MPI.Comm_rank(comm) == root ? A : similar(A)
-    MPI.Bcast!(B, root, comm)
+    MPI.Bcast!(B, comm; root=root)
     @test B == A
 end
 
 # Char
 A = ['s', 't', 'a', 'r', ' ', 'w', 'a', 'r', 's']
 B = MPI.Comm_rank(comm) == root ? A : similar(A)
-MPI.Bcast!(B, root, comm)
+MPI.Bcast!(B, comm; root=root)
 @test B == A
 
 

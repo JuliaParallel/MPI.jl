@@ -219,8 +219,8 @@ import Base: @deprecate
 @deprecate(Waitsome!(reqs::Vector{Request}), ((inds, statuses) = MPI.Waitsome(reqs, MPI.Status); (something(inds, Int[]), statuses)), false)
 @deprecate(Testsome!(reqs::Vector{Request}), ((inds, statuses) = MPI.Testsome(reqs, MPI.Status); (something(inds, Int[]), statuses)), false)
 
-@deprecate(Recv!(recvbuf, src::Integer, tag::Integer, comm::Comm), Recv!(recvbuf, src, tag, comm, MPI.Status)[2], false)
-@deprecate(Recv(T, src::Integer, tag::Integer, comm::Comm), Recv(T, src, tag, comm, MPI.Status), false)
-@deprecate(recv(src::Integer, tag::Integer, comm::Comm), recv(src, tag, comm, MPI.Status), false)
+@deprecate(Recv!(recvbuf, source::Integer, tag::Integer, comm::Comm), Recv!(recvbuf, comm, MPI.Status; source=source, tag=tag)[2], false)
+@deprecate(Recv(T, source::Integer, tag::Integer, comm::Comm), Recv(T, comm, MPI.Status; source=source, tag=tag), false)
+@deprecate(recv(source::Integer, tag::Integer, comm::Comm), recv(comm, MPI.Status; source=source, tag=tag), false)
 @deprecate(Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm),
-           Sendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, MPI.Status)[2], false)
+           Sendrecv!(sendbuf, recvbuf, comm, MPI.Status; dest=dest, sendtag=sendtag, source=source, recvtag=recvtag)[2], false)
