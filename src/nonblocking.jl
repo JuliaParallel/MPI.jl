@@ -196,7 +196,7 @@ function Wait(req::Request, status::Union{Ref{Status},Nothing}=nothing)
     return nothing
 end
 function Wait(req::Request, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_EMPTY)
     Wait(req, status)
     return status[]
 end
@@ -224,7 +224,7 @@ function Test(req::Request, status::Union{Ref{Status},Nothing}=nothing)
     return flag[] != 0
 end
 function Test(req::Request, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_EMPTY)
     flag = Test(req, status)
     return flag, status[]
 end
@@ -377,7 +377,7 @@ function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     return i
 end
 function Waitany(reqs::RequestSet, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_EMPTY)
     i = Waitany(reqs, status)
     return i, status[]
 end
@@ -421,7 +421,7 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     return flag, i
 end
 function Testany(reqs::RequestSet, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_EMPTY)
     flag, i = Testany(reqs, status)
     return flag, i, status[]
 end
