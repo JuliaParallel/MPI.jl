@@ -178,7 +178,7 @@ Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, Datatype(T))
     Wait(req::Request)
     status = Wait(req::Request, Status)
 
-Block until the request `req` is complete and deallocated. 
+Block until the request `req` is complete and deallocated.
 
 The `Status` argument returns the `Status` of the completed request.
 
@@ -412,7 +412,7 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
                   n, reqs.vals, ref_idx, rflag, something(status, MPI_STATUS_IGNORE))
     idx = ref_idx[]
     flag = rflag[] != 0
-    
+
     if idx == MPI_UNDEFINED
         return flag, nothing
     end
@@ -446,7 +446,7 @@ function Waitsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     n = length(reqs)
     idxs = Vector{Cint}(undef, n)
     @assert isnothing(statuses) || length(statuses) >= n
-    
+
     # int MPI_Waitsome(int incount, MPI_Request array_of_requests[],
     #                  int *outcount, int array_of_indices[],
     #                  MPI_Status array_of_statuses[])
@@ -458,13 +458,13 @@ function Waitsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     if nout == MPI_UNDEFINED
         return nothing
     end
-    update!(reqs)    
+    update!(reqs)
     return [Int(idxs[i]) + 1 for i = 1:nout]
 end
 function Waitsome(reqs::RequestSet, ::Type{Status})
     statuses = Array{Status}(undef, length(reqs))
     inds = Waitsome(reqs, statuses)
-    resize!(statuses, length(inds))
+    resize!(statuses, isnothing(inds) ? 0 : length(inds))
     return inds, statuses
 end
 Waitsome(reqs::Vector{Request}, args...) = Waitsome(RequestSet(reqs), args...)
@@ -506,7 +506,7 @@ end
 function Testsome(reqs::RequestSet, ::Type{Status})
     statuses = Array{Status}(undef, length(reqs))
     inds = Testsome(reqs, statuses)
-    resize!(statuses, length(inds))
+    resize!(statuses, isnothing(inds) ? 0 : length(inds))
     return inds, statuses
 end
 Testsome(reqs::Vector{Request}, args...) = Testsome(RequestSet(reqs), args...)
