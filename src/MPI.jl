@@ -67,13 +67,13 @@ function __init__()
     end
 
     __init__deps()
-    
+
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
     if !haskey(ENV, "UCX_MEMTYPE_CACHE")
         ENV["UCX_MEMTYPE_CACHE"] = "no"
     end
-    
+
     # Julia multithreading uses SIGSEGV to sync thread
     # https://docs.julialang.org/en/v1/devdocs/debuggingtips/#Dealing-with-signals-1
     # By default, UCX will error if this occurs (issue #337)

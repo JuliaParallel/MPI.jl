@@ -59,6 +59,8 @@ if !@isdefined(Status)
     @assert sizeof(Status) == MPI_Status_size
 end
 
+Base.cconvert(::Type{Ptr{Status}}, x::SentinelPtr) = x
+Base.unsafe_convert(::Type{Ptr{Status}}, x::SentinelPtr) = reinterpret(Ptr{Status}, x)
 
 """
     MPI.Status
