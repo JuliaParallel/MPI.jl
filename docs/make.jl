@@ -22,7 +22,7 @@ for (example_title, example_md) in EXAMPLES
         println(mdfile)
         println(mdfile, "```julia")
         println(mdfile, "# $example_jl")
-        write(mdfile, read(joinpath(@__DIR__,example_jl)))
+        println(mdfile, readchomp(joinpath(@__DIR__,example_jl)))
         println(mdfile, "```")
         println(mdfile)
 
