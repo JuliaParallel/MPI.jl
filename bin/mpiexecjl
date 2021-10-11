@@ -57,29 +57,30 @@ else
     JULIA_CMD="julia"
 fi
 
-# if [ -z "${MPITRAMPOLINE_LIB}" ]; then
-#     # Set environment variables
-# 
-#     # TODO: Do this only when MPI.jl uses MPItrampoline.
-#     # TODO: Cache this; recalculate this only when MPI.jl is rebuilt.
-#     # TODO: Avoid the MPItrampoline delay and warning about
-#     #       `MPITRAMPOLINE_LIB` unset when running this code
-# 
-#     # shellcheck disable=SC2016
-#     SCRIPT='
-# using MPItrampoline_jll
-# artifact_dir = MPItrampoline_jll.artifact_dir
-# libmpiwrapper = "$artifact_dir/lib/libmpiwrapper.so"
-# mpich_mpiexec = MPItrampoline_jll.mpich_mpiexec_path
-# mpich_libmpi = MPItrampoline_jll.mpich_libmpi
-# mpich_libmpicxx = MPItrampoline_jll.mpich_libmpicxx
-# mpich_libmpifort = MPItrampoline_jll.mpich_libmpifort
-# println("export MPITRAMPOLINE_LIB='\''$libmpiwrapper'\'';")
-# println("export MPITRAMPOLINE_MPIEXEC='\''$mpich_mpiexec'\'';")
-# println("export MPITRAMPOLINE_PRELOAD='\''$mpich_libmpi:$mpich_libmpicxx:$mpich_libmpifort'\'';")
-# '
-#     eval $("${JULIA_CMD}" -e "${SCRIPT}" 2>/dev/null)
-# fi
+if [ -z "${MPITRAMPOLINE_LIB}" ]; then
+    # Set environment variables
+
+    # TODO: Do this only when MPI.jl uses MPItrampoline.
+    # TODO: Cache this; recalculate this only when MPI.jl is rebuilt.
+    # TODO: Avoid the MPItrampoline delay and warning about
+    #       `MPITRAMPOLINE_LIB` unset when running this code
+
+    # shellcheck disable=SC2016
+    SCRIPT='
+using MPItrampoline_jll
+artifact_dir = MPItrampoline_jll.artifact_dir
+libmpiwrapper = "$artifact_dir/lib/libmpiwrapper.so"
+mpich_dir = "$artifact_dir/lib/mpich"
+mpiexec = "$mpich_dir/bin/mpiexec"
+libmpi = "$mpich_dir/lib/libmpi.dylib"
+libmpicxx = "$mpich_dir/lib/libmpicxx.dylib"
+libmpifort = "$mpich_dir/lib/libmpifort.dylib"
+println("export MPITRAMPOLINE_LIB='\''$libmpiwrapper'\'';")
+println("export MPITRAMPOLINE_MPIEXEC='\''$mpiexec'\'';")
+println("export MPITRAMPOLINE_PRELOAD='\''$libmpi:$libmpicxx:$libmpifort'\'';")
+'
+    eval $("${JULIA_CMD}" -e "${SCRIPT}" 2>/dev/null)
+fi
 
 # shellcheck disable=SC2016
 SCRIPT='
