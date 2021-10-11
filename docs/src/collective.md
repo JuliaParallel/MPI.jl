@@ -4,6 +4,7 @@
 
 ```@docs
 MPI.Barrier
+MPI.Ibarrier
 ```
 
 ## Broadcast
