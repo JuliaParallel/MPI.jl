@@ -181,7 +181,14 @@ elseif binary == "MPItrampoline_jll"
     @info "using MPItrampoline_jll"
     deps = quote
         @info "[MPI] Initializating MPItrampoline"
+        if Sys.isunix()
+            julia_libdir = joinpath(Sys.BINDIR, "..", "lib", "julia")
+            paths = split(get(ENV, "LD_LIBRARY_PATH", ""), ":")
+            push!(paths, julia_libdir)
+            ENV["LD_LIBRARY_PATH"] = join(paths, ":")
+        end
         using MPItrampoline_jll
+        @assert MPItrampoline_jll.is_available()
         if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
             @info "[MPI] Using built-in MPICH with MPItrampoline"
             # MPItrampoline_jll has the correct default for
