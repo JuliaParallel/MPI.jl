@@ -181,11 +181,13 @@ elseif binary == "MPItrampoline_jll"
     @info "using MPItrampoline_jll"
     deps = quote
         @info "[MPI] Initializating MPItrampoline"
-        if Sys.isunix()
-            julia_libdir = joinpath(Sys.BINDIR, "..", "lib", "julia")
-            paths = split(get(ENV, "LD_LIBRARY_PATH", ""), ":")
-            push!(paths, julia_libdir)
-            ENV["LD_LIBRARY_PATH"] = join(paths, ":")
+        if "MPITRAMPOLINE_LIB" ∈ keys(ENV)
+            # Force Julia's copy of libgfortran to be preloaded
+            # TODO: Is there a case where we want to disable this?
+            dlsuffix = Sys.isapple() ? "dylib" : "so"
+            julia_dir = joinpath(Sys.BINDIR, "..")
+            libgfortran = joinpath(julia_dir, "lib", "julia", "libgfortran.$dlsuffix")
+            ENV["MPITRAMPOLINE_LIB"] = libgfortran * ":" * ENV["MPITRAMPOLINE_LIB"]
         end
         using MPItrampoline_jll
         @assert MPItrampoline_jll.is_available()
