@@ -187,9 +187,9 @@ elseif binary == "MPItrampoline_jll"
             dlsuffix = Sys.isapple() ? "dylib" : "so"
             julia_dir = joinpath(Sys.BINDIR, "..")
             libgfortran = joinpath(julia_dir, "lib", "julia", "libgfortran.$dlsuffix")
-            libs = split(get(ENV, "MPITRAMPOLINE_LIB", ""), ":")
+            libs = split(get(ENV, "MPITRAMPOLINE_PRELOAD", ""), ":")
             pushfirst!(libs, libgfortran)
-            ENV["MPITRAMPOLINE_LIB"] = libs
+            ENV["MPITRAMPOLINE_PRELOAD"] = libs
         end
         using MPItrampoline_jll
         @assert MPItrampoline_jll.is_available()
