@@ -69,8 +69,8 @@ if [ -z "${MPITRAMPOLINE_LIB}" ]; then
     SCRIPT='
 dlsuffix = Sys.isapple() ? "dylib" : "so"
 
-julia_dir = joinpath(Sys.BINDIR, "..")
-libgfortran = joinpath(julia_dir, "lib", "julia", "libgfortran.$dlsuffix")
+# julia_dir = joinpath(Sys.BINDIR, "..")
+# libgfortran = joinpath(julia_dir, "lib", "julia", "libgfortran.$dlsuffix")
 
 using MPItrampoline_jll
 artifact_dir = MPItrampoline_jll.artifact_dir
@@ -83,7 +83,8 @@ libmpifort = joinpath(mpich_dir, "lib", "libmpifort.$dlsuffix")
 
 println("export MPITRAMPOLINE_LIB='\''$libmpiwrapper'\'';")
 println("export MPITRAMPOLINE_MPIEXEC='\''$mpiexec'\'';")
-println("export MPITRAMPOLINE_PRELOAD='\''$libgfortran:$libmpi:$libmpicxx:$libmpifort'\'';")
+# println("export MPITRAMPOLINE_PRELOAD='\''$libgfortran:$libmpi:$libmpicxx:$libmpifort'\'';")
+println("export MPITRAMPOLINE_PRELOAD='\''$libmpi:$libmpicxx:$libmpifort'\'';")
 '
     eval $("${JULIA_CMD}" -e "${SCRIPT}" 2>/dev/null)
 fi
