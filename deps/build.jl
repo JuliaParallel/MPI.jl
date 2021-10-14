@@ -181,16 +181,19 @@ elseif binary == "MPItrampoline_jll"
     @info "using MPItrampoline_jll"
     deps = quote
         @info "[MPI] Initializating MPItrampoline"
-        # begin
-        #     # Force Julia's copy of libgfortran to be preloaded
-        #     # TODO: Is there a case where we want to disable this?
-        #     dlsuffix = Sys.isapple() ? "dylib" : "so"
-        #     julia_dir = joinpath(Sys.BINDIR, "..")
-        #     libgfortran = joinpath(julia_dir, "lib", "julia", "libgfortran.$dlsuffix")
-        #     libs = split(get(ENV, "MPITRAMPOLINE_PRELOAD", ""), ":"; keepempty = false)
-        #     pushfirst!(libs, libgfortran)
-        #     ENV["MPITRAMPOLINE_PRELOAD"] = join(libs, ":")
-        # end
+        if "MPITRAMPOLINE_PRELOAD" ∉ keys(ENV)
+            # Force Julia's copy of libgfortran to be preloaded
+            dlsuffix = Sys.isapple() ? "dylib" : "so"
+            julia_dir = joinpath(Sys.BINDIR, "..")
+            libgfortran = joinpath(julia_dir, "lib", "julia", "libgfortran.$dlsuffix")
+            # Since we are overriding Yggdrasil's default settings, we
+            # need to add Yggdrasil's defaults as well
+            libs = [libgfortran,
+                    "@MPITRAMPOLINE_DIR@/lib/mpich/lib/libmpi.$dlsuffix",
+                    "@MPITRAMPOLINE_DIR@/lib/mpich/lib/libmpicxx.$dlsuffix",
+                    "@MPITRAMPOLINE_DIR@/lib/mpich/lib/libmpifort.$dlsuffix"]
+            ENV["MPITRAMPOLINE_PRELOAD"] = join(libs, ":")
+        end
         using MPItrampoline_jll
         @assert MPItrampoline_jll.is_available()
         if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
