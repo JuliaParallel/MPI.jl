@@ -57,36 +57,36 @@ else
     JULIA_CMD="julia"
 fi
 
-if [ -z "${MPITRAMPOLINE_LIB}" ]; then
-    # Set environment variables
-
-    # TODO: Do this only when MPI.jl uses MPItrampoline.
-    # TODO: Cache this; recalculate this only when MPI.jl is rebuilt.
-    # TODO: Avoid the MPItrampoline delay and warning about
-    #       `MPITRAMPOLINE_LIB` unset when running this code
-
-    # shellcheck disable=SC2016
-    SCRIPT='
-dlsuffix = Sys.isapple() ? "dylib" : "so"
-
-julia_dir = joinpath(Sys.BINDIR, "..")
-libgfortran = joinpath(julia_dir, "lib", "julia", "libgfortran.$dlsuffix")
-
-using MPItrampoline_jll
-artifact_dir = MPItrampoline_jll.artifact_dir
-libmpiwrapper = joinpath(artifact_dir, "lib", "libmpiwrapper.so")
-mpich_dir = joinpath(artifact_dir, "lib", "mpich")
-mpiexec = joinpath(mpich_dir, "bin", "mpiexec")
-libmpi = joinpath(mpich_dir, "lib", "libmpi.$dlsuffix")
-libmpicxx = joinpath(mpich_dir, "lib", "libmpicxx.$dlsuffix")
-libmpifort = joinpath(mpich_dir, "lib", "libmpifort.$dlsuffix")
-
-println("export MPITRAMPOLINE_LIB='\''$libmpiwrapper'\'';")
-println("export MPITRAMPOLINE_MPIEXEC='\''$mpiexec'\'';")
-println("export MPITRAMPOLINE_PRELOAD='\''$libgfortran:$libmpi:$libmpicxx:$libmpifort'\'';")
-'
-    eval $("${JULIA_CMD}" -e "${SCRIPT}" 2>/dev/null)
-fi
+# if [ -z "${MPITRAMPOLINE_LIB}" ]; then
+#     # Set environment variables
+# 
+#     # TODO: Do this only when MPI.jl uses MPItrampoline.
+#     # TODO: Cache this; recalculate this only when MPI.jl is rebuilt.
+#     # TODO: Avoid the MPItrampoline delay and warning about
+#     #       `MPITRAMPOLINE_LIB` unset when running this code
+# 
+#     # shellcheck disable=SC2016
+#     SCRIPT='
+# dlsuffix = Sys.isapple() ? "dylib" : "so"
+# 
+# julia_dir = joinpath(Sys.BINDIR, "..")
+# libgfortran = joinpath(julia_dir, "lib", "julia", "libgfortran.$dlsuffix")
+# 
+# using MPItrampoline_jll
+# artifact_dir = MPItrampoline_jll.artifact_dir
+# libmpiwrapper = joinpath(artifact_dir, "lib", "libmpiwrapper.so")
+# mpich_dir = joinpath(artifact_dir, "lib", "mpich")
+# mpiexec = joinpath(mpich_dir, "bin", "mpiexec")
+# libmpi = joinpath(mpich_dir, "lib", "libmpi.$dlsuffix")
+# libmpicxx = joinpath(mpich_dir, "lib", "libmpicxx.$dlsuffix")
+# libmpifort = joinpath(mpich_dir, "lib", "libmpifort.$dlsuffix")
+# 
+# println("export MPITRAMPOLINE_LIB='\''$libmpiwrapper'\'';")
+# println("export MPITRAMPOLINE_MPIEXEC='\''$mpiexec'\'';")
+# println("export MPITRAMPOLINE_PRELOAD='\''$libgfortran:$libmpi:$libmpicxx:$libmpifort'\'';")
+# '
+#     eval $("${JULIA_CMD}" -e "${SCRIPT}" 2>/dev/null)
+# fi
 
 # shellcheck disable=SC2016
 SCRIPT='
