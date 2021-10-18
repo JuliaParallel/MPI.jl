@@ -17,7 +17,7 @@ received = ArrayType{Int}(fill(-1,N))
 # Test Get using fence
 win = MPI.Win_create(buf, comm)
 MPI.Win_fence(0, win)
-MPI.Get(received, (rank+1)%N, win)
+MPI.Get!(received, (rank+1)%N, win)
 MPI.Win_fence(0, win)
 
 @test received == ArrayType{Int}(fill(Int(rank+1)%N, size(received)))
@@ -26,7 +26,7 @@ MPI.Win_fence(0, win)
 if rank != 0
   MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 0, 0, win)
   received[1] = rank
-  MPI.Put(view(received,1:1), 0, rank, win)
+  MPI.Put!(view(received,1:1), 0, rank, win)
   MPI.Win_unlock(0, win)
 else
   buf[1] = 0
@@ -54,7 +54,7 @@ if rank == 0 && N > 1
   MPI.Win_unlock(0,win)
   MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 1, 0, win)
   result = similar(buf)
-  MPI.Get_accumulate(buf, result, 1, 0, MPI.SUM, win)
+  MPI.Get_accumulate!(buf, result, 1, 0, MPI.SUM, win)
   MPI.Win_unlock(1,win)
   @test all(result .== 3)
 end
@@ -67,7 +67,7 @@ if rank == 1
   fill!(buf,-2)
   MPI.Win_unlock(1,win)
   MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 0, 0, win)
-  MPI.Accumulate(buf, 0, 0, MPI.SUM, win)
+  MPI.Accumulate!(buf, 0, 0, MPI.SUM, win)
   MPI.Win_unlock(0,win)
   MPI.Win_lock(MPI.LOCK_EXCLUSIVE, 1, 0, win)
   fill!(buf,1)
@@ -88,7 +88,7 @@ MPI.Barrier(comm)
 
 # Try a dynamic window
 win = MPI.Win_create_dynamic(comm)
-MPI.Win_attach(win, buf)
+MPI.Win_attach!(win, buf)
 
 address_buf = Vector{Cptrdiff_t}(undef, 1)
 address_win = MPI.Win_create(address_buf, comm)
@@ -107,11 +107,11 @@ if rank == 0
   for r in 0:N-1
     address = Ref{Cptrdiff_t}(0)
     MPI.Win_lock(MPI.LOCK_EXCLUSIVE, r, 0, address_win)
-    MPI.Get(address, r, address_win)
+    MPI.Get!(address, r, address_win)
     MPI.Win_flush(r, address_win)
     to_send[] = r+5
     MPI.Win_lock(MPI.LOCK_EXCLUSIVE, r, 0, win)
-    MPI.Fetch_and_op(to_send, received, r, address[]+r*sizeof(Int), MPI.REPLACE, win)
+    MPI.Fetch_and_op!(to_send, received, r, address[]+r*sizeof(Int), MPI.REPLACE, win)
     MPI.Win_flush(r, win)
     @test received[] == r
     MPI.Win_unlock(r, win)
@@ -124,7 +124,7 @@ MPI.Barrier(comm)
 @test buf[rank+1] == rank+5
 
 MPI.Barrier(comm)
-MPI.Win_detach(win, buf)
+MPI.Win_detach!(win, buf)
 MPI.free(win)
 MPI.free(address_win)
 

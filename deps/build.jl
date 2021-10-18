@@ -50,7 +50,7 @@ if haskey(ENV, "JULIA_MPIEXEC")
     end
     update_config = true
 end
-    
+
 
 if update_config
     open(config_toml, write=true) do f
@@ -75,11 +75,11 @@ if binary == "system"
     if libmpi == ""
         error("libmpi could not be found")
     end
-    
+
     const mpiexec_cmd = Cmd(mpiexec isa String ? [mpiexec] : mpiexec)
-    
+
     _doc_external(fname) = ""
-    
+
     include(joinpath("..","src","implementations.jl"))
 
     @info "Using implementation" libmpi mpiexec_cmd MPI_LIBRARY_VERSION_STRING

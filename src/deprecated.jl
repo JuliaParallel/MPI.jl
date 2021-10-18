@@ -187,3 +187,40 @@ import Base: @deprecate
 
 # Deprecated in v0.19
 @deprecate(Init_thread(required::ThreadLevel; kwargs...), Init(;threadlevel=required, kwargs...), false)
+
+# Deprecated in v0.20
+@deprecate(Win_allocate_shared(::Type{T}, len, comm::Comm; kwargs...) where T,
+    Win_allocate_shared(Ptr{T}, len, comm; kwargs...), false)
+@deprecate(Win_shared_query(win::Win, rank::Int),
+  Win_shared_query(Ptr{Cvoid}, win, rank), false)
+
+@deprecate(Win_attach(win::Win, base::AbstractArray{T}) where T, Win_attach!(win, base), false)
+@deprecate(Win_detach(win::Win, base::AbstractArray{T}) where T, Win_detach!(win, base), false)
+
+@deprecate(Get(origin, rank, disp, win), Get!(origin, rank, disp, win), false)
+@deprecate(Get(origin, rank, win), Get!(origin, rank, win), false)
+@deprecate(Put(origin, rank, disp, win), Put!(origin, rank, disp, win), false)
+@deprecate(Put(origin, rank, win), Put!(origin, rank, win), false)
+@deprecate(Fetch_and_op(sourceval, returnval, target_rank::Integer, target_disp::Integer, op::Op, win::Win),
+  Fetch_and_op!(sourceval, returnval, target_rank, target_disp, op, win), false)
+
+@deprecate(Accumulate(origin, rank, disp, op, win), Accumulate!(origin, rank, disp, op, win), false)
+@deprecate(Get_accumulate(origin, result, rank, disp, op, win), Get_accumulate!(origin, result, rank, disp, op, win), false)
+
+@deprecate(Wait!(req::Request), MPI.Wait(req, MPI.Status), false)
+@deprecate(Test!(req::Request), MPI.Test(req, MPI.Status), false)
+
+@deprecate(Waitall!(reqs::Vector{Request}), MPI.Waitall(reqs, MPI.Status), false)
+@deprecate(Testall!(reqs::Vector{Request}), MPI.Testall(reqs, MPI.Status), false)
+
+@deprecate(Waitany!(reqs::Vector{Request}), ((i, status) = MPI.Waitany(reqs, MPI.Status); (something(i,0), status)), false)
+@deprecate(Testany!(reqs::Vector{Request}), ((flag, i, status) = MPI.Testany(reqs, MPI.Status); (flag, i isa Integer ? i : 0, status)), false)
+
+@deprecate(Waitsome!(reqs::Vector{Request}), ((inds, statuses) = MPI.Waitsome(reqs, MPI.Status); (something(inds, Int[]), statuses)), false)
+@deprecate(Testsome!(reqs::Vector{Request}), ((inds, statuses) = MPI.Testsome(reqs, MPI.Status); (something(inds, Int[]), statuses)), false)
+
+@deprecate(Recv!(recvbuf, src::Integer, tag::Integer, comm::Comm), Recv!(recvbuf, src, tag, comm, MPI.Status)[2], false)
+@deprecate(Recv(T, src::Integer, tag::Integer, comm::Comm), Recv(T, src, tag, comm, MPI.Status), false)
+@deprecate(recv(src::Integer, tag::Integer, comm::Comm), recv(src, tag, comm, MPI.Status), false)
+@deprecate(Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm),
+           Sendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, MPI.Status)[2], false)

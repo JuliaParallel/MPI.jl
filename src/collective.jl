@@ -17,6 +17,26 @@ function Barrier(comm::Comm)
 end
 
 """
+    Ibarrier(comm::Comm)
+
+Blocks until `comm` is synchronized.
+
+If `comm` is an intracommunicator, then it blocks until all members of the group have called it.
+
+If `comm` is an intercommunicator, then it blocks until all members of the other group have called it.
+
+# External links
+$(_doc_external("MPI_Ibarrier"))
+"""
+function Ibarrier(comm::Comm)
+    req = Request()
+    # int MPI_Ibarrier(MPI_Comm comm, MPI_Req req)
+    @mpichk ccall((:MPI_Ibarrier, libmpi), Cint, (MPI_Comm, Ptr{MPI_Request}), comm, req)
+    return req
+end
+
+
+"""
     Bcast!(buf, root::Integer, comm::Comm)
 
 Broadcast the buffer `buf` from `root` to all processes in `comm`.
@@ -131,7 +151,7 @@ end
 
 
 """
-    Scatterv!(sendbuf, T, root, comm)
+    Scatterv!(sendbuf, recvbuf, root, comm)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks and sends
 the `j`th chunk to the process of rank `j-1` into the `recvbuf` buffer.

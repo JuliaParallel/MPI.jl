@@ -14,13 +14,15 @@ const arr = mpi_shared_array(MPI.COMM_WORLD, Int, (nrows, nworkers_node), owner_
 function mpi_shared_array(node_comm::Comm, ::Type{T}, sz::Tuple{Vararg{Int}}; owner_rank=0) where T
     node_rank = MPI.Comm_rank(node_comm)
     len_to_alloc = MPI.Comm_rank(node_comm) == owner_rank ? prod(sz) : 0
-    win, bufptr = MPI.Win_allocate_shared(T, len_to_alloc, node_comm)
-
-    if node_rank != owner_rank
-        len, sizofT, bufvoidptr = MPI.Win_shared_query(win, owner_rank)
-        bufptr = convert(Ptr{T}, bufvoidptr)
+    if node_rank == owner_rank
+        win, array = MPI.Win_allocate_shared(Array{T}, sz, node_comm)
+    else
+        win, array = MPI.Win_allocate_shared(Array{T}, 0, node_comm)
     end
-    win, unsafe_wrap(Array, bufptr, sz)
+    if node_rank != owner_rank
+        array = MPI.Win_shared_query(Array{T}, sz, win, owner_rank)
+    end
+    win, array
 end
 
 function main()
@@ -50,8 +52,8 @@ function main()
         @test all(shared_arr[:, 2] .== 901:1000)
         if node_rank <= 1
             len, elsize_bytes, baseptr = MPI.Win_shared_query(win, owner_rank)
-            @test elsize_bytes == 4
-            @test len == prod(size(shared_arr))*elsize_bytes
+            @test elsize_bytes == sizeof(Float32)
+            @test len == sizeof(shared_arr)
             @test baseptr == pointer(shared_arr)
         end
         MPI.free(win)

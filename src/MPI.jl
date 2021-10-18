@@ -46,6 +46,7 @@ include("environment.jl")
 include("datatypes.jl")
 include("buffers.jl")
 include("operators.jl")
+include("nonblocking.jl")
 include("pointtopoint.jl")
 include("collective.jl")
 include("topology.jl")
@@ -67,7 +68,7 @@ function __init__()
     end
 
     __init__deps()
-    
+
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
     if !haskey(ENV, "UCX_MEMTYPE_CACHE")

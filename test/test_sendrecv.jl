@@ -74,16 +74,16 @@ rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
 
 req_arr = [sreq,rreq]
-(inds, stats) = MPI.Waitsome!(req_arr)
+inds = MPI.Waitsome(req_arr)
 for i in inds
     global done
-    (done, status) = MPI.Test!( req_arr[i] )
+    (done, status) = MPI.Test(req_arr[i])
     @test done
 end
 
 rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
 MPI.Cancel!(rreq)
-MPI.Wait!(rreq)
+MPI.Wait(rreq)
 @test rreq.buffer == nothing
 
 GC.gc()
@@ -91,10 +91,10 @@ GC.gc()
 # ---------------------
 # MPI_Sendrecv function
 # ---------------------
-# 
+#
 # send datatype
 # ---------------------
-# We test this function by executing a left shift of the leftmost element in a 1D 
+# We test this function by executing a left shift of the leftmost element in a 1D
 # cartesian topology with periodic boundary conditions.
 #
 # Assume we have two processors, the data will look like this
