@@ -2,7 +2,7 @@
 
 # Test MPItrampoline on Graham, a Compute Canada HPC system
 
-# shellcheck disable=SC2016
+# shellcheck disable=all
 
 set -euxo pipefail
 

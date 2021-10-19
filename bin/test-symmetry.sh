@@ -2,7 +2,7 @@
 
 # Test MPItrampoline on Symmetry, Perimeter's HPC system
 
-# shellcheck disable=SC2016
+# shellcheck disable=all
 
 set -euxo pipefail
 

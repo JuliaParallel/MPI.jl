@@ -2,7 +2,7 @@
 
 # Test MPItrampoline on Summit, an HPC system at ORNL
 
-# shellcheck disable=SC2016
+# shellcheck disable=all
 
 set -euxo pipefail
 

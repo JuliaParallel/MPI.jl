@@ -2,7 +2,7 @@
 
 # Test MPItrampoline on Redshift, a macOS laptop
 
-# shellcheck disable=SC2016
+# shellcheck disable=all
 
 set -euxo pipefail
 
