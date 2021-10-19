@@ -2,6 +2,8 @@
 
 # Test MPItrampoline on Graham, a Compute Canada HPC system
 
+# shellcheck disable=SC2016
+
 set -euxo pipefail
 
 path="$HOME/test-mpitrampoline-julia"

@@ -2,6 +2,8 @@
 
 # Test MPItrampoline on Symmetry, Perimeter's HPC system
 
+# shellcheck disable=SC2016
+
 set -euxo pipefail
 
 path="$HOME/test-mpitrampoline-julia"

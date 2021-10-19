@@ -2,6 +2,8 @@
 
 # Test MPItrampoline on Summit, an HPC system at ORNL
 
+# shellcheck disable=SC2016
+
 set -euxo pipefail
 
 path="$HOME/test-mpitrampoline-julia"

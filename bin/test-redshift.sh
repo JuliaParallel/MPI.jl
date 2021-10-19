@@ -2,6 +2,8 @@
 
 # Test MPItrampoline on Redshift, a macOS laptop
 
+# shellcheck disable=SC2016
+
 set -euxo pipefail
 
 path="$HOME/test-mpitrampoline-julia"
