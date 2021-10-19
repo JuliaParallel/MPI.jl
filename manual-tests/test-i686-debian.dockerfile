@@ -1,9 +1,7 @@
 # Test MPItrampoline on various CPU architectures
-# Run `docker build --file test-armv7l-debian.dockerfile .`
+# Run `docker build --file test-i686-debian.dockerfile .`
 
-# shellcheck disable=all
-
-FROM arm32v7/debian:11.1
+FROM i386/debian:11.1
 
 # Install packages
 ENV DEBIAN_FRONTEND=noninteractive
@@ -25,8 +23,8 @@ USER cactus
 WORKDIR /home/cactus
 
 # Install Julia
-RUN wget https://julialang-s3.julialang.org/bin/linux/armv7l/1.6/julia-1.6.3-linux-armv7l.tar.gz
-RUN tar xzf julia-1.6.3-linux-armv7l.tar.gz
+RUN wget https://julialang-s3.julialang.org/bin/linux/x86/1.6/julia-1.6.3-linux-i686.tar.gz
+RUN tar xzf julia-1.6.3-linux-i686.tar.gz
 ENV PATH="/home/cactus/julia-1.6.3/bin:${PATH}"
 
 RUN julia -e ' \

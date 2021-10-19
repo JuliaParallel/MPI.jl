@@ -2,8 +2,6 @@
 
 # Test MPItrampoline on Summit, an HPC system at ORNL
 
-# shellcheck disable=all
-
 set -euxo pipefail
 
 path="$HOME/test-mpitrampoline-julia"
@@ -66,48 +64,48 @@ export MPITRAMPOLINE_PRELOAD=
 export MPITRAMPOLINE_LIB="$path/mpiwrapper/lib/libmpiwrapper.so"
 
 echo 'binary = "MPItrampoline_jll"' >"${HOME}/.julia/prefs/MPI.toml"
-julia --project=@. -e ' \
-    using Pkg; \
-    Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll.jl", rev="main"); \
+julia --project=@. -e '
+    using Pkg;
+    Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll.jl", rev="main");
     '
-julia --project=@. -e ' \
-    using Pkg; \
-    Pkg.add(url="https://github.com/eschnett/MPI.jl", rev="eschnett/mpitrampoline"); \
+julia --project=@. -e '
+    using Pkg;
+    Pkg.add(url="https://github.com/eschnett/MPI.jl", rev="eschnett/mpitrampoline");
     '
-julia --project=@. -e ' \
-    using Pkg; \
-    Pkg.status(); \
+julia --project=@. -e '
+    using Pkg;
+    Pkg.status();
     '
-julia --project=@. -e ' \
-    using Pkg; \
-    Pkg.build("MPI"); \
+julia --project=@. -e '
+    using Pkg;
+    Pkg.build("MPI");
     '
-julia --project=@. -e ' \
-    using MPI; \
-    MPI.install_mpiexecjl(force=true); \
-    '
-
-julia --project=@. -e ' \
-    using Pkg; \
-    Pkg.add(url="https://github.com/eschnett/ADIOS2_jll.jl", rev="main"); \
-    '
-julia --project=@. -e ' \
-    using Pkg; \
-    Pkg.add("ADIOS2"); \
+julia --project=@. -e '
+    using MPI;
+    MPI.install_mpiexecjl(force=true);
     '
 
-julia --project=@. -e ' \
-    using Pkg; \
-    Pkg.add(url="https://github.com/eschnett/openPMD_api_jll.jl", rev="main"); \
+julia --project=@. -e '
+    using Pkg;
+    Pkg.add(url="https://github.com/eschnett/ADIOS2_jll.jl", rev="main");
     '
-julia --project=@. -e ' \
-    using Pkg; \
-    Pkg.add("openPMD"); \
+julia --project=@. -e '
+    using Pkg;
+    Pkg.add("ADIOS2");
     '
 
-julia --project=@. -e ' \
-    using Pkg; \
-    Pkg.add("DoubleFloats"); \
+julia --project=@. -e '
+    using Pkg;
+    Pkg.add(url="https://github.com/eschnett/openPMD_api_jll.jl", rev="main");
+    '
+julia --project=@. -e '
+    using Pkg;
+    Pkg.add("openPMD");
+    '
+
+julia --project=@. -e '
+    using Pkg;
+    Pkg.add("DoubleFloats");
     '
 cd "$path"
 

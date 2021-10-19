@@ -1,9 +1,7 @@
 # Test MPItrampoline on various CPU architectures
-# Run `docker build --file test-ppc64le-debian.dockerfile .`
+# Run `docker build --file test-x86_64-debian.dockerfile .`
 
-# shellcheck disable=all
-
-FROM ppc64le/debian:11.1
+FROM amd64/debian:11.1
 
 # Install packages
 ENV DEBIAN_FRONTEND=noninteractive
@@ -25,8 +23,8 @@ USER cactus
 WORKDIR /home/cactus
 
 # Install Julia
-RUN wget https://julialang-s3.julialang.org/bin/linux/ppc64le/1.6/julia-1.6.3-linux-ppc64le.tar.gz
-RUN tar xzf julia-1.6.3-linux-ppc64le.tar.gz
+RUN wget https://julialang-s3.julialang.org/bin/linux/x64/1.6/julia-1.6.3-linux-x86_64.tar.gz
+RUN tar xzf julia-1.6.3-linux-x86_64.tar.gz
 ENV PATH="/home/cactus/julia-1.6.3/bin:${PATH}"
 
 RUN julia -e ' \
