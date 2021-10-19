@@ -3,7 +3,6 @@
 const WIN_NULL = _Win(MPI_WIN_NULL, nothing)
 Win() = Win(WIN_NULL.val, nothing)
 
-
 function free(win::Win)
     if win.val != WIN_NULL.val && !Finalized()
         # int MPI_Win_free(MPI_Win *win)
