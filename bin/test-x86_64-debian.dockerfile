@@ -1,6 +1,8 @@
 # Test MPItrampoline on various CPU architectures
 # Run `docker build --file test-x86_64-debian.dockerfile .`
 
+# shellcheck disable=all
+
 FROM amd64/debian:11.1
 
 # Install packages

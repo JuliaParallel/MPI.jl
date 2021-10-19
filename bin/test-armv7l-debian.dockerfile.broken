@@ -1,6 +1,8 @@
 # Test MPItrampoline on various CPU architectures
 # Run `docker build --file test-armv7l-debian.dockerfile .`
 
+# shellcheck disable=all
+
 FROM arm32v7/debian:11.1
 
 # Install packages
