@@ -139,7 +139,7 @@ const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 0)
 """
 Initialize those OpenMPI constants that are only known at load time
 """
-function init_opeenmpi_constants()
+function init_openmpi_constants()
     global MPI_TYPE_NULL_COPY_FN = unsafe_load(cglobal(:MPI_TYPE_NULL_COPY_FN, libmpi, Ptr{Cvoid}))
     global MPI_TYPE_NULL_DELETE_FN = unsafe_load(cglobal(:MPI_TYPE_NULL_DELETE_FN, libmpi, Ptr{Cvoid}))
 end
