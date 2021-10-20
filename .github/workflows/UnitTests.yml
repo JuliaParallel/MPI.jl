@@ -14,6 +14,7 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         julia_version: [
+            # TODO: These don't support MPItrampoline_jll -- handle this somehow!
             # "1.3", "1.4", "1.5",
             "1.6", "nightly"]
         julia_arch: [x64, x86]
@@ -65,7 +66,7 @@ jobs:
       matrix:
         mpi: [mpich, openmpi]
         mpi_abi: ["", "unknown"]
-        julia_version: ["1.5", "nightly"]
+        julia_version: ["1.6", "nightly"]
 
       fail-fast: false
 
@@ -117,7 +118,7 @@ jobs:
       matrix:
         mpi: [mpich, libopenmpi-dev]
         mpi_abi: ["", "unknown"]
-        julia_version: ["1.5", "nightly"]
+        julia_version: ["1.6", "nightly"]
 
       fail-fast: false
 
@@ -167,7 +168,7 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        julia_version: ["1.5", "nightly"]
+        julia_version: ["1.6", "nightly"]
 
       fail-fast: false
 
@@ -245,7 +246,7 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        julia_version: ["1.5", "nightly"]
+        julia_version: ["1.6", "nightly"]
 
       fail-fast: false
 
