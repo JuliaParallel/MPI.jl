@@ -24,7 +24,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Test passing the output buffer
     B = ArrayType{T}(undef, sum(counts))
-    MPI.Gatherv!(A, isroot ? VBuffer(B, counts) : nothing, root, comm)
+    MPI.Gatherv!(A, isroot ? VBuffer(B, counts) : nothing, comm; root=root)
     if isroot
         @test B == ArrayType{T}(check)
     end
@@ -32,16 +32,16 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     # Test assertion when output size is too small
     B = ArrayType{T}(undef, sum(counts)-1)
     if isroot
-        @test_throws AssertionError MPI.Gatherv!(A, VBuffer(B, counts), root, comm)
+        @test_throws AssertionError MPI.Gatherv!(A, VBuffer(B, counts), comm; root=root)
     end
 
     # Test explicit MPI_IN_PLACE
     if isroot
         B = ArrayType(fill(T(rank), sum(counts)))
-        MPI.Gatherv!(MPI.IN_PLACE, VBuffer(B, counts), root, comm)
+        MPI.Gatherv!(MPI.IN_PLACE, VBuffer(B, counts), comm; root=root)
     else
         B = ArrayType(fill(T(rank), counts[rank+1]))
-        MPI.Gatherv!(B, nothing, root, comm)
+        MPI.Gatherv!(B, nothing, comm; root=root)
     end
     if isroot
         @test B == ArrayType{T}(check)

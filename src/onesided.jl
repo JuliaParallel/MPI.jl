@@ -93,12 +93,19 @@ function Win_allocate_shared(::Type{Array{T}}, dims, comm::Comm; kwargs...) wher
 end
 
 """
-    array = Win_shared_query(Array{T}, [dims,] win, rank)
+    array = Win_shared_query(Array{T}, [dims,] win; rank)
 
 Obtain the shared memory allocated by [`Win_allocate_shared`](@ref) of the
 process `rank` in `win`. Returns an `Array{T}` of size `dims` (being a
 `Vector{T}` if no `dims` argument is provided).
 """
+Win_shared_query(::Type{Array{T}}, win::Win; rank) where {T} =
+    Win_shared_query(Array{T}, win, rank)
+Win_shared_query(::Type{Ptr{T}}, win::Win; rank) where {T} =
+    Win_shared_query(Ptr{T}, win, rank)
+Win_shared_query(::Type{Array{T}}, dims, win::Win; rank) where {T} =
+    Win_shared_query(Array{T}, dims, win, rank)
+
 function Win_shared_query(::Type{Ptr{T}}, win::Win, owner_rank::Integer) where T
     out_len = Ref{Cptrdiff_t}()
     out_sizeT = Ref{Cint}()
@@ -170,7 +177,16 @@ function Win_fence(win::Win; nostore=false, noput=false, noprecede=false, nosucc
     Win_fence(assert, win)
 end
 
+"""
+    Win_flush(win::Win; rank)
 
+Completes all outstanding RMA operations initiated by the calling process to the
+target rank on the specified window.
+
+# External links
+$(_doc_external("MPI_Win_flush"))
+"""
+Win_flush(win::Win; rank) = Win_flush(rank, win)
 function Win_flush(rank::Integer, win::Win)
     # int MPI_Win_flush(int rank, MPI_Win win)
     @mpichk ccall((:MPI_Win_flush, libmpi), Cint,(Cint, MPI_Win), rank, win)
@@ -181,18 +197,48 @@ function Win_sync(win::Win)
     @mpichk ccall((:MPI_Win_sync, libmpi), Cint, (MPI_Win,), win)
 end
 
+"""
+    Win_lock(win::Win; rank::Integer, type=:exclusive/:shared, nocheck=false)
+
+Starts an RMA access epoch. The window at the process with rank `rank` can be
+accessed by RMA operations on `win` during that epoch.
+
+Multiple RMA access epochs (with calls to `MPI.Win_lock`) can occur
+simultaneously; however, each access epoch must target a different process.
+
+Accesses that are protected by an exclusive lock (`type=:exclusive`) will not be
+concurrent at the window site with other accesses to the same window that are
+lock protected. Accesses that are protected by a shared lock (`type=:shared`)
+will not be concurrent at the window site with accesses protected by an
+exclusive lock to the same window.
+
+If `nocheck=true`, no other process holds, or will attempt to acquire, a
+conflicting lock, while the caller holds the window lock. This is useful when
+mutual exclusion is achieved by other means, but the coherence operations that
+may be attached to the lock and unlock calls are still required.
+
+# External links
+$(_doc_external("MPI_Win_lock"))
+"""
+function Win_lock(win::Win; rank::Integer, type::Union{Symbol,LockType}, nocheck::Bool = false)
+    Win_lock(type isa Symbol ? LockType(type) : type, rank, nocheck * MPI_MODE_NOCHECK, win)
+end
 function Win_lock(lock_type::LockType, rank::Integer, assert::Integer, win::Win)
     # int MPI_Win_lock(int lock_type, int rank, int assert, MPI_Win win)
     @mpichk ccall((:MPI_Win_lock, libmpi), Cint,
                   (Cint, Cint, Cint, MPI_Win),
                   lock_type, rank, assert, win)
 end
-function Win_lock(rank::Integer, win::Win;
-         type,  nocheck = false)
-    Win_lock(type isa Symbol ? LockType(type) : type, rank, nocheck * MPI_MODE_NOCHECK, win)
-end
 
+"""
+    Win_unlock(win::Win; rank::Integer)
 
+Completes an RMA access epoch started by a call to [`Win_lock`](@ref).
+
+# External links
+$(_doc_external("MPI_Win_unlock"))
+"""
+Win_unlock(win::Win; rank::Integer) = Win_unlock(rank, win)
 function Win_unlock(rank::Integer, win::Win)
     # int MPI_Win_unlock(int rank, MPI_Win win)
     @mpichk ccall((:MPI_Win_unlock, libmpi), Cint, (Cint, MPI_Win), rank, win)
@@ -202,15 +248,17 @@ end
 # TODO: add some sort of "remote buffer": a way to specify different datatypes/counts
 
 """
-    Get!(origin, target_rank::Integer, [target_disp::Integer], win::Win)
+    Get!(origin, win::Win; rank::Integer, disp::Integer=0)
 
-Copies data from the memory window `win` on the remote rank `target_rank` into `origin`
-(with diplacement `target_disp`) using remote memory access.
-`origin` can be a [`Buffer`](@ref), or any object for which `Buffer(origin)` is defined.
+Copies data from the memory window `win` on the remote rank `rank`, with
+displacement `disp`, into `origin` using remote memory access. `origin` can be a
+[`Buffer`](@ref), or any object for which `Buffer(origin)` is defined.
 
 # External links
 $(_doc_external("MPI_Get"))
 """
+Get!(origin, win::Win; rank::Integer, disp::Integer=0) =
+    Get!(origin, rank, disp, win)
 function Get!(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win::Win)
     # int MPI_Get(void *origin_addr, int origin_count,
     #             MPI_Datatype origin_datatype, int target_rank,
@@ -227,15 +275,18 @@ Get!(origin, target_rank::Integer, win::Win) =
     Get!(origin, target_rank, 0, win)
 
 """
-    Put!(origin, target_rank::Integer, [target_disp::Integer], win::Win)
+    Put!(origin, win::Win; rank::Integer, disp::Integer=0)
 
-Copies data from `origin` into memory window `win` on remote rank `target_rank`
-(with diplacement `target_disp`) using remote memory access.
-`origin` can be a [`Buffer`](@ref), or any object for which [`Buffer_send(origin)`](@ref) is defined.
+Copies data from `origin` into memory window `win` on remote rank `rank` at
+displacement `disp` using remote memory access. `origin` can be a
+[`Buffer`](@ref), or any object for which [`Buffer_send(origin)`](@ref) is
+defined.
 
 # External links
 $(_doc_external("MPI_Put"))
 """
+Put!(origin, win::Win; rank::Integer, disp::Integer=0) =
+    Put!(origin, rank, disp, win)
 function Put!(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, win::Win)
     # int MPI_Put(const void *origin_addr, int origin_count,
     #             MPI_Datatype origin_datatype, int target_rank,
@@ -251,6 +302,8 @@ Put!(origin, target_rank::Integer, target_disp::Integer, win::Win) =
 Put!(origin, target_rank::Integer, win::Win) =
     Put!(origin, target_rank, 0, win)
 
+Fetch_and_op!(source, returnval, op, win::Win; rank::Integer, disp::Integer=0) =
+    Fetch_and_op!(source, returnval, rank, disp, op, win)
 function Fetch_and_op!(sourceval::Ref{T}, returnval::Ref{T}, target_rank::Integer, target_disp::Integer, op::Op, win::Win) where {T}
     # int MPI_Fetch_and_op(const void *origin_addr, void *result_addr,
     #                      MPI_Datatype datatype, int target_rank, MPI_Aint target_disp,
@@ -262,7 +315,7 @@ end
 
 
 """
-    Accumulate!(origin, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
+    Accumulate!(origin, op, win::Win; rank::Integer, disp::Integer=0)
 
 Combine the content of the `origin` buffer into the target buffer (specified by `win` and
 displacement `target_disp`) with reduction operator `op` on the remote rank
@@ -274,6 +327,8 @@ displacement `target_disp`) with reduction operator `op` on the remote rank
 # External links
 $(_doc_external("MPI_Accumulate"))
 """
+Accumulate!(origin, op, win::Win; rank::Integer, disp::Integer=0) =
+    Accumulate!(origin, rank, disp, op, win)
 function Accumulate!(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
     # int MPI_Accumulate(const void *origin_addr, int origin_count,
     #                    MPI_Datatype origin_datatype, int target_rank,
@@ -301,6 +356,8 @@ content of the target buffer _before_ accumulation into the `result` buffer.
 # External links
 $(_doc_external("MPI_Get_accumulate"))
 """
+Get_accumulate!(origin, result, op, win::Win; rank::Integer, disp::Integer=0) =
+    Get_accumulate!(origin, result, rank, disp, op, win)
 function Get_accumulate!(origin_buf::Buffer, result_buf::Buffer, target_rank::Integer, target_disp::Integer, op::Op, win::Win)
     # int MPI_Get_accumulate(const void *origin_addr, int origin_count,
     #                        MPI_Datatype origin_datatype, void *result_addr,

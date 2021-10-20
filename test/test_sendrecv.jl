@@ -26,45 +26,44 @@ recv_mesg_expected = ArrayType{Float64}(undef,N)
 fill!(send_mesg, Float64(rank))
 fill!(recv_mesg_expected, Float64(src))
 
-rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
-sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
+rreq = MPI.Irecv!(recv_mesg, comm; source=src,  tag=src+32)
+sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=rank+32)
 
-stats = MPI.Waitall!([sreq, rreq])
+stats = MPI.Waitall([sreq, rreq], MPI.Status)
 @test rreq isa MPI.Request
 @test sreq isa MPI.Request
 @test MPI.Get_source(stats[2]) == src
 @test MPI.Get_tag(stats[2]) == src+32
 @test recv_mesg == recv_mesg_expected
 
-(done, stats) = MPI.Testall!([sreq, rreq])
-@test done
+@test MPI.Testall([sreq, rreq])
 
 if rank == 0
-    MPI.send(send_mesg, dst, rank+32, comm)
+    MPI.send(send_mesg, comm; dest=dst, tag=rank+32)
     recv_mesg = recv_mesg_expected
 elseif rank == size-1
-    (recv_mesg, _) = MPI.recv(src, src+32, comm)
+    recv_mesg = MPI.recv(comm; source=src, tag=src+32)
 else
-    (recv_mesg, _) = MPI.recv(src, src+32, comm)
-    MPI.send(send_mesg, dst, rank+32, comm)
+    recv_mesg = MPI.recv(comm; source=src, tag=src+32)
+    MPI.send(send_mesg, comm; dest=dst, tag=rank+32)
 end
 @test recv_mesg == recv_mesg_expected
 
 
 if rank == 0
-    MPI.Send(Float64(rank), dst, rank+32, comm)
+    MPI.Send(Float64(rank), comm; dest=dst, tag=rank+32)
     recv_val = Float64(src)
 elseif rank == size-1
-    (recv_val, _) = MPI.Recv(Float64, src, src+32, comm)
+    recv_val = MPI.Recv(Float64, comm; source=src, tag=src+32)
 else
-    (recv_val, _) = MPI.Recv(Float64, src, src+32, comm)
-    MPI.Send(Float64(rank), dst, rank+32, comm)
+    recv_val = MPI.Recv(Float64, comm; source=src, tag=src+32)
+    MPI.Send(Float64(rank), comm; dest=dst, tag=rank+32)
 end
 @test recv_val == Float64(src)
 
 
-rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
-sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
+rreq = MPI.Irecv!(recv_mesg, comm; source=src,  tag=src+32)
+sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=rank+32)
 
 req_arr = [sreq,rreq]
 inds = MPI.Waitsome(req_arr)
@@ -72,7 +71,7 @@ for i in inds
     @test MPI.Test(req_arr[i])
 end
 
-rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
+rreq = MPI.Irecv!(recv_mesg, comm; source=src,  tag=src+32)
 MPI.Cancel!(rreq)
 MPI.Wait(rreq)
 @test rreq.buffer == nothing
@@ -108,8 +107,8 @@ comm_cart = MPI.Cart_create(comm, 1, Cint[comm_size], Cint[1], false)
 src_rank, dest_rank = MPI.Cart_shift(comm_cart, 0, -1)
 
 # execute left shift using subarrays
-MPI.Sendrecv!(@view(a[1]), dest_rank, 0,
-              @view(a[3]), src_rank,  0, comm_cart)
+MPI.Sendrecv!(@view(a[1]), @view(a[3]), comm_cart;
+        dest=dest_rank, sendtag=0, source=src_rank, recvtag=0)
 
 @test a == [comm_rank, comm_rank, (comm_rank+1) % comm_size]
 
@@ -117,21 +116,20 @@ MPI.Sendrecv!(@view(a[1]), dest_rank, 0,
 # ---------------------------
 a = Float64[comm_rank, comm_rank, comm_rank]
 b = Float64[       -1,        -1,        -1]
-MPI.Sendrecv!(@view(a[1:2]), dest_rank, 1,
-              @view(b[1:2]), src_rank,  1, comm_cart)
-
+MPI.Sendrecv!(@view(a[1:2]), @view(b[1:2]), comm_cart;
+        dest=dest_rank, sendtag=1, source=src_rank, recvtag=1)
 @test b == [(comm_rank+1) % comm_size, (comm_rank+1) % comm_size, -1]
 
 # send entire buffer
 # ---------------------------
 a = Float64[comm_rank, comm_rank, comm_rank]
 b = Float64[       -1,        -1,        -1]
-MPI.Sendrecv!(a, dest_rank, 2,
-              b,  src_rank, 2, comm_cart)
+MPI.Sendrecv!(a, b,  comm_cart;
+        dest=dest_rank, sendtag=2, source=src_rank, recvtag=2)
 
 @test b == [(comm_rank+1) % comm_size, (comm_rank+1) % comm_size, (comm_rank+1) % comm_size]
 
-@test MPI.Waitall!(MPI.Request[]) == MPI.Status[]
+@test MPI.Waitall(MPI.Request[], MPI.Status) == MPI.Status[]
 
 MPI.Finalize()
 # @test MPI.Finalized()

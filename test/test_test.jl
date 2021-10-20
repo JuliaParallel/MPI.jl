@@ -25,37 +25,37 @@ recv_mesg_expected = ArrayType{Float64}(undef,N)
 fill!(send_mesg, Float64(rank))
 fill!(recv_mesg_expected, Float64(src))
 
-rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
-sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
+rreq = MPI.Irecv!(recv_mesg, comm; source=src, tag=src+32)
+sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=rank+32, )
 
 reqs = [sreq,rreq]
 
-(inds,stats) = MPI.Waitsome!(reqs)
+inds = MPI.Waitsome(reqs)
 @test !isempty(inds)
 for ind in inds
-    (onedone,stat) = MPI.Test!(reqs[ind])
+    (onedone,stat) = MPI.Test(reqs[ind], MPI.Status)
     @test onedone
     @test stat.source == MPI.MPI_ANY_SOURCE
     @test stat.tag == MPI.MPI_ANY_TAG
     @test stat.error == MPI.MPI_SUCCESS
 end
 
-(done, ind, stats) = MPI.Testany!(reqs)
-if done && ind != 0
-    (onedone,stat) = MPI.Test!(reqs[ind])
+done, ind = MPI.Testany(reqs)
+if done && !isnothing(ind)
+    (onedone,stat) = MPI.Test(reqs[ind], MPI.Status)
     @test onedone
     @test stat.source == MPI.MPI_ANY_SOURCE
     @test stat.tag == MPI.MPI_ANY_TAG
     @test stat.error == MPI.MPI_SUCCESS
 end
 
-MPI.Waitall!(reqs)
+MPI.Waitall(reqs)
 
-(inds, stats) = MPI.Waitsome!(reqs)
-@test isempty(inds)
+(inds, stats) = MPI.Waitsome(reqs, MPI.Status)
+@test isnothing(inds)
 @test isempty(stats)
-(inds, stats) = MPI.Testsome!(reqs)
-@test isempty(inds)
+(inds, stats) = MPI.Testsome(reqs, MPI.Status)
+@test isnothing(inds)
 @test isempty(stats)
 
 MPI.Finalize()

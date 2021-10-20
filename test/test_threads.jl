@@ -30,11 +30,11 @@ if provided == MPI.THREAD_MULTIPLE
     reqs = Array{MPI.Request}(undef, 2N)
 
     Threads.@threads for i = 1:N
-        reqs[N+i] = MPI.Irecv!(@view(recv_arr[i:i]), src, i, comm)
-        reqs[i] = MPI.Isend(@view(send_arr[i:i]), dst, i, comm)
+        reqs[N+i] = MPI.Irecv!(@view(recv_arr[i:i]), comm; source=src, tag=i)
+        reqs[i] = MPI.Isend(@view(send_arr[i:i]), comm; dest=dst, tag=i)
     end
 
-    MPI.Waitall!(reqs)
+    MPI.Waitall(reqs)
 
     @test recv_arr == send_arr
 end

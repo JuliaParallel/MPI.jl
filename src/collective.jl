@@ -37,7 +37,7 @@ end
 
 
 """
-    Bcast!(buf, root::Integer, comm::Comm)
+    Bcast!(buf, comm::Comm; root::Integer=0)
 
 Broadcast the buffer `buf` from `root` to all processes in `comm`.
 
@@ -47,6 +47,9 @@ Broadcast the buffer `buf` from `root` to all processes in `comm`.
 # External links
 $(_doc_external("MPI_Bcast"))
 """
+Bcast!(buf, comm::Comm; root::Integer=Cint(0)) =
+    Bcast!(buf, root, comm)
+
 function Bcast!(buf::Buffer, root::Integer, comm::Comm)
     # int MPI_Bcast(void* buffer, int count, MPI_Datatype datatype, int root,
     #               MPI_Comm comm)
@@ -60,14 +63,17 @@ function Bcast!(data, root::Integer, comm::Comm)
 end
 
 """
-    bcast(obj, root::Integer, comm::Comm)
+    bcast(obj, comm::Comm; root::Integer=0)
 
-Broadcast the object `obj` from rank `root` to all processes on `comm`. This is able to handle arbitrary data.
+Broadcast the object `obj` from rank `root` to all processes on `comm`. This is
+able to handle arbitrary data.
 
 # See also
 
 - [`Bcast!`](@ref)
 """
+bcast(obj, comm::Comm; root::Integer=Cint(0)) =
+    bcast(obj, root, comm)
 function bcast(obj, root::Integer, comm::Comm)
     isroot = Comm_rank(comm) == root
     count = Ref{Cint}()
@@ -87,7 +93,8 @@ function bcast(obj, root::Integer, comm::Comm)
 end
 
 """
-    Scatter!(sendbuf::Union{UBuffer,Nothing}, recvbuf, root::Integer, comm::Comm)
+    Scatter!(sendbuf::Union{UBuffer,Nothing}, recvbuf, comm::Comm;
+        root::Integer=0)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks,
 sending the `j`-th chunk to the process of rank `j-1` into the `recvbuf` buffer.
@@ -101,9 +108,9 @@ defined. On the root process, it can also be [`MPI.IN_PLACE`](@ref), in which ca
 unmodified. For example:
 ```
 if root == MPI.Comm_rank(comm)
-    MPI.Scatter!(UBuffer(buf, count), MPI.IN_PLACE, root, comm)
+    MPI.Scatter!(UBuffer(buf, count), MPI.IN_PLACE, comm; root=root)
 else
-    MPI.Scatter!(nothing, buf, root, comm)        
+    MPI.Scatter!(nothing, buf, comm; root=root)
 end
 ```
 
@@ -113,6 +120,8 @@ end
 # External links
 $(_doc_external("MPI_Scatter"))
 """
+Scatter!(sendbuf, recvbuf, comm::Comm; root::Integer=Cint(0)) =
+    Scatter!(sendbuf, recvbuf, root, comm)
 function Scatter!(sendbuf::UBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
     if sendbuf.nchunks !== nothing && Comm_rank(comm) == root
         @assert sendbuf.nchunks >= Comm_size(comm)
@@ -134,10 +143,10 @@ Scatter!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
 
 # determine UBuffer count from recvbuf
 Scatter!(sendbuf::AbstractArray{T}, recvbuf::Union{Ref{T},AbstractArray{T}}, root::Integer, comm::Comm) where {T} =
-    Scatter!(UBuffer(sendbuf,length(recvbuf)), recvbuf, root, comm)    
+    Scatter!(UBuffer(sendbuf,length(recvbuf)), recvbuf, root, comm)
 
 """
-    Scatter(sendbuf, T, root::Integer, comm::Comm)
+    Scatter(sendbuf, T, comm::Comm; root::Integer=0)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks,
 sending the `j`-th chunk to the process of rank `j-1` as an object of type `T`.
@@ -145,13 +154,13 @@ sending the `j`-th chunk to the process of rank `j-1` as an object of type `T`.
 # See also
 - [`Scatter!`](@ref)
 """
-function Scatter(sendbuf, ::Type{T}, root::Integer, comm::Comm) where {T}
+Scatter(sendbuf, T, comm; root::Integer=Cint(0)) =
+    Scatter(sendbuf, T, root, comm)
+Scatter(sendbuf, ::Type{T}, root::Integer, comm::Comm) where {T} =
     Scatter!(sendbuf, Ref{T}(), root, comm)[]
-end
-
 
 """
-    Scatterv!(sendbuf, recvbuf, root, comm)
+    Scatterv!(sendbuf, recvbuf, comm::Comm; root::Integer=0)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks and sends
 the `j`th chunk to the process of rank `j-1` into the `recvbuf` buffer.
@@ -164,9 +173,9 @@ defined. On the root process, it can also be [`MPI.IN_PLACE`](@ref), in which ca
 unmodified. For example:
 ```
 if root == MPI.Comm_rank(comm)
-    MPI.Scatterv!(VBuffer(buf, counts), MPI.IN_PLACE, root, comm)
+    MPI.Scatterv!(VBuffer(buf, counts), MPI.IN_PLACE, comm; root=root)
 else
-    MPI.Scatterv!(nothing, buf, root, comm)
+    MPI.Scatterv!(nothing, buf, comm; root=root)
 end
 ```
 
@@ -176,6 +185,8 @@ end
 # External links
 $(_doc_external("MPI_Scatterv"))
 """
+Scatterv!(sendbuf, recvbuf, comm::Comm; root::Integer=Cint(0)) =
+    Scatterv!(sendbuf, recvbuf, root, comm)
 function Scatterv!(sendbuf::VBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
     if Comm_rank(comm) == root
         @assert length(sendbuf.counts) >= Comm_size(comm)
@@ -198,7 +209,7 @@ Scatterv!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
 
 
 """
-    Gather!(sendbuf, recvbuf::Union{UBuffer,Nothing}, root::Integer, comm::Comm)
+    Gather!(sendbuf, recvbuf, comm::Comm; root::Integer=0)
 
 Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
 process stores elements in rank order in the buffer buffer `recvbuf`.
@@ -212,9 +223,9 @@ case the corresponding entries in `recvbuf` are assumed to be already in place (
 corresponds the behaviour of `MPI_IN_PLACE` in `MPI_Gather`). For example:
 ```
 if root == MPI.Comm_rank(comm)
-    MPI.Gather!(MPI.IN_PLACE, UBuffer(buf, count), root, comm)
+    MPI.Gather!(MPI.IN_PLACE, UBuffer(buf, count), comm; root=root)
 else
-    MPI.Gather!(buf, nothing, root, comm)
+    MPI.Gather!(buf, nothing, comm; root=root)
 end
 ```
 
@@ -230,6 +241,8 @@ can be `nothing`.
 # External links
 $(_doc_external("MPI_Gather"))
 """
+Gather!(sendbuf, recvbuf, comm::Comm; root::Integer=Cint(0)) =
+    Gather!(sendbuf, recvbuf, root, comm)
 function Gather!(sendbuf::Buffer, recvbuf::UBuffer, root::Integer, comm::Comm)
     if recvbuf.nchunks !== nothing && Comm_rank(comm) == root
         @assert recvbuf.nchunks >= Comm_size(comm)
@@ -255,7 +268,7 @@ Gather!(sendbuf::Nothing, recvbuf, root::Integer, comm::Comm) =
 
 
 """
-    Gather(sendbuf, root, comm::Comm)
+    Gather(sendbuf, comm::Comm; root=0)
 
 Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
 allocates the output buffer and stores elements in rank order.
@@ -271,13 +284,15 @@ processes.
 # External links
 $(_doc_external("MPI_Gather"))
 """
+Gather(sendbuf, comm::Comm; root::Integer=Cint(0)) =
+    Gather(sendbuf, root, comm)
 Gather(sendbuf::AbstractArray, root::Integer, comm::Comm) =
     Gather!(sendbuf, Comm_rank(comm) == root ? similar(sendbuf, Comm_size(comm) * length(sendbuf)) : nothing, root, comm)
 Gather(object::T, root::Integer, comm::Comm) where {T} =
     Gather!(Ref(object), Comm_rank(comm) == root ? Array{T}(undef, Comm_size(comm)) : nothing, root, comm)
 
 """
-    Gatherv!(sendbuf, recvbuf::Union{VBuffer,Nothing}, root, comm)
+    Gatherv!(sendbuf, recvbuf, comm::Comm; root::Integer=0)
 
 Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
 stores elements in rank order in the buffer `recvbuf`.
@@ -289,9 +304,9 @@ On the root process, `sendbuf` can be [`MPI.IN_PLACE`](@ref), in which case the
 corresponding entries in `recvbuf` are assumed to be already in place. For example
 ```
 if root == MPI.Comm_rank(comm)
-    Gatherv!(MPI.IN_PLACE, VBuffer(buf, counts), root, comm)
+    Gatherv!(MPI.IN_PLACE, VBuffer(buf, counts), comm; root=root)
 else
-    Gatherv!(buf, nothing, root, comm)
+    Gatherv!(buf, nothing, comm; root=root)
 end
 ```
 
@@ -307,6 +322,8 @@ can be `nothing`.
 # External links
 $(_doc_external("MPI_Gatherv"))
 """
+Gatherv!(sendbuf, recvbuf, comm::Comm; root::Integer=Cint(0)) =
+    Gatherv!(sendbuf, recvbuf, root, comm)
 function Gatherv!(sendbuf::Buffer, recvbuf::VBuffer, root::Integer, comm::Comm)
     if Comm_rank(comm) == root
         @assert length(recvbuf.counts) >= Comm_size(comm)
@@ -518,7 +535,7 @@ Alltoall(sendbuf::UBuffer,  comm::Comm) =
 """
     Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
 
-Similar to [`Alltoall!`](@ref), except with different size chunks per process. 
+Similar to [`Alltoall!`](@ref), except with different size chunks per process.
 
 # See also
 - [`VBuffer`](@ref)
@@ -542,7 +559,7 @@ function Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
                   sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
                   recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
                   comm)
-    
+
     return recvbuf.data
 end
 
@@ -553,13 +570,13 @@ end
 
 # mutating
 """
-    Reduce!(sendbuf, recvbuf, op, root::Integer, comm::Comm)
-    Reduce!(sendrecvbuf, op, root::Integer, comm::Comm)
+    Reduce!(sendbuf, recvbuf, op, comm::Comm; root::Integer=0)
+    Reduce!(sendrecvbuf, op, comm::Comm; root::Integer=0)
 
 Performs elementwise reduction using the operator `op` on the buffer `sendbuf` and stores
 the result in `recvbuf` on the process of rank `root`.
 
-On non-root processes `recvbuf` is ignored, and can be `nothing`. 
+On non-root processes `recvbuf` is ignored, and can be `nothing`.
 
 To perform the reduction in place, provide a single buffer `sendrecvbuf`.
 
@@ -571,6 +588,11 @@ To perform the reduction in place, provide a single buffer `sendrecvbuf`.
 # External links
 $(_doc_external("MPI_Reduce"))
 """
+Reduce!(sendrecvbuf, op, comm::Comm; root::Integer=Cint(0)) =
+    Reduce!(sendrecvbuf, op, root, comm)
+Reduce!(sendbuf, recvbuf, op, comm::Comm; root::Integer=Cint(0)) =
+    Reduce!(sendbuf, recvbuf, op, root, comm)
+
 function Reduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm)
     # int MPI_Reduce(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
@@ -597,7 +619,7 @@ end
 
 # allocating
 """
-    recvbuf = Reduce(sendbuf, op, root::Integer, comm::Comm)
+    recvbuf = Reduce(sendbuf, op, comm::Comm; root::Integer=0)
 
 Performs elementwise reduction using the operator `op` on the buffer `sendbuf`, returning
 the result `recvbuf` on the process of rank `root`, and `nothing` on non-root processes.
@@ -612,8 +634,10 @@ the result `recvbuf` on the process of rank `root`, and `nothing` on non-root pr
 # External links
 $(_doc_external("MPI_Reduce"))
 """
+Reduce(sendbuf, op, comm::Comm; root::Integer=Cint(0)) =
+    Reduce(sendbuf, op, root, comm)
 function Reduce(sendbuf::AbstractArray, op, root::Integer, comm::Comm)
-    if Comm_rank(comm) == root 
+    if Comm_rank(comm) == root
         Reduce!(sendbuf, similar(sendbuf), op, root, comm)
     else
         Reduce!(sendbuf, nothing, op, root, comm)

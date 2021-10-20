@@ -19,22 +19,22 @@ root = sz-1
 isroot = rank == root
 
 val = isroot ? sum(0:sz-1) : nothing
-@test MPI.Reduce(rank, MPI.SUM, root, comm) == val
-@test MPI.Reduce(rank, +, root, comm) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, +, comm; root=root) == val
 
 val = isroot ? sz-1 : nothing
-@test MPI.Reduce(rank, MPI.MAX, root, comm) == val
-@test MPI.Reduce(rank, max, root, comm) == val
+@test MPI.Reduce(rank, MPI.MAX, comm; root=root) == val
+@test MPI.Reduce(rank, max, comm; root=root) == val
 
 val = isroot ? 0 : nothing
-@test MPI.Reduce(rank, MPI.MIN, root, comm) == val
-@test MPI.Reduce(rank, min, root, comm) == val
+@test MPI.Reduce(rank, MPI.MIN, comm; root=root) == val
+@test MPI.Reduce(rank, min, comm; root=root) == val
 
 val = isroot ? sz : nothing
 @test MPI.Reduce(1, +, root, comm) == val
 
 mesg = ArrayType(1.0:5.0)
-sum_mesg = MPI.Reduce(mesg, +, root, comm)
+sum_mesg = MPI.Reduce(mesg, +, comm; root=root)
 if isroot
     @test sum_mesg isa ArrayType{Float64}
     @test sum_mesg == sz .* mesg
@@ -46,7 +46,7 @@ if ArrayType != Array || MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE ==
     operators = [MPI.SUM, +]
 else
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
-end    
+end
 
 for T = [Int]
     for dims = [1, 2, 3]
@@ -57,7 +57,7 @@ for T = [Int]
 
             # Non allocating version
             recv_arr = ArrayType{T}(undef, size(send_arr))
-            MPI.Reduce!(send_arr, recv_arr, op, root, MPI.COMM_WORLD)
+            MPI.Reduce!(send_arr, recv_arr, op, MPI.COMM_WORLD; root=root)
             if isroot
                 @test recv_arr == sz .* send_arr
             end
@@ -65,36 +65,34 @@ for T = [Int]
             # Assertions when output buffer too small
             recv_arr = ArrayType{T}(undef, size(send_arr).-1)
             if isroot
-                @test_throws AssertionError MPI.Reduce!(send_arr, recv_arr,
-                                                        op, root,
-                                                        MPI.COMM_WORLD)
+                @test_throws AssertionError MPI.Reduce!(send_arr, recv_arr, op, MPI.COMM_WORLD; root=root)
             end
-            
+
             # IN_PLACE
             recv_arr = copy(send_arr)
-            MPI.Reduce!(recv_arr, op, root, MPI.COMM_WORLD)
+            MPI.Reduce!(recv_arr, op, MPI.COMM_WORLD; root=root)
             if isroot
                 @test recv_arr == sz .* send_arr
             end
 
             # Allocating version
-            r = MPI.Reduce(2, op, root, MPI.COMM_WORLD)
+            r = MPI.Reduce(2, op, MPI.COMM_WORLD; root=root)
             if isroot
                 @test r == sz*2
             end
-            
-            recv_arr = MPI.Reduce(send_arr, op, root, MPI.COMM_WORLD)
+
+            recv_arr = MPI.Reduce(send_arr, op, MPI.COMM_WORLD; root=root)
             if isroot
                 @test recv_arr isa ArrayType{T}
                 @test recv_arr == sz .* send_arr
             end
 
             # Allocating, Subarray
-            recv_arr = MPI.Reduce(view(send_arr, 2:3), op, root, MPI.COMM_WORLD)
+            recv_arr = MPI.Reduce(view(send_arr, 2:3), op, MPI.COMM_WORLD; root=root)
             if isroot
                 @test recv_arr isa ArrayType{T}
                 @test recv_arr == sz .* view(send_arr, 2:3)
-            end                
+            end
         end
     end
 end
@@ -110,9 +108,9 @@ else
     send_arr = [Double64(i)/10 for i = 1:10]
 
     if rank == root
-        @test MPI.Reduce(send_arr, +, root, MPI.COMM_WORLD) ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
+        @test MPI.Reduce(send_arr, +, MPI.COMM_WORLD; root=root) ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
     else
-        @test MPI.Reduce(send_arr, +, root, MPI.COMM_WORLD) === nothing
+        @test MPI.Reduce(send_arr, +, MPI.COMM_WORLD; root=root) === nothing
     end
 
     MPI.Barrier( MPI.COMM_WORLD )
