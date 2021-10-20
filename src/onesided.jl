@@ -12,10 +12,11 @@ function free(win::Win)
     return nothing
 end
 
-@enum LockType begin
-    LOCK_EXCLUSIVE = MPI_LOCK_EXCLUSIVE
-    LOCK_SHARED = MPI_LOCK_SHARED
+mutable struct LockType
+    val::Cint
 end
+const LOCK_EXCLUSIVE = LockType(MPI_LOCK_EXCLUSIVE)
+const LOCK_SHARED = LockType(MPI_LOCK_SHARED)
 LockType(sym::Symbol) =
     sym == :exclusive ? LOCK_EXCLUSIVE :
     sym == :shared ? LOCK_SHARED :
