@@ -25,18 +25,15 @@ recv_mesg_expected = ArrayType{Float64}(undef,N)
 fill!(send_mesg, Float64(rank))
 fill!(recv_mesg_expected, Float64(src))
 
-rreq = MPI.Irecv!(recv_mesg, src, src+32, comm)
-sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
+rreq = MPI.Irecv!(recv_mesg, comm; source=src, tag=src+32)
+sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=rank+32, )
 
 reqs = [sreq,rreq]
 
-# Note: This Waitsome! sets the respective requests to REQUEST_NULL.
-# The calls to Test! etc. further below will not do anything, and will
-# return an empty status (as defined e.g. in MPI 3.1, section 3.7.3).
-(inds,stats) = MPI.Waitsome!(reqs)
+inds = MPI.Waitsome(reqs)
 @test !isempty(inds)
 for ind in inds
-    (onedone,stat) = MPI.Test!(reqs[ind])
+    (onedone,stat) = MPI.Test(reqs[ind], MPI.Status)
     @test onedone
     @test MPI.Get_tag(stat) == MPI.MPI_ANY_TAG
     @test MPI.Get_source(stat) == MPI.MPI_ANY_SOURCE
@@ -44,9 +41,9 @@ for ind in inds
     @test MPI.Get_count(stat, Float64) == 0
 end
 
-(done, ind, stats) = MPI.Testany!(reqs)
-if done && ind != 0   # should be MPI.MPI_UNDEFINED?
-    (onedone,stat) = MPI.Test!(reqs[ind])
+done, ind = MPI.Testany(reqs)
+if done && !isnothing(ind)
+    (onedone,stat) = MPI.Test(reqs[ind], MPI.Status)
     @test onedone
     @test MPI.Get_tag(stat) == MPI.MPI_ANY_TAG
     @test MPI.Get_source(stat) == MPI.MPI_ANY_SOURCE
@@ -54,13 +51,13 @@ if done && ind != 0   # should be MPI.MPI_UNDEFINED?
     @test MPI.Get_count(stat, Float64) == 0
 end
 
-MPI.Waitall!(reqs)
+MPI.Waitall(reqs)
 
-(inds, stats) = MPI.Waitsome!(reqs)
-@test isempty(inds)
+(inds, stats) = MPI.Waitsome(reqs, MPI.Status)
+@test isnothing(inds)
 @test isempty(stats)
-(inds, stats) = MPI.Testsome!(reqs)
-@test isempty(inds)
+(inds, stats) = MPI.Testsome(reqs, MPI.Status)
+@test isnothing(inds)
 @test isempty(stats)
 
 MPI.Finalize()

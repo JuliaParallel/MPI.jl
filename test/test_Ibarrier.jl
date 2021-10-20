@@ -29,12 +29,12 @@ mysize = MPI.Comm_size(comm)
 if myrank == 0
   for reps in 1:10
     for ii in 1:(mysize-1)
-      smsg = MPI.Send(ii + 4, ii, ii, comm)
+      smsg = MPI.Send(ii + 4, comm; dest=ii, tag=ii)
     end
   end
   for ii in 1:(mysize-1)
     dummy  = [0]
-    rmsg   = MPI.Recv!(dummy, ii, ii, comm)
+    rmsg   = MPI.Recv!(dummy, comm; source=ii, tag=ii)
   end
 end
     
@@ -47,7 +47,7 @@ msg_num = 0
 barrier_req = MPI.Ibarrier(comm)
 
 
-all_done, barrier_status = MPI.Test!(barrier_req)
+all_done = MPI.Test(barrier_req)
 
 while !all_done
   global all_done
@@ -56,14 +56,14 @@ while !all_done
   is_request, recv_id, tag_ind = check_for_query(comm)
   if is_request 
     dummy     = [0]
-    rmsg      = MPI.Recv!(dummy, recv_id, tag_ind, comm)
+    rmsg      = MPI.Recv!(dummy, comm; source=recv_id, tag=tag_ind)
     msg_num  += 1
     global localsum += dummy[1]
   end # is_request
   if msg_num == 10
-    smsg = MPI.Send(tag_ind, 0, myrank, comm)
+    smsg = MPI.Send(tag_ind, comm; dest=0, tag=myrank)
   end
-  all_done, barrier_status = MPI.Test!(barrier_req)
+  all_done = MPI.Test(barrier_req)
 end # !all_done 
 
 if myrank > 0
