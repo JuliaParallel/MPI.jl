@@ -33,6 +33,7 @@ const MPI_REPLACE = reinterpret(Cint, 0x5800000d)
 const MPI_NO_OP   = reinterpret(Cint, 0x5800000e)
 
 const MPI_Errhandler = Cint
+const MPI_ERRHANDLER_NULL = Cint(0x14000000)
 const MPI_ERRORS_ARE_FATAL = Cint(0x54000000)
 const MPI_ERRORS_RETURN = Cint(0x54000001)
 
