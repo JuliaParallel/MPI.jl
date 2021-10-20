@@ -228,6 +228,7 @@ elseif binary == "OpenMPI_jll"
             # TODO: this should be done in OpenMPI_jll package
             # https://github.com/JuliaPackaging/Yggdrasil/issues/390
             ENV["OPAL_PREFIX"] = OpenMPI_jll.artifact_dir
+            init_openmpi_constants()
         end
     end
 elseif binary == "MicrosoftMPI_jll"

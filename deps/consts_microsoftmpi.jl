@@ -115,6 +115,9 @@ const MPI_CONGRUENT = Cint(1)
 const MPI_SIMILAR = Cint(2)
 const MPI_UNEQUAL = Cint(3)
 
+const MPI_TYPE_NULL_COPY_FN = C_NULL
+const MPI_TYPE_NULL_DELETE_FN = C_NULL
+
 const MPI_BOTTOM = reinterpret(SentinelPtr, 0)
 const MPI_IN_PLACE = reinterpret(SentinelPtr, -1)
 

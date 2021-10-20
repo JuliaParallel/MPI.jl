@@ -127,8 +127,19 @@ const MPI_CONGRUENT = Cint(1)
 const MPI_SIMILAR = Cint(2)
 const MPI_UNEQUAL = Cint(3)
 
+# Will be initialized at load time
+global MPI_TYPE_NULL_COPY_FN = nothing
+global MPI_TYPE_NULL_DELETE_FN = nothing
+
 const MPI_BOTTOM = reinterpret(SentinelPtr, 0)
 const MPI_IN_PLACE = reinterpret(SentinelPtr, 1)
 const MPI_STATUS_IGNORE = reinterpret(SentinelPtr, 0)
 const MPI_STATUSES_IGNORE = reinterpret(SentinelPtr, 0)
 
+"""
+Initialize those OpenMPI constants that are only known at load time
+"""
+function init_opeenmpi_constants()
+    global MPI_TYPE_NULL_COPY_FN = unsafe_load(cglobal(:MPI_TYPE_NULL_COPY_FN, libmpi, Ptr{Cvoid}))
+    global MPI_TYPE_NULL_DELETE_FN = unsafe_load(cglobal(:MPI_TYPE_NULL_DELETE_FN, libmpi, Ptr{Cvoid}))
+end
