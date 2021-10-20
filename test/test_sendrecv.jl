@@ -77,7 +77,7 @@ req_arr = [sreq,rreq]
 inds = MPI.Waitsome(req_arr)
 for i in inds
     global done
-    (done, status) = MPI.Test(req_arr[i])
+    done = MPI.Test(req_arr[i])
     @test done
 end
 
