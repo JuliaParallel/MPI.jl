@@ -227,7 +227,7 @@ function Win_lock(lock_type::LockType, rank::Integer, assert::Integer, win::Win)
     # int MPI_Win_lock(int lock_type, int rank, int assert, MPI_Win win)
     @mpichk ccall((:MPI_Win_lock, libmpi), Cint,
                   (Cint, Cint, Cint, MPI_Win),
-                  lock_type, rank, assert, win)
+                  lock_type.val, rank, assert, win)
 end
 
 """
