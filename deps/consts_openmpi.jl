@@ -142,6 +142,6 @@ Initialize those OpenMPI constants that are only known at load time
 """
 function init_openmpi_constants()
     # These symbols are functions in OpenMPI, and we need their address
-    global MPI_TYPE_NULL_COPY_FN = cglobal(:MPI_TYPE_NULL_COPY_FN, libmpi)
-    global MPI_TYPE_NULL_DELETE_FN = cglobal(:MPI_TYPE_NULL_DELETE_FN, libmpi)
+    global MPI_TYPE_NULL_COPY_FN = cglobal((:MPI_TYPE_NULL_COPY_FN, libmpi))
+    global MPI_TYPE_NULL_DELETE_FN = cglobal((:MPI_TYPE_NULL_DELETE_FN, libmpi))
 end
