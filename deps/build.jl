@@ -141,6 +141,8 @@ if binary == "system"
                      error("MicrosoftMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
             @require(OpenMPI_jll       = "fe0851c0-eecd-5654-98d4-656369965a5c",
                      error("OpenMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
+
+            init_system_constants()
         end
     end
 elseif binary == ""
