@@ -109,10 +109,10 @@ if binary == "system"
         abi_setup = :nothing
     elseif abi == "MPItrampoline"
         abi_incl = :(include("consts_mpitrampoline.jl"))
-        abi_setup = :nothing
+        abi_setup = :(init_mpitrampoline_constants())
     elseif abi == "OpenMPI"
         abi_incl = :(include("consts_openmpi.jl"))
-        abi_setup = :nothing
+        abi_setup = :(init_openmpi_constants())
     elseif abi == "MicrosoftMPI"
         abi_incl = :(include("consts_microsoftmpi.jl"))
         abi_setup = :nothing
