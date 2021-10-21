@@ -99,6 +99,7 @@ MPI_handle = [
         :MPI_COMM_WORLD,
     ],
     :MPI_Errhandler => [
+        :MPI_ERRHANDLER_NULL,
         :MPI_ERRORS_ARE_FATAL,
         :MPI_ERRORS_RETURN,
     ],
