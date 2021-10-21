@@ -170,8 +170,8 @@ open("gen_consts.c","w") do f
     print(f,"""
 #include <mpi.h>
 
+#include <inttypes.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
