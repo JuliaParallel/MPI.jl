@@ -106,15 +106,20 @@ if binary == "system"
     end
     if abi == "MPICH"
         abi_incl = :(include("consts_mpich.jl"))
+        abi_setup = :nothing
     elseif abi == "MPItrampoline"
         abi_incl = :(include("consts_mpitrampoline.jl"))
+        abi_setup = :nothing
     elseif abi == "OpenMPI"
         abi_incl = :(include("consts_openmpi.jl"))
+        abi_setup = :nothing
     elseif abi == "MicrosoftMPI"
         abi_incl = :(include("consts_microsoftmpi.jl"))
+        abi_setup = :nothing
     else
         include("gen_consts.jl")
         abi_incl = :(include("consts.jl"))
+        abi_setup = :(init_system_constants())
     end
 
 
@@ -142,7 +147,7 @@ if binary == "system"
             @require(OpenMPI_jll       = "fe0851c0-eecd-5654-98d4-656369965a5c",
                      error("OpenMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
 
-            init_system_constants()
+            $abi_setup
         end
     end
 elseif binary == ""
