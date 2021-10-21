@@ -168,16 +168,17 @@ const libptr = dlopen_e(libmpi)
 
 open("gen_consts.c","w") do f
     print(f,"""
-#include <stdio.h>
+#include <mpi.h>
+
 #include <stddef.h>
-#include <inttypes.h>
-#include "mpi.h"
+#include <stdint.h>
+#include <stdio.h>
 
 int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
 
-    FILE *fptr;
-    fptr = fopen("consts.jl", "a");
+    FILE *fptr = fopen("consts.jl", "r+");
+    fseek(fptr, 0, SEEK_END);
 
 """)
 
