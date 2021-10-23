@@ -20,6 +20,13 @@ else
 end
 
 @show `$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.c $cflags`
+run(`ls -l $libmpi`)
+run(`file $libmpi`)
+if Sys.isunix() 
+    run(`ldd $libmpi`)
+elseif Sys.isapple() 
+    run(`otool -L $libmpi`)
+end
 run(`$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.c $cflags`)
 run(`ls -l generate_compile_time_mpi_constants`)
 run(`file generate_compile_time_mpi_constants`)
