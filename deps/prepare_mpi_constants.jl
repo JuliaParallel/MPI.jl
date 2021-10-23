@@ -22,7 +22,8 @@ end
 @show `$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.c $cflags`
 run(`ls -l $libmpi`)
 run(`file $libmpi`)
-if Sys.isunix() 
+run(`file -L $libmpi`)
+if Sys.isunix() && !Sys.isapple()
     run(`ldd $libmpi`)
 elseif Sys.isapple() 
     run(`otool -L $libmpi`)
@@ -30,13 +31,14 @@ end
 run(`$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.c $cflags`)
 run(`ls -l generate_compile_time_mpi_constants`)
 run(`file generate_compile_time_mpi_constants`)
+run(`file -L generate_compile_time_mpi_constants`)
 @show `$mpiexec_path -n 1 ./generate_compile_time_mpi_constants`
 run(`$mpiexec_path -n 1 ./generate_compile_time_mpi_constants`)
 
 run(`$mpicc -fPIC -shared -o load_time_mpi_constants.so load_time_mpi_constants.c $cflags`)
 run(`ls -l load_time_mpi_constants.so`)
 run(`file load_time_mpi_constants.so`)
-if Sys.isunix()
+if Sys.isunix() && !Sys.isapple()
     run(`ldd load_time_mpi_constants.so`)
 elseif Sys.isapple()
     run(`otool -L load_time_mpi_constants.so`)
