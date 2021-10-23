@@ -15,7 +15,7 @@ if Sys.isunix()
     include("mpiexecjl.jl")
 end
 
-nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS","")
+nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS", "")
 nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
 testdir = @__DIR__
 istest(f) = endswith(f, ".jl") && startswith(f, "test_")

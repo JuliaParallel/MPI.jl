@@ -25,9 +25,15 @@ delete!(info, key)
 If `init=false` is used in the costructor (the default), a "null" `Info` object will be
 returned: no keys can be added to such an object.
 """
-@mpi_handle Info <: AbstractDict{Symbol,String} MPI_Info
+mutable struct Info <: AbstractDict{Symbol,String}
+    val::MPI_Info
+end
+Base.:(==)(a::Info, b::Info) = a.val == b.val
+Base.cconvert(::Type{MPI_Info}, info::Info) = info.val
+Base.unsafe_convert(::Type{Ptr{MPI_Info}}, info::Info) = convert(Ptr{MPI_Info}, pointer_from_objref(info))
 
-const INFO_NULL = _Info(MPI_INFO_NULL)
+const INFO_NULL = Info(MPI_INFO_NULL)
+add_load_time_hook!(() -> INFO_NULL.val = MPI_INFO_NULL)
 
 function Info(;init=false)
     info = Info(INFO_NULL.val)

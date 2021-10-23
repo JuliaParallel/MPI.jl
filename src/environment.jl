@@ -44,10 +44,22 @@ function _warn_if_wrong_mpi()
 end
 
 
+"""
+    MPI.free(obj)
+
+Free the MPI object handle `obj`. This is typically used as the finalizer, and so need not be called directly unless otherwise noted.
+"""
+function free
+end
+
+
+const mpi_init_hooks = Any[]
+add_init_hook!(f) = push!(mpi_init_hooks, f)
 function run_init_hooks()
     for f in mpi_init_hooks
         f()
     end
+    empty!(mpi_init_hooks)
     return nothing
 end
 
@@ -144,6 +156,10 @@ const THREAD_SINGLE     = ThreadLevel(MPI_THREAD_SINGLE)
 const THREAD_FUNNELED   = ThreadLevel(MPI_THREAD_FUNNELED)
 const THREAD_SERIALIZED = ThreadLevel(MPI_THREAD_SERIALIZED)
 const THREAD_MULTIPLE   = ThreadLevel(MPI_THREAD_MULTIPLE)
+add_load_time_hook!(() -> THREAD_SINGLE.val     = MPI_THREAD_SINGLE    )
+add_load_time_hook!(() -> THREAD_FUNNELED.val   = MPI_THREAD_FUNNELED  )
+add_load_time_hook!(() -> THREAD_SERIALIZED.val = MPI_THREAD_SERIALIZED)
+add_load_time_hook!(() -> THREAD_MULTIPLE.val   = MPI_THREAD_MULTIPLE  )
 ThreadLevel(threadlevel::Symbol) =
     threadlevel == :single ? THREAD_SINGLE :
     threadlevel == :funneled ? THREAD_FUNNELED :

@@ -6,12 +6,19 @@ An MPI error handler object. Currently only two are supported:
 - `ERRORS_ARE_FATAL` (default): program will immediately abort
 - `ERRORS_RETURN`: program will throw an `MPIError`.
 """
-@mpi_handle ErrorHandler MPI_Errhandler
+mutable struct Errhandler
+    val::MPI_Errhandler
+end
+Base.:(==)(a::Errhandler, b::Errhandler) = a.val == b.val
+Base.cconvert(::Type{MPI_Errhandler}, errhandler::Errhandler) = errhandler.val
+Base.unsafe_convert(::Type{Ptr{MPI_Errhandler}}, errhandler::Errhandler) = convert(Ptr{MPI_Errhandler}, pointer_from_objref(errhandler))
 
-const ERRORS_ARE_FATAL = _ErrorHandler(MPI_ERRORS_ARE_FATAL)
-const ERRORS_RETURN = _ErrorHandler(MPI_ERRORS_RETURN)
+const ERRORS_ARE_FATAL = Errhandler(MPI_ERRORS_ARE_FATAL)
+const ERRORS_RETURN    = Errhandler(MPI_ERRORS_RETURN   )
+add_load_time_hook!(() -> ERRORS_ARE_FATAL.val = MPI_ERRORS_ARE_FATAL)
+add_load_time_hook!(() -> ERRORS_RETURN.val    = MPI_ERRORS_RETURN   )
 
-function free(errh::ErrorHandler)
+function free(errh::Errhandler)
     if !Finalized()
         # int MPI_Errhandler_free(MPI_Errhandler *errhandler)
         ref = Ref(errh)
@@ -30,50 +37,50 @@ end
     MPI.get_errorhandler(win::MPI.Win)
     MPI.get_errorhandler(file::MPI.File.FileHandle)
 
-Get the current [`ErrorHandler`](@ref) for the relevant MPI object.
+Get the current [`Errhandler`](@ref) for the relevant MPI object.
 
 # See also
 - [`set_errorhandler!`](@ref)
 """
 function get_errorhandler(comm::Comm)
-    # errh = ErrorHandler(ERRORS_ARE_FATAL.val)
+    # errh = Errhandler(ERRORS_ARE_FATAL.val)
     result = Ref(MPI_ERRHANDLER_NULL)
     @mpichk ccall((:MPI_Comm_get_errhandler, libmpi), Cint, (MPI_Comm, Ptr{MPI_Errhandler}), comm, result)
     # finalizer(free, errh)
-    return ErrorHandler(result[])
+    return Errhandler(result[])
 end
 function get_errorhandler(win::Win)
-    # errh = ErrorHandler(ERRORS_ARE_FATAL.val)
+    # errh = Errhandler(ERRORS_ARE_FATAL.val)
     result = Ref(MPI_ERRHANDLER_NULL)
     @mpichk ccall((:MPI_Win_get_errhandler, libmpi), Cint, (MPI_Win, Ptr{MPI_Errhandler}), win, result)
-    return ErrorHandler(result[])
+    return Errhandler(result[])
 end
 function get_errorhandler(file::File.FileHandle)
-    # errh = ErrorHandler(ERRORS_ARE_FATAL.val)
+    # errh = Errhandler(ERRORS_ARE_FATAL.val)
     result = Ref(MPI_ERRHANDLER_NULL)
     @mpichk ccall((:MPI_File_get_errhandler, libmpi), Cint, (MPI_File, Ptr{MPI_Errhandler}), file, result)
-    return ErrorHandler(result[])
+    return Errhandler(result[])
 end
 
 """
-    MPI.set_errorhandler!(comm::MPI.Comm, errh::ErrorHandler)
-    MPI.set_errorhandler!(win::MPI.Win, errh::ErrorHandler)
-    MPI.set_errorhandler!(file::MPI.File.FileHandle, errh::ErrorHandler)
+    MPI.set_errorhandler!(comm::MPI.Comm, errh::Errhandler)
+    MPI.set_errorhandler!(win::MPI.Win, errh::Errhandler)
+    MPI.set_errorhandler!(file::MPI.File.FileHandle, errh::Errhandler)
 
-Set the [`ErrorHandler`](@ref) for the relevant MPI object.
+Set the [`Errhandler`](@ref) for the relevant MPI object.
 
 # See also
 - [`get_errorhandler`](@ref)
 """
-function set_errorhandler!(comm::Comm, errh::ErrorHandler)
+function set_errorhandler!(comm::Comm, errh::Errhandler)
     @mpichk ccall((:MPI_Comm_set_errhandler, libmpi), Cint, (MPI_Comm, MPI_Errhandler), comm, errh.val)
     return nothing
 end
-function set_errorhandler!(win::Win, errh::ErrorHandler)
+function set_errorhandler!(win::Win, errh::Errhandler)
     @mpichk ccall((:MPI_Win_set_errhandler, libmpi), Cint, (MPI_Win, MPI_Errhandler), win, errh.val)
     return nothing
 end
-function set_errorhandler!(file::File.FileHandle, errh::ErrorHandler)
+function set_errorhandler!(file::File.FileHandle, errh::Errhandler)
     @mpichk ccall((:MPI_File_set_errhandler, libmpi), Cint, (MPI_File, MPI_Errhandler), file, errh.val)
     return nothing
 end

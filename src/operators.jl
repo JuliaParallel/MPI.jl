@@ -17,24 +17,41 @@ associative, and if `iscommutative` is true, assumed to be commutative as well.
 - [`Scan!`](@ref)/[`Scan`](@ref)
 - [`Exscan!`](@ref)/[`Exscan`](@ref)
 """
-@mpi_handle Op MPI_Op fptr
-
-const OP_NULL = _Op(MPI_OP_NULL, nothing)
-const BAND    = _Op(MPI_BAND, nothing)
-const BOR     = _Op(MPI_BOR, nothing)
-const BXOR    = _Op(MPI_BXOR, nothing)
-const LAND    = _Op(MPI_LAND, nothing)
-const LOR     = _Op(MPI_LOR, nothing)
-const LXOR    = _Op(MPI_LXOR, nothing)
-const MAX     = _Op(MPI_MAX, nothing)
-const MIN     = _Op(MPI_MIN, nothing)
-const PROD    = _Op(MPI_PROD, nothing)
-const REPLACE = _Op(MPI_REPLACE, nothing)
-const SUM     = _Op(MPI_SUM, nothing)
-
-if @isdefined(MPI_NO_OP)
-    const NO_OP   = _Op(MPI_NO_OP, nothing)
+mutable struct Op
+    val::MPI_Op
+    fptr
+    Op(val::MPI_Op, fptr) = new(val, fptr)
 end
+Base.:(==)(a::Op, b::Op) = a.val == b.val
+Base.cconvert(::Type{MPI_Op}, op::Op) = op.val
+Base.unsafe_convert(::Type{Ptr{MPI_Op}}, op::Op) = convert(Ptr{MPI_Op}, pointer_from_objref(op))
+
+const OP_NULL = Op(MPI_OP_NULL, nothing)
+const BAND    = Op(MPI_BAND, nothing)
+const BOR     = Op(MPI_BOR, nothing)
+const BXOR    = Op(MPI_BXOR, nothing)
+const LAND    = Op(MPI_LAND, nothing)
+const LOR     = Op(MPI_LOR, nothing)
+const LXOR    = Op(MPI_LXOR, nothing)
+const MAX     = Op(MPI_MAX, nothing)
+const MIN     = Op(MPI_MIN, nothing)
+const PROD    = Op(MPI_PROD, nothing)
+const REPLACE = Op(MPI_REPLACE, nothing)
+const SUM     = Op(MPI_SUM, nothing)
+const NO_OP   = Op(MPI_NO_OP, nothing)
+add_load_time_hook!(() -> OP_NULL.val = MPI_OP_NULL)
+add_load_time_hook!(() -> BAND.val    = MPI_BAND   )
+add_load_time_hook!(() -> BOR.val     = MPI_BOR    )
+add_load_time_hook!(() -> BXOR.val    = MPI_BXOR   )
+add_load_time_hook!(() -> LAND.val    = MPI_LAND   )
+add_load_time_hook!(() -> LOR.val     = MPI_LOR    )
+add_load_time_hook!(() -> LXOR.val    = MPI_LXOR   )
+add_load_time_hook!(() -> MAX.val     = MPI_MAX    )
+add_load_time_hook!(() -> MIN.val     = MPI_MIN    )
+add_load_time_hook!(() -> PROD.val    = MPI_PROD   )
+add_load_time_hook!(() -> REPLACE.val = MPI_REPLACE)
+add_load_time_hook!(() -> SUM.val     = MPI_SUM    )
+add_load_time_hook!(() -> NO_OP.val   = MPI_NO_OP  )
 
 Op(::typeof(min), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MIN
 Op(::typeof(max), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MAX

@@ -13,12 +13,17 @@ communication operations.
 
 Note that this can only be called on types for which `isbitstype(T)` is `true`.
 """
-@mpi_handle Datatype MPI_Datatype
+mutable struct Datatype
+    val::MPI_Datatype
+end
+Base.:(==)(a::Datatype, b::Datatype) = a.val == b.val
+Base.cconvert(::Type{MPI_Datatype}, datatype::Datatype) = datatype.val
+Base.unsafe_convert(::Type{Ptr{MPI_Datatype}}, datatype::Datatype) = convert(Ptr{MPI_Datatype}, pointer_from_objref(datatype))
 
-const DATATYPE_NULL = _Datatype(MPI_DATATYPE_NULL)
+const DATATYPE_NULL = Datatype(MPI_DATATYPE_NULL)
+add_load_time_hook!(() -> DATATYPE_NULL.val = MPI_DATATYPE_NULL)
 
-const MPI_Datatype_default = MPI_Datatype == Cint || MPI_Datatype == Culong ? MPI_DATATYPE_NULL : C_NULL
-Datatype() = Datatype(MPI_Datatype_default)
+Datatype() = Datatype(MPI_DATATYPE_NULL)
 
 
 function free(dt::Datatype)
@@ -29,18 +34,6 @@ function free(dt::Datatype)
 end
 
 # attributes
-# function _type_null_copy_fn(oldtype::MPI_Datatype, type_keyval::Cint,
-#                             extra_state::Ptr{Cvoid},
-#                             attribute_val_in::Ptr{Cvoid}, attribute_val_out::Ptr{Cvoid},
-#                             flag::Ptr{Cint})
-#     unsafe_store!(flag, Cint(0))
-#     return MPI_SUCCESS
-# end
-# function _type_null_delete_fn(oldtype::MPI_Datatype, type_keyval::Cint,
-#                            attribute_val_in::Ptr{Cvoid}, extra_state::Ptr{Cvoid})
-#     return MPI_SUCCESS
-# end
-
 function create_keyval(::Type{Datatype})
     ref = Ref(Cint(0))
     @mpichk ccall((:MPI_Type_create_keyval, libmpi), Cint,
@@ -48,10 +41,6 @@ function create_keyval(::Type{Datatype})
                    Ptr{Cvoid},
                    Ptr{Cint},
                    Ptr{Cvoid}),
-                  # @cfunction(_type_null_copy_fn,Cint,(MPI_Datatype, Cint, Ptr{Cvoid},
-                  #                                     Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint})),
-                  # @cfunction(_type_null_delete_fn,Cint,(MPI_Datatype, Cint, Ptr{Cvoid},
-                  #                                     Ptr{Cvoid})),
                   MPI_TYPE_NULL_COPY_FN,
                   MPI_TYPE_NULL_DELETE_FN,
                   ref, C_NULL)
@@ -90,7 +79,7 @@ end
 
 # datatype attribute to store Julia type
 const JULIA_TYPE_PTR_ATTR = Ref(Cint(0))
-push!(mpi_init_hooks, () -> JULIA_TYPE_PTR_ATTR[] = create_keyval(Datatype))
+add_init_hook!(() -> JULIA_TYPE_PTR_ATTR[] = create_keyval(Datatype))
 
 """
     to_type(datatype::Datatype)
@@ -110,6 +99,7 @@ end
 
 
 # predefined
+_defined_datatype_methods = Set{Type}()
 for (mpiname, T) in [
     :INT8_T             => Int8
     :UINT8_T            => UInt8
@@ -137,28 +127,31 @@ for (mpiname, T) in [
     :C_FLOAT_COMPLEX    => ComplexF32
     :C_DOUBLE_COMPLEX   => ComplexF64]
 
-    @eval if @isdefined($(Symbol(:MPI_,mpiname)))
-        const $mpiname = _Datatype($(Symbol(:MPI_,mpiname)))
-        if !hasmethod(Datatype, Tuple{Type{$T}})
+    @eval begin
+        const $mpiname = Datatype($(Symbol(:MPI_,mpiname)))
+        add_load_time_hook!(() -> $mpiname.val = $(Symbol(:MPI_,mpiname)))
+        if $T ∉ _defined_datatype_methods
+            push!(_defined_datatype_methods, $T)
             Datatype(::Type{$T}) = $mpiname
-            push!(mpi_init_hooks, () -> set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T)))
+            add_init_hook!(() -> set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T)))
         end
     end
 end
+_defined_datatype_methods = nothing
 
 
-@generated function Datatype(::Type{T}) where {T}
-    newtype = Datatype()
-    quote
-        datatype = $newtype
-        # lazily initialize so that it can be safely precompiled
-        if datatype.val === MPI.MPI_Datatype_default
-            Types.create!(datatype, T)
-            Types.commit!(datatype)
-            set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
-        end
-        return datatype
+function Datatype(::Type{T}) where {T}
+    datatype = Datatype()
+    # lazily initialize so that it can be safely precompiled
+    function init()
+        Types.create!(datatype, T)
+        Types.commit!(datatype)
+        set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
     end
+    # Initialized() ? init() : add_init_hook!(init)
+    @assert Initialized()
+    init()
+    return datatype
 end
 
 

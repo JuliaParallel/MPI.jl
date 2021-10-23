@@ -51,7 +51,6 @@ if haskey(ENV, "JULIA_MPIEXEC")
     update_config = true
 end
 
-
 if update_config
     open(config_toml, write=true) do f
         TOML.print(f, config)
@@ -62,6 +61,7 @@ binary = get(config, "binary", "")
 
 # 2. generate deps.jl
 if binary == "system"
+
     @info "using system MPI"
     library = get(config, "library", "")
     if library == ""
@@ -80,7 +80,7 @@ if binary == "system"
 
     _doc_external(fname) = ""
 
-    include(joinpath("..","src","implementations.jl"))
+    include(joinpath("..", "src", "implementations.jl"))
 
     @info "Using implementation" libmpi mpiexec_cmd MPI_LIBRARY_VERSION_STRING
 
@@ -104,31 +104,12 @@ if binary == "system"
     else
         @info "MPI implementation config" abi
     end
-    if abi == "MPICH"
-        abi_incl = :(include("consts_mpich.jl"))
-        abi_setup = :nothing
-    elseif abi == "MPItrampoline"
-        abi_incl = :(include("consts_mpitrampoline.jl"))
-        abi_setup = :(init_mpitrampoline_constants())
-    elseif abi == "OpenMPI"
-        abi_incl = :(include("consts_openmpi.jl"))
-        abi_setup = :(init_openmpi_constants())
-    elseif abi == "MicrosoftMPI"
-        abi_incl = :(include("consts_microsoftmpi.jl"))
-        abi_setup = :nothing
-    else
-        include("gen_consts.jl")
-        abi_incl = :(include("consts.jl"))
-        abi_setup = :(init_system_constants())
-    end
-
 
     deps = quote
         const libmpi = $libmpi
         const mpiexec_cmd = $mpiexec_cmd
         const mpiexec_path = mpiexec_cmd[1]
         _mpiexec(fn) = fn(mpiexec_cmd)
-        $abi_incl
 
         using Requires
 
@@ -146,23 +127,24 @@ if binary == "system"
                      error("MicrosoftMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
             @require(OpenMPI_jll       = "fe0851c0-eecd-5654-98d4-656369965a5c",
                      error("OpenMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
-
-            $abi_setup
         end
     end
+
 elseif binary == ""
+
     @info "using default MPI jll"
+
     deps = quote
         if Sys.iswindows()
             using MicrosoftMPI_jll
+            const libmpi = MicrosoftMPI_jll.libmpi
             const _mpiexec = MicrosoftMPI_jll.mpiexec
             const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
-            include("consts_microsoftmpi.jl")
         else
             using MPICH_jll
+            const libmpi = MPICH_jll.libmpi
             const _mpiexec = MPICH_jll.mpiexec
             const mpiexec_path = MPICH_jll.mpiexec_path
-            include("consts_mpich.jl")
         end
 
         function __init__deps()
@@ -175,34 +157,26 @@ elseif binary == ""
             end
         end
     end
+
 elseif binary == "MPICH_jll"
+
     @info "using MPICH_jll"
+
     deps = quote
         using MPICH_jll
-        include("consts_mpich.jl")
+        const libmpi = MPICH_jll.libmpi
         const _mpiexec = MPICH_jll.mpiexec
         const mpiexec_path = MPICH_jll.mpiexec_path
+
         __init__deps() = nothing
     end
+
 elseif binary == "MPItrampoline_jll"
+
     @info "using MPItrampoline_jll"
+
     deps = quote
         @info "[MPI] Initializating MPItrampoline"
-        # if "MPITRAMPOLINE_PRELOAD" ∉ keys(ENV)
-        #     @info "[MPI] (preloading libgfortran)"
-        #     # Force Julia's copy of libgfortran to be preloaded
-        #     dlsuffix = Sys.isapple() ? "dylib" : "so"
-        #     julia_dir = joinpath(Sys.BINDIR, "..")
-        #     libgfortran = joinpath(julia_dir, "lib", "julia", "libgfortran.$dlsuffix")
-        #     # Since we are overriding Yggdrasil's default settings, we
-        #     # need to add Yggdrasil's defaults as well
-        #     libs = [libgfortran,
-        #             "@MPITRAMPOLINE_DIR@/lib/mpich/lib/libmpi.$dlsuffix",
-        #             "@MPITRAMPOLINE_DIR@/lib/mpich/lib/libmpicxx.$dlsuffix",
-        #             "@MPITRAMPOLINE_DIR@/lib/mpich/lib/libmpifort.$dlsuffix"]
-        #     ENV["MPITRAMPOLINE_PRELOAD"] = join(libs, ":")
-        #     @info "[MPI] MPITRAMPOLINE_PRELOAD=$(ENV["MPITRAMPOLINE_PRELOAD"])"
-        # end
         using MPItrampoline_jll
         @assert MPItrampoline_jll.is_available()
         if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
@@ -213,20 +187,20 @@ elseif binary == "MPItrampoline_jll"
             # MPItrampoline_jll is already loadedd)
             ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
         end
-        include("consts_mpitrampoline.jl")
+        const libmpi = MPItrampoline_jll.libmpi
         const _mpiexec = MPItrampoline_jll.mpiexec
         const mpiexec_path = MPItrampoline_jll.mpiexec_path
-        @info "[MPI] Initialization done."
 
-        function __init__deps()
-            init_mpitrampoline_constants()
-        end
+        __init__deps() = nothing
     end
+
 elseif binary == "OpenMPI_jll"
+
     @info "using OpenMPI_jll"
+
     deps = quote
         using OpenMPI_jll
-        include("consts_openmpi.jl")
+        const libmpi = OpenMPI_jll.libmpi
         const _mpiexec = OpenMPI_jll.mpiexec
         const mpiexec_path = OpenMPI_jll.mpiexec_path
 
@@ -235,19 +209,22 @@ elseif binary == "OpenMPI_jll"
             # TODO: this should be done in OpenMPI_jll package
             # https://github.com/JuliaPackaging/Yggdrasil/issues/390
             ENV["OPAL_PREFIX"] = OpenMPI_jll.artifact_dir
-            init_openmpi_constants()
         end
     end
+
 elseif binary == "MicrosoftMPI_jll"
+
     @info "using MicrosoftMPI_jll"
+
     deps = quote
         using MicrosoftMPI_jll
-        include("consts_microsoftmpi.jl")
+        const libmpi = MicrosoftMPI_jll.libmpi
         const _mpiexec = MicrosoftMPI_jll.mpiexec
         const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
 
         __init__deps() = nothing
     end
+
 else
     error("Unknown binary $binary")
 end
@@ -262,15 +239,20 @@ function remove_line_numbers(ex::Expr)
     return ex
 end
 
-# only update deps.jl if it has changed.
-# allows users to call Pkg.build("MPI") without triggering another round of precompilation
+# Only update deps.jl if it has changed.
+# This allows users to call Pkg.build("MPI") without triggering another round of precompilation.
 deps_str =
     """
     # This file has been generated automatically.
     # It will be overwritten the next time `Pkg.build("MPI")` is called.
     """ *
-    string(remove_line_numbers(deps))
+    string(remove_line_numbers(deps)) *
+    """        
+    """        
 
 if !isfile("deps.jl") || deps_str != read("deps.jl", String)
     write("deps.jl", deps_str)
 end
+
+include("deps.jl")
+include("prepare_mpi_constants.jl")

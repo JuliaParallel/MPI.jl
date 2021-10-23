@@ -1,67 +1,5 @@
 import Base: eltype
 
-# definition of the `Status` struct.
-# TODO: this bakes in a lot of assumptions about ordering and padding
-if !@isdefined(Status)
-    let
-        struct_fields = Any[]
-        empty_vals = Cint[]
-        offset = 0
-        i = 0
-
-        while offset < MPI_Status_Source_offset
-            push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            push!(empty_vals, zero(Cint))
-            offset += 4
-        end
-        @assert offset == MPI_Status_Source_offset
-        push!(struct_fields, :(source::Cint))
-        push!(empty_vals, MPI_ANY_SOURCE)
-        offset += 4
-
-        while offset < MPI_Status_Tag_offset
-            push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            push!(empty_vals, zero(Cint))
-            offset += 4
-        end
-        @assert offset == MPI_Status_Tag_offset
-        push!(struct_fields, :(tag::Cint))
-        push!(empty_vals, MPI_ANY_TAG)
-        offset += 4
-
-        while offset < MPI_Status_Error_offset
-            push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            push!(empty_vals, zero(Cint))
-            offset += 4
-        end
-        @assert offset == MPI_Status_Error_offset
-        push!(struct_fields, :(error::Cint))
-        push!(empty_vals, MPI_SUCCESS)
-        offset += 4
-
-        while offset < MPI_Status_size
-            push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            push!(empty_vals, zero(Cint))
-            offset += 4
-        end
-
-        @eval begin
-            struct Status
-                $(struct_fields...)
-            end
-            const STATUS_EMPTY = Status($(empty_vals...))
-        end
-    end
-
-    @assert fieldoffset(Status, findfirst(isequal(:source), fieldnames(Status))) == MPI_Status_Source_offset
-    @assert fieldoffset(Status, findfirst(isequal(:tag), fieldnames(Status))) == MPI_Status_Tag_offset
-    @assert fieldoffset(Status, findfirst(isequal(:error), fieldnames(Status))) == MPI_Status_Error_offset
-    @assert sizeof(Status) == MPI_Status_size
-end
-
-Base.cconvert(::Type{Ptr{Status}}, x::SentinelPtr) = x
-Base.unsafe_convert(::Type{Ptr{Status}}, x::SentinelPtr) = reinterpret(Ptr{Status}, x)
-
 """
     MPI.Status
 
@@ -74,14 +12,24 @@ The status of an MPI receive communication. It has 3 accessible fields
 Additionally, the accessor function [`MPI.Get_count`](@ref) can be used to determine the
 number of entries received.
 """
-Status
+const Status = MPI_Status
 
-"""
-    StatusRef()
+function Base.getproperty(status::Status, name::Symbol)
+    name ≡ :error && return status.MPI_ERROR
+    name ≡ :source && return status.MPI_SOURCE
+    name ≡ :tag && return status.MPI_TAG
+    return getfield(status, name)
+end
+function Base.setproperty!(status::Status, name::Symbol, x)
+    name ≡ :error && return (status.MPI_ERROR = x)
+    name ≡ :source && return (status.MPI_SOURCE = x)
+    name ≡ :tag && return (status.MPI_TAG = x)
+    return setfield!(status, name, x)
+end
 
-Construct an empty `Ref{Status}`. This can be passed to MPI Test/Wait operations.
-"""
-StatusRef() = Ref(STATUS_EMPTY)
+# TODO: I don't think we need `SentinelPtr`; we should remove it
+Base.cconvert(::Type{Ptr{Status}}, x::SentinelPtr) = x
+Base.unsafe_convert(::Type{Ptr{Status}}, x::SentinelPtr) = reinterpret(Ptr{Status}, x)
 
 Get_source(status::Status) = Int(status.source)
 Get_tag(status::Status) = Int(status.tag)
@@ -102,9 +50,17 @@ checked by other means.
 
 See also [`Cancel!`](@ref).
 """
-@mpi_handle Request MPI_Request buffer
+mutable struct Request
+    val::MPI_Request
+    buffer
+end
+Base.:(==)(a::Request, b::Request) = a.val == b.val
+Base.cconvert(::Type{MPI_Request}, request::Request) = request.val
+Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
 
-const REQUEST_NULL = _Request(MPI_REQUEST_NULL, nothing)
+const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
+add_load_time_hook!(() -> REQUEST_NULL.val = MPI_REQUEST_NULL)
+
 Request() = Request(REQUEST_NULL.val, nothing)
 isnull(req::Request) = req.val == REQUEST_NULL.val
 
@@ -127,7 +83,7 @@ Blocks until there is a message that can be received matching `src`, `tag` and
 $(_doc_external("MPI_Probe"))
 """
 function Probe(src::Integer, tag::Integer, comm::Comm)
-    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    stat_ref = Ref{Status}()
     @mpichk ccall((:MPI_Probe, libmpi), Cint,
           (Cint, Cint, MPI_Comm, Ptr{Status}),
           src, tag, comm, stat_ref)
@@ -145,7 +101,7 @@ $(_doc_external("MPI_Iprobe"))
 """
 function Iprobe(src::Integer, tag::Integer, comm::Comm)
     flag = Ref{Cint}()
-    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    stat_ref = Ref{Status}()
     @mpichk ccall((:MPI_Iprobe, libmpi), Cint,
           (Cint, Cint, MPI_Comm, Ptr{Cint}, Ptr{Status}),
           src, tag, comm, flag, stat_ref)
@@ -198,7 +154,7 @@ function Wait(req::Request, status::Union{Ref{Status},Nothing}=nothing)
     return nothing
 end
 function Wait(req::Request, ::Type{Status})
-    status = Ref(STATUS_EMPTY)
+    status = Ref{Status}()
     Wait(req, status)
     return status[]
 end
@@ -226,7 +182,7 @@ function Test(req::Request, status::Union{Ref{Status},Nothing}=nothing)
     return flag[] != 0
 end
 function Test(req::Request, ::Type{Status})
-    status = Ref(STATUS_EMPTY)
+    status = Ref{Status}()
     flag = Test(req, status)
     return flag, status[]
 end
@@ -379,7 +335,7 @@ function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     return i
 end
 function Waitany(reqs::RequestSet, ::Type{Status})
-    status = Ref(STATUS_EMPTY)
+    status = Ref{Status}()
     i = Waitany(reqs, status)
     return i, status[]
 end
@@ -423,7 +379,7 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     return flag, i
 end
 function Testany(reqs::RequestSet, ::Type{Status})
-    status = Ref(STATUS_EMPTY)
+    status = Ref{Status}()
     flag, i = Testany(reqs, status)
     return flag, i, status[]
 end
@@ -528,4 +484,3 @@ function Cancel!(req::Request)
     @mpichk ccall((:MPI_Cancel, libmpi), Cint, (Ptr{MPI_Request},), req)
     nothing
 end
-

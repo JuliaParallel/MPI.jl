@@ -3,9 +3,15 @@
 
 An MPI Communicator object.
 """
-@mpi_handle Comm MPI_Comm
+mutable struct Comm
+    val::MPI_Comm
+end
+Base.:(==)(a::Comm, b::Comm) = a.val == b.val
+Base.cconvert(::Type{MPI_Comm}, comm::Comm) = comm.val
+Base.unsafe_convert(::Type{Ptr{MPI_Comm}}, comm::Comm) = convert(Ptr{MPI_Comm}, pointer_from_objref(comm))
 
-const COMM_NULL = _Comm(MPI_COMM_NULL)
+const COMM_NULL = Comm(MPI_COMM_NULL)
+add_load_time_hook!(() -> COMM_NULL.val = MPI_COMM_NULL)
 
 """
     MPI.COMM_WORLD
@@ -13,14 +19,16 @@ const COMM_NULL = _Comm(MPI_COMM_NULL)
 A communicator containing all processes with which the local rank can communicate at
 initialization. In a typical "static-process" model, this will be all processes.
 """
-const COMM_WORLD = _Comm(MPI_COMM_WORLD)
+const COMM_WORLD = Comm(MPI_COMM_WORLD)
+add_load_time_hook!(() -> COMM_WORLD.val = MPI_COMM_WORLD)
 
 """
     MPI.COMM_SELF
 
 A communicator containing only the local process.
 """
-const COMM_SELF = _Comm(MPI_COMM_SELF)
+const COMM_SELF = Comm(MPI_COMM_SELF)
+add_load_time_hook!(() -> COMM_SELF.val = MPI_COMM_SELF)
 
 Comm() = Comm(COMM_NULL.val)
 
@@ -195,6 +203,10 @@ const IDENT     = Comparison(MPI_IDENT)
 const CONGRUENT = Comparison(MPI_CONGRUENT)
 const SIMILAR   = Comparison(MPI_SIMILAR)
 const UNEQUAL   = Comparison(MPI_UNEQUAL)
+add_load_time_hook!(() -> IDENT.val     = MPI_IDENT    )
+add_load_time_hook!(() -> CONGRUENT.val = MPI_CONGRUENT)
+add_load_time_hook!(() -> SIMILAR.val   = MPI_SIMILAR  )
+add_load_time_hook!(() -> UNEQUAL.val   = MPI_UNEQUAL  )
 Base.:(==)(tl1::Comparison, tl2::Comparison) = tl1.val == tl2.val
 
 """

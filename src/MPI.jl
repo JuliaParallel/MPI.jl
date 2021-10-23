@@ -33,13 +33,14 @@ function _doc_external(fname)
 end
 
 try
-    include(joinpath(dirname(@__DIR__), "deps","deps.jl"))
+    include(joinpath(dirname(@__DIR__), "deps", "deps.jl"))
+    include(joinpath(dirname(@__DIR__), "deps", "compile_time_mpi_constants.jl"))
 catch e
     error("MPI.jl not properly configured, please run `Pkg.build(\"MPI\")`.")
 end
+include("define_load_time_mpi_constants.jl")
 include("implementations.jl")
 include("error.jl")
-include("handle.jl")
 include("info.jl")
 include("comm.jl")
 include("environment.jl")
@@ -52,7 +53,7 @@ include("collective.jl")
 include("topology.jl")
 include("onesided.jl")
 include("io.jl")
-include("errorhandler.jl")
+include("errhandler.jl")
 include("mpiexec_wrapper.jl")
 
 include("deprecated.jl")
@@ -68,6 +69,8 @@ function __init__()
     end
 
     __init__deps()
+
+    include(joinpath(dirname(@__DIR__), "src", "read_load_time_mpi_constants.jl"))
 
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061

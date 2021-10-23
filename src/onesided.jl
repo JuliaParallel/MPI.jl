@@ -1,6 +1,14 @@
-@mpi_handle Win MPI_Win object
+mutable struct Win
+    val::MPI_Win
+    object
+end
+Base.:(==)(a::Win, b::Win) = a.val == b.val
+Base.cconvert(::Type{MPI_Win}, win::Win) = win.val
+Base.unsafe_convert(::Type{Ptr{MPI_Win}}, win::Win) = convert(Ptr{MPI_Win}, pointer_from_objref(win))
 
-const WIN_NULL = _Win(MPI_WIN_NULL, nothing)
+const WIN_NULL = Win(MPI_WIN_NULL, nothing)
+add_load_time_hook!(() -> WIN_NULL.val = MPI_WIN_NULL)
+
 Win() = Win(WIN_NULL.val, nothing)
 
 function free(win::Win)
@@ -16,7 +24,9 @@ mutable struct LockType
     val::Cint
 end
 const LOCK_EXCLUSIVE = LockType(MPI_LOCK_EXCLUSIVE)
-const LOCK_SHARED = LockType(MPI_LOCK_SHARED)
+const LOCK_SHARED    = LockType(MPI_LOCK_SHARED   )
+add_load_time_hook!(() -> LOCK_EXCLUSIVE.val = MPI_LOCK_EXCLUSIVE)
+add_load_time_hook!(() -> LOCK_SHARED.val    = MPI_LOCK_SHARED   )
 LockType(sym::Symbol) =
     sym == :exclusive ? LOCK_EXCLUSIVE :
     sym == :shared ? LOCK_SHARED :
