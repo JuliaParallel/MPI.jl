@@ -6,18 +6,15 @@
 
 # `cflags` includes libraries and needs to be listed at the end of the
 # compile/link command
-if haskey(ENV, "JULIA_MPI_CFLAGS")
-    cflags = Base.shell_split(ENV["JULIA_MPI_CFLAGS"])
-else
-    # We need to point `mpicc` to the right include and library
-    # directories. BinaryBuilder moved the install directory into
-    # Julia's `artifacts` directory, and `mpicc` doesn't know the
-    # correct directory name.
-    @show libfilename = basename(libmpi)
-    @show libbasename, = splitext(libfilename)
-    @show libname = replace(libbasename, r"^lib" => s"")
-    @show cflags = `-I$incdir -L$libdir -Wl,-rpath,$libdir -l$libname`
-end
+cflags = Base.shell_split(get(ENV, "JULIA_MPI_CFLAGS", ""))
+# We need to point `mpicc` to the right include and library
+# directories. BinaryBuilder moved the install directory into Julia's
+# `artifacts` directory, and `mpicc` doesn't know the correct
+# directory name.
+@show libfilename = basename(libmpi)
+@show libbasename, = splitext(libfilename)
+@show libname = replace(libbasename, r"^lib" => s"")
+@show cflags = `-I$incdir -L$libdir -Wl,-rpath,$libdir -l$libname`
 
 @show `$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.c $cflags`
 run(`ls -l $libmpi`)
