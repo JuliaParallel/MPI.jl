@@ -69,6 +69,7 @@ if binary == "system"
     end
     path    = get(config, "path", "")
     mpiexec = get(config, "mpiexec", path == "" ? "mpiexec" : joinpath(path, "bin", "mpiexec"))
+    # TODO: Remove `abi`; it is not used any more
     abi     = get(config, "abi", "")
 
     const libmpi = find_library(library, path == "" ? [] : [joinpath(path, "lib"), joinpath(path, "lib64")])
@@ -149,7 +150,7 @@ elseif binary == ""
 
         function __init__deps()
             if (haskey(ENV, "SLURM_JOBID") || haskey(ENV, "PBS_JOBID") || haskey(ENV, "LSB_JOBID")) &&
-                !(get(ENV, "JULIA_MPI_CLUSTER_WARN", "") == "n")
+                get(ENV, "JULIA_MPI_CLUSTER_WARN", "") != "n"
                 @warn """
                     You appear to be using MPI.jl with the default MPI binary on a cluster.
                     We recommend using the system-provided MPI, see the Configuration section of the MPI.jl docs.
@@ -241,7 +242,7 @@ end
 
 # Only update deps.jl if it has changed.
 # This allows users to call Pkg.build("MPI") without triggering another round of precompilation.
-deps_str =
+@show deps_str =
     """
     # This file has been generated automatically.
     # It will be overwritten the next time `Pkg.build("MPI")` is called.

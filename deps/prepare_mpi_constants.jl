@@ -21,7 +21,13 @@ end
 
 @show `$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.c $cflags`
 run(`$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.c $cflags`)
+run(`ls -l generate_compile_time_mpi_constants`)
+run(`file generate_compile_time_mpi_constants`)
 @show `$mpiexec_path -n 1 ./generate_compile_time_mpi_constants`
 run(`$mpiexec_path -n 1 ./generate_compile_time_mpi_constants`)
 
 run(`$mpicc -fPIC -shared -o load_time_mpi_constants.so load_time_mpi_constants.c $cflags`)
+run(`ls -l load_time_mpi_constants.so`)
+run(`file load_time_mpi_constants.so`)
+run(`ldd load_time_mpi_constants.so`)
+run(`otool -L load_time_mpi_constants.so`)
