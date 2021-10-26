@@ -23,6 +23,10 @@ end
 mutable struct LockType
     val::Cint
 end
+Base.:(==)(a::LockType, b::LockType) = a.val == b.val
+Base.cconvert(::Type{Cint}, lock_type::LockType) = lock_type.val
+Base.unsafe_convert(::Type{Ptr{Cint}}, lock_type::LockType) = convert(Ptr{Cint}, pointer_from_objref(lock_type))
+
 const LOCK_EXCLUSIVE = LockType(MPI_LOCK_EXCLUSIVE)
 const LOCK_SHARED    = LockType(MPI_LOCK_SHARED   )
 add_load_time_hook!(() -> LOCK_EXCLUSIVE.val = MPI_LOCK_EXCLUSIVE)
@@ -237,7 +241,7 @@ function Win_lock(lock_type::LockType, rank::Integer, assert::Integer, win::Win)
     # int MPI_Win_lock(int lock_type, int rank, int assert, MPI_Win win)
     @mpichk ccall((:MPI_Win_lock, libmpi), Cint,
                   (Cint, Cint, Cint, MPI_Win),
-                  lock_type.val, rank, assert, win)
+                  lock_type, rank, assert, win)
 end
 
 """
