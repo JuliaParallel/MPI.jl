@@ -15,7 +15,6 @@ update_config = false
 #  binary   = "" (default) | "system" | "MPICH_jll" | "MPItrampoline_jll" | "OpenMPI_jll" | "MicrosoftMPI_jll"
 #  path     = "" (default) | top-level directory location
 #  library  = "" (default) | library name/path | list of library names/paths
-#  abi      = "" (default) | "MPICH" | "MPItrampoline" | "OpenMPI" | "MicrosoftMPI" | "unknown"
 #  mpiexec  = "" (default) | executable name/path | [executable name/path, extra args...]
 
 
@@ -34,11 +33,6 @@ end
 
 if haskey(ENV, "JULIA_MPI_LIBRARY")
     config["library"] = ENV["JULIA_MPI_LIBRARY"]
-    update_config = true
-end
-
-if haskey(ENV, "JULIA_MPI_ABI")
-    config["abi"] = ENV["JULIA_MPI_ABI"]
     update_config = true
 end
 
@@ -69,8 +63,6 @@ if binary == "system"
     end
     path    = get(config, "path", "")
     mpiexec = get(config, "mpiexec", path == "" ? "mpiexec" : joinpath(path, "bin", "mpiexec"))
-    # TODO: Remove `abi`; it is not used any more
-    abi     = get(config, "abi", "")
 
     const libmpi = find_library(library, path == "" ? [] : [joinpath(path, "lib"), joinpath(path, "lib64")])
     if libmpi == ""
@@ -85,29 +77,11 @@ if binary == "system"
 
     @info "Using implementation" libmpi mpiexec_cmd MPI_LIBRARY_VERSION_STRING
 
-    if abi === ""
-        # 3. check ABI
-        impl, version = identify_implementation()
-        if (impl == MPICH && version >= v"3.1" ||
-            impl == IntelMPI && version > v"2014" ||
-            impl == MVAPICH && version >= v"2" ||
-            impl == CrayMPICH && version >= v"7")
-            # https://www.mpich.org/abi/
-            abi = "MPICH"
-        elseif impl == OpenMPI || impl == IBMSpectrumMPI
-            abi = "OpenMPI"
-        elseif impl == MicrosoftMPI
-            abi = "MicrosoftMPI"
-        else
-            abi = "unknown"
-        end
-        @info "MPI implementation detected" impl version abi
-    else
-        @info "MPI implementation config" abi
-    end
+    include("prepare_mpi_constants.jl")
 
     deps = quote
         const libmpi = $libmpi
+        const libmpiconstants = joinpath(dirname(@__DIR__), "deps", "libload_time_mpi_constants.so")
         const mpiexec_cmd = $mpiexec_cmd
         const mpiexec_path = mpiexec_cmd[1]
         _mpiexec(fn) = fn(mpiexec_cmd)
@@ -135,15 +109,23 @@ elseif binary == ""
 
     @info "using default MPI jll"
 
+    if Sys.iswindows()
+        using MicrosoftMPI_jll
+        const _generate_constants = MicrosoftMPI_jll.generate_compile_time_mpi_constants
+    else
+        using MPICH_jll
+        const _generate_constants = MPICH_jll.generate_compile_time_mpi_constants
+    end
+
     deps = quote
         if Sys.iswindows()
             using MicrosoftMPI_jll
-            const libmpi = MicrosoftMPI_jll.libmpi
+            const libmpiconstants = MicrosoftMPI_jll.libload_time_mpi_constants
             const _mpiexec = MicrosoftMPI_jll.mpiexec
             const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
         else
             using MPICH_jll
-            const libmpi = MPICH_jll.libmpi
+            const libmpiconstants = MPICH_jll.libload_time_mpi_constants
             const _mpiexec = MPICH_jll.mpiexec
             const mpiexec_path = MPICH_jll.mpiexec_path
         end
@@ -163,9 +145,12 @@ elseif binary == "MPICH_jll"
 
     @info "using MPICH_jll"
 
+    using MPICH_jll
+    const _generate_constants = MPICH_jll.generate_compile_time_mpi_constants
+
     deps = quote
         using MPICH_jll
-        const libmpi = MPICH_jll.libmpi
+        const libmpiconstants = MPICH_jll.libload_time_mpi_constants
         const _mpiexec = MPICH_jll.mpiexec
         const mpiexec_path = MPICH_jll.mpiexec_path
 
@@ -175,6 +160,18 @@ elseif binary == "MPICH_jll"
 elseif binary == "MPItrampoline_jll"
 
     @info "using MPItrampoline_jll"
+
+    using MPItrampoline_jll
+    @assert MPItrampoline_jll.is_available()
+    if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
+        @info "[MPI] Using built-in MPICH with MPItrampoline"
+        # MPItrampoline_jll has the correct default for
+        # MPITRAMPOLINE_LIB already built in; we don't need to set
+        # it (and it would be too late by now anyway since
+        # MPItrampoline_jll is already loadedd)
+        ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
+    end
+    const _generate_constants = MPItrampoline_jll.generate_compile_time_mpi_constants
 
     deps = quote
         @info "[MPI] Initializating MPItrampoline"
@@ -188,7 +185,7 @@ elseif binary == "MPItrampoline_jll"
             # MPItrampoline_jll is already loadedd)
             ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
         end
-        const libmpi = MPItrampoline_jll.libmpi
+        const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants
         const _mpiexec = MPItrampoline_jll.mpiexec
         const mpiexec_path = MPItrampoline_jll.mpiexec_path
 
@@ -199,9 +196,12 @@ elseif binary == "OpenMPI_jll"
 
     @info "using OpenMPI_jll"
 
+    using OpenMPI_jll
+    const _generate_constants = OpenMPI_jll.generate_compile_time_mpi_constants
+
     deps = quote
         using OpenMPI_jll
-        const libmpi = OpenMPI_jll.libmpi
+        const _generate_constants = OpenMPI_jll.generate_compile_time_mpi_constants
         const _mpiexec = OpenMPI_jll.mpiexec
         const mpiexec_path = OpenMPI_jll.mpiexec_path
 
@@ -217,9 +217,12 @@ elseif binary == "MicrosoftMPI_jll"
 
     @info "using MicrosoftMPI_jll"
 
+    using MicrosoftMPI_jll
+    const _generate_constants = MicrosoftMPI_jll.generate_compile_time_mpi_constants
+
     deps = quote
         using MicrosoftMPI_jll
-        const libmpi = MicrosoftMPI_jll.libmpi
+        const libmpiconstants = MicrosoftMPI_jll.libload_time_mpi_constants
         const _mpiexec = MicrosoftMPI_jll.mpiexec
         const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
 
@@ -242,7 +245,7 @@ end
 
 # Only update deps.jl if it has changed.
 # This allows users to call Pkg.build("MPI") without triggering another round of precompilation.
-@show deps_str =
+deps_str =
     """
     # This file has been generated automatically.
     # It will be overwritten the next time `Pkg.build("MPI")` is called.
@@ -255,5 +258,4 @@ if !isfile("deps.jl") || deps_str != read("deps.jl", String)
     write("deps.jl", deps_str)
 end
 
-include("deps.jl")
-include("prepare_mpi_constants.jl")
+run(_generate_constants())

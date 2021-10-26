@@ -1,46 +1,25 @@
-@show libdir = dirname(dlpath(libmpi))
+libdir = dirname(dlpath(libmpi))
 
-@show mpidir = get(ENV, "JULIA_MPI_PATH", joinpath(libdir, ".."))
-@show incdir = get(ENV, "JULIA_INCLUDE_PATH", joinpath(mpidir, "include"))
-@show mpicc = get(ENV, "JULIA_MPICC", joinpath(mpidir, "bin", "mpicc"))
+mpidir = get(ENV, "JULIA_MPI_PATH", joinpath(libdir, ".."))
+incdir = get(ENV, "JULIA_INCLUDE_PATH", joinpath(mpidir, "include"))
+mpicc = get(ENV, "JULIA_MPICC", joinpath(mpidir, "bin", "mpicc"))
 
 # `cflags` includes libraries and needs to be listed at the end of the
 # compile/link command
-cflags = Base.shell_split(get(ENV, "JULIA_MPI_CFLAGS", ""))
-# We need to point `mpicc` to the right include and library
-# directories. BinaryBuilder moved the install directory into Julia's
-# `artifacts` directory, and `mpicc` doesn't know the correct
-# directory name.
-@show libfilename = basename(libmpi)
-@show libbasename, = splitext(libfilename)
-@show libname = replace(libbasename, r"^lib" => s"")
-@show cflags = `-I$incdir -L$libdir -Wl,-rpath,$libdir -l$libname`
-
-@show `$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.c $cflags`
-run(`ls -l $libmpi`)
-run(`file $libmpi`)
-run(`file -L $libmpi`)
-if Sys.isunix() && !Sys.isapple()
-    run(`ldd $libmpi`)
-elseif Sys.isapple() 
-    run(`otool -L $libmpi`)
+if haskey(ENV, "JULIA_MPI_CFLAGS")
+    cflags = Base.shell_split(ENV["JULIA_MPI_CFLAGS"])
+else
+    libfilename = basename(libmpi)
+    libbasename, = splitext(libfilename)
+    libname = replace(libbasename, r"^lib" => s"")
+    cflags = `-I$incdir -L$libdir -Wl,-rpath,$libdir -l$libname`
 end
-# run(`$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.c $cflags`)
-run(`$mpicc -c generate_compile_time_mpi_constants.c $cflags`)
-run(`ls -l generate_compile_time_mpi_constants.o`)
-run(`file generate_compile_time_mpi_constants.o`)
-run(`$mpicc -o generate_compile_time_mpi_constants generate_compile_time_mpi_constants.o $cflags`)
-run(`ls -l generate_compile_time_mpi_constants`)
-run(`file generate_compile_time_mpi_constants`)
-run(`file -L generate_compile_time_mpi_constants`)
-@show `$mpiexec_path -n 1 ./generate_compile_time_mpi_constants`
-run(`$mpiexec_path -n 1 ./generate_compile_time_mpi_constants`)
 
-run(`$mpicc -fPIC -shared -o load_time_mpi_constants.so load_time_mpi_constants.c $cflags`)
-run(`ls -l load_time_mpi_constants.so`)
-run(`file load_time_mpi_constants.so`)
-if Sys.isunix() && !Sys.isapple()
-    run(`ldd load_time_mpi_constants.so`)
-elseif Sys.isapple()
-    run(`otool -L load_time_mpi_constants.so`)
-end
+# We expect the subdirectory `MPIconstants-1.3.2` to contain a copy of
+# <https://github.com/eschnett/MPIconstants>
+srcdir = "MPIconstants-1.3.2"
+
+run(`$mpicc -o generate_compile_time_mpi_constants $(joinpath(srcdir, "generate_compile_time_mpi_constants.c")) $cflags`)
+const _generate_constants = () -> `./generate_compile_time_mpi_constants`
+
+run(`$mpicc -fPIC -shared -o libload_time_mpi_constants.so $(joinpath(srcdir, "load_time_mpi_constants.c")) $cflags`)

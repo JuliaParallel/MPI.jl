@@ -5,6 +5,11 @@
 
 #include <mpi.h>
 
+// This should be defined in <assert.h> in C11, but some older compilers don't
+#ifndef static_assert
+#define static_assert(cond, msg) _Static_assert(cond, msg)
+#endif
+
 int main(int argc, char **argv) {
   MPI_Init(&argc, &argv);
 
