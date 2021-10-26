@@ -73,15 +73,15 @@ Set the [`Errhandler`](@ref) for the relevant MPI object.
 - [`get_errorhandler`](@ref)
 """
 function set_errorhandler!(comm::Comm, errh::Errhandler)
-    @mpichk ccall((:MPI_Comm_set_errhandler, libmpi), Cint, (MPI_Comm, MPI_Errhandler), comm, errh.val)
+    @mpichk ccall((:MPI_Comm_set_errhandler, libmpi), Cint, (MPI_Comm, MPI_Errhandler), comm, errh)
     return nothing
 end
 function set_errorhandler!(win::Win, errh::Errhandler)
-    @mpichk ccall((:MPI_Win_set_errhandler, libmpi), Cint, (MPI_Win, MPI_Errhandler), win, errh.val)
+    @mpichk ccall((:MPI_Win_set_errhandler, libmpi), Cint, (MPI_Win, MPI_Errhandler), win, errh)
     return nothing
 end
 function set_errorhandler!(file::File.FileHandle, errh::Errhandler)
-    @mpichk ccall((:MPI_File_set_errhandler, libmpi), Cint, (MPI_File, MPI_Errhandler), file, errh.val)
+    @mpichk ccall((:MPI_File_set_errhandler, libmpi), Cint, (MPI_File, MPI_Errhandler), file, errh)
     return nothing
 end
 
