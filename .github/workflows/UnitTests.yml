@@ -67,7 +67,6 @@ jobs:
     strategy:
       matrix:
         mpi: [mpich, openmpi]
-        mpi_abi: ["", "unknown"]
         julia_version: ["1.6",
           #TODO (temporarily disabled) - "nightly"
           ]
@@ -120,7 +119,6 @@ jobs:
     strategy:
       matrix:
         mpi: [mpich, libopenmpi-dev]
-        mpi_abi: ["", "unknown"]
         julia_version: ["1.6",
           #TODO (temporarily disabled) - "nightly"
           ]
@@ -131,6 +129,7 @@ jobs:
 
     env:
       JULIA_MPI_BINARY: system
+      JULIA_MPI_PATH: /usr
       OMPI_MCA_btl_base_warn_component_unused: 0
 
     steps:
@@ -182,6 +181,7 @@ jobs:
 
     env:
       JULIA_MPI_BINARY: system
+      JULIA_MPI_PATH: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64
 
     steps:
     - name: Cancel Previous Runs
