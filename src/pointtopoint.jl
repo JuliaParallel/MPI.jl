@@ -124,7 +124,7 @@ end
 Recv!(recvbuf, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing}) =
     Recv!(Buffer(recvbuf), source, tag, comm, status)
 function Recv!(recvbuf, source::Integer, tag::Integer, comm::Comm, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     data = Recv!(recvbuf, source, tag, comm, status)
     return data, status[]
 end
@@ -155,7 +155,7 @@ function Recv(::Type{T}, source::Integer, tag::Integer, comm::Comm, status::Unio
     return data[]
 end
 function Recv(::Type{T}, source::Integer, tag::Integer, comm::Comm, ::Type{Status}) where T
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     val = Recv(T, source, tag, comm, status)
     return val, status[]
 end
@@ -181,7 +181,7 @@ function recv(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Statu
     return MPI.deserialize(buf)
 end
 function recv(source::Integer, tag::Integer, comm::Comm, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     val = recv(source, tag, comm, status)
     return val, status[]
 end
@@ -269,7 +269,7 @@ Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, re
     Sendrecv!(Buffer(sendbuf), dest, sendtag, Buffer(recvbuf), source, recvtag, comm, status)
 
 function Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     data = Sendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, status)
     return data, status[]
 end

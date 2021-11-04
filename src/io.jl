@@ -156,7 +156,7 @@ any object for which `Buffer(data)` is defined.
 $(_doc_external("MPI_File_read"))
 """
 function read!(file::FileHandle, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_read(MPI_File fh, void *buf,
     #                   int count, MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_read, libmpi), Cint,
@@ -181,7 +181,7 @@ called on all ranks in the communicator on which `file` was opened.
 $(_doc_external("MPI_File_read_all"))
 """
 function read_all!(file::FileHandle, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_read_all(MPI_File fh, void *buf,
     #                       int count, MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_read_all, libmpi), Cint,
@@ -205,7 +205,7 @@ or any object for which `Buffer_send(data)` is defined.
 $(_doc_external("MPI_File_write"))
 """
 function write(file::FileHandle, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_write(MPI_File fh, const void *buf,
     #                    int count, MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_write, libmpi), Cint,
@@ -230,7 +230,7 @@ operation, so must be called on all ranks in the communicator on which `file` wa
 $(_doc_external("MPI_File_write_all"))
 """
 function write_all(file::FileHandle, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_write_all(MPI_File fh, const void *buf,
     #                    int count, MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_write_all, libmpi), Cint,
@@ -255,7 +255,7 @@ any object for which `Buffer(data)` is defined.
 $(_doc_external("MPI_File_read_at"))
 """
 function read_at!(file::FileHandle, offset::Integer, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_read_at(MPI_File fh, MPI_Offset offset, void *buf, int count,
     #                      MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_read_at, libmpi), Cint,
@@ -279,7 +279,7 @@ called on all ranks in the communicator on which `file` was opened.
 $(_doc_external("MPI_File_read_at_all"))
 """
 function read_at_all!(file::FileHandle, offset::Integer, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
 
     # int MPI_File_read_at_all(MPI_File fh, MPI_Offset offset, void *buf,
     #                          int count, MPI_Datatype datatype, MPI_Status *status)
@@ -303,7 +303,7 @@ object for which [`Buffer_send(data)`](@ref) is defined.
 $(_doc_external("MPI_File_write_at"))
 """
 function write_at(file::FileHandle, offset::Integer, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_write_at(MPI_File fh, MPI_Offset offset, const void *buf,
     #                       int count, MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_write_at, libmpi), Cint,
@@ -327,7 +327,7 @@ operation, so must be called on all ranks in the communicator on which `file` wa
 $(_doc_external("MPI_File_write_at_all"))
 """
 function write_at_all(file::FileHandle, offset::Integer, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_write_at_all(MPI_File fh, MPI_Offset offset, const void *buf,
     #                           int count, MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_write_at_all, libmpi), Cint,
@@ -352,7 +352,7 @@ Reads from `file` using the shared file pointer into `data`.  `data` can be a
 $(_doc_external("MPI_File_read_shared"))
 """
 function read_shared!(file::FileHandle, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_read_shared(MPI_File fh, void *buf, int count,
     #              MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_read_shared, libmpi), Cint,
@@ -375,7 +375,7 @@ Writes to `file` using the shared file pointer from `data`. `data` can be a
 $(_doc_external("MPI_File_write_shared"))
 """
 function write_shared(file::FileHandle, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_write_shared(MPI_File fh, const void *buf, int count,
     #          MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_write_shared, libmpi), Cint,
@@ -401,7 +401,7 @@ is a collective operation, so must be called on all ranks in the communicator on
 $(_doc_external("MPI_File_read_ordered"))
 """
 function read_ordered!(file::FileHandle, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_read_ordered(MPI_File fh, void *buf, int count,
     #              MPI_Datatype datatype, MPI_Status *status)
     @mpichk ccall((:MPI_File_read_ordered, libmpi), Cint,
@@ -426,7 +426,7 @@ is a collective operation, so must be called on all ranks in the communicator on
 $(_doc_external("MPI_File_write_ordered"))
 """
 function write_ordered(file::FileHandle, buf::Buffer)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     # int MPI_File_write_ordered(MPI_File fh, const void *buf, int count,
     #              MPI_Datatype datatype, MPI_Status *status)    
     @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint,

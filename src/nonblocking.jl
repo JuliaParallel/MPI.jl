@@ -14,6 +14,8 @@ number of entries received.
 """
 const Status = MPI_Status
 
+@eval const STATUS_ZERO = Status($([Cint(0) for i in 1:sizeof(Status) ÷ sizeof(Cint)]...))
+
 function Base.getproperty(status::Status, name::Symbol)
     name ≡ :error && return status.MPI_ERROR
     name ≡ :source && return status.MPI_SOURCE
@@ -83,7 +85,7 @@ Blocks until there is a message that can be received matching `src`, `tag` and
 $(_doc_external("MPI_Probe"))
 """
 function Probe(src::Integer, tag::Integer, comm::Comm)
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     @mpichk ccall((:MPI_Probe, libmpi), Cint,
           (Cint, Cint, MPI_Comm, Ptr{Status}),
           src, tag, comm, stat_ref)
@@ -101,7 +103,7 @@ $(_doc_external("MPI_Iprobe"))
 """
 function Iprobe(src::Integer, tag::Integer, comm::Comm)
     flag = Ref{Cint}()
-    stat_ref = Ref{Status}()
+    stat_ref = Ref(STATUS_ZERO)
     @mpichk ccall((:MPI_Iprobe, libmpi), Cint,
           (Cint, Cint, MPI_Comm, Ptr{Cint}, Ptr{Status}),
           src, tag, comm, flag, stat_ref)
@@ -143,7 +145,7 @@ The `Status` argument returns the `Status` of the completed request.
 # External links
 $(_doc_external("MPI_Wait"))
 """
-function Wait(req::Request, status::Union{Ref{Status},Nothing}=nothing)
+function Wait(req::Request, status::Union{Ref{Status}, Nothing}=nothing)
     # int MPI_Wait(MPI_Request *request, MPI_Status *status)
     @mpichk ccall((:MPI_Wait, libmpi), Cint,
                   (Ptr{MPI_Request}, MPIPtr),
@@ -154,7 +156,7 @@ function Wait(req::Request, status::Union{Ref{Status},Nothing}=nothing)
     return nothing
 end
 function Wait(req::Request, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     Wait(req, status)
     return status[]
 end
@@ -170,7 +172,7 @@ The `Status` argument additionally returns the `Status` of the completed request
 # External links
 $(_doc_external("MPI_Test"))
 """
-function Test(req::Request, status::Union{Ref{Status},Nothing}=nothing)
+function Test(req::Request, status::Union{Ref{Status}, Nothing}=nothing)
     flag = Ref{Cint}()
     # int MPI_Test(MPI_Request *request, int *flag, MPI_Status *status)
     @mpichk ccall((:MPI_Test, libmpi), Cint,
@@ -182,7 +184,7 @@ function Test(req::Request, status::Union{Ref{Status},Nothing}=nothing)
     return flag[] != 0
 end
 function Test(req::Request, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     flag = Test(req, status)
     return flag, status[]
 end
@@ -335,7 +337,7 @@ function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     return i
 end
 function Waitany(reqs::RequestSet, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     i = Waitany(reqs, status)
     return i, status[]
 end
@@ -379,7 +381,7 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     return flag, i
 end
 function Testany(reqs::RequestSet, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     flag, i = Testany(reqs, status)
     return flag, i, status[]
 end
