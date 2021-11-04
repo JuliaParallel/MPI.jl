@@ -33,6 +33,7 @@ end
 Base.cconvert(::Type{Ptr{Status}}, x::SentinelPtr) = x
 Base.unsafe_convert(::Type{Ptr{Status}}, x::SentinelPtr) = reinterpret(Ptr{Status}, x)
 
+# TODO: Deprecate these functions
 Get_source(status::Status) = Int(status.source)
 Get_tag(status::Status) = Int(status.tag)
 Get_error(status::Status) = Int(status.error)
