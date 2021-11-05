@@ -105,7 +105,9 @@ global MPI_ERR_UNKNOWN = unsafe_load(cglobal((:MPICONSTANTS_ERR_UNKNOWN, libmpic
 global MPI_ERR_UNSUPPORTED_DATAREP = unsafe_load(cglobal((:MPICONSTANTS_ERR_UNSUPPORTED_DATAREP, libmpiconstants), Cint))
 global MPI_ERR_UNSUPPORTED_OPERATION = unsafe_load(cglobal((:MPICONSTANTS_ERR_UNSUPPORTED_OPERATION, libmpiconstants), Cint))
 global MPI_ERR_WIN = unsafe_load(cglobal((:MPICONSTANTS_ERR_WIN, libmpiconstants), Cint))
-global MPI_SUCCESS = unsafe_load(cglobal((:MPICONSTANTS_SUCCESS, libmpiconstants), Cint))
+# We special-case MPI_SUCCESS which is required to be 0
+# global MPI_SUCCESS = unsafe_load(cglobal((:MPICONSTANTS_SUCCESS, libmpiconstants), Cint))
+@assert unsafe_load(cglobal((:MPICONSTANTS_SUCCESS, libmpiconstants), Cint)) == MPI_SUCCESS
 global MPI_LOCK_EXCLUSIVE = unsafe_load(cglobal((:MPICONSTANTS_LOCK_EXCLUSIVE, libmpiconstants), Cint))
 global MPI_LOCK_SHARED = unsafe_load(cglobal((:MPICONSTANTS_LOCK_SHARED, libmpiconstants), Cint))
 global MPI_MODE_APPEND = unsafe_load(cglobal((:MPICONSTANTS_MODE_APPEND, libmpiconstants), Cint))
