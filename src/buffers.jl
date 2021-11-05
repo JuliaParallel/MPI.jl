@@ -341,7 +341,8 @@ RBuffer(senddata, recvdata, count::Integer, datatype::Datatype) =
     RBuffer(senddata, recvdata, Cint(count), datatype)
 
 function RBuffer(senddata::AbstractArray{T}, recvdata::AbstractArray{T}) where {T}
-    @assert (count = length(senddata)) == length(recvdata)
+    count = length(senddata)
+    @assert length(recvdata) == count
     @assert stride(senddata,1) == stride(recvdata,1) == 1
     RBuffer(senddata, recvdata, count, Datatype(T))
 end
