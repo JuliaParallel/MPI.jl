@@ -144,8 +144,8 @@ global MPI_ARGVS_NULL = unsafe_load(cglobal((:MPICONSTANTS_ARGVS_NULL, libmpicon
 global MPI_BOTTOM = unsafe_load(cglobal((:MPICONSTANTS_BOTTOM, libmpiconstants), Ptr{Cvoid}))
 global MPI_IN_PLACE = unsafe_load(cglobal((:MPICONSTANTS_IN_PLACE, libmpiconstants), Ptr{Cvoid}))
 
-global MPI_COMM_NULL =  unsafe_load(cglobal((:MPICONSTANTS_COMM_NULL , libmpiconstants), MPI_Comm))
-global MPI_COMM_SELF =  unsafe_load(cglobal((:MPICONSTANTS_COMM_SELF , libmpiconstants), MPI_Comm))
+global MPI_COMM_NULL = unsafe_load(cglobal((:MPICONSTANTS_COMM_NULL , libmpiconstants), MPI_Comm))
+global MPI_COMM_SELF = unsafe_load(cglobal((:MPICONSTANTS_COMM_SELF , libmpiconstants), MPI_Comm))
 global MPI_COMM_WORLD = unsafe_load(cglobal((:MPICONSTANTS_COMM_WORLD, libmpiconstants), MPI_Comm))
 
 global MPI_COMM_DUP_FN = unsafe_load(cglobal((:MPICONSTANTS_COMM_DUP_FN, libmpiconstants), MPI_Comm_copy_attr_function))
@@ -264,7 +264,7 @@ global MPI_STATUSES_IGNORE = unsafe_load(cglobal((:MPICONSTANTS_STATUSES_IGNORE,
 
 global MPI_TYPE_DUP_FN = unsafe_load(cglobal((:MPICONSTANTS_TYPE_DUP_FN, libmpiconstants), MPI_Type_copy_attr_function))
 
-global MPI_TYPE_NULL_COPY_FN = unsafe_load(cglobal((:MPICONSTANTS_TYPE_NULL_COPY_FN, libmpiconstants), MPI_Type_copy_attr_function ))
+global MPI_TYPE_NULL_COPY_FN = unsafe_load(cglobal((:MPICONSTANTS_TYPE_NULL_COPY_FN, libmpiconstants), MPI_Type_copy_attr_function))
 
 global MPI_TYPE_NULL_DELETE_FN = unsafe_load(cglobal((:MPICONSTANTS_TYPE_NULL_DELETE_FN, libmpiconstants), MPI_Type_delete_attr_function))
 
