@@ -34,7 +34,7 @@ function Get_library_version()
 
     libfilename, = split(basename(libmpi),'.')
     @mpicall ccall((:MPI_Get_library_version, libmpi), Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
-    @assert buflen < 8192
+    @assert buflen[] < 8192
     resize!(buf, buflen[])
     return String(buf)
 end
