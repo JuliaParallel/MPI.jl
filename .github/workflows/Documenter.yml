@@ -1,20 +1,20 @@
-#TODO name: Documentation
-#TODO 
-#TODO on:
-#TODO   push:
-#TODO     branches:
-#TODO       - master
-#TODO     tags: '*'
-#TODO   pull_request:
-#TODO 
-#TODO jobs:
-#TODO   docs-build:
-#TODO     runs-on: ubuntu-latest
-#TODO     steps:
-#TODO       - uses: actions/checkout@v2
-#TODO       - name: Install dependencies
-#TODO         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); Pkg.build(;verbose=true)'
-#TODO       - name: Build and deploy
-#TODO         env:
-#TODO           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#TODO         run: julia --project=docs/ docs/make.jl
+name: Documentation
+
+on:
+  push:
+    branches:
+      - master
+    tags: '*'
+  pull_request:
+
+jobs:
+  docs-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate(); Pkg.build(;verbose=true)'
+      - name: Build and deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: julia --project=docs/ docs/make.jl

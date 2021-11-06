@@ -1,18 +1,18 @@
-#TODO name: shellcheck
-#TODO 
-#TODO on:
-#TODO   push:
-#TODO     branches:
-#TODO       - master
-#TODO     tags: '*'
-#TODO   pull_request:
-#TODO 
-#TODO jobs:
-#TODO   shellcheck:
-#TODO     runs-on: ubuntu-latest
-#TODO     steps:
-#TODO       - uses: actions/checkout@v2
-#TODO       - name: Install dependencies
-#TODO         run: sudo apt install shellcheck
-#TODO       - name: Check scripts
-#TODO         run: shellcheck bin/*
+name: shellcheck
+
+on:
+  push:
+    branches:
+      - master
+    tags: '*'
+  pull_request:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sudo apt install shellcheck
+      - name: Check scripts
+        run: shellcheck bin/*
