@@ -111,11 +111,11 @@ elseif binary == ""
 
     if Sys.iswindows()
         using MicrosoftMPI_jll
-        # const _generate_constants = MicrosoftMPI_jll.generate_compile_time_mpi_constants
-        const _generate_constants = `cp compile_time_mpi_constants_win64_$(Sys.ARCH).jl compile_time_mpi_constants.jl`
+        # run(MicrosoftMPI_jll.generate_compile_time_mpi_constants())
+        cp("compile_time_mpi_constants_win64_$(Sys.ARCH).jl", "compile_time_mpi_constants.jl"; force=true)
     else
         using MPICH_jll
-        const _generate_constants = MPICH_jll.generate_compile_time_mpi_constants
+        run(MPICH_jll.generate_compile_time_mpi_constants())
     end
 
     deps = quote
@@ -147,7 +147,7 @@ elseif binary == "MPICH_jll"
     @info "using MPICH_jll"
 
     using MPICH_jll
-    const _generate_constants = MPICH_jll.generate_compile_time_mpi_constants
+    run(MPICH_jll.generate_compile_time_mpi_constants())
 
     deps = quote
         using MPICH_jll
@@ -172,7 +172,7 @@ elseif binary == "MPItrampoline_jll"
         # MPItrampoline_jll is already loadedd)
         ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
     end
-    const _generate_constants = MPItrampoline_jll.generate_compile_time_mpi_constants
+    run(MPItrampoline_jll.generate_compile_time_mpi_constants())
 
     deps = quote
         @info "[MPI] Initializating MPItrampoline"
@@ -198,11 +198,10 @@ elseif binary == "OpenMPI_jll"
     @info "using OpenMPI_jll"
 
     using OpenMPI_jll
-    const _generate_constants = OpenMPI_jll.generate_compile_time_mpi_constants
+    run(OpenMPI_jll.generate_compile_time_mpi_constants())
 
     deps = quote
         using OpenMPI_jll
-        const _generate_constants = OpenMPI_jll.generate_compile_time_mpi_constants
         const _mpiexec = OpenMPI_jll.mpiexec
         const mpiexec_path = OpenMPI_jll.mpiexec_path
 
@@ -219,8 +218,8 @@ elseif binary == "MicrosoftMPI_jll"
     @info "using MicrosoftMPI_jll"
 
     using MicrosoftMPI_jll
-    # const _generate_constants = MicrosoftMPI_jll.generate_compile_time_mpi_constants
-    const _generate_constants = `cp compile_time_mpi_constants_win64_$(Sys.ARCH).jl compile_time_mpi_constants.jl`
+    # run(MicrosoftMPI_jll.generate_compile_time_mpi_constants())
+    cp("compile_time_mpi_constants_win64_$(Sys.ARCH).jl", "compile_time_mpi_constants.jl"; force=true)
 
     deps = quote
         using MicrosoftMPI_jll
@@ -259,5 +258,3 @@ deps_str =
 if !isfile("deps.jl") || deps_str != read("deps.jl", String)
     write("deps.jl", deps_str)
 end
-
-run(_generate_constants())
