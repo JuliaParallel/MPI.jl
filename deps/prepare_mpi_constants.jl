@@ -22,7 +22,7 @@ if !Sys.iswindows()
     srcdir = "MPIconstants-1.3.2"
 
     run(`$mpicc -o generate_compile_time_mpi_constants $(joinpath(srcdir, "generate_compile_time_mpi_constants.c")) $cflags`)
-    const _generate_constants = () -> `./generate_compile_time_mpi_constants`
+    run(`./generate_compile_time_mpi_constants`)
 
     run(`$mpicc -fPIC -shared -o libload_time_mpi_constants.so $(joinpath(srcdir, "load_time_mpi_constants.c")) $cflags`)
 
