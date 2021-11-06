@@ -1,4 +1,4 @@
-name: shellcheck
+name: ShellCheck
 
 on:
   push:
