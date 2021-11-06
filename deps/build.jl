@@ -111,7 +111,8 @@ elseif binary == ""
 
     if Sys.iswindows()
         using MicrosoftMPI_jll
-        const _generate_constants = MicrosoftMPI_jll.generate_compile_time_mpi_constants
+        # const _generate_constants = MicrosoftMPI_jll.generate_compile_time_mpi_constants
+        const _generate_constants = `cp compile_time_mpi_constants_win64_$(Sys.ARCH).jl compile_time_mpi_constants.jl`
     else
         using MPICH_jll
         const _generate_constants = MPICH_jll.generate_compile_time_mpi_constants
@@ -218,7 +219,8 @@ elseif binary == "MicrosoftMPI_jll"
     @info "using MicrosoftMPI_jll"
 
     using MicrosoftMPI_jll
-    const _generate_constants = MicrosoftMPI_jll.generate_compile_time_mpi_constants
+    # const _generate_constants = MicrosoftMPI_jll.generate_compile_time_mpi_constants
+    const _generate_constants = `cp compile_time_mpi_constants_win64_$(Sys.ARCH).jl compile_time_mpi_constants.jl`
 
     deps = quote
         using MicrosoftMPI_jll
