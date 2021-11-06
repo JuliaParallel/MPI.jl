@@ -1,6 +1,9 @@
-# This reads in the load-time MPI constants. They were declared
-# earlier with dummy values in the file
+# This file defines the load-time MPI constants in MicrosoftMPI. They
+# were declared earlier with dummy values in the file
 # `define_load_time_mpi_constants.jl`.
+#
+# MicrosoftMPI only supports the standard MPI 2.0, so not all
+# constants are available. (Julia generally supports MPI 3.1.)
 
 global MPI_ANY_SOURCE = Cint(-2)
 global MPI_ANY_TAG = Cint(-1)
@@ -34,7 +37,7 @@ global MPI_COMBINER_F90_COMPLEX = Cint(16)
 global MPI_COMBINER_F90_INTEGER = Cint(17)
 global MPI_COMBINER_F90_REAL = Cint(15)
 global MPI_COMBINER_HINDEXED = Cint(9)
-global MPI_COMBINER_HINDEXED_BLOCK = unsafe_load(cglobal((:MPICONSTANTS_COMBINER_HINDEXED_BLOCK, libmpiconstants), Cint))
+global MPI_COMBINER_HINDEXED_BLOCK = nothing
 global MPI_COMBINER_HVECTOR = Cint(6)
 global MPI_COMBINER_INDEXED = Cint(7)
 global MPI_COMBINER_INDEXED_BLOCK = Cint(10)
@@ -87,23 +90,23 @@ global MPI_ERR_QUOTA = Cint(39)
 global MPI_ERR_RANK = Cint(6)
 global MPI_ERR_READ_ONLY = Cint(40)
 global MPI_ERR_REQUEST = Cint(19)
-global MPI_ERR_RMA_ATTACH = unsafe_load(cglobal((:MPICONSTANTS_ERR_RMA_ATTACH, libmpiconstants), Cint))
+global MPI_ERR_RMA_ATTACH = nothing
 global MPI_ERR_RMA_CONFLICT = Cint(49)
-global MPI_ERR_RMA_FLAVOR = unsafe_load(cglobal((:MPICONSTANTS_ERR_RMA_FLAVOR, libmpiconstants), Cint))
-global MPI_ERR_RMA_RANGE = unsafe_load(cglobal((:MPICONSTANTS_ERR_RMA_RANGE, libmpiconstants), Cint))
-global MPI_ERR_RMA_SHARED = unsafe_load(cglobal((:MPICONSTANTS_ERR_RMA_SHARED, libmpiconstants), Cint))
+global MPI_ERR_RMA_FLAVOR = nothing
+global MPI_ERR_RMA_RANGE = nothing
+global MPI_ERR_RMA_SHARED = nothing
 global MPI_ERR_RMA_SYNC = Cint(50)
 global MPI_ERR_ROOT = Cint(7)
 global MPI_ERR_SERVICE = Cint(41)
 global MPI_ERR_SIZE = Cint(51)
-global MPI_ERR_SPAWN = unsafe_load(cglobal((:MPICONSTANTS_ERR_SPAWN, libmpiconstants), Cint))
+global MPI_ERR_SPAWN = nothing
 global MPI_ERR_TAG = Cint(4)
 global MPI_ERR_TOPOLOGY = Cint(10)
 global MPI_ERR_TRUNCATE = Cint(14)
 global MPI_ERR_TYPE = Cint(3)
 global MPI_ERR_UNKNOWN = Cint(13)
-global MPI_ERR_UNSUPPORTED_DATAREP = unsafe_load(cglobal((:MPICONSTANTS_ERR_UNSUPPORTED_DATAREP, libmpiconstants), Cint))
-global MPI_ERR_UNSUPPORTED_OPERATION = unsafe_load(cglobal((:MPICONSTANTS_ERR_UNSUPPORTED_OPERATION, libmpiconstants), Cint))
+global MPI_ERR_UNSUPPORTED_DATAREP = nothing
+global MPI_ERR_UNSUPPORTED_OPERATION = nothing
 global MPI_ERR_WIN = Cint(45)
 # We special-case MPI_SUCCESS which is required to be 0
 # global MPI_SUCCESS = Cint(0)
@@ -139,8 +142,8 @@ global MPI_TYPECLASS_REAL = Cint(1)
 
 global MPI_ARGV_NULL = Ptr{Ptr{Cchar}}(0)
 global MPI_ARGVS_NULL = Ptr{Ptr{Ptr{Cchar}}}(0)
-    # global MPI_UNWEIGHTED = unsafe_load(cglobal((:MPICONSTANTS_UNWEIGHTED, libmpiconstants), Ptr{Cint}))
-    # global MPI_WEIGHTS_EMPTY = unsafe_load(cglobal((:MPICONSTANTS_WEIGHTS_EMPTY, libmpiconstants), Ptr{Cint}))
+    # global MPI_UNWEIGHTED = nothing
+    # global MPI_WEIGHTS_EMPTY = nothing
 global MPI_BOTTOM = Ptr{Cvoid}(0)
 global MPI_IN_PLACE = Ptr{Cvoid}(-1)
 
@@ -148,7 +151,7 @@ global MPI_COMM_NULL = MPI_Comm(0x04000000)
 global MPI_COMM_SELF = MPI_Comm(0x44000001)
 global MPI_COMM_WORLD = MPI_Comm(0x44000000)
 
-global MPI_COMM_DUP_FN = unsafe_load(cglobal((:MPICONSTANTS_COMM_DUP_FN, libmpiconstants), MPI_Comm_copy_attr_function))
+global MPI_COMM_DUP_FN = MPI_Comm_copy_attr_function(cglobal(:MPIR_Dup_fn, libmpi))
 
 global MPI_COMM_NULL_COPY_FN = MPI_Comm_copy_attr_function(0)
 
@@ -166,7 +169,7 @@ global MPI_CHAR = MPI_Datatype(0x4c000101)
 global MPI_CHARACTER = MPI_Datatype(0x4c00011a)
 global MPI_COMPLEX = MPI_Datatype(0x4c00081e)
 global MPI_COMPLEX16 = MPI_Datatype(0x4c00102a)
-global MPI_COMPLEX32 = unsafe_load(cglobal((:MPICONSTANTS_COMPLEX32, libmpiconstants), MPI_Datatype))
+global MPI_COMPLEX32 = nothing
 global MPI_COMPLEX8 = MPI_Datatype(0x4c000828)
 global MPI_COUNT = MPI_Datatype(0x4c000845)
 global MPI_CXX_BOOL = MPI_Datatype(0x4c000133)
@@ -205,7 +208,7 @@ global MPI_LONG_LONG_INT = MPI_Datatype(0x4c000809)
 global MPI_OFFSET = MPI_Datatype(0x4c000844)
 global MPI_PACKED = MPI_Datatype(0x4c00010f)
 global MPI_REAL = MPI_Datatype(0x4c00041c)
-global MPI_REAL16 = unsafe_load(cglobal((:MPICONSTANTS_REAL16, libmpiconstants), MPI_Datatype))
+global MPI_REAL16 = nothing
 global MPI_REAL4 = MPI_Datatype(0x4c000427)
 global MPI_REAL8 = MPI_Datatype(0x4c000829)
 global MPI_SHORT = MPI_Datatype(0x4c000203)
@@ -233,7 +236,7 @@ global MPI_FILE_NULL = MPI_File(0)
 global MPI_GROUP_EMPTY = MPI_Group(0x48000000)
 global MPI_GROUP_NULL = MPI_Group(0x08000000)
 
-global MPI_INFO_ENV = unsafe_load(cglobal((:MPICONSTANTS_INFO_ENV, libmpiconstants), MPI_Info))
+global MPI_INFO_ENV = nothing
 global MPI_INFO_NULL = MPI_Info(0x1c000000)
 
 global MPI_MESSAGE_NO_PROC = MPI_Message(0x6c000000
@@ -262,7 +265,7 @@ global MPI_REQUEST_NULL = MPI_Request(0x2c000000)
 global MPI_STATUS_IGNORE = Ptr{MPI_Status}(1)
 global MPI_STATUSES_IGNORE = Ptr{MPI_Status}(1)
 
-global MPI_TYPE_DUP_FN = unsafe_load(cglobal((:MPICONSTANTS_TYPE_DUP_FN, libmpiconstants), MPI_Type_copy_attr_function))
+global MPI_TYPE_DUP_FN = MPI_Type_copy_attr_function(cglobal(:MPIR_Dup_fn, libmpi))
 
 global MPI_TYPE_NULL_COPY_FN = MPI_Type_copy_attr_function(0)
 
@@ -270,10 +273,7 @@ global MPI_TYPE_NULL_DELETE_FN = MPI_Type_delete_attr_function(0)
 
 global MPI_WIN_NULL = MPI_Win(0x20000000)
 
-global MPI_WIN_DUP_FN = unsafe_load(cglobal((:MPICONSTANTS_WIN_DUP_FN, libmpiconstants), MPI_Win_copy_attr_function))
+global MPI_WIN_DUP_FN = MPI_Win_copy_attr_function(cglobal(:MPIR_Dup_fn, libmpi))
 global MPI_WIN_NULL_COPY_FN = MPI_Win_copy_attr_function(0)
 
 global MPI_WIN_NULL_DELETE_FN = MPI_Win_delete_attr_function(0)
-
-finished_loading[] = true
-run_load_time_hooks()

@@ -2,6 +2,8 @@
 # earlier with dummy values in the file
 # `define_load_time_mpi_constants.jl`.
 
+if !Sys.iswindows()
+
 global MPI_ANY_SOURCE = unsafe_load(cglobal((:MPICONSTANTS_ANY_SOURCE, libmpiconstants), Cint))
 global MPI_ANY_TAG = unsafe_load(cglobal((:MPICONSTANTS_ANY_TAG, libmpiconstants), Cint))
 global MPI_PROC_NULL = unsafe_load(cglobal((:MPICONSTANTS_PROC_NULL, libmpiconstants), Cint))
@@ -274,6 +276,12 @@ global MPI_WIN_DUP_FN = unsafe_load(cglobal((:MPICONSTANTS_WIN_DUP_FN, libmpicon
 global MPI_WIN_NULL_COPY_FN = unsafe_load(cglobal((:MPICONSTANTS_WIN_NULL_COPY_FN, libmpiconstants), MPI_Win_copy_attr_function))
 
 global MPI_WIN_NULL_DELETE_FN = unsafe_load(cglobal((:MPICONSTANTS_WIN_NULL_DELETE_FN, libmpiconstants), MPI_Win_delete_attr_function))
+
+else
+
+include("read_load_time_mpi_constants_win64.jl")
+
+end
 
 finished_loading[] = true
 run_load_time_hooks()
