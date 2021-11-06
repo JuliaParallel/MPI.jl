@@ -151,7 +151,7 @@ global MPI_COMM_NULL = MPI_Comm(0x04000000)
 global MPI_COMM_SELF = MPI_Comm(0x44000001)
 global MPI_COMM_WORLD = MPI_Comm(0x44000000)
 
-global MPI_COMM_DUP_FN = MPI_Comm_copy_attr_function(cglobal(:MPIR_Dup_fn, libmpi))
+global MPI_COMM_DUP_FN = MPI_Comm_copy_attr_function(cglobal((:MPIR_Dup_fn, libmpi)))
 
 global MPI_COMM_NULL_COPY_FN = MPI_Comm_copy_attr_function(0)
 
@@ -265,7 +265,7 @@ global MPI_REQUEST_NULL = MPI_Request(0x2c000000)
 global MPI_STATUS_IGNORE = Ptr{MPI_Status}(1)
 global MPI_STATUSES_IGNORE = Ptr{MPI_Status}(1)
 
-global MPI_TYPE_DUP_FN = MPI_Type_copy_attr_function(cglobal(:MPIR_Dup_fn, libmpi))
+global MPI_TYPE_DUP_FN = MPI_Type_copy_attr_function(cglobal((:MPIR_Dup_fn, libmpi)))
 
 global MPI_TYPE_NULL_COPY_FN = MPI_Type_copy_attr_function(0)
 
@@ -273,7 +273,7 @@ global MPI_TYPE_NULL_DELETE_FN = MPI_Type_delete_attr_function(0)
 
 global MPI_WIN_NULL = MPI_Win(0x20000000)
 
-global MPI_WIN_DUP_FN = MPI_Win_copy_attr_function(cglobal(:MPIR_Dup_fn, libmpi))
+global MPI_WIN_DUP_FN = MPI_Win_copy_attr_function(cglobal((:MPIR_Dup_fn, libmpi)))
 global MPI_WIN_NULL_COPY_FN = MPI_Win_copy_attr_function(0)
 
 global MPI_WIN_NULL_DELETE_FN = MPI_Win_delete_attr_function(0)
