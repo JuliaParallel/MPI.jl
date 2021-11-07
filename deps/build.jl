@@ -190,7 +190,17 @@ elseif binary == "MPItrampoline_jll"
         const _mpiexec = MPItrampoline_jll.mpiexec
         const mpiexec_path = MPItrampoline_jll.mpiexec_path
 
-        __init__deps() = nothing
+        function __init__deps()
+            @assert MPItrampoline_jll.is_available()
+            if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
+                @info "[MPI] Using built-in MPICH with MPItrampoline"
+                # MPItrampoline_jll has the correct default for
+                # MPITRAMPOLINE_LIB already built in; we don't need to set
+                # it (and it would be too late by now anyway since
+                # MPItrampoline_jll is already loadedd)
+                ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
+            end
+        end
     end
 
 elseif binary == "OpenMPI_jll"
