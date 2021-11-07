@@ -7,6 +7,32 @@ if !isfile(config_toml)
     touch(config_toml)
 end
 
+# This file contains code that runs at three different occasions:
+#
+# 1. When `build MPI` is called. At this time, `MPI.jl` has not yet
+#    been loaded. This code runs essentially as a script. However, it
+#    calls the MPI function `MPI_Get_library_version`, which means
+#    that the MPI library must be callable. (`MPI_Init` is not
+#    called.) The result of this call is saved, to ensure that the MPI
+#    library doesn't accidentally change at a later time (e.g. when
+#    the wrong set of modules is loaded), which could lead to
+#    segfaults that are difficult to debug.
+#
+# 2. When `MPI.jl` is precompiled. Most things should be initialized
+#    at that time.
+#
+# 3. When `MPI.jl` is loaded, i.e. when its `__init__` function is
+#    run. Some information is only available at load time, e.g.
+#    certatin MPI constants such as `MPI_COMM_DUP_FN`. This might be
+#    function pointers whose value is only known at load time. Another
+#    reason to run code at this time would be to set environment
+#    variables; their values are not captured while precompiling.
+#
+# Generally, this file `build.jl` is run at stage (1). It creates a
+# file `deps.jl` that is run at stage (2), and which also defines a
+# function `__init__deps__` that is run at stage (3). Certain actions
+# need to happen at two or all three stages.
+
 config = TOML.parsefile(config_toml)
 update_config = false
 
