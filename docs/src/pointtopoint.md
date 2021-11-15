@@ -4,7 +4,9 @@
 
 ```@docs
 MPI.Request
+MPI.RequestSet
 MPI.Status
+MPI.StatusRef
 ```
 
 ### Accessors
@@ -37,14 +39,14 @@ MPI.Irecv!
 ### Completion
 
 ```@docs
-MPI.Test!
-MPI.Testall!
-MPI.Testany!
-MPI.Testsome!
-MPI.Wait!
-MPI.Waitall!
-MPI.Waitany!
-MPI.Waitsome!
+MPI.Test
+MPI.Testall
+MPI.Testany
+MPI.Testsome
+MPI.Wait
+MPI.Waitall
+MPI.Waitany
+MPI.Waitsome
 ```
 
 ### Probe/Cancel
