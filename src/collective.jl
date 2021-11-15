@@ -315,7 +315,7 @@ if the length can be determined from `sendbuf`. On non-root processes it is igno
 can be `nothing`.
 
 # See also
-- [`Gatherv`](@ref) for the allocating operation
+- [`Gatherv!`](@ref) for the allocating operation
 - [`Gather!`](@ref)
 - [`Allgatherv!`](@ref) to send the result to all processes
 
@@ -432,7 +432,6 @@ If only one buffer `sendrecvbuf` is provided, then for each process, the data to
 is taken from the interval of `recvbuf` where it would store its own data.
 
 # See also
-- [`Allgatherv`](@ref) for the allocating operation
 - [`Gatherv!`](@ref) to send the result to a single process
 
 # External links

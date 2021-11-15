@@ -528,4 +528,3 @@ function Cancel!(req::Request)
     @mpichk ccall((:MPI_Cancel, libmpi), Cint, (Ptr{MPI_Request},), req)
     nothing
 end
-
