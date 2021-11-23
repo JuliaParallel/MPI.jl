@@ -114,7 +114,7 @@ jobs:
           ${{ runner.os }}-
 
     - name: Switch to dev version of MPItrampoline_jll
-      run: julia --project=@. -e 'using Pkg; Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll")'
+      run: julia --project=@. -e 'using Pkg; Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll.jl")'
 
     - uses: julia-actions/julia-buildpkg@latest
     - uses: julia-actions/julia-runtest@latest
