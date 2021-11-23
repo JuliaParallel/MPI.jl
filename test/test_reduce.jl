@@ -9,7 +9,7 @@ else
 end
 
 # Closures might not be supported by cfunction
-const can_do_closures =
+const can_do_closures = false && #TODO
     ArrayType === Array &&
     !(MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE == 32) &&
     Sys.ARCH !== :powerpc64le &&
