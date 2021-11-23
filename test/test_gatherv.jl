@@ -19,13 +19,13 @@ isroot = rank == root
 counts = Cint[mod(i,2) + 1 for i in 0:(size-1)]
 check = collect(Iterators.flatten([fill(r, counts[r+1]) for r = 0:size-1]))
 
-@info "Gatherv before loop"
+#@info "Gatherv before loop"
 for T in Base.uniontypes(MPI.MPIDatatype)
-    @info "Gatherv T=$T"
+    #@info "Gatherv T=$T"
     A = ArrayType(fill(T(rank), mod(rank,2) + 1))
 
     # Test passing the output buffer
-    @info "Gatherv test #1"
+    #@info "Gatherv test #1"
     B = ArrayType{T}(undef, sum(counts))
     MPI.Gatherv!(A, isroot ? VBuffer(B, counts) : nothing, comm; root=root)
     if isroot
@@ -33,14 +33,14 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     end
 
     # Test assertion when output size is too small
-    @info "Gatherv test #2"
+    #@info "Gatherv test #2"
     B = ArrayType{T}(undef, sum(counts)-1)
     if isroot
         @test_throws AssertionError MPI.Gatherv!(A, VBuffer(B, counts), comm; root=root)
     end
 
     # Test explicit MPI_IN_PLACE
-    @info "Gatherv test #3"
+    #@info "Gatherv test #3"
     if isroot
         B = ArrayType(fill(T(rank), sum(counts)))
         MPI.Gatherv!(MPI.IN_PLACE, VBuffer(B, counts), comm; root=root)
@@ -51,12 +51,12 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     if isroot
         @test B == ArrayType{T}(check)
     end
-    @info "Gatherv tests done"
+    #@info "Gatherv tests done"
 end
-@info "Gatherv loop done"
+#@info "Gatherv loop done"
 
 
 MPI.Finalize()
-@info "Gatherv finalized"
+#@info "Gatherv finalized"
 @test MPI.Finalized()
-@info "Gatherv tested finalized"
+#@info "Gatherv tested finalized"
