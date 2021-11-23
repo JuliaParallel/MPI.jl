@@ -148,7 +148,7 @@ if can_do_closures
 end
 
 #@info :test_reduce 27
-GC.gc()
+#TODO GC.gc()
 #@info :test_reduce 28
 MPI.Finalize()
 #@info :test_reduce 29
