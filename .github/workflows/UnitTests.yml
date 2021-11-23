@@ -68,14 +68,13 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest]
         mpi: [mpitrampoline]
-        julia_version: [
-        "1.6",
-        #TODO "1.7-nightly", "nightly"
-        ]
-        julia_arch: [
-        x64,
-        #TODO x86
-        ]
+        julia_version:
+          - "1.6"
+          - "1.7-nightly"
+          - "nightly"
+        julia_arch:
+          - x64
+          - x86
         exclude:
           - os: macos-latest
             julia_arch: x86
