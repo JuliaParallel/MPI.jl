@@ -26,13 +26,13 @@ macro mpicall(expr)
 end
 
 function Get_library_version()
-    # This function is called before this package is initialized. We
-    # thus cannot access `MPI_MAX_LIBRARY_VERSION_STRING`. The largest
-    # value of `MPI_MAX_LIBRARY_VERSION_STRING` in the wild is 8192.
+    # There is no way to query at runtime what the length of the buffer should be.
+    # https://github.com/mpi-forum/mpi-issues/issues/159
+    # 8192 is the maximum value of MPI_MAX_LIBRARY_VERSION_STRING across known
+    # implementations.
     buf = Array{UInt8}(undef, 8192)
     buflen = Ref{Cint}()
 
-    libfilename, = split(basename(libmpi),'.')
     @mpicall ccall((:MPI_Get_library_version, libmpi), Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
     @assert buflen[] < 8192
     resize!(buf, buflen[])

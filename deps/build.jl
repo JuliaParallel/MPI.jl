@@ -30,7 +30,7 @@ end
 #
 # Generally, this file `build.jl` is run at stage (1). It creates a
 # file `deps.jl` that is run at stage (2), and which also defines a
-# function `__init__deps__` that is run at stage (3). Certain actions
+# function `__init__deps` that is run at stage (3). Certain actions
 # need to happen at two or all three stages.
 
 config = TOML.parsefile(config_toml)
@@ -101,7 +101,7 @@ if binary == "system"
 
     include(joinpath("..", "src", "implementations.jl"))
 
-    @info "Using implementation" libmpi mpiexec_cmd MPI_LIBRARY_VERSION_STRING
+    @info "using implementation" libmpi mpiexec_cmd MPI_LIBRARY_VERSION_STRING
 
     include("prepare_mpi_constants.jl")
 
@@ -187,46 +187,30 @@ elseif binary == "MPICH_jll"
 elseif binary == "MPItrampoline_jll"
 
     @info "using MPItrampoline_jll"
-
     using MPItrampoline_jll
     @assert MPItrampoline_jll.is_available()
-    if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
-        @info "[MPI] Using built-in MPICH with MPItrampoline"
-        # MPItrampoline_jll has the correct default for
-        # MPITRAMPOLINE_LIB already built in; we don't need to set
-        # it (and it would be too late by now anyway since
-        # MPItrampoline_jll is already loadedd)
-        ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
-    end
     run(MPItrampoline_jll.generate_compile_time_mpi_constants())
 
     deps = quote
-        @info "[MPI] Initializating MPItrampoline"
+        @info "using MPItrampoline_jll"
         using MPItrampoline_jll
         @assert MPItrampoline_jll.is_available()
         if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
             @info "[MPI] Using built-in MPICH with MPItrampoline"
-            # MPItrampoline_jll has the correct default for
-            # MPITRAMPOLINE_LIB already built in; we don't need to set
-            # it (and it would be too late by now anyway since
-            # MPItrampoline_jll is already loadedd)
-            ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
+            # In principle, MPItrampoline_jll.mpiwrapperexec should
+            # forward to MPItrampoline_jll.mpich_mpiexec. However,
+            # there is no mechanism to update the path to where the
+            # Julia artifact is installed, so we forward manually
+            # here.
+            const _mpiexec = MPItrampoline_jll.mpich_mpiexec
+            const mpiexec_path = MPItrampoline_jll.mpich_mpiexec_path
+        else
+            const _mpiexec = MPItrampoline_jll.mpiwrapperexec
+            const mpiexec_path = MPItrampoline_jll.mpiwrapperexecpath
         end
-        const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants
-        const _mpiexec = MPItrampoline_jll.mpiexec
-        const mpiexec_path = MPItrampoline_jll.mpiexec_path
-
-        function __init__deps()
-            @assert MPItrampoline_jll.is_available()
-            if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
-                @info "[MPI] Using built-in MPICH with MPItrampoline"
-                # MPItrampoline_jll has the correct default for
-                # MPITRAMPOLINE_LIB already built in; we don't need to set
-                # it (and it would be too late by now anyway since
-                # MPItrampoline_jll is already loadedd)
-                ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
-            end
-        end
+        const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
+    
+        __init__deps() = nothing
     end
 
 elseif binary == "OpenMPI_jll"
@@ -243,7 +227,7 @@ elseif binary == "OpenMPI_jll"
 
         function __init__deps()
             # Required for OpenMPI relocateable binaries
-            # TODO: this should be done in OpenMPI_jll package
+            # TODO: this should be done in the OpenMPI_jll package
             # https://github.com/JuliaPackaging/Yggdrasil/issues/390
             ENV["OPAL_PREFIX"] = OpenMPI_jll.artifact_dir
         end

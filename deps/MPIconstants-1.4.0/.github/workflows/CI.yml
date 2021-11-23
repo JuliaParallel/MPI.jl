@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04
+          - macos-11
+          #TODO - windows-2019
+        mpi: [MPICH, OpenMPI, MSMPI]
+        exclude:
+          - os: ubuntu-20.04
+            mpi: MSMPI
+          - os: macos-11
+            mpi: MSMPI
+          - os: windows-2019
+            mpi: MPICH
+          - os: windows-2019
+            mpi: OpenMPI
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install ${{matrix.mpi}}
+      shell: bash
+      run: |
+        case $RUNNER_OS in
+        Linux)
+            case "${{matrix.mpi}}" in
+                MPICH) packages=libmpich-dev;;
+                OpenMPI) packages=libopenmpi-dev;;
+            esac
+            sudo apt-get install $packages
+            ;;
+        macOS)
+            # The Homebrew MPICH doesn't have the `mpi-f08` Fortran
+            # module, but cmake insists on it. We thus use MacPorts
+            # instead.
+
+            # case "${{matrix.mpi}}" in
+            #     MPICH) packages=mpich;;
+            #     OpenMPI) packages=open-mpi;;
+            # esac
+            # brew install $packages
+
+            # Install MacPorts
+            wget https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg
+            sudo /usr/sbin/installer -pkg MacPorts-2.7.1-11-BigSur.pkg -target /
+            rm MacPorts-2.7.1-11-BigSur.pkg
+            echo /opt/local/bin >> $GITHUB_PATH
+            echo /opt/local/sbin >> $GITHUB_PATH
+            export "PATH=/opt/local/bin:/opt/local/sbin:$PATH"
+            sudo port sync
+
+            case "${{matrix.mpi}}" in
+                MPICH) packages='mpich-gcc10 +fortran';;
+                OpenMPI) packages='openmpi-gcc11 +fortran';;
+            esac
+            sudo port install $packages
+            ;;
+        Windows)
+            # wget https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe
+            # See <https://gist.github.com/scivision/1de4fd6abea9ba6b2d87dc1e86b5d2ce>
+            # Should we use <https://github.com/mpi4py/setup-mpi> instead?
+            echo AAA
+            curl -L -O https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe
+            echo BBB
+            ./msmpisetup.exe -unattend -force
+            echo CCC
+            Test-Path "C:/Program Files/Microsoft MPI/Bin/mpiexec.exe" -PathType leaf
+            echo DDD
+            echo "C:/Program Files/Microsoft MPI/Bin/" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            echo EEE
+            ;;
+        esac
+
+    - name: Configure
+      shell: bash
+      run: |
+        case $RUNNER_OS in
+        Linux)
+            cmake -B ${{github.workspace}}/build \
+                -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+                -DCMAKE_INSTALL_PREFIX=${HOME}/mpiconstants
+            ;;
+        macOS)
+            case ${{matrix.mpi}} in
+            MPICH)
+                # The compiler wrappers have non-standard names
+                cmake -B ${{github.workspace}}/build \
+                    -DCMAKE_C_COMPILER=mpicc-mpich-gcc10 \
+                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-mpich-gcc10 \
+                    -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+                    -DCMAKE_INSTALL_PREFIX=${HOME}/mpiconstants
+                ;;
+            OpenMPI)
+                # The compiler wrappers have non-standard names
+                cmake -B ${{github.workspace}}/build \
+                    -DCMAKE_C_COMPILER=mpicc-openmpi-gcc11 \
+                    -DMPIEXEC_EXECUTABLE=/opt/local/bin/mpiexec-openmpi-gcc11 \
+                    -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+                    -DCMAKE_INSTALL_PREFIX=${HOME}/mpiconstants
+                ;;
+            esac
+            ;;
+        Windows)
+            cmake -B ${{github.workspace}}/build \
+                -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+                -DCMAKE_INSTALL_PREFIX=${HOME}/mpiconstants
+            ;;
+        esac
+
+    - name: Build
+      shell: bash
+      run: |
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: ctest -C ${{env.BUILD_TYPE}}
+
+    - name: Install
+      shell: bash
+      run: cmake --install ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      shell: bash
+      run: |
+        # Test generating compile-time constants
+        ${HOME}/mpiconstants/bin/generate_compile_time_mpi_constants
+        test -f compile_time_mpi_constants.jl
+        grep -q 'MPI_MAX_LIBRARY_VERSION_STRING' compile_time_mpi_constants.jl
+        grep -q 'MPI_Status' compile_time_mpi_constants.jl
+        grep -q 'MPI_Comm' compile_time_mpi_constants.jl
+        # Examine load-time constants
+        if [ $(uname) = Darwin ]; then
+            dlsuffix='dylib'
+            symprefix='_'
+            symtype='[DS]'
+        else
+            dlsuffix='so'
+            symprefix=''
+            symtype='[BDR]'
+        fi
+        test -e ${HOME}/mpiconstants/lib/libload_time_mpi_constants.${dlsuffix}
+        nm ${HOME}/mpiconstants/lib/libload_time_mpi_constants.${dlsuffix} |
+            grep -q " ${symtype} ${symprefix}MPICONSTANTS_COMM_WORLD\$"
+        nm ${HOME}/mpiconstants/lib/libload_time_mpi_constants.${dlsuffix} |
+            grep -q " ${symtype} ${symprefix}MPICONSTANTS_INT\$"
+        nm ${HOME}/mpiconstants/lib/libload_time_mpi_constants.${dlsuffix} |
+            grep -q " ${symtype} ${symprefix}MPICONSTANTS_STATUS_IGNORE\$"

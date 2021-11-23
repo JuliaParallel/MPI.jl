@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12...3.20)
 project(
   MPIwrapper
-  VERSION 1.3.2
+  VERSION 1.4.0
   DESCRIPTION "MPI constants"
   LANGUAGES C
   )
