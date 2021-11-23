@@ -130,7 +130,7 @@ MPI.Barrier( MPI.COMM_WORLD )
 @info :test_reduce 21
 
 if can_do_closures
-@info :test_reduce 22
+    @info :test_reduce 22
     send_arr = [Double64(i)/10 for i = 1:10]
 
     @info :test_reduce 23
