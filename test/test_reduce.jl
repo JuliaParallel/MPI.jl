@@ -125,27 +125,27 @@ for T = [Int]
     end
 end
 
-#@info :test_reduce 20
-MPI.Barrier( MPI.COMM_WORLD )
-#@info :test_reduce 21
-
-if can_do_closures
-    #@info :test_reduce 22
-    send_arr = [Double64(i)/10 for i = 1:10]
-
-    #@info :test_reduce 23
-    result = MPI.Reduce(send_arr, +, MPI.COMM_WORLD; root=root)
-    #@info :test_reduce 24
-    if rank == root
-        @test result ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
-    else
-        @test result === nothing
-    end
-
-    #@info :test_reduce 25
-    MPI.Barrier( MPI.COMM_WORLD )
-    #@info :test_reduce 26
-end
+#TODO #@info :test_reduce 20
+#TODO MPI.Barrier( MPI.COMM_WORLD )
+#TODO #@info :test_reduce 21
+#TODO 
+#TODO if can_do_closures
+#TODO     #@info :test_reduce 22
+#TODO     send_arr = [Double64(i)/10 for i = 1:10]
+#TODO 
+#TODO     #@info :test_reduce 23
+#TODO     result = MPI.Reduce(send_arr, +, MPI.COMM_WORLD; root=root)
+#TODO     #@info :test_reduce 24
+#TODO     if rank == root
+#TODO         @test result ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
+#TODO     else
+#TODO         @test result === nothing
+#TODO     end
+#TODO 
+#TODO     #@info :test_reduce 25
+#TODO     MPI.Barrier( MPI.COMM_WORLD )
+#TODO     #@info :test_reduce 26
+#TODO end
 
 #@info :test_reduce 27
 #TODO GC.gc()
