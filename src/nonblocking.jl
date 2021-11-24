@@ -65,7 +65,7 @@ const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
 add_load_time_hook!(() -> REQUEST_NULL.val = MPI_REQUEST_NULL)
 
 Request() = Request(REQUEST_NULL.val, nothing)
-isnull(req::Request) = req.val == REQUEST_NULL.val
+isnull(req::Request) = req == REQUEST_NULL
 
 function free(req::Request)
     if !isnull(req) && !MPI.Finalized()

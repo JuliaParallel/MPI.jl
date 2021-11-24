@@ -12,7 +12,7 @@ add_load_time_hook!(() -> WIN_NULL.val = MPI_WIN_NULL)
 Win() = Win(WIN_NULL.val, nothing)
 
 function free(win::Win)
-    if win.val != WIN_NULL.val && !Finalized()
+    if win != WIN_NULL && !Finalized()
         # int MPI_Win_free(MPI_Win *win)
         @mpichk ccall((:MPI_Win_free, libmpi), Cint, (Ptr{MPI_Win},), win)
         win.object = nothing

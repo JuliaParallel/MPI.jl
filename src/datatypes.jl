@@ -27,7 +27,7 @@ Datatype() = Datatype(MPI_DATATYPE_NULL)
 
 
 function free(dt::Datatype)
-    if dt.val != DATATYPE_NULL.val && !Finalized()
+    if dt != DATATYPE_NULL && !Finalized()
         @mpichk ccall((:MPI_Type_free, libmpi), Cint, (Ptr{MPI_Datatype},), dt)
     end
     return nothing

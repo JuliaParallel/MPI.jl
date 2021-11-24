@@ -33,7 +33,7 @@ add_load_time_hook!(() -> COMM_SELF.val = MPI_COMM_SELF)
 Comm() = Comm(COMM_NULL.val)
 
 function free(comm::Comm)
-    if comm.val != COMM_NULL.val && !Finalized()
+    if comm != COMM_NULL && !Finalized()
         @mpichk ccall((:MPI_Comm_free, libmpi), Cint, (Ptr{MPI_Comm},), comm)
     end
     return nothing

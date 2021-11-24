@@ -45,7 +45,7 @@ function Info(;init=false)
 end
 
 function free(info::Info)
-    if info.val != INFO_NULL.val && !Finalized()
+    if info != INFO_NULL && !Finalized()
         @mpichk ccall((:MPI_Info_free, libmpi), Cint, (Ptr{MPI_Info},), info)
     end
     return nothing

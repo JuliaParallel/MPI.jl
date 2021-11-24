@@ -63,7 +63,7 @@ Op(::typeof(⊻), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BXOR
 
 
 function free(op::Op)
-    if op.val != OP_NULL.val && !Finalized()
+    if op != OP_NULL && !Finalized()
         @mpichk ccall((:MPI_Op_free, libmpi), Cint, (Ptr{MPI_Op},), op)
     end
     return nothing
