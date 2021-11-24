@@ -153,6 +153,6 @@ ccall(:fputs, Cint, (Ptr{Cchar}, Ptr{Cvoid}), "test_reduce 28\n", fileptr)
 MPI.Finalize()
 ccall(:fputs, Cint, (Ptr{Cchar}, Ptr{Cvoid}), "test_reduce 29\n", fileptr)
 @test MPI.Finalized()
-ccall(:fputs, Cint, (Ptr{Cchar}, Ptr{Cvoid}), "test_reduce 20\n", fileptr)
+ccall(:fputs, Cint, (Ptr{Cchar}, Ptr{Cvoid}), "test_reduce 30\n", fileptr)
 
 ccall(:fclose, Cint, (Ptr{Cvoid},), fileptr)
