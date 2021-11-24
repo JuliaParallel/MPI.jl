@@ -23,6 +23,8 @@ testfiles = sort(filter(istest, readdir(testdir)))
 
 @info "Running MPI tests" ArrayType nprocs
 
+#TODO
+testfiles = ["test_reduce.jl"]
 @testset "$f" for f in testfiles
     mpiexec() do cmd
         if f == "test_spawn.jl"
