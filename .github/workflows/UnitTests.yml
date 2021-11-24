@@ -117,6 +117,7 @@ jobs:
           ${{ runner.os }}-test-
           ${{ runner.os }}-
 
+    #TODO:
     - name: Switch to dev version of MPItrampoline_jll
       run: |
         # This adds the desired version of `MPItrampoline_jll`
@@ -126,7 +127,13 @@ jobs:
         julia --project=@. -e 'using Pkg; Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll.jl")' || true
 
     - uses: julia-actions/julia-buildpkg@latest
-    - uses: julia-actions/julia-runtest@latest
+    #TODO:
+    - name: Run tests
+      run: |
+        julia --project=@. -e 'using Pkg; Pkg.test()' || true
+        cat /tmp/log*.txt
+        false
+    #TODO - uses: julia-actions/julia-runtest@latest
 
 
 #TODO  test-system-brew:
