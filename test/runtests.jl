@@ -23,9 +23,9 @@ testfiles = sort(filter(istest, readdir(testdir)))
 
 @info "Running MPI tests" ArrayType nprocs
 
-#TODO
-testfiles = ["test_reduce.jl"]
 @testset "$f" for f in testfiles
+    #TODO
+    println("*** Starting test $f...")
     mpiexec() do cmd
         if f == "test_spawn.jl"
             run(`$cmd -n 1 $(Base.julia_cmd()) $(joinpath(testdir, f))`)
@@ -41,4 +41,7 @@ testfiles = ["test_reduce.jl"]
         end
         @test true
     end
+    #TODO
+    println("*** Done test $f.")
+    sleep(3)
 end

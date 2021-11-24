@@ -62,16 +62,7 @@ jobs:
           ${{ runner.os }}-
 
     - uses: julia-actions/julia-buildpkg@latest
-    #TODO:
-    - name: Run tests
-      run: |
-        julia --color=yes --project=@. -e 'using Pkg; Pkg.test()'&
-        pid=$!
-        sleep 300
-        kill $pid || true
-        cat /tmp/log*.txt
-        false
-    #TODO - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@latest
 
 
   test-binary-mpitrampoline:
@@ -136,16 +127,7 @@ jobs:
         julia --project=@. -e 'using Pkg; Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll.jl")' || true
 
     - uses: julia-actions/julia-buildpkg@latest
-    #TODO:
-    - name: Run tests
-      run: |
-        julia --color=yes --project=@. -e 'using Pkg; Pkg.test()'&
-        pid=$!
-        sleep 300
-        kill $pid || true
-        cat /tmp/log*.txt
-        false
-    #TODO - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@latest
 
 
 #TODO  test-system-brew:
