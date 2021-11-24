@@ -59,10 +59,10 @@ while !all_done
     rmsg      = MPI.Recv!(dummy, comm; source=recv_id, tag=tag_ind)
     msg_num  += 1
     global localsum += dummy[1]
+    if msg_num == 10
+      smsg = MPI.Send(tag_ind, comm; dest=0, tag=myrank)
+    end
   end # is_request
-  if msg_num == 10
-    smsg = MPI.Send(tag_ind, comm; dest=0, tag=myrank)
-  end
   all_done = MPI.Test(barrier_req)
 end # !all_done 
 
