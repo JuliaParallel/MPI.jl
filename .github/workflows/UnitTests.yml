@@ -15,7 +15,7 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-          - windows-latest
+          # - windows-latest
         julia_version:
           # Unsupported - "1.3"
           # Unsupported - "1.4"
