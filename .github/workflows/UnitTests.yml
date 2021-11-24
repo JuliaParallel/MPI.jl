@@ -130,7 +130,10 @@ jobs:
     #TODO:
     - name: Run tests
       run: |
-        julia --project=@. -e 'using Pkg; Pkg.test()' || true
+        julia --color=yes --project=@. -e 'using Pkg; Pkg.test()'&
+        pid=$!
+        sleep 300
+        kill $pid
         cat /tmp/log*.txt
         false
     #TODO - uses: julia-actions/julia-runtest@latest
