@@ -21,7 +21,7 @@ using DoubleFloats
 
 MPI.Init()
 
-filename = "/tmp/log-$(MPI.Comm_rank(MPI.COMM_WORLD)).log"
+filename = "/tmp/log-$(MPI.Comm_rank(MPI.COMM_WORLD)).txt"
 fileptr = ccall(:fopen, Ptr{Cvoid}, (Ptr{Cchar}, Ptr{Cchar}), filename, "w")
 
 ccall(:fputs, Cint, (Ptr{Cchar}, Ptr{Cvoid}), "test_reduce 3\n", fileptr)
