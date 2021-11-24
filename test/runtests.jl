@@ -25,6 +25,8 @@ testfiles = sort(filter(istest, readdir(testdir)))
 
 @testset "$f" for f in testfiles
     mpiexec() do cmd
+        #TODO
+        f != "test_reduce.jl" && continue
         if f == "test_spawn.jl"
             run(`$cmd -n 1 $(Base.julia_cmd()) $(joinpath(testdir, f))`)
         elseif f == "test_threads.jl"
