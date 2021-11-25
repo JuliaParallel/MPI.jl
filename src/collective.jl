@@ -607,8 +607,8 @@ end
 #TODO     Reduce!(rbuf, Op(op, eltype(rbuf)), root, comm)
 function Reduce!(rbuf::RBuffer, op, root::Integer, comm::Comm)
     op′ = Op(op, eltype(rbuf))
-    push!(comm.keepalives, op′)
-    Reduce!(rbuf, op′, root, comm)
+    #TODO push!(comm.keepalives, op′)
+    GC.@preserve op′ Reduce!(rbuf, op′, root, comm)
 end
 Reduce!(sendbuf, recvbuf, op, root::Integer, comm::Comm) =
     Reduce!(RBuffer(sendbuf, recvbuf), op, root, comm)
