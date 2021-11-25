@@ -36,6 +36,11 @@ val = isroot ? sz-1 : nothing
 @test MPI.Reduce(rank, MPI.MAX, comm; root=root) == val
 @test MPI.Reduce(rank, max, comm; root=root) == val
 
+#TODO
+val = isroot ? sz-1 : nothing
+@test MPI.Reduce(rank, MPI.MAX, comm; root=root) == val
+@test MPI.Reduce(rank, max, comm; root=root) == val
+
 val = isroot ? 0 : nothing
 @test MPI.Reduce(rank, MPI.MIN, comm; root=root) == val
 @test MPI.Reduce(rank, min, comm; root=root) == val
