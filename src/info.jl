@@ -119,7 +119,7 @@ function Base.delete!(info::Info,key::Symbol)
 end
 
 function Base.length(info::Info)
-    if info.val == INFO_NULL.val
+    if info == INFO_NULL
         return 0
     end
     nkeys = Ref{Cint}()

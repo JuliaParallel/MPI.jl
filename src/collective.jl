@@ -603,11 +603,8 @@ function Reduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm)
 end
 
 # Convert user-provided functions to MPI.Op
-#TODO Reduce!(rbuf::RBuffer, op, root::Integer, comm::Comm) =
-#TODO     Reduce!(rbuf, Op(op, eltype(rbuf)), root, comm)
 function Reduce!(rbuf::RBuffer, op, root::Integer, comm::Comm)
     op′ = Op(op, eltype(rbuf))
-    #TODO push!(comm.keepalives, op′)
     GC.@preserve op′ Reduce!(rbuf, op′, root, comm)
 end
 Reduce!(sendbuf, recvbuf, op, root::Integer, comm::Comm) =

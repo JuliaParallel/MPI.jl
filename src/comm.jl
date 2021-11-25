@@ -5,13 +5,12 @@ An MPI Communicator object.
 """
 mutable struct Comm
     val::MPI_Comm
-    keepalives::Set
 end
 Base.:(==)(a::Comm, b::Comm) = a.val == b.val
 Base.cconvert(::Type{MPI_Comm}, comm::Comm) = comm.val
 Base.unsafe_convert(::Type{Ptr{MPI_Comm}}, comm::Comm) = convert(Ptr{MPI_Comm}, pointer_from_objref(comm))
 
-const COMM_NULL = Comm(MPI_COMM_NULL, Set())
+const COMM_NULL = Comm(MPI_COMM_NULL)
 add_load_time_hook!(() -> COMM_NULL.val = MPI_COMM_NULL)
 
 """
@@ -20,7 +19,7 @@ add_load_time_hook!(() -> COMM_NULL.val = MPI_COMM_NULL)
 A communicator containing all processes with which the local rank can communicate at
 initialization. In a typical "static-process" model, this will be all processes.
 """
-const COMM_WORLD = Comm(MPI_COMM_WORLD, Set())
+const COMM_WORLD = Comm(MPI_COMM_WORLD)
 add_load_time_hook!(() -> COMM_WORLD.val = MPI_COMM_WORLD)
 
 """
@@ -28,16 +27,15 @@ add_load_time_hook!(() -> COMM_WORLD.val = MPI_COMM_WORLD)
 
 A communicator containing only the local process.
 """
-const COMM_SELF = Comm(MPI_COMM_SELF, Set())
+const COMM_SELF = Comm(MPI_COMM_SELF)
 add_load_time_hook!(() -> COMM_SELF.val = MPI_COMM_SELF)
 
-Comm() = Comm(COMM_NULL.val, Set())
+Comm() = Comm(COMM_NULL.val)
 
 function free(comm::Comm)
     if comm != COMM_NULL && !Finalized()
         @mpichk ccall((:MPI_Comm_free, libmpi), Cint, (Ptr{MPI_Comm},), comm)
     end
-    empty!(keepalives)
     return nothing
 end
 
