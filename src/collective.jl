@@ -684,8 +684,10 @@ function Allreduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
                   rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
 end
-Allreduce!(rbuf::RBuffer, op, comm::Comm) =
-    Allreduce!(rbuf, Op(op, eltype(rbuf)), comm)
+function Allreduce!(rbuf::RBuffer, op, comm::Comm)
+    op′ = Op(op, eltype(rbuf))
+    @GC.preserve op′ Allreduce!(rbuf, op′, comm)
+end
 Allreduce!(sendbuf, recvbuf, op, comm::Comm) =
     Allreduce!(RBuffer(sendbuf, recvbuf), op, comm)
 
@@ -744,8 +746,10 @@ function Scan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
                   rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
 end
-Scan!(rbuf::RBuffer, op, comm::Comm) =
-    Scan!(rbuf, Op(op, eltype(rbuf)), comm)
+function Scan!(rbuf::RBuffer, op, comm::Comm)
+    op′ = Op(op, eltype(rbuf))
+    @GC.preserve op′ Scan!(rbuf, op′, comm)
+end
 Scan!(sendbuf, recvbuf, op, comm::Comm) =
     Scan!(RBuffer(sendbuf, recvbuf), op, comm)
 
@@ -806,8 +810,10 @@ function Exscan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
           rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
 end
-Exscan!(rbuf::RBuffer, op, comm::Comm) =
-    Exscan!(rbuf, Op(op, eltype(rbuf)), comm)
+function Exscan!(rbuf::RBuffer, op, comm::Comm)
+    op′ = Op(op, eltype(rbuf))
+    @GC.preserve op′ Exscan!(rbuf, op′, comm)
+end
 Exscan!(sendbuf, recvbuf, op, comm::Comm) =
     Exscan!(RBuffer(sendbuf, recvbuf), op, comm)
 
