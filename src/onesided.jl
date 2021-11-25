@@ -15,8 +15,8 @@ function free(win::Win)
     if win != WIN_NULL && !Finalized()
         # int MPI_Win_free(MPI_Win *win)
         @mpichk ccall((:MPI_Win_free, libmpi), Cint, (Ptr{MPI_Win},), win)
-        win.object = nothing
     end
+    win.object = nothing
     return nothing
 end
 
