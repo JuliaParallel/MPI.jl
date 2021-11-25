@@ -5,6 +5,7 @@ An MPI Communicator object.
 """
 mutable struct Comm
     val::MPI_Comm
+    keepalives::Set
 end
 Base.:(==)(a::Comm, b::Comm) = a.val == b.val
 Base.cconvert(::Type{MPI_Comm}, comm::Comm) = comm.val
@@ -36,6 +37,7 @@ function free(comm::Comm)
     if comm != COMM_NULL && !Finalized()
         @mpichk ccall((:MPI_Comm_free, libmpi), Cint, (Ptr{MPI_Comm},), comm)
     end
+    empty!(keepalives)
     return nothing
 end
 
