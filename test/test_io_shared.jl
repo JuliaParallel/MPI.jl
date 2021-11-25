@@ -1,6 +1,6 @@
 using Test
 using MPI
-using Random
+#TODO using Random
 
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     import CUDA
@@ -31,7 +31,7 @@ if rank == 0
 end
 
 # TODO: is there a better way to synchronise shared pointers?
-# MPI.Barrier(comm)
+MPI.Barrier(comm)
 MPI.File.sync(fh)
 
 offset = MPI.File.get_position_shared(fh)
@@ -40,6 +40,8 @@ byte_offset = MPI.File.get_byte_offset(fh, offset)
 @test byte_offset == offset
 
 MPI.File.set_view!(fh, byte_offset, MPI.Datatype(Int64), MPI.Datatype(Int64))
+MPI.Barrier(comm)
+MPI.File.sync(fh)
 @test MPI.File.get_position_shared(fh) == 0
 
 MPI.Barrier(comm)
@@ -63,6 +65,8 @@ MPI.File.sync(fh)
 @test MPI.File.get_position_shared(fh) == sum(1:sz)
 
 MPI.File.set_view!(fh, 0, MPI.Datatype(UInt8), MPI.Datatype(UInt8))
+MPI.Barrier(comm)
+MPI.File.sync(fh)
 MPI.File.seek_shared(fh, 0)
 @test MPI.File.get_position_shared(fh) == 0
 
