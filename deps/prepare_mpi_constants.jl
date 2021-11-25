@@ -17,9 +17,9 @@ if !Sys.iswindows()
         cflags = `-I$incdir -L$libdir -Wl,-rpath,$libdir -l$libname`
     end
 
-    # We expect the subdirectory `MPIconstants-1.3.2` to contain a copy of
+    # We expect the subdirectory `MPIconstants-1.4.0` to contain a copy of
     # <https://github.com/eschnett/MPIconstants>
-    srcdir = "MPIconstants-1.3.2"
+    srcdir = "MPIconstants-1.4.0"
 
     run(`$mpicc -o generate_compile_time_mpi_constants $(joinpath(srcdir, "generate_compile_time_mpi_constants.c")) $cflags`)
     run(`./generate_compile_time_mpi_constants`)
