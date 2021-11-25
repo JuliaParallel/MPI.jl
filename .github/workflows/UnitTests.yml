@@ -14,8 +14,8 @@ jobs:
       matrix:
         os:
           - macos-latest
-          # - ubuntu-latest
-          # - windows-latest
+          - ubuntu-latest
+          - windows-latest
         julia_version:
           # Unsupported - "1.3"
           # Unsupported - "1.4"
@@ -71,7 +71,7 @@ jobs:
       matrix:
         os:
           - macos-latest
-          # - ubuntu-latest
+          - ubuntu-latest
         mpi: [mpitrampoline]
         julia_version:
           - "1.6"
