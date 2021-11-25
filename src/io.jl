@@ -69,7 +69,7 @@ function open(comm::Comm, filename::AbstractString;
 end
 
 function close(file::FileHandle)
-    if file.val != FILE_NULL.val && !Finalized()
+    if file != FILE_NULL && !Finalized()
         # int MPI_File_close(MPI_File *fh)
         @mpichk ccall((:MPI_File_close, libmpi), Cint,
                       (Ptr{MPI_File},), file)
