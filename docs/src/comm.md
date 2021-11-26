@@ -10,7 +10,6 @@ each process a unique *rank* (see [`MPI.Comm_rank`](@ref)) taking an integer val
 
 ```@docs
 MPI.Comm
-MPI.Comparison
 ```
 
 ## Constants
