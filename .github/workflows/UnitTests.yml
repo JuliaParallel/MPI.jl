@@ -137,7 +137,10 @@ jobs:
         mpi:
           - mpich
           #WORKS - openmpi
-        julia_version: ["1.6", "1.7-nightly", "nightly"]
+        julia_version:
+          - "1.6"
+          #TODO - "1.7-nightly"
+          #TODO - "nightly"
 
       fail-fast: false
 
@@ -179,6 +182,15 @@ jobs:
           ${{ runner.os }}-
 
     - uses: julia-actions/julia-buildpkg@latest
+
+    #TODO:
+    - name: Show MPI configuration
+      run: |
+        echo 'deps/deps.jl
+        cat 'deps/deps.jl
+        echo 'deps/compile_time_mpi_constants.jl'
+        cat 'deps/compile_time_mpi_constants.jl'
+
     - uses: julia-actions/julia-runtest@latest
 
 
