@@ -43,7 +43,7 @@ MPI.Barrier(MPI.COMM_WORLD)
 
 #TODO
 val = isroot ? sz-1 : nothing
-@test MPI.Reduce(rank, MPI.MAX, comm; root=root) == val
+#TODO @test MPI.Reduce(rank, MPI.MAX, comm; root=root) == val
 @test MPI.Reduce(rank, max, comm; root=root) == val
 
 val = isroot ? 0 : nothing
