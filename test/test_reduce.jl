@@ -61,9 +61,9 @@ ierr = ccall((:MPI_Reduce, MPI.libmpi),
 @test ierr == 0
 @test isroot ? newranks == vals : true
 
-for i in 0:size-1
+for i in 0:sz-1
     if rank == i
-        @show size rank root isroot
+        @show sz rank root isroot
     end
     MPI.Barrier(comm)
 end
