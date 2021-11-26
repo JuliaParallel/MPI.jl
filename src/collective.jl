@@ -596,10 +596,9 @@ Reduce!(sendbuf, recvbuf, op, comm::Comm; root::Integer=Cint(0)) =
 function Reduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm)
     # int MPI_Reduce(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
-    ccall((:MPI_Reduce, libmpi), Cint,
+    @mpichk ccall((:MPI_Reduce, libmpi), Cint,
                   (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm),
                   rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, root, comm)
-    end
     return rbuf.recvdata
 end
 
