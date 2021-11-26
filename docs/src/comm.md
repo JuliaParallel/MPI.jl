@@ -27,11 +27,15 @@ MPI.COMM_SELF
 MPI.Comm_size
 MPI.Comm_rank
 MPI.Comm_compare
+MPI.Comm_group
+MPI.Comm_remote_group
 ```
 
 ### Constructors
 
 ```@docs
+MPI.Comm_create
+MPI.Comm_create_group
 MPI.Comm_dup
 MPI.Comm_get_parent
 MPI.Comm_spawn

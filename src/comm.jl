@@ -69,6 +69,77 @@ function Comm_size(comm::Comm)
 end
 
 """
+    Comm_group(comm::Comm)
+
+Accesses the group associated with given communicator.
+
+# External links
+$(_doc_external("MPI_Comm_group"))
+"""
+function Comm_group(comm::Comm)
+    newgroup = Group()
+    @mpichk ccall((:MPI_Comm_group, libmpi), Cint,
+        (MPI_Comm, Ptr{MPI_Group}), comm, newgroup)
+    finalizer(free, newgroup)
+    newgroup
+end
+
+"""
+Comm_remote_group(comm::Comm)
+
+Accesses the remote group associated with the given inter-communicator.
+
+# External links
+$(_doc_external("MPI_Comm_remote_group"))
+"""
+function Comm_remote_group(comm::Comm)
+    newgroup = Group()
+    @mpichk ccall((:MPI_Comm_remote_group, libmpi), Cint,
+        (MPI_Comm, Ptr{MPI_Group}), comm, newgroup)
+    finalizer(free, newgroup)
+    newgroup
+end
+
+"""
+    Comm_create(comm::Comm, group::Group)
+
+Collectively creates a new communicator.
+
+# See also
+- [`MPI.Comm_create_group`](@ref) for the noncollective operation
+
+# External links
+$(_doc_external("MPI_Comm_create"))
+"""
+function Comm_create(comm::Comm, group::Group)
+    newcomm = Comm()
+    @mpichk ccall((:MPI_Comm_create, libmpi), Cint,
+          (MPI_Comm, MPI_Group, Ptr{MPI_Comm}),
+          comm, group, newcomm)
+    finalizer(free, newcomm)
+    newcomm
+end
+
+"""
+    Comm_create_group(comm::Comm, group::Group, tag::Integer)
+
+Noncollectively creates a new communicator.
+
+# See also
+- [`MPI.Comm_create`](@ref) for the noncollective operation
+
+# External links
+$(_doc_external("MPI_Comm_create_group"))
+"""
+function Comm_create_group(comm::Comm, group::Group, tag::Integer)
+    newcomm = Comm()
+    @mpichk ccall((:MPI_Comm_create_group, libmpi), Cint,
+        (MPI_Comm, MPI_Group, Cint, Ptr{MPI_Comm}), comm, group, tag, newcomm)
+    finalizer(free, newcomm)
+    newcomm
+end
+
+"""
     Comm_dup(comm::Comm)
 
 # External links
