@@ -25,7 +25,8 @@ comm = MPI.COMM_WORLD
 sz = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-root = sz-1
+#TODO root = sz-1
+root = 0
 isroot = rank == root
 
 #TODO
