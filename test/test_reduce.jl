@@ -45,6 +45,13 @@ MPI.Barrier(comm)
 @show typeof(rank)
 ranks = [rank]
 vals = isroot ? [val] : nothing
+newranks = similar(ranks)
+ierr = ccall((:MPI_Reduce, MPI.libmpi),
+             Cint,
+             (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI.MPI_Datatype, MPI.MPI_Op, Cint, MPI.MPI_Comm),
+             ranks, newranks, length(ranks), MPI.MPI_LONG_LONG, MPI.MPI_SUM, root, MPI.MPI_COMM_WORLD)
+@test ierr == 0
+@test isroot ? newranks == vals : true
 @test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
 @test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
 @test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
