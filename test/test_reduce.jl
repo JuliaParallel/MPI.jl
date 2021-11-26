@@ -42,10 +42,12 @@ MPI.Barrier(comm)
 MPI.Barrier(comm)
 MPI.Barrier(comm)
 MPI.Barrier(comm)
+@show typeof(rank)
 ranks = [rank]
-@test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == val
-@test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == val
-@test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == val
+vals = isroot ? [val] : nothing
+@test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
+@test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
+@test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
 @test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
 MPI.Barrier(comm)
 MPI.Barrier(comm)
