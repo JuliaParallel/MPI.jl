@@ -21,7 +21,6 @@ grp6 = MPI.Group_incl(grp, Int32[0])
 
 # Don't free the other groups
 MPI.free(grp)
-@test MPI.Group_compare(grp, MPI.GROUP_NULL) === MPI.IDENT
 
 MPI.Finalize()
 @test MPI.Finalized()
