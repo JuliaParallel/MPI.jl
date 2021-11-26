@@ -596,7 +596,8 @@ Reduce!(sendbuf, recvbuf, op, comm::Comm; root::Integer=Cint(0)) =
 function Reduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm)
     # int MPI_Reduce(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
-    @mpichk ccall((:MPI_Reduce, libmpi), Cint,
+    #TODO @mpichk ccall((:MPI_Reduce, libmpi), Cint,
+    @mpichk @GC.preserve rbuf.senddata ccall((:MPI_Reduce, libmpi), Cint,
                   (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm),
                   rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, root, comm)
     return rbuf.recvdata
@@ -646,10 +647,13 @@ function Reduce(sendbuf::AbstractArray, op, root::Integer, comm::Comm)
     end
 end
 function Reduce(object::T, op, root::Integer, comm::Comm) where {T}
+    source = Ref(object)
     if Comm_rank(comm) == root
-        Reduce!(Ref(object), Ref{T}(), op, root, comm)[]
+        #TODO
+        GC.@preserve source Reduce!(source, Ref{T}(), op, root, comm)[]
     else
-        Reduce!(Ref(object), nothing, op, root, comm)
+        #TODO
+        GC.@preserve source Reduce!(source, nothing, op, root, comm)
     end
 end
 
