@@ -28,6 +28,8 @@ rank = MPI.Comm_rank(comm)
 root = sz-1
 isroot = rank == root
 
+#TODO
+GC.enable(false)
 val = isroot ? sum(0:sz-1) : nothing
 @test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
 @test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
