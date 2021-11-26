@@ -182,27 +182,22 @@ jobs:
           ${{ runner.os }}-
 
     - uses: julia-actions/julia-buildpkg@latest
-
-    #TODO:
-    - name: Show MPI configuration
-      run: |
-        echo 'deps/deps.jl
-        cat 'deps/deps.jl
-        echo 'deps/compile_time_mpi_constants.jl'
-        cat 'deps/compile_time_mpi_constants.jl'
-
     - uses: julia-actions/julia-runtest@latest
+      env:
+        JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
 
 
   test-system-apt:
     timeout-minutes: 20
     strategy:
       matrix:
-        mpi: [libmpich-dev, libopenmpi-dev]
+        mpi:
+          - libmpich-dev
+          - libopenmpi-dev
         julia_version:
           - "1.6"
-          - #TODO "1.7-nightly"
-          - #TODO "nightly"
+           - "1.7-nightly"
+          #TODO - "nightly"
 
       fail-fast: false
 
