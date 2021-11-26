@@ -16,18 +16,49 @@ function free(group::Group)
     return nothing
 end
 
+"""
+    Group_size(group::Group)
+
+The number of processes involved in group.
+
+# External links
+$(_doc_external("MPI_Group_size"))
+"""
 function Group_size(group::Group)
     size = Ref{Cint}()
     @mpichk ccall((:MPI_Group_size, libmpi), Cint, (MPI_Group, Ptr{Cint}), group, size)
     Int(size[])
 end
 
+"""
+    Group_rank(group::Group)
+
+The rank of the process in the particular group.
+
+Returns an integer in the range `0:MPI.Group_size()-1`.
+
+# External links
+$(_doc_external("MPI_Group_rank"))
+"""
 function Group_rank(group::Group)
     rank = Ref{Cint}()
     @mpichk ccall((:MPI_Group_rank, libmpi), Cint, (MPI_Group, Ptr{Cint}), group, rank)
     Int(rank[])
 end
 
+"""
+    Comparison
+
+An enum denoting the result of [`Group_compare`](@ref) (and [`Comm_compare`](@ref)):
+
+ - `MPI.IDENT`: the objects are handles for the same object (identical groups and same contexts).
+
+ - `MPI.CONGRUENT`: the groups are identical in constituents and rank order; these ommunicators differ only by context.
+
+ - `MPI.SIMILAR`: members of both objects are the same but the rank order differs.
+
+ - `MPI.UNEQUAL`: otherwise
+"""
 @enum Comparison begin
     IDENT     = MPI_IDENT
     CONGRUENT = MPI_CONGRUENT
