@@ -42,6 +42,10 @@ MPI.Barrier(comm)
 MPI.Barrier(comm)
 MPI.Barrier(comm)
 MPI.Barrier(comm)
+ranks = [rank]
+@test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == val
 @test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
 MPI.Barrier(comm)
 MPI.Barrier(comm)
