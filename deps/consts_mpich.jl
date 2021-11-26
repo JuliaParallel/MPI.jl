@@ -20,6 +20,10 @@ const MPI_COMM_NULL = Cint(67108864)
 const MPI_COMM_SELF = Cint(1140850689)
 const MPI_COMM_WORLD = Cint(1140850688)
 
+const MPI_Group = Cint
+const MPI_GROUP_NULL  = Cint(134217728)
+const MPI_GROUP_EMPTY = Cint(1207959552)
+
 const MPI_Errhandler = Cint
 const MPI_ERRORS_ARE_FATAL = Cint(0x54000000)
 const MPI_ERRORS_RETURN = Cint(0x54000001)
