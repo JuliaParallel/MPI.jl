@@ -25,8 +25,8 @@ comm = MPI.COMM_WORLD
 sz = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-#TODO root = sz-1
-root = 0
+root = sz-1   #BROKEN
+#TODO root = 0   #WORKS
 isroot = rank == root
 
 #TODO
@@ -69,6 +69,7 @@ for i in 0:sz-1
     MPI.Barrier(comm)
 end
 
+#WORKS
 dummy = Ref{Cchar}()
 ierr = ccall((:MPI_Reduce, MPI.libmpi),
              Cint,
@@ -77,6 +78,7 @@ ierr = ccall((:MPI_Reduce, MPI.libmpi),
 @test ierr == 0
 @test isroot ? newranks == vals : true
 
+#BROKEN
 ierr = ccall((:MPI_Reduce, MPI.libmpi),
              Cint,
              (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI.MPI_Datatype, MPI.MPI_Op, Cint, MPI.MPI_Comm),
