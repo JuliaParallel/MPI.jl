@@ -30,6 +30,28 @@ isroot = rank == root
 
 val = isroot ? sum(0:sz-1) : nothing
 @test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.SUM, comm; root=root) == val
+
 @test MPI.Reduce(rank, +, comm; root=root) == val
 
 val = isroot ? sz-1 : nothing
@@ -43,7 +65,7 @@ MPI.Barrier(MPI.COMM_WORLD)
 
 #TODO
 val = isroot ? sz-1 : nothing
-#TODO @test MPI.Reduce(rank, MPI.MAX, comm; root=root) == val
+@test MPI.Reduce(rank, MPI.MAX, comm; root=root) == val
 @test MPI.Reduce(rank, max, comm; root=root) == val
 
 val = isroot ? 0 : nothing
