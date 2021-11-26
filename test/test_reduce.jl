@@ -58,6 +58,9 @@ ierr = ccall((:MPI_Reduce, MPI.libmpi),
              ranks, newranks, length(ranks), MPI.LONG_LONG, MPI.SUM, root, MPI.COMM_WORLD)
 @test ierr == 0
 @test isroot ? newranks == vals : true
+rbuf = MPI.RBuffer(ranks, newranks)
+result = MPI.Reduce!(rbuf, MPI.SUM, root, comm)
+@test result == vals
 @test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
 @test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
 @test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
