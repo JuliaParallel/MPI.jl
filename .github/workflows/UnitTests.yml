@@ -196,7 +196,7 @@ jobs:
           - libopenmpi-dev
         julia_version:
           - "1.6"
-           - "1.7-nightly"
+          #TODO - "1.7-nightly"
           #TODO - "nightly"
 
       fail-fast: false
