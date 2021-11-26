@@ -42,6 +42,7 @@ MPI.Barrier(comm)
 MPI.Barrier(comm)
 MPI.Barrier(comm)
 MPI.Barrier(comm)
+
 @show typeof(rank)
 ranks = [rank]
 vals = isroot ? [val] : nothing
@@ -52,18 +53,31 @@ ierr = ccall((:MPI_Reduce, MPI.libmpi),
              ranks, newranks, length(ranks), MPI.MPI_LONG_LONG, MPI.MPI_SUM, root, MPI.MPI_COMM_WORLD)
 @test ierr == 0
 @test isroot ? newranks == vals : true
+
 ierr = ccall((:MPI_Reduce, MPI.libmpi),
              Cint,
              (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI.MPI_Datatype, MPI.MPI_Op, Cint, MPI.MPI_Comm),
              ranks, newranks, length(ranks), MPI.LONG_LONG, MPI.SUM, root, MPI.COMM_WORLD)
 @test ierr == 0
 @test isroot ? newranks == vals : true
+
+ierr = ccall((:MPI_Reduce, MPI.libmpi),
+             Cint,
+             (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI.MPI_Datatype, MPI.MPI_Op, Cint, MPI.MPI_Comm),
+             ranks, isroot ? newranks : C_NULL, length(ranks), MPI.LONG_LONG, MPI.SUM, root, MPI.COMM_WORLD)
+@test ierr == 0
+@test isroot ? newranks == vals : true
+
 rbuf = MPI.RBuffer(ranks, newranks)
 result = MPI.Reduce!(rbuf, MPI.SUM, root, comm)
 @test isroot ? result == vals : true
+
+@assert MPI.SUM.val == MPI.MPI_SUM
+
 rbuf = MPI.RBuffer(ranks, isroot ? newranks : nothing)
 result = MPI.Reduce!(rbuf, MPI.SUM, root, comm)
 @test result == vals
+
 @test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
 @test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
 @test MPI.Reduce(ranks, MPI.SUM, comm; root=root) == vals
