@@ -35,12 +35,13 @@ testfiles = sort(filter(istest, readdir(testdir)))
             r = run(ignorestatus(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`))
             @test !success(r)
         else
-            # MPI_Reduce with MPICH 3.4.2 on macOS when root!=0 and
-            # when recvbuf==C_NULL segfaults in our tests. It also
+            # MPI_Reduce with MPICH 3.4.2 on macOS when root != 0 and
+            # when recvbuf == C_NULL segfaults in our tests. It also
             # segfaults with an equivalent C program, so we allow
-            # skipping this test here.
+            # skipping this test here. See
+            # <https://gist.github.com/eschnett/8de7ea43c746de07909544bf2c38535a>.
             if get(ENV, "JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE", "") != "" && Sys.isapple() && f == "test_reduce.jl"
-                continue
+                return
             end
             run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
         end
