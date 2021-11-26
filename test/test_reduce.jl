@@ -68,6 +68,14 @@ for i in 0:sz-1
     MPI.Barrier(comm)
 end
 
+dummy = Ref{Cchar}()
+ierr = ccall((:MPI_Reduce, MPI.libmpi),
+             Cint,
+             (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI.MPI_Datatype, MPI.MPI_Op, Cint, MPI.MPI_Comm),
+             ranks, isroot ? newranks : dummy, length(ranks), MPI.LONG_LONG, MPI.SUM, root, MPI.COMM_WORLD)
+@test ierr == 0
+@test isroot ? newranks == vals : true
+
 ierr = ccall((:MPI_Reduce, MPI.libmpi),
              Cint,
              (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI.MPI_Datatype, MPI.MPI_Op, Cint, MPI.MPI_Comm),
