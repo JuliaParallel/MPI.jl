@@ -370,15 +370,6 @@ jobs:
 #WORKS           ${{ runner.os }}-test-
 #WORKS           ${{ runner.os }}-
 #WORKS 
-#WORKS     #TODO:
-#WORKS     - name: Switch to dev version of MPItrampoline_jll
-#WORKS       run: |
-#WORKS         # This adds the desired version of `MPItrampoline_jll`
-#WORKS         # successfully, but then fails to precompile `MPI`. We don't
-#WORKS         # care about this failure here. Later on, precompiling `MPI`
-#WORKS         # should succeed.
-#WORKS         julia --project=@. -e 'using Pkg; Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll.jl")' || true
-#WORKS 
 #WORKS     - uses: julia-actions/julia-buildpkg@latest
 #WORKS     - uses: julia-actions/julia-runtest@latest
 
@@ -445,15 +436,6 @@ jobs:
           ${{ runner.os }}-test-${{ env.cache-name }}-
           ${{ runner.os }}-test-
           ${{ runner.os }}-
-
-    #TODO:
-    - name: Switch to dev version of MPItrampoline_jll
-      run: |
-        # This adds the desired version of `MPItrampoline_jll`
-        # successfully, but then fails to precompile `MPI`. We don't
-        # care about this failure here. Later on, precompiling `MPI`
-        # should succeed.
-        julia --project=@. -e 'using Pkg; Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll.jl")' || true
 
     - uses: julia-actions/julia-buildpkg@latest
     - uses: julia-actions/julia-runtest@latest
