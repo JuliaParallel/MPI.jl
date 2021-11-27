@@ -136,11 +136,11 @@ jobs:
       matrix:
         mpi:
           - mpich
-          #WORKS - openmpi
+          - openmpi
         julia_version:
           - "1.6"
-          #TODO - "1.7-nightly"
-          #TODO - "nightly"
+          - "1.7-nightly"
+          - "nightly"
 
       fail-fast: false
 
@@ -196,8 +196,8 @@ jobs:
           - libopenmpi-dev
         julia_version:
           - "1.6"
-          #TODO - "1.7-nightly"
-          #TODO - "nightly"
+          - "1.7-nightly"
+          - "nightly"
 
       fail-fast: false
 
