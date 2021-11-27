@@ -318,69 +318,69 @@ jobs:
 #WORKS     - uses: julia-actions/julia-runtest@latest
 
 
-  test-mpitrampoline-jll:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-        mpi: [mpitrampoline]
-        julia_version:
-          - "1.6"
-          - "1.7-nightly"
-          - "nightly"
-        julia_arch:
-          - x64
-          - x86
-        exclude:
-          - os: macos-latest
-            julia_arch: x86
-
-      fail-fast: false
-
-    runs-on: ${{ matrix.os }}
-
-    env:
-      JULIA_MPI_BINARY: MPItrampoline_jll
-
-    steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
-    - name: Checkout
-      uses: actions/checkout@v2.2.0
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.julia_version }}
-
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
-
-    #TODO:
-    - name: Switch to dev version of MPItrampoline_jll
-      run: |
-        # This adds the desired version of `MPItrampoline_jll`
-        # successfully, but then fails to precompile `MPI`. We don't
-        # care about this failure here. Later on, precompiling `MPI`
-        # should succeed.
-        julia --project=@. -e 'using Pkg; Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll.jl")' || true
-
-    - uses: julia-actions/julia-buildpkg@latest
-    - uses: julia-actions/julia-runtest@latest
+#WORKS   test-mpitrampoline-jll:
+#WORKS     timeout-minutes: 20
+#WORKS     strategy:
+#WORKS       matrix:
+#WORKS         os:
+#WORKS           - macos-latest
+#WORKS           - ubuntu-latest
+#WORKS         mpi: [mpitrampoline]
+#WORKS         julia_version:
+#WORKS           - "1.6"
+#WORKS           - "1.7-nightly"
+#WORKS           - "nightly"
+#WORKS         julia_arch:
+#WORKS           - x64
+#WORKS           - x86
+#WORKS         exclude:
+#WORKS           - os: macos-latest
+#WORKS             julia_arch: x86
+#WORKS 
+#WORKS       fail-fast: false
+#WORKS 
+#WORKS     runs-on: ${{ matrix.os }}
+#WORKS 
+#WORKS     env:
+#WORKS       JULIA_MPI_BINARY: MPItrampoline_jll
+#WORKS 
+#WORKS     steps:
+#WORKS     - name: Cancel Previous Runs
+#WORKS       uses: styfle/cancel-workflow-action@0.4.0
+#WORKS       with:
+#WORKS         access_token: ${{ github.token }}
+#WORKS 
+#WORKS     - name: Checkout
+#WORKS       uses: actions/checkout@v2.2.0
+#WORKS 
+#WORKS     - uses: julia-actions/setup-julia@latest
+#WORKS       with:
+#WORKS         version: ${{ matrix.julia_version }}
+#WORKS 
+#WORKS     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#WORKS     - name: Cache artifacts
+#WORKS       uses: actions/cache@v1
+#WORKS       env:
+#WORKS         cache-name: cache-artifacts
+#WORKS       with:
+#WORKS         path: ~/.julia/artifacts
+#WORKS         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#WORKS         restore-keys: |
+#WORKS           ${{ runner.os }}-test-${{ env.cache-name }}-
+#WORKS           ${{ runner.os }}-test-
+#WORKS           ${{ runner.os }}-
+#WORKS 
+#WORKS     #TODO:
+#WORKS     - name: Switch to dev version of MPItrampoline_jll
+#WORKS       run: |
+#WORKS         # This adds the desired version of `MPItrampoline_jll`
+#WORKS         # successfully, but then fails to precompile `MPI`. We don't
+#WORKS         # care about this failure here. Later on, precompiling `MPI`
+#WORKS         # should succeed.
+#WORKS         julia --project=@. -e 'using Pkg; Pkg.add(url="https://github.com/eschnett/MPItrampoline_jll.jl")' || true
+#WORKS 
+#WORKS     - uses: julia-actions/julia-buildpkg@latest
+#WORKS     - uses: julia-actions/julia-runtest@latest
 
 
   test-mpitrampoline-system-apt:
@@ -425,8 +425,8 @@ jobs:
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
         cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
-        cmake --build mpiwrapper-mpich
-        sudo cmake --install mpiwrapper-mpich
+        cmake --build .
+        sudo cmake --install .
 
     - uses: julia-actions/setup-julia@latest
       with:
