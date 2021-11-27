@@ -195,18 +195,24 @@ elseif binary == "MPItrampoline_jll"
         @info "using MPItrampoline_jll"
         using MPItrampoline_jll
         @assert MPItrampoline_jll.is_available()
-        if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
-            @info "[MPI] Using built-in MPICH with MPItrampoline"
-            # In principle, MPItrampoline_jll.mpiwrapperexec should
-            # forward to MPItrampoline_jll.mpich_mpiexec. However,
-            # there is no mechanism to update the path to where the
-            # Julia artifact is installed, so we forward manually
-            # here.
-            const _mpiexec = MPItrampoline_jll.mpich_mpiexec
-            const mpiexec_path = MPItrampoline_jll.mpich_mpiexec_path
+        mpiexec_path = get(ENV, "MPITRAMPOLINE_MPIEXEC", nothing)
+        if mpiexec_path === nothing
+            if "MPITRAMPOLINE_LIB" ∉ keys(ENV)
+                @info "[MPI] Using built-in MPICH with MPItrampoline"
+                # In principle, MPItrampoline_jll.mpiwrapperexec should
+                # forward to MPItrampoline_jll.mpich_mpiexec. However,
+                # there is no mechanism to update the path to where the
+                # Julia artifact is installed, so we forward manually
+                # here.
+                const _mpiexec = MPItrampoline_jll.mpich_mpiexec
+                const mpiexec_path = MPItrampoline_jll.mpich_mpiexec_path
+            else
+                const _mpiexec = MPItrampoline_jll.mpiwrapperexec
+                const mpiexec_path = MPItrampoline_jll.mpiwrapperexec_path
+            end
         else
-            const _mpiexec = MPItrampoline_jll.mpiwrapperexec
-            const mpiexec_path = MPItrampoline_jll.mpiwrapperexec_path
+            const mpiexec_cmd = Cmd([mpiexec_path])
+            _mpiexec(fn) = fn(mpiexec_cmd)
         end
         const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
     
