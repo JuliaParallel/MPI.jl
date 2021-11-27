@@ -10,6 +10,7 @@ MPI.free
 
 ```@docs
 MPI.Datatype
+MPI.to_type
 MPI.Types.extent
 MPI.Types.create_contiguous
 MPI.Types.create_vector
@@ -40,4 +41,3 @@ MPI.ErrorHandler
 MPI.get_errorhandler
 MPI.set_errorhandler!
 ```
-

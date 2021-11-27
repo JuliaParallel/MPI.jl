@@ -31,6 +31,7 @@ MPI.Allgatherv!
 
 ```@docs
 MPI.Scatter!
+MPI.Scatter
 MPI.Scatterv!
 ```
 
@@ -40,7 +41,6 @@ MPI.Scatterv!
 MPI.Alltoall!
 MPI.Alltoall
 MPI.Alltoallv!
-MPI.Alltoallv
 ```
 
 ## Reduce/Scan

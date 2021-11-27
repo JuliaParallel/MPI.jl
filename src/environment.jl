@@ -146,7 +146,7 @@ An Enum denoting the level of threading support in the current process:
 
 # See also
 
-- [`Init_thread`](@ref)
+- [`Init`](@ref)
 - [`Query_thread`](@ref)
 """
 mutable struct ThreadLevel
@@ -219,12 +219,12 @@ end
 """
     Finalize()
 
-Marks MPI state for cleanup. This should be called after [`MPI.Init`](@ref) or
-[`MPI.Init_thread`](@ref), and can be called at most once. No further MPI calls (other
-than [`Initialized`](@ref) or [`Finalized`](@ref)) should be made after it is called.
+Marks MPI state for cleanup. This should be called after [`MPI.Init`](@ref), and
+can be called at most once. No further MPI calls (other than
+[`Initialized`](@ref) or [`Finalized`](@ref)) should be made after it is called.
 
-[`MPI.Init`](@ref) and [`MPI.Init_thread`](@ref) will automatically insert a hook to
-call this function when Julia exits, if it hasn't already been called.
+[`MPI.Init`](@ref) will automatically insert a hook to call this function when
+Julia exits, if it hasn't already been called.
 
 # External links
 $(_doc_external("MPI_Finalize"))
