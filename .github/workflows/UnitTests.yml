@@ -406,7 +406,7 @@ jobs:
       uses: actions/checkout@v2.2.0
 
     - name: Install MPI via homebrew
-      run: brew install $MPI
+      run: brew install gcc $MPI
       env:
         MPI: ${{ matrix.mpi }}
 
