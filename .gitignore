@@ -1,5 +1,7 @@
 libjuliampi.so
 libjuliampi.dylib
 *.cov
+*.dSYM
 *.mem
+*.so
 Manifest.toml
