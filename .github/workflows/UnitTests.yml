@@ -380,11 +380,11 @@ jobs:
       matrix:
         mpi:
           - mpich
-          - openmpi
+          #TODO - openmpi
         julia_version:
           - "1.6"
-          - "1.7-nightly"
-          - "nightly"
+          #TODO - "1.7-nightly"
+          #TODO - "nightly"
 
       fail-fast: false
 
@@ -406,7 +406,7 @@ jobs:
       uses: actions/checkout@v2.2.0
 
     - name: Install MPI via homebrew
-      run: brew install gcc $MPI
+      run: brew install $MPI
       env:
         MPI: ${{ matrix.mpi }}
 
@@ -415,7 +415,7 @@ jobs:
         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
-        cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=/usr/local/bin/gcc -DCMAKE_CXX_COMPILER=/usr/local/bin/g++ -DCMAKE_Fortran_COMPILER=/usr/local/bin/gfortran -DCMAKE_INSTALL_PREFIX=/usr/local .
+        cmake -DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpic++ -DCMAKE_Fortran_COMPILER=mpifc -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
         cmake --build .
         sudo cmake --install .
 
