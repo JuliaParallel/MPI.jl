@@ -415,7 +415,7 @@ jobs:
         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
-        cmake -DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpic++ -DCMAKE_Fortran_COMPILER=mpifc -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
+        cmake -DCMAKE_C_COMPILER=mpicc -DCMAKE_CXX_COMPILER=mpic++ -DCMAKE_Fortran_COMPILER=mpifort -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
         cmake --build .
         sudo cmake --install .
 
