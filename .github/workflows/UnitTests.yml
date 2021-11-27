@@ -374,13 +374,13 @@ jobs:
 #WORKS     - uses: julia-actions/julia-runtest@latest
 
 
-  test-mpitrampoline-system-apt:
+  test-mpitrampoline-system-brew:
     timeout-minutes: 20
     strategy:
       matrix:
         mpi:
-          - libmpich-dev
-          - libopenmpi-dev
+          - mpich
+          - openmpi
         julia_version:
           - "1.6"
           - "1.7-nightly"
@@ -388,14 +388,13 @@ jobs:
 
       fail-fast: false
 
-    runs-on: ubuntu-20.04
+    runs-on: macos-latest
 
     env:
       JULIA_MPI_BINARY: MPItrampoline_jll
-      MPITRAMPOLINE_VERBOSE: 1  # TODO
+      MPITRAMPOLINE_VERBOSE: 1   #TODO
       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
-      MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec   # /usr/local/bin/mpiwrapperexec
-      OMPI_MCA_btl_base_warn_component_unused: 0
+      MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
 
     steps:
     - name: Cancel Previous Runs
@@ -406,19 +405,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
-    - name: Install MPI via apt
-      run: sudo apt-get install $MPI
+    - name: Install MPI via homebrew
+      run: brew install $MPI
       env:
         MPI: ${{ matrix.mpi }}
-
-    - name: Build MPIwrapper
-      run: |
-        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
-        tar xzf v2.2.1.tar.gz
-        cd MPIwrapper-*
-        cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
-        cmake --build .
-        sudo cmake --install .
 
     - uses: julia-actions/setup-julia@latest
       with:
@@ -439,3 +429,71 @@ jobs:
 
     - uses: julia-actions/julia-buildpkg@latest
     - uses: julia-actions/julia-runtest@latest
+      env:
+        JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
+
+
+#WORKS   test-mpitrampoline-system-apt:
+#WORKS     timeout-minutes: 20
+#WORKS     strategy:
+#WORKS       matrix:
+#WORKS         mpi:
+#WORKS           - libmpich-dev
+#WORKS           - libopenmpi-dev
+#WORKS         julia_version:
+#WORKS           - "1.6"
+#WORKS           - "1.7-nightly"
+#WORKS           - "nightly"
+#WORKS 
+#WORKS       fail-fast: false
+#WORKS 
+#WORKS     runs-on: ubuntu-20.04
+#WORKS 
+#WORKS     env:
+#WORKS       JULIA_MPI_BINARY: MPItrampoline_jll
+#WORKS       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
+#WORKS       MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
+#WORKS       OMPI_MCA_btl_base_warn_component_unused: 0
+#WORKS 
+#WORKS     steps:
+#WORKS     - name: Cancel Previous Runs
+#WORKS       uses: styfle/cancel-workflow-action@0.4.0
+#WORKS       with:
+#WORKS         access_token: ${{ github.token }}
+#WORKS 
+#WORKS     - name: Checkout
+#WORKS       uses: actions/checkout@v2.2.0
+#WORKS 
+#WORKS     - name: Install MPI via apt
+#WORKS       run: sudo apt-get install $MPI
+#WORKS       env:
+#WORKS         MPI: ${{ matrix.mpi }}
+#WORKS 
+#WORKS     - name: Build MPIwrapper
+#WORKS       run: |
+#WORKS         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
+#WORKS         tar xzf v2.2.1.tar.gz
+#WORKS         cd MPIwrapper-*
+#WORKS         cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
+#WORKS         cmake --build .
+#WORKS         sudo cmake --install .
+#WORKS 
+#WORKS     - uses: julia-actions/setup-julia@latest
+#WORKS       with:
+#WORKS         version: ${{ matrix.julia_version }}
+#WORKS 
+#WORKS     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#WORKS     - name: Cache artifacts
+#WORKS       uses: actions/cache@v1
+#WORKS       env:
+#WORKS         cache-name: cache-artifacts
+#WORKS       with:
+#WORKS         path: ~/.julia/artifacts
+#WORKS         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#WORKS         restore-keys: |
+#WORKS           ${{ runner.os }}-test-${{ env.cache-name }}-
+#WORKS           ${{ runner.os }}-test-
+#WORKS           ${{ runner.os }}-
+#WORKS 
+#WORKS     - uses: julia-actions/julia-buildpkg@latest
+#WORKS     - uses: julia-actions/julia-runtest@latest
