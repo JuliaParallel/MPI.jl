@@ -107,6 +107,7 @@ MPI_handle = [
     ],
     :MPI_File => [
         :MPI_FILE_NULL,
+    ],
     :MPI_Group => [
         :MPI_GROUP_NULL,
         :MPI_GROUP_EMPTY
