@@ -206,7 +206,7 @@ elseif binary == "MPItrampoline_jll"
             const mpiexec_path = MPItrampoline_jll.mpich_mpiexec_path
         else
             const _mpiexec = MPItrampoline_jll.mpiwrapperexec
-            const mpiexec_path = MPItrampoline_jll.mpiwrapperexecpath
+            const mpiexec_path = MPItrampoline_jll.mpiwrapperexec_path
         end
         const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
     
