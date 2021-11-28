@@ -379,8 +379,8 @@ jobs:
     strategy:
       matrix:
         mpi:
-          - mpich
-          #TODO - openmpi
+          #BROKEN - mpich
+          - openmpi
         julia_version:
           - "1.6"
           #TODO - "1.7-nightly"
