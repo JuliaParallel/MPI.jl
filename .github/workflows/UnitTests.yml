@@ -416,8 +416,8 @@ jobs:
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
         cmake \
-            -DCMAKE_CXX_COMPILER=/usr/local/bin/g++ \
-            -DCMAKE_Fortran_COMPILER=/usr/local/bin/gfortran \
+            -DCMAKE_CXX_COMPILER=g++-11 \
+            -DCMAKE_Fortran_COMPILER=gfortran-11 \
             -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
             -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
             -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
