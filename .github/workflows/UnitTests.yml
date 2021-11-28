@@ -29,7 +29,7 @@ jobs:
 #WORKS             julia_arch: x86
 #WORKS
 #WORKS       fail-fast: false
-#WORKS 
+#WORKS
 #WORKS     runs-on: ${{ matrix.os }}
 #WORKS     env:
 #WORKS       JULIA_MPIEXEC_ARGS: ${{ matrix.mpiexec_args }}
