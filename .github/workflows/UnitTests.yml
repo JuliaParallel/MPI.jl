@@ -394,7 +394,7 @@ jobs:
       JULIA_MPI_BINARY: MPItrampoline_jll
       MPITRAMPOLINE_VERBOSE: 1   #TODO
       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
-      MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
+      MPITRAMPOLINE_MPIEXEC: /usr/local/bin/mpiexec
 
     steps:
     - name: Cancel Previous Runs
@@ -416,28 +416,30 @@ jobs:
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
         ls -l /usr/local/bin   #TODO
-        cmake \
-            -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
-            -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx \
-            -DCMAKE_Fortran_COMPILER=/usr/local/bin/mpifort \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DCMAKE_INSTALL_PREFIX=/usr/local \
-            .
         # cmake \
-        #     -DCMAKE_CXX_COMPILER=g++-11 \
-        #     -DCMAKE_Fortran_COMPILER=gfortran-11 \
-        #     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-        #     -DMPI_CXX_LIB_NAMES='mpicxx;mpi;pmpi' \
-        #     -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-        #     -DMPI_Fortran_LIB_NAMES='mpifort;mpi;pmpi' \
-        #     -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
-        #     -DMPI_mpicxx_LIBRARY=/usr/local/lib/libmpicxx.dylib \
-        #     -DMPI_mpifort_LIBRARY=/usr/local/lib/libmpifort.dylib \
-        #     -DMPI_pmpi_LIBRARY=/usr/local/lib/libpmpi.dylib \
         #     -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
+        #     -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx \
+        #     -DCMAKE_Fortran_COMPILER=/usr/local/bin/mpifort \
         #     -DCMAKE_BUILD_TYPE=Debug \
         #     -DCMAKE_INSTALL_PREFIX=/usr/local \
         #     .
+        cmake \
+            -DCMAKE_CXX_COMPILER=g++-11 \
+            -DCMAKE_Fortran_COMPILER=gfortran-11 \
+            -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
+            -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
+            -DMPI_CXX_LIB_NAMES='mpi_cxx;mpi' \
+            -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS='/usr/local/include;/usr/local/lib \
+            -DMPI_Fortran_LIB_NAMES='mpi_usempif08;mpi_usempi_ignore_tkr;mpi_mpifh;mpi' \
+            -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
+            -DMPI_mpi_cxx_LIBRARY=/usr/local/lib/libmpi_cxx.dylib \
+            -DMPI_mpi_mpifh_LIBRARY=/usr/local/lib/libmpi_mpifh.dylib \
+            -DMPI_mpi_usempi_ignore_tkr_LIBRARY=/usr/local/lib/libmpi_usempi_ignore_tkr.dylib \
+            -DMPI_mpi_usempif08_LIBRARY=/usr/local/lib/libmpi_usempif08.dylib \
+            -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            .
         cmake --build .
         sudo cmake --install .
 
