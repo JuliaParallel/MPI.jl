@@ -415,7 +415,6 @@ jobs:
         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
-        ls -l /usr/local/bin   #TODO
         # cmake \
         #     -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
         #     -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx \
@@ -428,7 +427,7 @@ jobs:
             -DCMAKE_Fortran_COMPILER=gfortran-11 \
             -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
             -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-            -DMPI_CXX_LIB_NAMES=mpi' \
+            -DMPI_CXX_LIB_NAMES='mpi' \
             -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS='/usr/local/include;/usr/local/lib' \
             -DMPI_Fortran_LIB_NAMES='mpi_usempif08;mpi_usempi_ignore_tkr;mpi_mpifh;mpi' \
             -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
