@@ -428,11 +428,10 @@ jobs:
             -DCMAKE_Fortran_COMPILER=gfortran-11 \
             -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
             -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-            -DMPI_CXX_LIB_NAMES='mpi_cxx;mpi' \
+            -DMPI_CXX_LIB_NAMES=mpi' \
             -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS='/usr/local/include;/usr/local/lib' \
             -DMPI_Fortran_LIB_NAMES='mpi_usempif08;mpi_usempi_ignore_tkr;mpi_mpifh;mpi' \
             -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
-            -DMPI_mpi_cxx_LIBRARY=/usr/local/lib/libmpi_cxx.dylib \
             -DMPI_mpi_mpifh_LIBRARY=/usr/local/lib/libmpi_mpifh.dylib \
             -DMPI_mpi_usempi_ignore_tkr_LIBRARY=/usr/local/lib/libmpi_usempi_ignore_tkr.dylib \
             -DMPI_mpi_usempif08_LIBRARY=/usr/local/lib/libmpi_usempif08.dylib \
