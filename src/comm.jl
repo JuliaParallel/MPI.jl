@@ -77,6 +77,77 @@ function Comm_size(comm::Comm)
 end
 
 """
+    Comm_group(comm::Comm)
+
+Accesses the group associated with given communicator.
+
+# External links
+$(_doc_external("MPI_Comm_group"))
+"""
+function Comm_group(comm::Comm)
+    newgroup = Group()
+    @mpichk ccall((:MPI_Comm_group, libmpi), Cint,
+        (MPI_Comm, Ptr{MPI_Group}), comm, newgroup)
+    finalizer(free, newgroup)
+    newgroup
+end
+
+"""
+Comm_remote_group(comm::Comm)
+
+Accesses the remote group associated with the given inter-communicator.
+
+# External links
+$(_doc_external("MPI_Comm_remote_group"))
+"""
+function Comm_remote_group(comm::Comm)
+    newgroup = Group()
+    @mpichk ccall((:MPI_Comm_remote_group, libmpi), Cint,
+        (MPI_Comm, Ptr{MPI_Group}), comm, newgroup)
+    finalizer(free, newgroup)
+    newgroup
+end
+
+"""
+    Comm_create(comm::Comm, group::Group)
+
+Collectively creates a new communicator.
+
+# See also
+- [`MPI.Comm_create_group`](@ref) for the noncollective operation
+
+# External links
+$(_doc_external("MPI_Comm_create"))
+"""
+function Comm_create(comm::Comm, group::Group)
+    newcomm = Comm()
+    @mpichk ccall((:MPI_Comm_create, libmpi), Cint,
+          (MPI_Comm, MPI_Group, Ptr{MPI_Comm}),
+          comm, group, newcomm)
+    finalizer(free, newcomm)
+    newcomm
+end
+
+"""
+    Comm_create_group(comm::Comm, group::Group, tag::Integer)
+
+Noncollectively creates a new communicator.
+
+# See also
+- [`MPI.Comm_create`](@ref) for the noncollective operation
+
+# External links
+$(_doc_external("MPI_Comm_create_group"))
+"""
+function Comm_create_group(comm::Comm, group::Group, tag::Integer)
+    newcomm = Comm()
+    @mpichk ccall((:MPI_Comm_create_group, libmpi), Cint,
+        (MPI_Comm, MPI_Group, Cint, Ptr{MPI_Comm}), comm, group, tag, newcomm)
+    finalizer(free, newcomm)
+    newcomm
+end
+
+"""
     Comm_dup(comm::Comm)
 
 # External links
@@ -182,37 +253,10 @@ function universe_size()
     Int(unsafe_load(result[]))
 end
 
-
-"""
-    Comparison
-
-An enum denoting the result of [`Comm_compare`](@ref):
-
- - `MPI.IDENT`: the objects are handles for the same object (identical groups and same contexts).
-
- - `MPI.CONGRUENT`: the underlying groups are identical in constituents and rank order; these communicators differ only by context.
-
- - `MPI.SIMILAR`: members of both objects are the same but the rank order differs.
-
- - `MPI.UNEQUAL`: otherwise
-"""
-mutable struct Comparison
-    val::Cint
-end
-const IDENT     = Comparison(MPI_IDENT)
-const CONGRUENT = Comparison(MPI_CONGRUENT)
-const SIMILAR   = Comparison(MPI_SIMILAR)
-const UNEQUAL   = Comparison(MPI_UNEQUAL)
-add_load_time_hook!(() -> IDENT.val     = MPI_IDENT    )
-add_load_time_hook!(() -> CONGRUENT.val = MPI_CONGRUENT)
-add_load_time_hook!(() -> SIMILAR.val   = MPI_SIMILAR  )
-add_load_time_hook!(() -> UNEQUAL.val   = MPI_UNEQUAL  )
-Base.:(==)(tl1::Comparison, tl2::Comparison) = tl1.val == tl2.val
-
 """
     Comm_compare(comm1::Comm, comm2::Comm)::MPI.Comparison
 
-Compare two communicators, returning an element of the [`Comparison`](@ref) enum.
+Compare two communicators and their underlying groups, returning an element of the [`Comparison`](@ref) enum.
 
 # External links
 $(_doc_external("MPI_Comm_compare"))

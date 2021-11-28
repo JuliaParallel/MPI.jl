@@ -369,7 +369,7 @@ Writes to `file` using the shared file pointer from `data`. `data` can be a
 [`Buffer`](@ref), or any object for which `Buffer(data)` is defined.
 
 # See also
-- [`MPI.File.write_ordered`](@ref) for the noncollective operation
+- [`MPI.File.write_ordered`](@ref) for the collective operation
 
 # External links
 $(_doc_external("MPI_File_write_shared"))
@@ -395,7 +395,7 @@ is a collective operation, so must be called on all ranks in the communicator on
 `file` was opened.
 
 # See also
-- [`MPI.File.read_shared!`](@ref) for the non-collective operation
+- [`MPI.File.read_shared!`](@ref) for the noncollective operation
 
 # External links
 $(_doc_external("MPI_File_read_ordered"))
