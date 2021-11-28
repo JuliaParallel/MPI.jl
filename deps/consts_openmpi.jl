@@ -23,6 +23,11 @@ const MPI_COMM_NULL = Cint(2)
 const MPI_COMM_SELF = Cint(1)
 const MPI_COMM_WORLD = Cint(0)
 
+const MPI_Group = Ptr{Cvoid}
+MPI_Group_f2c(c::Cint) = ccall((:MPI_Group_f2c,libmpi),MPI_Group,(Cint,),c)
+const MPI_GROUP_NULL  = Cint(0)
+const MPI_GROUP_EMPTY = Cint(1)
+
 const MPI_Errhandler = Ptr{Cvoid}
 MPI_Errhandler_f2c(c::Cint) = ccall((:MPI_Errhandler_f2c,libmpi),MPI_Errhandler,(Cint,),c)
 const MPI_ERRORS_ARE_FATAL = Cint(1)

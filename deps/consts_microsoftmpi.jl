@@ -9,11 +9,19 @@ const MPI_COMM_NULL  = reinterpret(Cint, 0x04000000)
 const MPI_COMM_SELF  = reinterpret(Cint, 0x44000001)
 const MPI_COMM_WORLD = reinterpret(Cint, 0x44000000)
 
+const MPI_Group = Cint
+const MPI_GROUP_NULL  = reinterpret(Cint, 0x08000000)
+const MPI_GROUP_EMPTY = reinterpret(Cint, 0x48000000)
+
 const MPI_Info = Cint
 const MPI_INFO_NULL = reinterpret(Cint, 0x1c000000)
 
 const MPI_Win = Cint
 const MPI_WIN_NULL = reinterpret(Cint, 0x20000000)
+
+const MPI_Group = Cint
+const MPI_GROUP_NULL  = reinterpret(Cint, 0x08000000)
+const MPI_GROUP_EMPTY = reinterpret(Cint, 0x48000000)
 
 const MPI_Op = Cint
 const MPI_OP_NULL = reinterpret(Cint, 0x18000000)
