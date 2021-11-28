@@ -27,7 +27,7 @@ jobs:
 #WORKS         exclude:
 #WORKS           - os: macos-latest
 #WORKS             julia_arch: x86
-#WORKS 
+#WORKS
 #WORKS       fail-fast: false
 #WORKS 
 #WORKS     runs-on: ${{ matrix.os }}
