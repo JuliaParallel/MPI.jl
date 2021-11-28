@@ -418,7 +418,7 @@ jobs:
         cmake \
             -DMPIEXEC_EXECUTABLE=/usr/local/binmpiexec \
             -DCMAKE_CXX_COMPILER=mpicxx \
-            -DCMAKE_Fortran_COMPILER=mpifort \
+            -DCMAKE_Fortran_COMPILER=mpifc \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_INSTALL_PREFIX=/usr/local \
             .
