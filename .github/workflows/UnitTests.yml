@@ -416,13 +416,13 @@ jobs:
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
         ls -l /usr/local/bin   #TODO
-        # cmake \
-        #     -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
-        #     -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx \
-        #     -DCMAKE_Fortran_COMPILER=/usr/local/bin/mpifort \
-        #     -DCMAKE_BUILD_TYPE=Debug \
-        #     -DCMAKE_INSTALL_PREFIX=/usr/local \
-        #     .
+        : cmake \
+            -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
+            -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx \
+            -DCMAKE_Fortran_COMPILER=/usr/local/bin/mpifort \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            .
         cmake \
             -DCMAKE_CXX_COMPILER=g++-11 \
             -DCMAKE_Fortran_COMPILER=gfortran-11 \
