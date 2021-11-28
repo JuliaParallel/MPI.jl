@@ -417,8 +417,8 @@ jobs:
         cd MPIwrapper-*
         cmake \
             -DMPIEXEC_EXECUTABLE=/usr/local/binmpiexec \
-            -DCMAKE_CXX_COMPILER=mpicxx \
-            -DCMAKE_Fortran_COMPILER=mpifc \
+            -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx \
+            -DCMAKE_Fortran_COMPILER=/usr/local/bin/mpifort \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_INSTALL_PREFIX=/usr/local \
             .
