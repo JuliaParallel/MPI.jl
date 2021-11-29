@@ -423,7 +423,8 @@ jobs:
                 --prefix=/usr/local \
                 CC=gcc-11 \
                 CXX=g++-11 \
-                FC=gfortran-11
+                FC=gfortran-11 \
+                FCFLAGS=-fallow-argument-mismatch
             make -j$(nproc) 
             sudo make -j$(nproc) install
         ;;
@@ -432,7 +433,7 @@ jobs:
             tar xzf openmpi-4.1.2.tar.gz
             cd openmpi*
             find . -type f -print0 | xargs -0 perl -pi -e 's/-Wl,-flat_namespace//g'
-            ./autogen.pl
+            ./autogen.pl --force
             ./configure \
                 --prefix=/usr/local \
                 CC=gcc-11 \
