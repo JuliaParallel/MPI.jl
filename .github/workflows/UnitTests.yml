@@ -411,7 +411,7 @@ jobs:
     # libraries ourselves.
     - name: Install MPI
       run: |
-        case ${{ matrix.mpi }} of
+        case ${{ matrix.mpi }} in
         mpich)
             # Install MPICH 4.0.b1 (a beta version) since 3.4.2 has a
             # bug in MPI_Reduce
@@ -577,8 +577,10 @@ jobs:
     runs-on: ubuntu-18.04  # 20.04 not supported
 
     env:
-      JULIA_MPI_BINARY: system
-      JULIA_MPI_PATH: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64
+      JULIA_MPI_BINARY: MPItrampoline_jll
+      MPITRAMPOLINE_VERBOSE: 1   #TODO
+      MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
+      MPITRAMPOLINE_MPIEXEC: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiexec
 
     steps:
     - name: Cancel Previous Runs
@@ -616,6 +618,36 @@ jobs:
         ./install.sh --silent intel.conf
         popd
 
+    - name: Build MPIwrapper
+      run: |
+        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
+        tar xzf v2.2.1.tar.gz
+        cd MPIwrapper-*
+        cmake \
+            -DMPIEXEC_EXECUTABLE=mpiexec \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            .
+        # cmake \
+        #     -DCMAKE_CXX_COMPILER=g++-11 \
+        #     -DCMAKE_Fortran_COMPILER=gfortran-11 \
+        #     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
+        #     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
+        #     -DMPI_CXX_LIB_NAMES='mpi' \
+        #     -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS='/usr/local/include;/usr/local/lib' \
+        #     -DMPI_Fortran_LIB_NAMES='mpi_usempif08;mpi_usempi_ignore_tkr;mpi_mpifh;mpi' \
+        #     -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
+        #     -DMPI_mpi_mpifh_LIBRARY=/usr/local/lib/libmpi_mpifh.dylib \
+        #     -DMPI_mpi_usempi_ignore_tkr_LIBRARY=/usr/local/lib/libmpi_usempi_ignore_tkr.dylib \
+        #     -DMPI_mpi_usempif08_LIBRARY=/usr/local/lib/libmpi_usempif08.dylib \
+        #     -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
+        #     -DCMAKE_BUILD_TYPE=Debug \
+        #     -DCMAKE_INSTALL_PREFIX=/usr/local \
+        #     .
+        cmake --build .
+        sudo cmake --install .
+
     - uses: julia-actions/setup-julia@latest
       with:
         version: ${{ matrix.julia_version }}
@@ -633,7 +665,7 @@ jobs:
           ${{ runner.os }}-test-
           ${{ runner.os }}-
 
-    # we can't use the usual actions here as we need to ensure the environment variables are set
+    # We can't use the usual actions here as we need to ensure the environment variables are set
     - name: "Build package" 
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
