@@ -406,7 +406,7 @@ jobs:
       uses: actions/checkout@v2.2.0
 
     - name: Install Homebrew packages
-      run: brew install autoconf
+      run: brew install autoconf automake
       env:
         MPI: ${{ matrix.mpi }}
 
