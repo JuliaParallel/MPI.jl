@@ -236,6 +236,8 @@ $(_doc_external("MPI_Finalize"))
 function Finalize()
     if !MPI.Finalized()
         #TODO
+        println("[GC.gc...]")
+        GC.gc(true)
         println("[MPI_Finalize...]")
         @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
         #TODO
