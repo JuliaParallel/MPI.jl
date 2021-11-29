@@ -69,7 +69,7 @@ end
 
 
 function Op(f, T=Any; iscommutative=false)
-    @static if MPI_LIBRARY == MicrosoftMPI && Sys.WORD_SIZE == 32
+    @static if abi == "MicrosoftMPI" && Sys.WORD_SIZE == 32
         error("User-defined reduction operators are not supported on 32-bit Windows.\nSee https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.")
     elseif Sys.ARCH ∈ (:aarch64, :ppc64le, :powerpc64le) || startswith(lowercase(String(Sys.ARCH)), "arm")
         error("User-defined reduction operators are currently not supported on non-Intel architectures.\nSee https://github.com/JuliaParallel/MPI.jl/issues/404 for more details.")

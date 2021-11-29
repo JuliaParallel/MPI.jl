@@ -1,3 +1,6 @@
+# TODO: figure out if we can set preferences at Pkg.build time?
+exit()
+
 using Pkg.TOML, Libdl
 
 config_toml = joinpath(first(DEPOT_PATH), "prefs", "MPI.toml")

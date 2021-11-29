@@ -1,9 +1,4 @@
-const use_stdcall = startswith(basename(libmpi), "msmpi")
-
-# This is required in addition to __init__() so that we can call library at precompilation time.
-if Sys.isunix()
-    Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-end
+using Preferences
 
 macro mpicall(expr)
     @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
@@ -19,7 +14,7 @@ macro mpicall(expr)
     # this only affects 32-bit Windows
     # unfortunately we need to use ccall to call Get_library_version
     # so check using library name instead
-    if use_stdcall
+    if abi == "microsoftmpi"
         insert!(expr.args, 3, :stdcall)
     end
     return esc(expr)
@@ -39,133 +34,6 @@ function Get_library_version()
     return String(buf)
 end
 
-"""
-    MPI_LIBRARY_VERSION_STRING :: String
-
-The full version string provided by the library
-
-# External links
-$(_doc_external("MPI_Get_library_version"))
-"""
-const MPI_LIBRARY_VERSION_STRING = Get_library_version()
-
-"""
-    MPIImpl
-
-An enum corresponding to known MPI implementations
-
-- `UnknownMPI`: unable to determine MPI implementation
-- `MPICH`: [MPICH](https://www.mpich.org/)
-- `OpenMPI`: [Open MPI](https://www.open-mpi.org/)
-- `MicrosoftMPI`: [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
-- `IntelMPI`: [Intel MPI](https://software.intel.com/en-us/mpi-library)
-- `SpectrimMPI`: [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
-- `MVAPICH`: [MVAPICH](http://mvapich.cse.ohio-state.edu/)
-- `CrayMPICH`: Part of the Cray Message Passing Toolkit (MPT)
-
-# See also
-
-- [`MPI_LIBRARY`](@ref)
-"""
-@enum MPIImpl begin
-    UnknownMPI
-    MPICH
-    OpenMPI
-    MicrosoftMPI
-    IntelMPI
-    IBMSpectrumMPI
-    MVAPICH
-    CrayMPICH
-end
-
-"""
-    impl, version = identify_implementation()
-
-Attempt to identify the MPI implementation based on
-[`MPI_LIBRARY_VERSION_STRING`](@ref). Returns a triple of values:
-
-- `impl`: a value of type [`MPIImpl`](@ref)
-- `version`: a `VersionNumber` of the library, or `nothing` if it cannot be determined.
-
-This function is only intended for internal use. Users should use [`MPI_LIBRARY`](@ref),
-[`MPI_LIBRARY_VERSION`](@ref).
-"""
-function identify_implementation()
-    impl = UnknownMPI
-    version = v"0"
-
-    if startswith(MPI_LIBRARY_VERSION_STRING, "MPICH")
-        impl = MPICH
-        # "MPICH Version:\t%s\n" /  "MPICH2 Version:\t%s\n"
-        if (m = match(r"^MPICH2? Version:\t(\d+.\d+.\d+\w*)\n", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif startswith(MPI_LIBRARY_VERSION_STRING, "Open MPI")
-        # Open MPI / Spectrum MPI
-        impl = occursin("IBM Spectrum MPI", MPI_LIBRARY_VERSION_STRING) ? IBMSpectrumMPI : OpenMPI
-
-        if (m = match(r"^Open MPI v(\d+.\d+.\d+\w*)", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif startswith(MPI_LIBRARY_VERSION_STRING, "Microsoft MPI")
-        impl = MicrosoftMPI
-        # "Microsoft MPI %u.%u.%u.%u%S"
-        # ignore last 2 (build numbers)
-        if (m = match(r"^Microsoft MPI (\d+.\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif startswith(MPI_LIBRARY_VERSION_STRING, "Intel")
-        impl = IntelMPI
-
-        # "Intel(R) MPI Library 2019 Update 4 for Linux* OS"
-        if (m = match(r"^Intel\(R\) MPI Library (\d+)(?: Update (\d+))?", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            if m.captures[2] === nothing
-                version = VersionNumber(m.captures[1])
-            else
-                version = VersionNumber(m.captures[1]*"."*m.captures[2])
-            end
-        end
-
-    elseif startswith(MPI_LIBRARY_VERSION_STRING, "MVAPICH2")
-        impl = MVAPICH
-        # "MVAPICH2 Version      :\t%s\n")
-        if (m = match(r"^MVAPICH2? Version\s*:\t(\S*)\n", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif occursin("CRAY MPICH", MPI_LIBRARY_VERSION_STRING)
-        impl = CrayMPICH
-        # "MPI VERSION    : CRAY MPICH version 7.7.10 (ANL base 3.2)\n"
-        if (m = match(r"CRAY MPICH version (\d+.\d+.\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-    end
-
-    return impl, version
-end
-
-const MPI_LIBRARY, MPI_LIBRARY_VERSION = identify_implementation()
-
-"""
-    MPI_LIBRARY :: MPIImpl
-
-The current MPI implementation: this is determined by
-
-# See also
-- [`MPIImpl`](@ref)
-"""
-MPI_LIBRARY
-
-"""
-    MPI_LIBRARY_VERSION :: VersionNumber
-
-The version of the MPI library
-"""
-MPI_LIBRARY_VERSION
-
 
 function Get_version()
     major = Ref{Cint}()
@@ -175,12 +43,3 @@ function Get_version()
     VersionNumber(major[], minor[])
 end
 
-"""
-    MPI_VERSION :: VersionNumber
-
-The supported version of the MPI standard.
-
-# External links
-$(_doc_external("MPI_Get_version"))
-"""
-const MPI_VERSION = Get_version()

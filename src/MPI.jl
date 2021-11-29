@@ -1,7 +1,7 @@
 module MPI
 
 using Libdl, Serialization
-using Requires
+using Requires, Preferences
 using DocStringExtensions
 
 export mpiexec, UBuffer, VBuffer
@@ -32,12 +32,69 @@ function _doc_external(fname)
 """
 end
 
-try
-    include(joinpath(dirname(@__DIR__), "deps","deps.jl"))
-catch e
-    error("MPI.jl not properly configured, please run `Pkg.build(\"MPI\")`.")
+# preferences
+# binary = "system" | "OpenMPI_jll" | "MPICH_jll" | "MicrosoftMPI_jll"
+# if binary == "system" then the following also need to be set:
+#   libmpi = library name (optional path)
+#   abi = "openmpi" | "mpich" | "microsoftmpi" | "unknown"
+#   mpiexec = MPI launcher command
+
+
+const binary = @load_preference("binary", Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll")
+
+@static if binary == "MPICH_jll"
+    using MPICH_jll
+    const abi = "MPICH"
+    const _mpiexec = MPICH_jll.mpiexec
+    const mpiexec_path = MPICH_jll.mpiexec_path
+    __init__deps() = nothing
+elseif binary == "OpenMPI_jll"
+    using OpenMPI_jll
+    const abi = "OpenMPI"
+    const _mpiexec = OpenMPI_jll.mpiexec
+    const mpiexec_path = OpenMPI_jll.mpiexec_path
+    __init__deps() = nothing
+elseif binary == "MicrosoftMPI_jll"
+    using MicrosoftMPI_jll
+    const abi = "MicrosoftMPI"
+    const _mpiexec = MicrosoftMPI_jll.mpiexec
+    const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
+    __init__deps() = nothing
+elseif binary == "system"
+    const libmpi = @load_preference("libmpi")
+    const abi = @load_preference("abi")
+    const mpiexec_path = @load_preference("mpiexec")
+    const mpiexec_cmd = `$mpiexec_path`
+    _mpiexec(fn) = begin
+        fn(mpiexec_cmd)
+    end
+
+    function __init__deps()
+        libabi = identify_abi()
+        if libabi != abi
+            @set_preferences!("abi" => libabi)
+            error("MPI library ABI has changed; restart Julia for the change to take effect")
+        end
+    end        
+else
+    error("Invalid binary preference $binary")
 end
+
+if abi == "MPICH"
+    include("consts/mpich.jl")
+elseif abi == "OpenMPI"
+    include("consts/openmpi.jl")
+elseif abi == "MicrosoftMPI"
+    include("consts/microsoftmpi.jl")
+else
+    include(joinpath(dirname(@__DIR__), "deps", "consts.jl"))
+end
+
+
+
 include("implementations.jl")
+include("preferences.jl")
+include("identify.jl")
 include("error.jl")
 include("handle.jl")
 include("info.jl")
