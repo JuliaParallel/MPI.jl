@@ -374,12 +374,12 @@ jobs:
 #WORKS     - uses: julia-actions/julia-runtest@latest
 
 
-  test-mpitrampoline-system-brew:
+  test-mpitrampoline-system-macos:
     timeout-minutes: 20
     strategy:
       matrix:
         mpi:
-          #BROKEN - mpich
+          - mpich
           - openmpi
         julia_version:
           - "1.6"
@@ -405,8 +405,43 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
-    - name: Install MPI via homebrew
-      run: brew install $MPI
+    # We cannot install MPICH or OpenMPI via Homebrew or MacPorts,
+    # since the MPI libraries there use a flat namespace, which means
+    # that they cannot be loaded as plugin. We need to build the
+    # libraries ourselves.
+    - name: Install MPI
+      run: |
+        case ${{ matrix.mpi }} of
+        mpich)
+            # Install MPICH 4.0.b1 (a beta version) since 3.4.2 has a
+            # bug in MPI_Reduce
+            wget http://www.mpich.org/static/downloads/4.0b1/mpich-4.0b1.tar.gz
+            tar xzf mpich-4.0b1.tar.gz
+            cd mpich*
+            ./configure \
+                --enable-two-level-namespace \
+                --prefix=/usr/local \
+                CC=gcc-11 \
+                CXX=g++-11 \
+                FC=gfortran-11
+            make -j$(nproc) 
+            sudo make -j$(nproc) install
+        ;;
+        openmpi)
+            wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.2.tar.gz
+            tar xzf openmpi-4.1.2.tar.gz
+            cd openmpi*
+            find . -type f -print0 | xargs -0 perl -pi -e 's/-Wl,-flat_namespace//g'
+            ./autogen.pl
+            ./configure \
+                --prefix=/usr/local \
+                CC=gcc-11 \
+                CXX=g++-11 \
+                FC=gfortran-11
+            make -j$(nproc) 
+            sudo make -j$(nproc) install
+        ;;
+        esac
       env:
         MPI: ${{ matrix.mpi }}
 
@@ -415,29 +450,29 @@ jobs:
         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
-        # cmake \
-        #     -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
-        #     -DCMAKE_CXX_COMPILER=/usr/local/bin/mpicxx \
-        #     -DCMAKE_Fortran_COMPILER=/usr/local/bin/mpifort \
-        #     -DCMAKE_BUILD_TYPE=Debug \
-        #     -DCMAKE_INSTALL_PREFIX=/usr/local \
-        #     .
         cmake \
             -DCMAKE_CXX_COMPILER=g++-11 \
             -DCMAKE_Fortran_COMPILER=gfortran-11 \
-            -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-            -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-            -DMPI_CXX_LIB_NAMES='mpi' \
-            -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS='/usr/local/include;/usr/local/lib' \
-            -DMPI_Fortran_LIB_NAMES='mpi_usempif08;mpi_usempi_ignore_tkr;mpi_mpifh;mpi' \
-            -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
-            -DMPI_mpi_mpifh_LIBRARY=/usr/local/lib/libmpi_mpifh.dylib \
-            -DMPI_mpi_usempi_ignore_tkr_LIBRARY=/usr/local/lib/libmpi_usempi_ignore_tkr.dylib \
-            -DMPI_mpi_usempif08_LIBRARY=/usr/local/lib/libmpi_usempif08.dylib \
-            -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
+            -DMPIEXEC_EXECUTABLE=mpiexec \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_INSTALL_PREFIX=/usr/local \
             .
+        # cmake \
+        #     -DCMAKE_CXX_COMPILER=g++-11 \
+        #     -DCMAKE_Fortran_COMPILER=gfortran-11 \
+        #     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
+        #     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
+        #     -DMPI_CXX_LIB_NAMES='mpi' \
+        #     -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS='/usr/local/include;/usr/local/lib' \
+        #     -DMPI_Fortran_LIB_NAMES='mpi_usempif08;mpi_usempi_ignore_tkr;mpi_mpifh;mpi' \
+        #     -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
+        #     -DMPI_mpi_mpifh_LIBRARY=/usr/local/lib/libmpi_mpifh.dylib \
+        #     -DMPI_mpi_usempi_ignore_tkr_LIBRARY=/usr/local/lib/libmpi_usempi_ignore_tkr.dylib \
+        #     -DMPI_mpi_usempif08_LIBRARY=/usr/local/lib/libmpi_usempif08.dylib \
+        #     -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
+        #     -DCMAKE_BUILD_TYPE=Debug \
+        #     -DCMAKE_INSTALL_PREFIX=/usr/local \
+        #     .
         cmake --build .
         sudo cmake --install .
 
@@ -460,8 +495,6 @@ jobs:
 
     - uses: julia-actions/julia-buildpkg@latest
     - uses: julia-actions/julia-runtest@latest
-      env:
-        JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
 
 
 #WORKS   test-mpitrampoline-system-apt:
@@ -528,3 +561,84 @@ jobs:
 #WORKS 
 #WORKS     - uses: julia-actions/julia-buildpkg@latest
 #WORKS     - uses: julia-actions/julia-runtest@latest
+
+
+  test-mpitrampoline-intel-linux:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        julia_version:
+          - "1.6"
+          #TODO - "1.7-nightly"
+          #TODO - "nightly"
+
+      fail-fast: false
+
+    runs-on: ubuntu-18.04  # 20.04 not supported
+
+    env:
+      JULIA_MPI_BINARY: system
+      JULIA_MPI_PATH: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64
+
+    steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.4.0
+      with:
+        access_token: ${{ github.token }}
+
+    - name: Checkout
+      uses: actions/checkout@v2.2.0
+
+    - name: Cache Intel MPI
+      id: cache-intelmpi
+      uses: actions/cache@v2
+      with:
+        path: l_mpi_2019.9.304.tgz
+        key: ${{ runner.os }}-intelmpi-2019.9.304
+
+    - name: Download Intel MPI
+      if: steps.cache-intelmpi.outputs.cache-hit != 'true'
+      run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
+
+    - name: Install Intel MPI
+      run: |        
+        tar -xzf l_mpi_2019.9.304.tgz
+        pushd l_mpi_2019.9.304
+        cat << EOF > intel.conf
+        ACCEPT_EULA=accept
+        CONTINUE_WITH_OPTIONAL_ERROR=yes
+        PSET_INSTALL_DIR=${HOME}/intel
+        CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
+        PSET_MODE=install
+        ARCH_SELECTED=ALL
+        COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
+        EOF
+        ./install.sh --silent intel.conf
+        popd
+
+    - uses: julia-actions/setup-julia@latest
+      with:
+        version: ${{ matrix.julia_version }}
+
+    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+    - name: Cache artifacts
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-artifacts
+      with:
+        path: ~/.julia/artifacts
+        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-test-${{ env.cache-name }}-
+          ${{ runner.os }}-test-
+          ${{ runner.os }}-
+
+    # we can't use the usual actions here as we need to ensure the environment variables are set
+    - name: "Build package" 
+      run: |
+        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+        julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
+    - name: "Run tests"
+      run: |
+        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+        julia --project -e 'using Pkg; Pkg.test()'
