@@ -405,6 +405,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
+    - name: Install Homebrew packages
+      run: brew install autoconf
+      env:
+        MPI: ${{ matrix.mpi }}
+
     # We cannot install MPICH or OpenMPI via Homebrew or MacPorts,
     # since the MPI libraries there use a flat namespace, which means
     # that they cannot be loaded as plugin. We need to build the
@@ -424,6 +429,7 @@ jobs:
                 CC=gcc-11 \
                 CXX=g++-11 \
                 FC=gfortran-11 \
+                FFLAGS=-fallow-argument-mismatch \
                 FCFLAGS=-fallow-argument-mismatch
             make -j$(nproc) 
             sudo make -j$(nproc) install
