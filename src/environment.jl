@@ -172,9 +172,13 @@ Base.isless(tl1::ThreadLevel, tl2::ThreadLevel) = tl1.val < tl2.val
 function _init_thread(required::ThreadLevel)
     r_provided = Ref{Cint}()
     # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
+    #TODO
+    println("[_init_thread...]")
     @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
                     (Ptr{Cint},Ptr{Cvoid}, Cint, Ref{Cint}),
                     C_NULL, C_NULL, required.val, r_provided)
+    #TODO
+    println("[_init_thread done.]")
     return ThreadLevel(r_provided[])
 end
 

@@ -42,6 +42,7 @@ testfiles = sort(filter(istest, readdir(testdir)))
             if get(ENV, "JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE", "") != "" && Sys.isapple() && f == "test_reduce.jl"
                 return
             end
+            #TODO
             # run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
             println("[Running runtests: $f...]")
             cmds = """
