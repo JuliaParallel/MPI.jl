@@ -205,10 +205,10 @@ elseif binary == "MPItrampoline_jll"
                 # Julia artifact is installed, so we forward manually
                 # here.
                 const _mpiexec = MPItrampoline_jll.mpich_mpiexec
-                const mpiexec_path = MPItrampoline_jll.mpich_mpiexec_path
+                mpiexec_path = MPItrampoline_jll.mpich_mpiexec_path
             else
                 const _mpiexec = MPItrampoline_jll.mpiwrapperexec
-                const mpiexec_path = MPItrampoline_jll.mpiwrapperexec_path
+                mpiexec_path = MPItrampoline_jll.mpiwrapperexec_path
             end
         else
             const mpiexec_cmd = Cmd([mpiexec_path])
