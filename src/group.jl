@@ -85,10 +85,10 @@ add_load_time_hook!(() -> UNEQUAL.val   = MPI_UNEQUAL  )
 Base.:(==)(tl1::Comparison, tl2::Comparison) = tl1.val == tl2.val
 
 function Group_compare(group1::Group, group2::Group)
-    result = Ref{Comparison}()
+    result = Ref{Cint}()
     @mpichk ccall((:MPI_Group_compare, libmpi), Cint,
-        (MPI_Group, MPI_Group, Ptr{Comparison}), group1, group2, result)
-    result[]
+        (MPI_Group, MPI_Group, Ptr{Cint}), group1, group2, result)
+    return Comparison(result[])
 end
 
 function Group_difference(group1::Group, group2::Group)
