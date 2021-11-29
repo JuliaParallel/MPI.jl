@@ -1,7 +1,19 @@
-@mpi_handle Group
+"""
+    MPI.Group
 
-const GROUP_NULL = _Group(MPI_GROUP_NULL)
-const GROUP_EMPTY = _Group(MPI_GROUP_EMPTY)
+An MPI Group object.
+"""
+mutable struct Group
+    val::MPI_Group
+end
+Base.:(==)(a::Group, b::Group) = a.val == b.val
+Base.cconvert(::Type{MPI_Group}, group::Group) = group.val
+Base.unsafe_convert(::Type{Ptr{MPI_Group}}, group::Group) = convert(Ptr{MPI_Group}, pointer_from_objref(group))
+
+const GROUP_NULL = Group(MPI_GROUP_NULL)
+const GROUP_EMPTY = Group(MPI_GROUP_EMPTY)
+add_load_time_hook!(() -> GROUP_NULL.val = MPI_GROUP_NULL)
+add_load_time_hook!(() -> GROUP_EMPTY.val = MPI_GROUP_EMPTY)
 
 Group() = Group(GROUP_NULL.val)
 
@@ -10,7 +22,7 @@ Group() = Group(GROUP_NULL.val)
 # int MPI_Group_translate_ranks(MPI_Group group1, int n, const int ranks1[], MPI_Group group2, int ranks2[])
 
 function free(group::Group)
-    if group.val != GROUP_NULL.val && !Finalized()
+    if group != GROUP_NULL && !Finalized()
         @mpichk ccall((:MPI_Group_free, libmpi), Cint, (Ptr{MPI_Group},), group)
     end
     return nothing
