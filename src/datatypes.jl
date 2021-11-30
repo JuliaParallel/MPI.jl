@@ -125,7 +125,9 @@ for (mpiname, T) in [
     :FLOAT              => Float32
     :DOUBLE             => Float64
     :C_FLOAT_COMPLEX    => ComplexF32
-    :C_DOUBLE_COMPLEX   => ComplexF64]
+    :C_DOUBLE_COMPLEX   => ComplexF64
+    :C_BOOL             => Bool
+]
 
     @eval begin
         const $mpiname = Datatype($(Symbol(:MPI_,mpiname)))
@@ -133,7 +135,10 @@ for (mpiname, T) in [
         if $T ∉ _defined_datatype_methods
             push!(_defined_datatype_methods, $T)
             Datatype(::Type{$T}) = $mpiname
-            add_init_hook!(() -> set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T)))
+            add_init_hook!(function()
+                @assert Types.size($mpiname) == sizeof($T)
+                set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T))
+                end)
         end
     end
 end
@@ -180,6 +185,15 @@ import MPI
 import MPI: @mpichk, libmpi, _doc_external,
     Datatype, MPI_Datatype, MPI_Aint,
     free
+
+function size(dt::Datatype)
+    dtsize = Ref{Cint}()
+    @mpichk ccall((:MPI_Type_size, libmpi), Cint,
+                  (MPI_Datatype, Ptr{Cint}),
+                  dt, dtsize)
+    return Int(dtsize[])
+end
+
 
 """
     lb, extent = MPI.Types.extent(dt::MPI.Datatype)
