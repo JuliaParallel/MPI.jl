@@ -71,7 +71,7 @@ jobs:
       matrix:
         mpi:
           - mpich
-          #TODO - openmpi
+          - openmpi
         julia_version:
           - "1.6"
           # We don't need to test all combinations
