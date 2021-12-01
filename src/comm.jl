@@ -88,7 +88,8 @@ function Comm_group(comm::Comm)
     newgroup = Group()
     @mpichk ccall((:MPI_Comm_group, libmpi), Cint,
         (MPI_Comm, Ptr{MPI_Group}), comm, newgroup)
-    finalizer(free, newgroup)
+    #TODO: free is a collective call and cannot be called from a finalizer
+    #finalizer(free, newgroup)
     newgroup
 end
 
@@ -104,7 +105,8 @@ function Comm_remote_group(comm::Comm)
     newgroup = Group()
     @mpichk ccall((:MPI_Comm_remote_group, libmpi), Cint,
         (MPI_Comm, Ptr{MPI_Group}), comm, newgroup)
-    finalizer(free, newgroup)
+    #TODO: free is a collective call and cannot be called from a finalizer
+    #finalizer(free, newgroup)
     newgroup
 end
 
@@ -124,7 +126,8 @@ function Comm_create(comm::Comm, group::Group)
     @mpichk ccall((:MPI_Comm_create, libmpi), Cint,
           (MPI_Comm, MPI_Group, Ptr{MPI_Comm}),
           comm, group, newcomm)
-    finalizer(free, newcomm)
+    #TODO: free is a collective call and cannot be called from a finalizer
+    #finalizer(free, newcomm)
     newcomm
 end
 
@@ -143,7 +146,8 @@ function Comm_create_group(comm::Comm, group::Group, tag::Integer)
     newcomm = Comm()
     @mpichk ccall((:MPI_Comm_create_group, libmpi), Cint,
         (MPI_Comm, MPI_Group, Cint, Ptr{MPI_Comm}), comm, group, tag, newcomm)
-    finalizer(free, newcomm)
+    #TODO: free is a collective call and cannot be called from a finalizer
+    #finalizer(free, newcomm)
     newcomm
 end
 
@@ -156,7 +160,8 @@ $(_doc_external("MPI_Comm_dup"))
 function Comm_dup(comm::Comm)
     newcomm = Comm()
     @mpichk ccall((:MPI_Comm_dup, libmpi), Cint, (MPI_Comm, Ptr{MPI_Comm}), comm, newcomm)
-    finalizer(free, newcomm)
+    #TODO: free is a collective call and cannot be called from a finalizer
+    #finalizer(free, newcomm)
     newcomm
 end
 
@@ -170,7 +175,8 @@ function Comm_split(comm::Comm, color::Integer, key::Integer)
     newcomm = Comm()
     @mpichk ccall((:MPI_Comm_split, libmpi), Cint,
         (MPI_Comm, Cint, Cint, Ptr{MPI_Comm}), comm, color, key, newcomm)
-    finalizer(free, newcomm)
+    #TODO: free is a collective call and cannot be called from a finalizer
+    #finalizer(free, newcomm)
     newcomm
 end
 
@@ -185,7 +191,8 @@ function Comm_split_type(comm::Comm,split_type::Integer,key::Integer; kwargs...)
     @mpichk ccall((:MPI_Comm_split_type, libmpi), Cint,
           (MPI_Comm, Cint, Cint, MPI_Info, Ptr{MPI_Comm}),
           comm, split_type, key, Info(kwargs...), newcomm)
-    finalizer(free, newcomm)
+    #TODO: free is a collective call and cannot be called from a finalizer
+    #finalizer(free, newcomm)
     newcomm
 end
 
@@ -216,7 +223,8 @@ function Comm_spawn(command::String, argv::Vector{String}, nprocs::Integer,
     @mpichk ccall((:MPI_Comm_spawn, libmpi), Cint,
          (Cstring, Ptr{Ptr{Cchar}}, Cint, MPI_Info, Cint, MPI_Comm, Ptr{MPI_Comm}, Ptr{Cint}),
           command, argv, nprocs, Info(kwargs...), 0, comm, intercomm, errors)
-    finalizer(free, intercomm)
+    #TODO: free is a collective call and cannot be called from a finalizer
+    #finalizer(free, intercomm)
     return intercomm
 end
 
@@ -230,7 +238,8 @@ function Intercomm_merge(intercomm::Comm, flag::Bool)
     newcomm = Comm()
     @mpichk ccall((:MPI_Intercomm_merge, libmpi), Cint,
         (MPI_Comm, Cint, Ptr{MPI_Comm}), intercomm, Cint(flag), newcomm)
-    finalizer(free, newcomm)
+    #TODO: free is a collective call and cannot be called from a finalizer
+    #finalizer(free, newcomm)
     return newcomm
 end
 
