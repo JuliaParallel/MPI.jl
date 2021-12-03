@@ -69,6 +69,7 @@ isnull(req::Request) = req == REQUEST_NULL
 
 function free(req::Request)
     if req != REQUEST_NULL && !MPI.Finalized()
+        # int MPI_Request_free(MPI_Request *req)
         @mpichk ccall((:MPI_Request_free, libmpi), Cint, (Ptr{MPI_Request},), req)
     end
     req.buffer = nothing

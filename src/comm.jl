@@ -35,6 +35,7 @@ Comm() = Comm(COMM_NULL.val)
 # MPI_Comm_free is a collective call and cannot be just called from a finalizer
 function free(comm::Comm)
     if comm != COMM_NULL && !Finalized()
+        # int MPI_Comm_free(MPI_Comm *comm)
         @mpichk ccall((:MPI_Comm_free, libmpi), Cint, (Ptr{MPI_Comm},), comm)
     end
     return nothing
