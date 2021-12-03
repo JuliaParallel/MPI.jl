@@ -11,17 +11,12 @@ add_load_time_hook!(() -> WIN_NULL.val = MPI_WIN_NULL)
 
 Win() = Win(WIN_NULL.val, nothing)
 
-function Win_free(win::Win)
-    # int MPI_Win_free(MPI_Win *win)
-    @mpichk ccall((:MPI_Win_free, libmpi), Cint, (Ptr{MPI_Win},), win)
-    win.object = nothing
-    return nothing
-end
+# Note: `MPI_Win_free` is a collective call and cannot be just called from a finalizer
 function free(win::Win)
-    # Note: `MPI_Win_free` is a collective call and cannot be just called from a finalizer
-    #TODO if win != WIN_NULL && !Finalized()
-    #TODO     Win_free(win)
-    #TODO end
+    if win != WIN_NULL && !Finalized()
+        # int MPI_Win_free(MPI_Win *win)
+        @mpichk ccall((:MPI_Win_free, libmpi), Cint, (Ptr{MPI_Win},), win)
+    end
     return nothing
 end
 
@@ -63,7 +58,7 @@ function Win_create(base, size::Integer, disp_unit::Integer, comm::Comm; infokws
                   (MPIPtr, Cptrdiff_t, Cint, MPI_Info, MPI_Comm, Ptr{MPI_Win}),
                   base, size, disp_unit, Info(infokws...), comm, win)
     win.object = base
-    finalizer(free, win)
+    #TODO finalizer(free, win)
     return win
 end
 function Win_create(base::Array{T}, comm::Comm; infokws...) where T
@@ -100,14 +95,14 @@ function Win_allocate_shared(::Type{Ptr{T}}, len::Integer, comm::Comm; kwargs...
     @mpichk ccall((:MPI_Win_allocate_shared, libmpi), Cint,
                   (Cptrdiff_t, Cint, MPI_Info, MPI_Comm, Ref{Ptr{T}}, Ptr{MPI_Win}),
                   len*sizeof(T), sizeof(T), Info(kwargs...), comm, out_baseptr, win)
-    finalizer(free, win)
+    #TODO finalizer(free, win)
     return win, out_baseptr[]
 end
 function Win_allocate_shared(::Type{Array{T}}, dims, comm::Comm; kwargs...) where T
     win, ptr = Win_allocate_shared(Ptr{T}, prod(dims), comm; kwargs...)
     array = unsafe_wrap(Array, ptr, dims)
     win.object = array
-    finalizer(free, win)
+    #TODO finalizer(free, win)
     return win, array
 end
 
@@ -162,7 +157,7 @@ function Win_create_dynamic(comm::Comm; kwargs...)
     @mpichk ccall((:MPI_Win_create_dynamic, libmpi), Cint,
                   (MPI_Info, MPI_Comm, Ptr{MPI_Win}),
                   Info(kwargs...), comm, win)
-    finalizer(free, win)
+    #TODO finalizer(free, win)
     win.object = Set()
     return win
 end

@@ -23,7 +23,7 @@ Group() = Group(GROUP_NULL.val)
 
 function free(group::Group)
     if group != GROUP_NULL && !Finalized()
-        @mpichk ccall((:MPI_Group_free, libmpi), Cint, (Ptr{MPI_Group},), group)
+        Group_free(group)
     end
     return nothing
 end

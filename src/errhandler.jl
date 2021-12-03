@@ -21,8 +21,7 @@ add_load_time_hook!(() -> ERRORS_RETURN.val    = MPI_ERRORS_RETURN   )
 function free(errh::Errhandler)
     if errh != ERRORS_ARE_FATAL && errh != ERRORS_RETURN && !Finalized()
         # int MPI_Errhandler_free(MPI_Errhandler *errhandler)
-        ref = Ref(errh)
-        @mpichk ccall((:MPI_Errhandler_free, libmpi), Cint, (Ptr{MPI_Errhandler},), ref)
+        @mpichk ccall((:MPI_Errhandler_free, libmpi), Cint, (Ptr{MPI_Errhandler},), errh)
     end
     return nothing
 end
