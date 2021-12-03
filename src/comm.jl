@@ -39,26 +39,26 @@ end
 function free(comm::Comm)
     # MPI_Comm_free is a collective call and cannot be just called
     # from a finalizer
-    if comm != COMM_NULL && !Finalized()
-        # Transfer the MPI handle to a copy, so that the original
-        # `comm` object can be freed right away
-        newcomm = Comm(comm.val)
-        comm.val = COMM_NULL.val
-        # Start an asynchronous task that waits for all processes in
-        # the communicator to be done, and then calls `Comm_free`
-        @async begin
-            # With proper multi-threading this could be a regular
-            # `Barrier` without spinning
-            req = Ibarrier(newcomm)
-            while !Test(req)
-                yield()
-                Finalized() && return
-            end
-            # This will set the handle in `newcomm` to
-            # `MPI_COMM_NULL`, and its finalizer will thus be trivial
-            Comm_free(newcomm)
-        end
-    end
+    #TODO if comm != COMM_NULL && !Finalized()
+    #TODO     # Transfer the MPI handle to a copy, so that the original
+    #TODO     # `comm` object can be freed right away
+    #TODO     newcomm = Comm(comm.val)
+    #TODO     comm.val = COMM_NULL.val
+    #TODO     # Start an asynchronous task that waits for all processes in
+    #TODO     # the communicator to be done, and then calls `Comm_free`
+    #TODO     @async begin
+    #TODO         # With proper multi-threading this could be a regular
+    #TODO         # `Barrier` without spinning
+    #TODO         req = Ibarrier(newcomm)
+    #TODO         while !Test(req)
+    #TODO             yield()
+    #TODO             Finalized() && return
+    #TODO         end
+    #TODO         # This will set the handle in `newcomm` to
+    #TODO         # `MPI_COMM_NULL`, and its finalizer will thus be trivial
+    #TODO         Comm_free(newcomm)
+    #TODO     end
+    #TODO end
     return nothing
 end
 
