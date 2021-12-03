@@ -25,6 +25,7 @@ istest(f) = endswith(f, ".jl") && startswith(f, "test_")
 testfiles = sort(filter(istest, readdir(testdir)))
 
 @testset "$f" for f in testfiles
+    println("Beginning test $f...")
     mpiexec() do cmd
         if f == "test_spawn.jl"
             run(`$cmd -n 1 $(Base.julia_cmd()) $(joinpath(testdir, f))`)
@@ -46,4 +47,5 @@ testfiles = sort(filter(istest, readdir(testdir)))
         end
         @test true
     end
+    println("Done test $f.")
 end
