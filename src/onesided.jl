@@ -11,12 +11,17 @@ add_load_time_hook!(() -> WIN_NULL.val = MPI_WIN_NULL)
 
 Win() = Win(WIN_NULL.val, nothing)
 
-function free(win::Win)
-    if win != WIN_NULL && !Finalized()
-        # int MPI_Win_free(MPI_Win *win)
-        @mpichk ccall((:MPI_Win_free, libmpi), Cint, (Ptr{MPI_Win},), win)
-    end
+function Win_free(win::Win)
+    # int MPI_Win_free(MPI_Win *win)
+    @mpichk ccall((:MPI_Win_free, libmpi), Cint, (Ptr{MPI_Win},), win)
     win.object = nothing
+    return nothing
+end
+function free(win::Win)
+    # Note: `MPI_Win_free` is a collective call and cannot be just called from a finalizer
+    #TODO if win != WIN_NULL && !Finalized()
+    #TODO     Win_free(win)
+    #TODO end
     return nothing
 end
 
