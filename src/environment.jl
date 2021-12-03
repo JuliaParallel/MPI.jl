@@ -231,13 +231,13 @@ $(_doc_external("MPI_Finalize"))
 """
 function Finalize()
     #TODO
-    println("In MPI.Finalize")
+    ccall(:printf, Cint, (Ptr{Cchar},), "In MPI.Finalize")
     if !MPI.Finalized()
         #TODO
-        println("Before MPI_Finalize")
+        ccall(:printf, Cint, (Ptr{Cchar},), "Before MPI_Finalize")
         @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
         #TODO
-        println("After MPI_Finalize")
+        ccall(:printf, Cint, (Ptr{Cchar},), "After MPI_Finalize")
     end
     return nothing
 end
