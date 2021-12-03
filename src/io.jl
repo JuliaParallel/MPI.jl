@@ -24,7 +24,8 @@ function open(comm::Comm, filename::AbstractString, amode::Cint, info::Info)
     @mpichk ccall((:MPI_File_open, libmpi), Cint,
                   (MPI_Comm, Cstring, Cint, MPI_Info, Ptr{MPI_File}),
                   comm, filename, amode, info, file)
-    finalizer(close, file)
+    #TODO: close is a collective call and cannot be called from a finalizer
+    #finalizer(free, file)
     file
 end
 
@@ -69,10 +70,13 @@ function open(comm::Comm, filename::AbstractString;
 end
 
 function close(file::FileHandle)
+    # int MPI_File_close(MPI_File *fh)
+    @mpichk ccall((:MPI_File_close, libmpi), Cint, (Ptr{MPI_File},), file)
+    return nothing
+end
+function free(file::FileHandle)
     if file != FILE_NULL && !Finalized()
-        # int MPI_File_close(MPI_File *fh)
-        @mpichk ccall((:MPI_File_close, libmpi), Cint,
-                      (Ptr{MPI_File},), file)
+        close(file)
     end
     return nothing
 end
