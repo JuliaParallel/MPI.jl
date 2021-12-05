@@ -1,6 +1,5 @@
 using Test
 using MPI
-#TODO using Random
 
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     import CUDA
