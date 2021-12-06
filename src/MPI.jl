@@ -40,6 +40,7 @@ catch e
     error("MPI.jl not properly configured, please run `Pkg.build(\"MPI\")`.")
 end
 include("define_load_time_mpi_constants.jl")
+include("read_load_time_mpi_constants.jl")
 include("implementations.jl")
 include("error.jl")
 include("info.jl")
@@ -72,7 +73,7 @@ function __init__()
 
     __init__deps()
 
-    include(joinpath(dirname(@__DIR__), "src", "read_load_time_mpi_constants.jl"))
+    read_load_time_mpi_constants()
 
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
