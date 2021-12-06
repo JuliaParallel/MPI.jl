@@ -287,8 +287,9 @@ or `false`.
 function has_cuda()
     flag = get(ENV, "JULIA_MPI_HAS_CUDA", nothing)
     if flag === nothing
-        # Only Open MPI provides a function to check CUDA support
-        if dlsym_e(dlopen(libmpi), :MPIX_Query_cuda_support) != C_NULL
+        # Not every MPI implementation provides a function to check CUDA support
+        # It is broken on MPICH_jll: https://github.com/JuliaPackaging/Yggdrasil/issues/4039
+        if binary != "MPICH_jll" && dlsym_e(dlopen(libmpi), :MPIX_Query_cuda_support) != C_NULL
             return 0 != ccall((:MPIX_Query_cuda_support, libmpi), Cint, ())
         else
             return false
