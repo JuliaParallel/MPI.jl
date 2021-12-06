@@ -62,7 +62,7 @@ jobs:
     strategy:
       matrix:
         mpi: [mpich, openmpi]
-        julia_version: ["1.5", "nightly"]
+        julia_version: ["1", "nightly"]
 
       fail-fast: false
 
@@ -115,7 +115,7 @@ jobs:
     strategy:
       matrix:
         mpi: [mpich, libopenmpi-dev]
-        julia_version: ["1.5", "nightly"]
+        julia_version: ["1", "nightly"]
 
       fail-fast: false
 
@@ -168,7 +168,7 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        julia_version: ["1.5", "nightly"]
+        julia_version: ["1", "nightly"]
 
       fail-fast: false
 
@@ -246,7 +246,7 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        julia_version: ["1.5", "nightly"]
+        julia_version: ["1", "nightly"]
 
       fail-fast: false
 
