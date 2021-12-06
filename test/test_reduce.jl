@@ -40,7 +40,7 @@ if isroot
     @test sum_mesg == sz .* mesg
 end
 
-if ArrayType != Array || MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE == 32 ||
+if ArrayType != Array || Sys.iswindows() && Sys.WORD_SIZE == 32 ||
    Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
    Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
     operators = [MPI.SUM, +]
