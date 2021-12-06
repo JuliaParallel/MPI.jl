@@ -7,8 +7,10 @@ mutable struct Comm
     val::MPI_Comm
 end
 Base.:(==)(a::Comm, b::Comm) = a.val == b.val
-Base.cconvert(::Type{MPI_Comm}, comm::Comm) = comm.val
+Base.cconvert(::Type{MPI_Comm}, comm::Comm) = comm
+Base.unsafe_convert(::Type{MPI_Comm}, comm::Comm) = comm.val
 Base.unsafe_convert(::Type{Ptr{MPI_Comm}}, comm::Comm) = convert(Ptr{MPI_Comm}, pointer_from_objref(comm))
+
 
 const COMM_NULL = Comm(MPI_COMM_NULL)
 add_load_time_hook!(() -> COMM_NULL.val = MPI_COMM_NULL)

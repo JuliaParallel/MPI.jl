@@ -58,7 +58,8 @@ mutable struct Request
     buffer
 end
 Base.:(==)(a::Request, b::Request) = a.val == b.val
-Base.cconvert(::Type{MPI_Request}, request::Request) = request.val
+Base.cconvert(::Type{MPI_Request}, request::Request) = request
+Base.unsafe_convert(::Type{MPI_Request}, request::Request) = request.val
 Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
 
 const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)

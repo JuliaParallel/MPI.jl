@@ -29,7 +29,8 @@ mutable struct Info <: AbstractDict{Symbol,String}
     val::MPI_Info
 end
 Base.:(==)(a::Info, b::Info) = a.val == b.val
-Base.cconvert(::Type{MPI_Info}, info::Info) = info.val
+Base.cconvert(::Type{MPI_Info}, info::Info) = info
+Base.unsafe_convert(::Type{MPI_Info}, info::Info) = info.val
 Base.unsafe_convert(::Type{Ptr{MPI_Info}}, info::Info) = convert(Ptr{MPI_Info}, pointer_from_objref(info))
 
 const INFO_NULL = Info(MPI_INFO_NULL)

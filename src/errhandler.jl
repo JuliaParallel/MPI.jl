@@ -10,7 +10,8 @@ mutable struct Errhandler
     val::MPI_Errhandler
 end
 Base.:(==)(a::Errhandler, b::Errhandler) = a.val == b.val
-Base.cconvert(::Type{MPI_Errhandler}, errhandler::Errhandler) = errhandler.val
+Base.cconvert(::Type{MPI_Errhandler}, errhandler::Errhandler) = errhandler
+Base.unsafe_convert(::Type{MPI_Errhandler}, errhandler::Errhandler) = errhandler.val
 Base.unsafe_convert(::Type{Ptr{MPI_Errhandler}}, errhandler::Errhandler) = convert(Ptr{MPI_Errhandler}, pointer_from_objref(errhandler))
 
 const ERRORS_ARE_FATAL = Errhandler(MPI_ERRORS_ARE_FATAL)

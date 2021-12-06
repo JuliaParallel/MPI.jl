@@ -3,7 +3,8 @@ mutable struct Win
     object
 end
 Base.:(==)(a::Win, b::Win) = a.val == b.val
-Base.cconvert(::Type{MPI_Win}, win::Win) = win.val
+Base.cconvert(::Type{MPI_Win}, win::Win) = win
+Base.unsafe_convert(::Type{MPI_Win}, win::Win) = win.val
 Base.unsafe_convert(::Type{Ptr{MPI_Win}}, win::Win) = convert(Ptr{MPI_Win}, pointer_from_objref(win))
 
 const WIN_NULL = Win(MPI_WIN_NULL, nothing)
@@ -24,7 +25,8 @@ mutable struct LockType
     val::Cint
 end
 Base.:(==)(a::LockType, b::LockType) = a.val == b.val
-Base.cconvert(::Type{Cint}, lock_type::LockType) = lock_type.val
+Base.cconvert(::Type{Cint}, lock_type::LockType) = lock_type
+Base.unsafe_convert(::Type{Cint}, lock_type::LockType) = lock_type.val
 Base.unsafe_convert(::Type{Ptr{Cint}}, lock_type::LockType) = convert(Ptr{Cint}, pointer_from_objref(lock_type))
 
 const LOCK_EXCLUSIVE = LockType(MPI_LOCK_EXCLUSIVE)

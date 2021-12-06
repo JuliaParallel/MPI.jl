@@ -23,7 +23,8 @@ mutable struct Op
     Op(val::MPI_Op, fptr) = new(val, fptr)
 end
 Base.:(==)(a::Op, b::Op) = a.val == b.val
-Base.cconvert(::Type{MPI_Op}, op::Op) = op.val
+Base.cconvert(::Type{MPI_Op}, op::Op) = op
+Base.unsafe_convert(::Type{MPI_Op}, op::Op) = op.val
 Base.unsafe_convert(::Type{Ptr{MPI_Op}}, op::Op) = convert(Ptr{MPI_Op}, pointer_from_objref(op))
 
 const OP_NULL = Op(MPI_OP_NULL, nothing)

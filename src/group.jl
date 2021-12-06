@@ -7,7 +7,8 @@ mutable struct Group
     val::MPI_Group
 end
 Base.:(==)(a::Group, b::Group) = a.val == b.val
-Base.cconvert(::Type{MPI_Group}, group::Group) = group.val
+Base.cconvert(::Type{MPI_Group}, group::Group) = group
+Base.unsafe_convert(::Type{MPI_Group}, group::Group) = group.val
 Base.unsafe_convert(::Type{Ptr{MPI_Group}}, group::Group) = convert(Ptr{MPI_Group}, pointer_from_objref(group))
 
 const GROUP_NULL = Group(MPI_GROUP_NULL)

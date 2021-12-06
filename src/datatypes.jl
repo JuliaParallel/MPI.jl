@@ -17,7 +17,8 @@ mutable struct Datatype
     val::MPI_Datatype
 end
 Base.:(==)(a::Datatype, b::Datatype) = a.val == b.val
-Base.cconvert(::Type{MPI_Datatype}, datatype::Datatype) = datatype.val
+Base.cconvert(::Type{MPI_Datatype}, datatype::Datatype) = datatype
+Base.unsafe_convert(::Type{MPI_Datatype}, datatype::Datatype) = datatype.val
 Base.unsafe_convert(::Type{Ptr{MPI_Datatype}}, datatype::Datatype) = convert(Ptr{MPI_Datatype}, pointer_from_objref(datatype))
 
 const DATATYPE_NULL = Datatype(MPI_DATATYPE_NULL)

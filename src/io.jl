@@ -2,7 +2,8 @@ mutable struct FileHandle
     val::MPI_File
 end
 Base.:(==)(a::FileHandle, b::FileHandle) = a.val == b.val
-Base.cconvert(::Type{MPI_File}, file::FileHandle) = file.val
+Base.cconvert(::Type{MPI_File}, file::FileHandle) = file
+Base.unsafe_convert(::Type{MPI_File}, file::FileHandle) = file.val
 Base.unsafe_convert(::Type{Ptr{MPI_File}}, file::FileHandle) = convert(Ptr{MPI_File}, pointer_from_objref(file))
 
 const FILE_NULL = FileHandle(MPI_FILE_NULL)
