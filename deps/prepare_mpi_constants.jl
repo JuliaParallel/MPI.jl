@@ -28,6 +28,6 @@ if !Sys.iswindows()
 
 else
 
-    cp("compile_time_mpi_constants_win64_$(Sys.ARCH).jl", "compile_time_mpi_constants.jl"; force=true)
+    cp("compile_time_mpi_constants_msmpi_$(Sys.ARCH).jl", "compile_time_mpi_constants.jl"; force=true)
 
 end

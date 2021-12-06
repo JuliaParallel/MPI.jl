@@ -279,7 +279,7 @@ global MPI_WIN_NULL_DELETE_FN = unsafe_load(cglobal((:MPICONSTANTS_WIN_NULL_DELE
 
 else
 
-include("read_load_time_mpi_constants_win64.jl")
+include("read_load_time_mpi_constants_msmpi.jl")
 
 end
 

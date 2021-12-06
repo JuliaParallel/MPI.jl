@@ -138,7 +138,7 @@ elseif binary == ""
     if Sys.iswindows()
         using MicrosoftMPI_jll
         # run(MicrosoftMPI_jll.generate_compile_time_mpi_constants())
-        cp("compile_time_mpi_constants_win64_$(Sys.ARCH).jl", "compile_time_mpi_constants.jl"; force=true)
+        cp("compile_time_mpi_constants_msmpi_$(Sys.ARCH).jl", "compile_time_mpi_constants.jl"; force=true)
     else
         using MPICH_jll
         run(MPICH_jll.generate_compile_time_mpi_constants())
@@ -240,7 +240,7 @@ elseif binary == "MicrosoftMPI_jll"
 
     using MicrosoftMPI_jll
     # run(MicrosoftMPI_jll.generate_compile_time_mpi_constants())
-    cp("compile_time_mpi_constants_win64_$(Sys.ARCH).jl", "compile_time_mpi_constants.jl"; force=true)
+    cp("compile_time_mpi_constants_msmpi_$(Sys.ARCH).jl", "compile_time_mpi_constants.jl"; force=true)
 
     deps = quote
         using MicrosoftMPI_jll
