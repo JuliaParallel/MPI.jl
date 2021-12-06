@@ -17,7 +17,7 @@ function identify_implementation(version_string::String)
     if startswith(version_string, "MPICH")
         impl = "MPICH"
         # "MPICH Version:\t%s\n" /  "MPICH2 Version:\t%s\n"
-        if (m = match(r"^MPICH2? Version:\t(\d+.\d+.\d+\w*)\n", MPI_LIBRARY_VERSION_STRING)) !== nothing
+        if (m = match(r"^MPICH2? Version:\t(\d+.\d+.\d+\w*)\n", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
 
