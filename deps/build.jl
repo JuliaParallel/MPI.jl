@@ -231,12 +231,7 @@ elseif binary == "OpenMPI_jll"
         const _mpiexec = OpenMPI_jll.mpiexec
         const mpiexec_path = OpenMPI_jll.mpiexec_path
 
-        function __init__deps()
-            # Required for OpenMPI relocateable binaries
-            # TODO: this should be done in the OpenMPI_jll package
-            # https://github.com/JuliaPackaging/Yggdrasil/issues/390
-            ENV["OPAL_PREFIX"] = OpenMPI_jll.artifact_dir
-        end
+        __init__deps() = nothing
     end
 
 elseif binary == "MicrosoftMPI_jll"
