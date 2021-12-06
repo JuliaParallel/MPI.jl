@@ -62,7 +62,6 @@ jobs:
     strategy:
       matrix:
         mpi: [mpich, openmpi]
-        mpi_abi: ["", "unknown"]
         julia_version: ["1.5", "nightly"]
 
       fail-fast: false
@@ -72,7 +71,6 @@ jobs:
     env:
       JULIA_MPI_BINARY: system
       JULIA_MPI_PATH: /usr/local
-      JULIA_MPI_ABI: ${{ matrix.mpi_abi }}
 
     steps:
     - name: Cancel Previous Runs
@@ -106,6 +104,9 @@ jobs:
           ${{ runner.os }}-
 
     - uses: julia-actions/julia-buildpkg@latest
+    - name: "Set binary" 
+      run: |
+        julia --project -e 'using MPI; MPI.use_system_binary()'
     - uses: julia-actions/julia-runtest@latest
 
 
@@ -114,7 +115,6 @@ jobs:
     strategy:
       matrix:
         mpi: [mpich, libopenmpi-dev]
-        mpi_abi: ["", "unknown"]
         julia_version: ["1.5", "nightly"]
 
       fail-fast: false
@@ -123,7 +123,6 @@ jobs:
 
     env:
       JULIA_MPI_BINARY: system
-      JULIA_MPI_ABI: ${{ matrix.mpi_abi }}
       OMPI_MCA_btl_base_warn_component_unused: 0
 
     steps:
@@ -158,6 +157,10 @@ jobs:
           ${{ runner.os }}-
 
     - uses: julia-actions/julia-buildpkg@latest
+    - name: "Set binary" 
+      run: |
+        julia --project -e 'using MPI; MPI.use_system_binary()'
+
     - uses: julia-actions/julia-runtest@latest
 
 
