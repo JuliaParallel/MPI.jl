@@ -230,14 +230,8 @@ Julia exits, if it hasn't already been called.
 $(_doc_external("MPI_Finalize"))
 """
 function Finalize()
-    #TODO
-    ccall(:printf, Cint, (Ptr{Cchar},), "In MPI.Finalize")
     if !MPI.Finalized()
-        #TODO
-        ccall(:printf, Cint, (Ptr{Cchar},), "Before MPI_Finalize")
         @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
-        #TODO
-        ccall(:printf, Cint, (Ptr{Cchar},), "After MPI_Finalize")
     end
     return nothing
 end
