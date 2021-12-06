@@ -64,10 +64,14 @@ include("deprecated.jl")
 function __init__()
 
     @static if Sys.isunix()
-        # - need to open libmpi with RTLD_GLOBAL flag for Linux,
-        #   before any ccall
-        # - cannot use RTLD_DEEPBIND; this leads to segfaults at least
+        # dlopen the MPI library before any ccall:
+        # - RTLD_GLOBAL is required for Open MPI
+        #   <https://www.open-mpi.org/community/lists/users/2010/04/12803.php>
+        # - also allows us to ccall global symbols, which enables
+        #   profilers which use LD_PRELOAD
+        # - don't use RTLD_DEEPBIND; this leads to segfaults at least
         #   on Ubuntu 15.10
+        #   <https://github.com/JuliaParallel/MPI.jl/pull/109>
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
 
