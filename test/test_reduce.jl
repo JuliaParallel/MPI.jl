@@ -99,7 +99,7 @@ end
 
 MPI.Barrier( MPI.COMM_WORLD )
 
-if MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE == 32 ||
+if Sys.iswindows() && Sys.WORD_SIZE == 32 ||
    Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
    Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
    # Closures are not supported for cfunction
