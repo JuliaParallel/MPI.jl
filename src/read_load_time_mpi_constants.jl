@@ -316,7 +316,7 @@ else # if Sys.iswindows()
     Consts.MPI_COMBINER_F90_INTEGER[] = Cint(17)
     Consts.MPI_COMBINER_F90_REAL[] = Cint(15)
     Consts.MPI_COMBINER_HINDEXED[] = Cint(9)
-    Consts.MPI_COMBINER_HINDEXED_BLOCK[] = nothing
+    # Consts.MPI_COMBINER_HINDEXED_BLOCK[] = nothing
     Consts.MPI_COMBINER_HVECTOR[] = Cint(6)
     Consts.MPI_COMBINER_INDEXED[] = Cint(7)
     Consts.MPI_COMBINER_INDEXED_BLOCK[] = Cint(10)
@@ -369,23 +369,23 @@ else # if Sys.iswindows()
     Consts.MPI_ERR_RANK[] = Cint(6)
     Consts.MPI_ERR_READ_ONLY[] = Cint(40)
     Consts.MPI_ERR_REQUEST[] = Cint(19)
-    Consts.MPI_ERR_RMA_ATTACH[] = nothing
+    # Consts.MPI_ERR_RMA_ATTACH[] = nothing
     Consts.MPI_ERR_RMA_CONFLICT[] = Cint(49)
-    Consts.MPI_ERR_RMA_FLAVOR[] = nothing
-    Consts.MPI_ERR_RMA_RANGE[] = nothing
-    Consts.MPI_ERR_RMA_SHARED[] = nothing
+    # Consts.MPI_ERR_RMA_FLAVOR[] = nothing
+    # Consts.MPI_ERR_RMA_RANGE[] = nothing
+    # Consts.MPI_ERR_RMA_SHARED[] = nothing
     Consts.MPI_ERR_RMA_SYNC[] = Cint(50)
     Consts.MPI_ERR_ROOT[] = Cint(7)
     Consts.MPI_ERR_SERVICE[] = Cint(41)
     Consts.MPI_ERR_SIZE[] = Cint(51)
-    Consts.MPI_ERR_SPAWN[] = nothing
+    # Consts.MPI_ERR_SPAWN[] = nothing
     Consts.MPI_ERR_TAG[] = Cint(4)
     Consts.MPI_ERR_TOPOLOGY[] = Cint(10)
     Consts.MPI_ERR_TRUNCATE[] = Cint(14)
     Consts.MPI_ERR_TYPE[] = Cint(3)
     Consts.MPI_ERR_UNKNOWN[] = Cint(13)
-    Consts.MPI_ERR_UNSUPPORTED_DATAREP[] = nothing
-    Consts.MPI_ERR_UNSUPPORTED_OPERATION[] = nothing
+    # Consts.MPI_ERR_UNSUPPORTED_DATAREP[] = nothing
+    # Consts.MPI_ERR_UNSUPPORTED_OPERATION[] = nothing
     Consts.MPI_ERR_WIN[] = Cint(45)
     # We special-case MPI_SUCCESS which is required to be 0
     # Consts.MPI_SUCCESS[] = Cint(0)
@@ -515,7 +515,7 @@ else # if Sys.iswindows()
     Consts.MPI_GROUP_EMPTY[] = MPI_Group(0x48000000)
     Consts.MPI_GROUP_NULL[] = MPI_Group(0x08000000)
 
-    Consts.MPI_INFO_ENV[] = nothing
+    # Consts.MPI_INFO_ENV[] = nothing
     Consts.MPI_INFO_NULL[] = MPI_Info(0x1c000000)
 
     Consts.MPI_MESSAGE_NO_PROC[] = MPI_Message(0x6c000000)
