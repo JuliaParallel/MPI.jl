@@ -143,7 +143,7 @@ for (mpiname, T) in [
         if !hasmethod(Datatype, Tuple{Type{$T}})
             Datatype(::Type{$T}) = $mpiname
             push!(mpi_init_hooks, () -> begin
-                  Types.size($mpiname) == sizeof($T) || (@show Types.size($mpiname) sizeof($T))
+                  @assert Types.size($mpiname) == sizeof($T)
                   set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T))
                   end)
         end
