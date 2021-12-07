@@ -12,9 +12,7 @@ macro mpicall(expr)
 
     # Microsoft MPI uses stdcall calling convention
     # this only affects 32-bit Windows
-    # unfortunately we need to use ccall to call Get_library_version
-    # so check using library name instead
-    if abi == "microsoftmpi"
+    if abi == "MicrosoftMPI"
         insert!(expr.args, 3, :stdcall)
     end
     return esc(expr)
