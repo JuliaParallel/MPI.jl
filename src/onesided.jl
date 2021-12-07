@@ -7,8 +7,8 @@ Base.cconvert(::Type{MPI_Win}, win::Win) = win
 Base.unsafe_convert(::Type{MPI_Win}, win::Win) = win.val
 Base.unsafe_convert(::Type{Ptr{MPI_Win}}, win::Win) = convert(Ptr{MPI_Win}, pointer_from_objref(win))
 
-const WIN_NULL = Win(MPI_WIN_NULL, nothing)
-add_load_time_hook!(() -> WIN_NULL.val = MPI_WIN_NULL)
+const WIN_NULL = Win(Consts.MPI_WIN_NULL[], nothing)
+add_load_time_hook!(() -> WIN_NULL.val = Consts.MPI_WIN_NULL[])
 
 Win() = Win(WIN_NULL.val, nothing)
 
@@ -29,10 +29,10 @@ Base.cconvert(::Type{Cint}, lock_type::LockType) = lock_type
 Base.unsafe_convert(::Type{Cint}, lock_type::LockType) = lock_type.val
 Base.unsafe_convert(::Type{Ptr{Cint}}, lock_type::LockType) = convert(Ptr{Cint}, pointer_from_objref(lock_type))
 
-const LOCK_EXCLUSIVE = LockType(MPI_LOCK_EXCLUSIVE)
-const LOCK_SHARED    = LockType(MPI_LOCK_SHARED   )
-add_load_time_hook!(() -> LOCK_EXCLUSIVE.val = MPI_LOCK_EXCLUSIVE)
-add_load_time_hook!(() -> LOCK_SHARED.val    = MPI_LOCK_SHARED   )
+const LOCK_EXCLUSIVE = LockType(Consts.MPI_LOCK_EXCLUSIVE[])
+const LOCK_SHARED    = LockType(Consts.MPI_LOCK_SHARED[]   )
+add_load_time_hook!(() -> LOCK_EXCLUSIVE.val = Consts.MPI_LOCK_EXCLUSIVE[])
+add_load_time_hook!(() -> LOCK_SHARED.val    = Consts.MPI_LOCK_SHARED[]   )
 LockType(sym::Symbol) =
     sym == :exclusive ? LOCK_EXCLUSIVE :
     sym == :shared ? LOCK_SHARED :
@@ -186,10 +186,10 @@ end
 
 function Win_fence(win::Win; nostore=false, noput=false, noprecede=false, nosucceed=false)
     assert =
-        (nostore * MPI_MODE_NOSTORE) |
-        (noput * MPI_MODE_NOPUT) |
-        (noprecede * MPI_MODE_NOPRECEDE) |
-        (nosucceed * MPI_MODE_NOSUCCEED)
+        (nostore * Consts.MPI_MODE_NOSTORE[]) |
+        (noput * Consts.MPI_MODE_NOPUT[]) |
+        (noprecede * Consts.MPI_MODE_NOPRECEDE[]) |
+        (nosucceed * Consts.MPI_MODE_NOSUCCEED[])
     Win_fence(assert, win)
 end
 
@@ -237,7 +237,7 @@ may be attached to the lock and unlock calls are still required.
 $(_doc_external("MPI_Win_lock"))
 """
 function Win_lock(win::Win; rank::Integer, type::Union{Symbol,LockType}, nocheck::Bool = false)
-    Win_lock(type isa Symbol ? LockType(type) : type, rank, nocheck * MPI_MODE_NOCHECK, win)
+    Win_lock(type isa Symbol ? LockType(type) : type, rank, nocheck * Consts.MPI_MODE_NOCHECK[], win)
 end
 function Win_lock(lock_type::LockType, rank::Integer, assert::Integer, win::Win)
     # int MPI_Win_lock(int lock_type, int rank, int assert, MPI_Win win)

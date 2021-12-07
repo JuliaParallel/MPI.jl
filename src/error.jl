@@ -4,7 +4,8 @@ end
 
 macro mpichk(expr)
     expr = macroexpand(@__MODULE__, :(@mpicall($expr)))
-    :((errcode = $(esc(expr))) == MPI_SUCCESS || throw(MPIError(errcode)))
+    # MPI_SUCCESS is defined to be 0
+    :((errcode = $(esc(expr))) == 0 || throw(MPIError(errcode)))
 end
 
 

@@ -6,8 +6,8 @@ Base.cconvert(::Type{MPI_File}, file::FileHandle) = file
 Base.unsafe_convert(::Type{MPI_File}, file::FileHandle) = file.val
 Base.unsafe_convert(::Type{Ptr{MPI_File}}, file::FileHandle) = convert(Ptr{MPI_File}, pointer_from_objref(file))
 
-const FILE_NULL = FileHandle(MPI_FILE_NULL)
-add_load_time_hook!(() -> FILE_NULL.val = MPI_FILE_NULL)
+const FILE_NULL = FileHandle(Consts.MPI_FILE_NULL[])
+add_load_time_hook!(() -> FILE_NULL.val = Consts.MPI_FILE_NULL[])
 
 FileHandle() = FileHandle(FILE_NULL.val)
 
@@ -50,21 +50,21 @@ function open(comm::Comm, filename::AbstractString;
               sequential=false, uniqueopen=false, deleteonclose=false,
               infokws...)
     flags = Base.open_flags(read=read, write=write, create=create, truncate=nothing, append=append)
-    amode = flags.read ? (flags.write ? MPI.MPI_MODE_RDWR : MPI.MPI_MODE_RDONLY) : (flags.write ? MPI.MPI_MODE_WRONLY : zero(Cint))
+    amode = flags.read ? (flags.write ? MPI.Consts.MPI_MODE_RDWR[] : MPI.Consts.MPI_MODE_RDONLY[]) : (flags.write ? MPI.Consts.MPI_MODE_WRONLY[] : zero(Cint))
     if flags.write
-        amode |= flags.create ? MPI.MPI_MODE_CREATE : MPI.MPI_MODE_EXCL
+        amode |= flags.create ? MPI.Consts.MPI_MODE_CREATE[] : MPI.Consts.MPI_MODE_EXCL[]
     end
     if flags.append
-        amode |= MPI.MPI_MODE_APPEND
+        amode |= MPI.Consts.MPI_MODE_APPEND[]
     end
     if sequential
-        amode |= MPI.MPI_MODE_SEQUENTIAL
+        amode |= MPI.Consts.MPI_MODE_SEQUENTIAL[]
     end
     if uniqueopen
-        amode |= MPI.MPI_MODE_UNIQUE_OPEN
+        amode |= MPI.Consts.MPI_MODE_UNIQUE_OPEN[]
     end
     if deleteonclose
-        amode |= MPI.MPI_MODE_DELETE_ON_CLOSE
+        amode |= MPI.Consts.MPI_MODE_DELETE_ON_CLOSE[]
     end
     open(comm, filename, amode, Info(infokws...))
 end
@@ -440,12 +440,12 @@ write_ordered(file::FileHandle, buf) = write_ordered(file, Buffer_send(buf))
 mutable struct Seek
     val::Cint
 end
-const SEEK_SET = Seek(MPI.MPI_SEEK_SET)
-const SEEK_CUR = Seek(MPI.MPI_SEEK_CUR)
-const SEEK_END = Seek(MPI.MPI_SEEK_END)
-MPI.add_load_time_hook!(() -> SEEK_SET.val = MPI.MPI_SEEK_SET)
-MPI.add_load_time_hook!(() -> SEEK_CUR.val = MPI.MPI_SEEK_CUR)
-MPI.add_load_time_hook!(() -> SEEK_END.val = MPI.MPI_SEEK_END)
+const SEEK_SET = Seek(MPI.Consts.MPI_SEEK_SET[])
+const SEEK_CUR = Seek(MPI.Consts.MPI_SEEK_CUR[])
+const SEEK_END = Seek(MPI.Consts.MPI_SEEK_END[])
+MPI.add_load_time_hook!(() -> SEEK_SET.val = MPI.Consts.MPI_SEEK_SET[])
+MPI.add_load_time_hook!(() -> SEEK_CUR.val = MPI.Consts.MPI_SEEK_CUR[])
+MPI.add_load_time_hook!(() -> SEEK_END.val = MPI.Consts.MPI_SEEK_END[])
 
 """
     MPI.File.seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)

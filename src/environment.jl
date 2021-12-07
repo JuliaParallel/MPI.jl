@@ -152,14 +152,14 @@ An Enum denoting the level of threading support in the current process:
 mutable struct ThreadLevel
     val::Cint
 end
-const THREAD_SINGLE     = ThreadLevel(MPI_THREAD_SINGLE)
-const THREAD_FUNNELED   = ThreadLevel(MPI_THREAD_FUNNELED)
-const THREAD_SERIALIZED = ThreadLevel(MPI_THREAD_SERIALIZED)
-const THREAD_MULTIPLE   = ThreadLevel(MPI_THREAD_MULTIPLE)
-add_load_time_hook!(() -> THREAD_SINGLE.val     = MPI_THREAD_SINGLE    )
-add_load_time_hook!(() -> THREAD_FUNNELED.val   = MPI_THREAD_FUNNELED  )
-add_load_time_hook!(() -> THREAD_SERIALIZED.val = MPI_THREAD_SERIALIZED)
-add_load_time_hook!(() -> THREAD_MULTIPLE.val   = MPI_THREAD_MULTIPLE  )
+const THREAD_SINGLE     = ThreadLevel(Consts.MPI_THREAD_SINGLE[])
+const THREAD_FUNNELED   = ThreadLevel(Consts.MPI_THREAD_FUNNELED[])
+const THREAD_SERIALIZED = ThreadLevel(Consts.MPI_THREAD_SERIALIZED[])
+const THREAD_MULTIPLE   = ThreadLevel(Consts.MPI_THREAD_MULTIPLE[])
+add_load_time_hook!(() -> THREAD_SINGLE.val     = Consts.MPI_THREAD_SINGLE[]    )
+add_load_time_hook!(() -> THREAD_FUNNELED.val   = Consts.MPI_THREAD_FUNNELED[]  )
+add_load_time_hook!(() -> THREAD_SERIALIZED.val = Consts.MPI_THREAD_SERIALIZED[])
+add_load_time_hook!(() -> THREAD_MULTIPLE.val   = Consts.MPI_THREAD_MULTIPLE[]  )
 ThreadLevel(threadlevel::Symbol) =
     threadlevel == :single ? THREAD_SINGLE :
     threadlevel == :funneled ? THREAD_FUNNELED :

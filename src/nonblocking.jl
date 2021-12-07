@@ -62,8 +62,8 @@ Base.cconvert(::Type{MPI_Request}, request::Request) = request
 Base.unsafe_convert(::Type{MPI_Request}, request::Request) = request.val
 Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
 
-const REQUEST_NULL = Request(MPI_REQUEST_NULL, nothing)
-add_load_time_hook!(() -> REQUEST_NULL.val = MPI_REQUEST_NULL)
+const REQUEST_NULL = Request(Consts.MPI_REQUEST_NULL[], nothing)
+add_load_time_hook!(() -> REQUEST_NULL.val = Consts.MPI_REQUEST_NULL[])
 
 Request() = Request(REQUEST_NULL.val, nothing)
 isnull(req::Request) = req == REQUEST_NULL
@@ -152,7 +152,7 @@ function Wait(req::Request, status::Union{Ref{Status}, Nothing}=nothing)
     # int MPI_Wait(MPI_Request *request, MPI_Status *status)
     @mpichk ccall((:MPI_Wait, libmpi), Cint,
                   (Ptr{MPI_Request}, MPIPtr),
-                  req, something(status, MPI_STATUS_IGNORE))
+                  req, something(status, Consts.MPI_STATUS_IGNORE[]))
     if isnull(req) # only clear the buffer for non-persistent requests
         req.buffer = nothing
     end
@@ -180,7 +180,7 @@ function Test(req::Request, status::Union{Ref{Status}, Nothing}=nothing)
     # int MPI_Test(MPI_Request *request, int *flag, MPI_Status *status)
     @mpichk ccall((:MPI_Test, libmpi), Cint,
                   (Ptr{MPI_Request}, Ptr{Cint}, Ptr{Status}),
-                  req, flag, something(status, MPI_STATUS_IGNORE))
+                  req, flag, something(status, Consts.MPI_STATUS_IGNORE[]))
     if isnull(req)
         req.buffer = nothing
     end
@@ -263,7 +263,7 @@ function Waitall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothin
     #                 MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Waitall, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Status}),
-                  n, reqs.vals, something(statuses, MPI_STATUSES_IGNORE))
+                  n, reqs.vals, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     update!(reqs)
     return nothing
 end
@@ -297,7 +297,7 @@ function Testall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothin
     #                 MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Testall, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, MPIPtr),
-                  n, reqs.vals, flag, something(statuses, MPI_STATUSES_IGNORE))
+                  n, reqs.vals, flag, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     update!(reqs)
     return flag[] != 0
 end
@@ -330,9 +330,9 @@ function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     #                 MPI_Status *status)
     @mpichk ccall((:MPI_Waitany, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, MPIPtr),
-                  n, reqs.vals, ref_idx, something(status, MPI_STATUS_IGNORE))
+                  n, reqs.vals, ref_idx, something(status, Consts.MPI_STATUS_IGNORE[]))
     idx = ref_idx[]
-    if idx == MPI_UNDEFINED
+    if idx == Consts.MPI_UNDEFINED[]
         return nothing
     end
     i = Int(idx) + 1
@@ -372,11 +372,11 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     #                 int *flag, MPI_Status *status)
     @mpichk ccall((:MPI_Testany, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, MPIPtr),
-                  n, reqs.vals, ref_idx, rflag, something(status, MPI_STATUS_IGNORE))
+                  n, reqs.vals, ref_idx, rflag, something(status, Consts.MPI_STATUS_IGNORE[]))
     idx = ref_idx[]
     flag = rflag[] != 0
 
-    if idx == MPI_UNDEFINED
+    if idx == Consts.MPI_UNDEFINED[]
         return flag, nothing
     end
     i = Int(idx) + 1
@@ -415,10 +415,10 @@ function Waitsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     #                  MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Waitsome, libmpi), Cint,
           (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{Status}),
-          n, reqs.vals, ref_nout, idxs, something(statuses, MPI_STATUSES_IGNORE))
+          n, reqs.vals, ref_nout, idxs, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     nout = Int(ref_nout[])
     # This can happen if there were no valid requests
-    if nout == MPI_UNDEFINED
+    if nout == Consts.MPI_UNDEFINED[]
         return nothing
     end
     update!(reqs)
@@ -457,10 +457,10 @@ function Testsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     #                  MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Testsome, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{Status}),
-                  n, reqs.vals, ref_nout, idxs, something(statuses, MPI_STATUSES_IGNORE))
+                  n, reqs.vals, ref_nout, idxs, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     nout = Int(ref_nout[])
     # This can happen if there were no valid requests
-    if nout == MPI_UNDEFINED
+    if nout == Consts.MPI_UNDEFINED[]
         return nothing
     end
     update!(reqs)

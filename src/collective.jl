@@ -484,7 +484,7 @@ If only one buffer `sendrecvbuf` is used, then data is overwritten.
 $(_doc_external("MPI_Alltoall"))
 """
 function Alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
-    if sendbuf.data !== MPI_IN_PLACE && sendbuf.nchunks !== nothing
+    if sendbuf.data !== Consts.MPI_IN_PLACE[] && sendbuf.nchunks !== nothing
         @assert sendbuf.nchunks >= Comm_size(comm)
     end
     if recvbuf.nchunks !== nothing
@@ -543,7 +543,7 @@ Similar to [`Alltoall!`](@ref), except with different size chunks per process.
 $(_doc_external("MPI_Alltoallv"))
 """
 function Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
-    if sendbuf.data !== MPI_IN_PLACE
+    if sendbuf.data !== Consts.MPI_IN_PLACE[]
         @assert length(sendbuf.counts) >= Comm_size(comm)
     end
     @assert length(recvbuf.counts) >= Comm_size(comm)

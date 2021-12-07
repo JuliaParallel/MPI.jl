@@ -21,10 +21,10 @@ Base.cconvert(::Type{MPI_Datatype}, datatype::Datatype) = datatype
 Base.unsafe_convert(::Type{MPI_Datatype}, datatype::Datatype) = datatype.val
 Base.unsafe_convert(::Type{Ptr{MPI_Datatype}}, datatype::Datatype) = convert(Ptr{MPI_Datatype}, pointer_from_objref(datatype))
 
-const DATATYPE_NULL = Datatype(MPI_DATATYPE_NULL)
-add_load_time_hook!(() -> DATATYPE_NULL.val = MPI_DATATYPE_NULL)
+const DATATYPE_NULL = Datatype(Consts.MPI_DATATYPE_NULL[])
+add_load_time_hook!(() -> DATATYPE_NULL.val = Consts.MPI_DATATYPE_NULL[])
 
-Datatype() = Datatype(MPI_DATATYPE_NULL)
+Datatype() = Datatype(DATATYPE_NULL.val)
 
 
 function free(dt::Datatype)
@@ -43,8 +43,8 @@ function create_keyval(::Type{Datatype})
                    Ptr{Cvoid},
                    Ptr{Cint},
                    Ptr{Cvoid}),
-                  MPI_TYPE_NULL_COPY_FN,
-                  MPI_TYPE_NULL_DELETE_FN,
+                  Consts.MPI_TYPE_NULL_COPY_FN[],
+                  Consts.MPI_TYPE_NULL_DELETE_FN[],
                   ref, C_NULL)
     return ref[]
 end
@@ -132,8 +132,8 @@ for (mpiname, T) in [
 ]
 
     @eval begin
-        const $mpiname = Datatype($(Symbol(:MPI_,mpiname)))
-        add_load_time_hook!(() -> $mpiname.val = $(Symbol(:MPI_,mpiname)))
+        const $mpiname = Datatype(Consts.$(Symbol(:MPI_,mpiname))[])
+        add_load_time_hook!(() -> $mpiname.val = Consts.$(Symbol(:MPI_,mpiname))[])
         if $T ∉ _defined_datatype_methods
             push!(_defined_datatype_methods, $T)
             Datatype(::Type{$T}) = $mpiname
@@ -315,7 +315,7 @@ function create_subarray!(newtype::Datatype, sizes, subsizes, offset, oldtype::D
     @mpichk ccall((:MPI_Type_create_subarray, libmpi), Cint,
                   (Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   N, sizes, subsizes, offset,
-                  rowmajor ? MPI.MPI_ORDER_C : MPI.MPI_ORDER_FORTRAN,
+                  rowmajor ? MPI.Consts.MPI_ORDER_C[] : MPI.Consts.MPI_ORDER_FORTRAN[],
                   oldtype, newtype)
     return newtype
 end

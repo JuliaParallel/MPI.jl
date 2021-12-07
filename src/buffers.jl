@@ -53,7 +53,7 @@ MPIPtr
 
 struct InPlace
 end
-Base.cconvert(::Type{MPIPtr}, ::InPlace) = MPI_IN_PLACE
+Base.cconvert(::Type{MPIPtr}, ::InPlace) = Consts.MPI_IN_PLACE[]
 
 
 """

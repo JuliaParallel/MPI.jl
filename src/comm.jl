@@ -12,8 +12,8 @@ Base.unsafe_convert(::Type{MPI_Comm}, comm::Comm) = comm.val
 Base.unsafe_convert(::Type{Ptr{MPI_Comm}}, comm::Comm) = convert(Ptr{MPI_Comm}, pointer_from_objref(comm))
 
 
-const COMM_NULL = Comm(MPI_COMM_NULL)
-add_load_time_hook!(() -> COMM_NULL.val = MPI_COMM_NULL)
+const COMM_NULL = Comm(Consts.MPI_COMM_NULL[])
+add_load_time_hook!(() -> COMM_NULL.val = Consts.MPI_COMM_NULL[])
 
 """
     MPI.COMM_WORLD
@@ -21,16 +21,16 @@ add_load_time_hook!(() -> COMM_NULL.val = MPI_COMM_NULL)
 A communicator containing all processes with which the local rank can communicate at
 initialization. In a typical "static-process" model, this will be all processes.
 """
-const COMM_WORLD = Comm(MPI_COMM_WORLD)
-add_load_time_hook!(() -> COMM_WORLD.val = MPI_COMM_WORLD)
+const COMM_WORLD = Comm(Consts.MPI_COMM_WORLD[])
+add_load_time_hook!(() -> COMM_WORLD.val = Consts.MPI_COMM_WORLD[])
 
 """
     MPI.COMM_SELF
 
 A communicator containing only the local process.
 """
-const COMM_SELF = Comm(MPI_COMM_SELF)
-add_load_time_hook!(() -> COMM_SELF.val = MPI_COMM_SELF)
+const COMM_SELF = Comm(Consts.MPI_COMM_SELF[])
+add_load_time_hook!(() -> COMM_SELF.val = Consts.MPI_COMM_SELF[])
 
 Comm() = Comm(COMM_NULL.val)
 
@@ -249,7 +249,7 @@ function universe_size()
     result = Ref(Ptr{Cint}(C_NULL))
     # int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void *attribute_val, int *flag)
     @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), MPI.COMM_WORLD, MPI_UNIVERSE_SIZE, result, flag)
+        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), MPI.COMM_WORLD, Consts.MPI_UNIVERSE_SIZE[], result, flag)
     if flag[] == 0
         return nothing
     end

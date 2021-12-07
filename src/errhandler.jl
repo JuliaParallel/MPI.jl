@@ -14,13 +14,17 @@ Base.cconvert(::Type{MPI_Errhandler}, errhandler::Errhandler) = errhandler
 Base.unsafe_convert(::Type{MPI_Errhandler}, errhandler::Errhandler) = errhandler.val
 Base.unsafe_convert(::Type{Ptr{MPI_Errhandler}}, errhandler::Errhandler) = convert(Ptr{MPI_Errhandler}, pointer_from_objref(errhandler))
 
-const ERRORS_ARE_FATAL = Errhandler(MPI_ERRORS_ARE_FATAL)
-const ERRORS_RETURN    = Errhandler(MPI_ERRORS_RETURN   )
-add_load_time_hook!(() -> ERRORS_ARE_FATAL.val = MPI_ERRORS_ARE_FATAL)
-add_load_time_hook!(() -> ERRORS_RETURN.val    = MPI_ERRORS_RETURN   )
+const ERRHANDLER_NULL  = Errhandler(Consts.MPI_ERRHANDLER_NULL[])
+const ERRORS_ARE_FATAL = Errhandler(Consts.MPI_ERRORS_ARE_FATAL[])
+const ERRORS_RETURN    = Errhandler(Consts.MPI_ERRORS_RETURN[]   )
+add_load_time_hook!(() -> ERRHANDLER_NULL.val  = Consts.MPI_ERRHANDLER_NULL[] )
+add_load_time_hook!(() -> ERRORS_ARE_FATAL.val = Consts.MPI_ERRORS_ARE_FATAL[])
+add_load_time_hook!(() -> ERRORS_RETURN.val    = Consts.MPI_ERRORS_RETURN[]   )
+
+Errhandler() = Errhandler(ERRHANDLER_NULL.val)
 
 function free(errh::Errhandler)
-    if errh != ERRORS_ARE_FATAL && errh != ERRORS_RETURN && !Finalized()
+    if errh != ERRHANDLER_NULL && errh != ERRORS_ARE_FATAL && errh != ERRORS_RETURN && !Finalized()
         # int MPI_Errhandler_free(MPI_Errhandler *errhandler)
         @mpichk ccall((:MPI_Errhandler_free, libmpi), Cint, (Ptr{MPI_Errhandler},), errh)
     end
@@ -43,23 +47,19 @@ Get the current [`Errhandler`](@ref) for the relevant MPI object.
 - [`set_errorhandler!`](@ref)
 """
 function get_errorhandler(comm::Comm)
-    # errh = Errhandler(ERRORS_ARE_FATAL.val)
-    result = Ref(MPI_ERRHANDLER_NULL)
-    @mpichk ccall((:MPI_Comm_get_errhandler, libmpi), Cint, (MPI_Comm, Ptr{MPI_Errhandler}), comm, result)
-    # finalizer(free, errh)
-    return Errhandler(result[])
+    errh = Errhandler()
+    @mpichk ccall((:MPI_Comm_get_errhandler, libmpi), Cint, (MPI_Comm, Ptr{MPI_Errhandler}), comm, errh)
+    return errh
 end
 function get_errorhandler(win::Win)
-    # errh = Errhandler(ERRORS_ARE_FATAL.val)
-    result = Ref(MPI_ERRHANDLER_NULL)
-    @mpichk ccall((:MPI_Win_get_errhandler, libmpi), Cint, (MPI_Win, Ptr{MPI_Errhandler}), win, result)
-    return Errhandler(result[])
+    errh = Errhandler()
+    @mpichk ccall((:MPI_Win_get_errhandler, libmpi), Cint, (MPI_Win, Ptr{MPI_Errhandler}), win, errh)
+    return errh
 end
 function get_errorhandler(file::File.FileHandle)
-    # errh = Errhandler(ERRORS_ARE_FATAL.val)
-    result = Ref(MPI_ERRHANDLER_NULL)
-    @mpichk ccall((:MPI_File_get_errhandler, libmpi), Cint, (MPI_File, Ptr{MPI_Errhandler}), file, result)
-    return Errhandler(result[])
+    errh = Errhandler()
+    @mpichk ccall((:MPI_File_get_errhandler, libmpi), Cint, (MPI_File, Ptr{MPI_Errhandler}), file, errh)
+    return errh
 end
 
 """

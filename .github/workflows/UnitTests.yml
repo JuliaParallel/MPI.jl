@@ -21,8 +21,8 @@ jobs:
           # Unsupported - "1.4"
           # Unsupported - "1.5"
           - "1.6"
-          - "1.7-nightly"
-          - "nightly"
+          #TODO - "1.7"
+          #TODO - "nightly"
         julia_arch: [x64, x86]
         exclude:
           - os: macos-latest
@@ -65,606 +65,606 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
 
 
-  test-system-brew:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        mpi:
-          #BROKEN - mpich
-          - openmpi
-        julia_version:
-          - "1.6"
-          # We don't need to test all combinations
-          # - "1.7-nightly"
-          # - "nightly"
-
-      fail-fast: false
-
-    runs-on: macos-latest
-
-    env:
-      JULIA_MPI_BINARY: system
-      JULIA_MPI_PATH: /usr/local
-
-    steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
-    - name: Checkout
-      uses: actions/checkout@v2.2.0
-
-    - name: Install MPI via homebrew
-      run: brew install $MPI
-      env:
-        MPI: ${{ matrix.mpi }}
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.julia_version }}
-
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
-
-    - uses: julia-actions/julia-buildpkg@latest
-    - uses: julia-actions/julia-runtest@latest
-      env:
-        # TODO: Only disable this test for MPICH. OpenMPI works fine.
-        JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
-
-
-  test-system-apt:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        mpi:
-          - libmpich-dev
-          - libopenmpi-dev
-        julia_version:
-          - "1.6"
-          # We don't need to test all combinations
-          # - "1.7-nightly"
-          # - "nightly"
-
-      fail-fast: false
-
-    runs-on: ubuntu-20.04
-
-    env:
-      JULIA_MPI_BINARY: system
-      JULIA_MPI_PATH: /usr
-      OMPI_MCA_btl_base_warn_component_unused: 0
-
-    steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
-    - name: Checkout
-      uses: actions/checkout@v2.2.0
-
-    - name: Install MPI via apt
-      run: sudo apt-get install $MPI
-      env:
-        MPI: ${{ matrix.mpi }}
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.julia_version }}
-
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
-
-    - uses: julia-actions/julia-buildpkg@latest
-    - uses: julia-actions/julia-runtest@latest
-
-
-  test-intel-linux:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        julia_version:
-          - "1.6"
-          # We don't need to test all combinations
-          # - "1.7-nightly"
-          # - "nightly"
-
-      fail-fast: false
-
-    runs-on: ubuntu-18.04  # 20.04 not supported
-
-    env:
-      JULIA_MPI_BINARY: system
-      JULIA_MPI_PATH: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64
-
-    steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
-    - name: Checkout
-      uses: actions/checkout@v2.2.0
-
-    - name: Cache Intel MPI
-      id: cache-intelmpi
-      uses: actions/cache@v2
-      with:
-        path: l_mpi_2019.9.304.tgz
-        key: ${{ runner.os }}-intelmpi-2019.9.304
-
-    - name: Download Intel MPI
-      if: steps.cache-intelmpi.outputs.cache-hit != 'true'
-      run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
-
-    - name: Install Intel MPI
-      run: |        
-        tar -xzf l_mpi_2019.9.304.tgz
-        pushd l_mpi_2019.9.304
-        cat << EOF > intel.conf
-        ACCEPT_EULA=accept
-        CONTINUE_WITH_OPTIONAL_ERROR=yes
-        PSET_INSTALL_DIR=${HOME}/intel
-        CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
-        PSET_MODE=install
-        ARCH_SELECTED=ALL
-        COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
-        EOF
-        ./install.sh --silent intel.conf
-        popd
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.julia_version }}
-
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
-
-    # we can't use the usual actions here as we need to ensure the environment variables are set
-    - name: "Build package" 
-      run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
-    - name: "Run tests"
-      run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --project -e 'using Pkg; Pkg.test()'
-
-
-  test-system-msmpi:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        julia_version:
-          - "1.6"
-          # We don't need to test all combinations
-          # - "1.7-nightly"
-          # - "nightly"
-
-      fail-fast: false
-
-    runs-on: windows-latest
-
-    env:
-      JULIA_MPI_BINARY: system
-      JULIA_MPIEXEC: "C:\\Program Files\\Microsoft MPI\\Bin\\mpiexec"
-
-    steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
-    - name: Checkout
-      uses: actions/checkout@v2.2.0
-
-    - name: Download Microsoft MPI
-      run: (new-object net.webclient).DownloadFile("https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe", "msmpisetup.exe")
-      shell: powershell
-
-    - name: Install Microsoft MPI
-      run: msmpisetup.exe -unattend -minimal
-      shell: cmd
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.julia_version }}
-
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
-
-    - uses: julia-actions/julia-buildpkg@latest
-    - uses: julia-actions/julia-runtest@latest
-
-
-  test-mpitrampoline-jll:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        os:
-          - macos-latest
-          - ubuntu-latest
-        mpi: [mpitrampoline]
-        julia_version:
-          - "1.6"
-          - "1.7-nightly"
-          - "nightly"
-        julia_arch:
-          - x64
-          - x86
-        exclude:
-          - os: macos-latest
-            julia_arch: x86
-
-      fail-fast: false
-
-    runs-on: ${{ matrix.os }}
-
-    env:
-      JULIA_MPI_BINARY: MPItrampoline_jll
-
-    steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
-    - name: Checkout
-      uses: actions/checkout@v2.2.0
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.julia_version }}
-
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
-
-    - uses: julia-actions/julia-buildpkg@latest
-    - uses: julia-actions/julia-runtest@latest
-
-
-# It takes too long to build MPICH or OpenMPI from source.
-#   test-mpitrampoline-system-macos:
-#     timeout-minutes: 20
-#     strategy:
-#       matrix:
-#         mpi:
-#           - mpich
-#           - openmpi
-#         julia_version:
-#           - "1.6"
-#           - "1.7-nightly"
-#           - "nightly"
-# 
-#       fail-fast: false
-# 
-#     runs-on: macos-latest
-# 
-#     env:
-#       JULIA_MPI_BINARY: MPItrampoline_jll
-#       MPITRAMPOLINE_VERBOSE: 1   #TODO
-#       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
-#       MPITRAMPOLINE_MPIEXEC: /usr/local/bin/mpiexec
-# 
-#     steps:
-#     - name: Cancel Previous Runs
-#       uses: styfle/cancel-workflow-action@0.4.0
-#       with:
-#         access_token: ${{ github.token }}
-# 
-#     - name: Checkout
-#       uses: actions/checkout@v2.2.0
-# 
-#     - name: Install Homebrew packages
-#       run: brew install autoconf automake
-#       env:
-#         MPI: ${{ matrix.mpi }}
-# 
-#     # We cannot install MPICH or OpenMPI via Homebrew or MacPorts,
-#     # since the MPI libraries there use a flat namespace, which means
-#     # that they cannot be loaded as plugin. We need to build the
-#     # libraries ourselves.
-#     - name: Install MPI
-#       run: |
-#         case ${{ matrix.mpi }} in
-#         mpich)
-#             # Install MPICH 4.0.b1 (a beta version) since 3.4.2 has a
-#             # bug in MPI_Reduce
-#             wget http://www.mpich.org/static/downloads/4.0b1/mpich-4.0b1.tar.gz
-#             tar xzf mpich-4.0b1.tar.gz
-#             cd mpich*
-#             ./configure \
-#                 --enable-two-level-namespace \
-#                 --prefix=/usr/local \
-#                 CC=gcc-11 \
-#                 CXX=g++-11 \
-#                 FC=gfortran-11 \
-#                 FFLAGS=-fallow-argument-mismatch \
-#                 FCFLAGS=-fallow-argument-mismatch
-#             make -j$(nproc) 
-#             sudo make -j$(nproc) install
-#         ;;
-#         openmpi)
-#             wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.2.tar.gz
-#             tar xzf openmpi-4.1.2.tar.gz
-#             cd openmpi*
-#             find . -type f -print0 | xargs -0 perl -pi -e 's/-Wl,-flat_namespace//g'
-#             ./autogen.pl --force
-#             ./configure \
-#                 --prefix=/usr/local \
-#                 CC=gcc-11 \
-#                 CXX=g++-11 \
-#                 FC=gfortran-11
-#             make -j$(nproc) 
-#             sudo make -j$(nproc) install
-#         ;;
-#         esac
-#       env:
-#         MPI: ${{ matrix.mpi }}
-# 
-#     - name: Build MPIwrapper
-#       run: |
-#         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
-#         tar xzf v2.2.1.tar.gz
-#         cd MPIwrapper-*
-#         cmake \
-#             -DCMAKE_CXX_COMPILER=g++-11 \
-#             -DCMAKE_Fortran_COMPILER=gfortran-11 \
-#             -DMPIEXEC_EXECUTABLE=mpiexec \
-#             -DCMAKE_BUILD_TYPE=Debug \
-#             -DCMAKE_INSTALL_PREFIX=/usr/local \
-#             .
-#         # cmake \
-#         #     -DCMAKE_CXX_COMPILER=g++-11 \
-#         #     -DCMAKE_Fortran_COMPILER=gfortran-11 \
-#         #     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-#         #     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
-#         #     -DMPI_CXX_LIB_NAMES='mpi' \
-#         #     -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS='/usr/local/include;/usr/local/lib' \
-#         #     -DMPI_Fortran_LIB_NAMES='mpi_usempif08;mpi_usempi_ignore_tkr;mpi_mpifh;mpi' \
-#         #     -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
-#         #     -DMPI_mpi_mpifh_LIBRARY=/usr/local/lib/libmpi_mpifh.dylib \
-#         #     -DMPI_mpi_usempi_ignore_tkr_LIBRARY=/usr/local/lib/libmpi_usempi_ignore_tkr.dylib \
-#         #     -DMPI_mpi_usempif08_LIBRARY=/usr/local/lib/libmpi_usempif08.dylib \
-#         #     -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
-#         #     -DCMAKE_BUILD_TYPE=Debug \
-#         #     -DCMAKE_INSTALL_PREFIX=/usr/local \
-#         #     .
-#         cmake --build .
-#         sudo cmake --install .
-# 
-#     - uses: julia-actions/setup-julia@latest
-#       with:
-#         version: ${{ matrix.julia_version }}
-# 
-#     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-#     - name: Cache artifacts
-#       uses: actions/cache@v1
-#       env:
-#         cache-name: cache-artifacts
-#       with:
-#         path: ~/.julia/artifacts
-#         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-#         restore-keys: |
-#           ${{ runner.os }}-test-${{ env.cache-name }}-
-#           ${{ runner.os }}-test-
-#           ${{ runner.os }}-
-# 
-#     - uses: julia-actions/julia-buildpkg@latest
-#     - uses: julia-actions/julia-runtest@latest
-
-
-  test-mpitrampoline-system-apt:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        mpi:
-          - libmpich-dev
-          - libopenmpi-dev
-        julia_version:
-          - "1.6"
-          # We don't need to test all combinations
-          # - "1.7-nightly"
-          # - "nightly"
-
-      fail-fast: false
-
-    runs-on: ubuntu-20.04
-
-    env:
-      JULIA_MPI_BINARY: MPItrampoline_jll
-      MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
-      MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
-      OMPI_MCA_btl_base_warn_component_unused: 0
-
-    steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
-    - name: Checkout
-      uses: actions/checkout@v2.2.0
-
-    - name: Install MPI via apt
-      run: sudo apt-get install $MPI
-      env:
-        MPI: ${{ matrix.mpi }}
-
-    - name: Build MPIwrapper
-      run: |
-        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
-        tar xzf v2.2.1.tar.gz
-        cd MPIwrapper-*
-        cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
-        cmake --build .
-        sudo cmake --install .
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.julia_version }}
-
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
-
-    - uses: julia-actions/julia-buildpkg@latest
-    - uses: julia-actions/julia-runtest@latest
-
-
-  test-mpitrampoline-intel-linux:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        julia_version:
-          - "1.6"
-          # We don't need to test all combinations
-          # - "1.7-nightly"
-          # - "nightly"
-
-      fail-fast: false
-
-    runs-on: ubuntu-18.04  # 20.04 not supported
-
-    env:
-      JULIA_MPI_BINARY: MPItrampoline_jll
-      MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
-      MPITRAMPOLINE_MPIEXEC: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiexec
-
-    steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
-    - name: Checkout
-      uses: actions/checkout@v2.2.0
-
-    - name: Cache Intel MPI
-      id: cache-intelmpi
-      uses: actions/cache@v2
-      with:
-        path: l_mpi_2019.9.304.tgz
-        key: ${{ runner.os }}-intelmpi-2019.9.304
-
-    - name: Download Intel MPI
-      if: steps.cache-intelmpi.outputs.cache-hit != 'true'
-      run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
-
-    - name: Install Intel MPI
-      run: |        
-        tar -xzf l_mpi_2019.9.304.tgz
-        pushd l_mpi_2019.9.304
-        cat << EOF > intel.conf
-        ACCEPT_EULA=accept
-        CONTINUE_WITH_OPTIONAL_ERROR=yes
-        PSET_INSTALL_DIR=${HOME}/intel
-        CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
-        PSET_MODE=install
-        ARCH_SELECTED=ALL
-        COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
-        EOF
-        ./install.sh --silent intel.conf
-        popd
-
-    - name: Build MPIwrapper
-      run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
-        tar xzf v2.2.1.tar.gz
-        cd MPIwrapper-*
-        cmake \
-            -DMPIEXEC_EXECUTABLE=mpiexec \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DCMAKE_INSTALL_PREFIX=/usr/local \
-            .
-        cmake --build .
-        sudo cmake --install .
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.julia_version }}
-
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
-
-    # We can't use the usual actions here as we need to ensure the environment variables are set
-    - name: "Build package" 
-      run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
-    - name: "Run tests"
-      run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --project -e 'using Pkg; Pkg.test()'
+#TODO   test-system-brew:
+#TODO     timeout-minutes: 20
+#TODO     strategy:
+#TODO       matrix:
+#TODO         mpi:
+#TODO           #BROKEN - mpich
+#TODO           - openmpi
+#TODO         julia_version:
+#TODO           - "1.6"
+#TODO           # We don't need to test all combinations
+#TODO           # - "1.7"
+#TODO           # - "nightly"
+#TODO 
+#TODO       fail-fast: false
+#TODO 
+#TODO     runs-on: macos-latest
+#TODO 
+#TODO     env:
+#TODO       JULIA_MPI_BINARY: system
+#TODO       JULIA_MPI_PATH: /usr/local
+#TODO 
+#TODO     steps:
+#TODO     - name: Cancel Previous Runs
+#TODO       uses: styfle/cancel-workflow-action@0.4.0
+#TODO       with:
+#TODO         access_token: ${{ github.token }}
+#TODO 
+#TODO     - name: Checkout
+#TODO       uses: actions/checkout@v2.2.0
+#TODO 
+#TODO     - name: Install MPI via homebrew
+#TODO       run: brew install $MPI
+#TODO       env:
+#TODO         MPI: ${{ matrix.mpi }}
+#TODO 
+#TODO     - uses: julia-actions/setup-julia@latest
+#TODO       with:
+#TODO         version: ${{ matrix.julia_version }}
+#TODO 
+#TODO     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#TODO     - name: Cache artifacts
+#TODO       uses: actions/cache@v1
+#TODO       env:
+#TODO         cache-name: cache-artifacts
+#TODO       with:
+#TODO         path: ~/.julia/artifacts
+#TODO         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#TODO         restore-keys: |
+#TODO           ${{ runner.os }}-test-${{ env.cache-name }}-
+#TODO           ${{ runner.os }}-test-
+#TODO           ${{ runner.os }}-
+#TODO 
+#TODO     - uses: julia-actions/julia-buildpkg@latest
+#TODO     - uses: julia-actions/julia-runtest@latest
+#TODO       env:
+#TODO         # TODO: Only disable this test for MPICH. OpenMPI works fine.
+#TODO         JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
+#TODO 
+#TODO 
+#TODO   test-system-apt:
+#TODO     timeout-minutes: 20
+#TODO     strategy:
+#TODO       matrix:
+#TODO         mpi:
+#TODO           - libmpich-dev
+#TODO           - libopenmpi-dev
+#TODO         julia_version:
+#TODO           - "1.6"
+#TODO           # We don't need to test all combinations
+#TODO           # - "1.7"
+#TODO           # - "nightly"
+#TODO 
+#TODO       fail-fast: false
+#TODO 
+#TODO     runs-on: ubuntu-20.04
+#TODO 
+#TODO     env:
+#TODO       JULIA_MPI_BINARY: system
+#TODO       JULIA_MPI_PATH: /usr
+#TODO       OMPI_MCA_btl_base_warn_component_unused: 0
+#TODO 
+#TODO     steps:
+#TODO     - name: Cancel Previous Runs
+#TODO       uses: styfle/cancel-workflow-action@0.4.0
+#TODO       with:
+#TODO         access_token: ${{ github.token }}
+#TODO 
+#TODO     - name: Checkout
+#TODO       uses: actions/checkout@v2.2.0
+#TODO 
+#TODO     - name: Install MPI via apt
+#TODO       run: sudo apt-get install $MPI
+#TODO       env:
+#TODO         MPI: ${{ matrix.mpi }}
+#TODO 
+#TODO     - uses: julia-actions/setup-julia@latest
+#TODO       with:
+#TODO         version: ${{ matrix.julia_version }}
+#TODO 
+#TODO     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#TODO     - name: Cache artifacts
+#TODO       uses: actions/cache@v1
+#TODO       env:
+#TODO         cache-name: cache-artifacts
+#TODO       with:
+#TODO         path: ~/.julia/artifacts
+#TODO         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#TODO         restore-keys: |
+#TODO           ${{ runner.os }}-test-${{ env.cache-name }}-
+#TODO           ${{ runner.os }}-test-
+#TODO           ${{ runner.os }}-
+#TODO 
+#TODO     - uses: julia-actions/julia-buildpkg@latest
+#TODO     - uses: julia-actions/julia-runtest@latest
+#TODO 
+#TODO 
+#TODO   test-intel-linux:
+#TODO     timeout-minutes: 20
+#TODO     strategy:
+#TODO       matrix:
+#TODO         julia_version:
+#TODO           - "1.6"
+#TODO           # We don't need to test all combinations
+#TODO           # - "1.7"
+#TODO           # - "nightly"
+#TODO 
+#TODO       fail-fast: false
+#TODO 
+#TODO     runs-on: ubuntu-18.04  # 20.04 not supported
+#TODO 
+#TODO     env:
+#TODO       JULIA_MPI_BINARY: system
+#TODO       JULIA_MPI_PATH: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64
+#TODO 
+#TODO     steps:
+#TODO     - name: Cancel Previous Runs
+#TODO       uses: styfle/cancel-workflow-action@0.4.0
+#TODO       with:
+#TODO         access_token: ${{ github.token }}
+#TODO 
+#TODO     - name: Checkout
+#TODO       uses: actions/checkout@v2.2.0
+#TODO 
+#TODO     - name: Cache Intel MPI
+#TODO       id: cache-intelmpi
+#TODO       uses: actions/cache@v2
+#TODO       with:
+#TODO         path: l_mpi_2019.9.304.tgz
+#TODO         key: ${{ runner.os }}-intelmpi-2019.9.304
+#TODO 
+#TODO     - name: Download Intel MPI
+#TODO       if: steps.cache-intelmpi.outputs.cache-hit != 'true'
+#TODO       run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
+#TODO 
+#TODO     - name: Install Intel MPI
+#TODO       run: |        
+#TODO         tar -xzf l_mpi_2019.9.304.tgz
+#TODO         pushd l_mpi_2019.9.304
+#TODO         cat << EOF > intel.conf
+#TODO         ACCEPT_EULA=accept
+#TODO         CONTINUE_WITH_OPTIONAL_ERROR=yes
+#TODO         PSET_INSTALL_DIR=${HOME}/intel
+#TODO         CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
+#TODO         PSET_MODE=install
+#TODO         ARCH_SELECTED=ALL
+#TODO         COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
+#TODO         EOF
+#TODO         ./install.sh --silent intel.conf
+#TODO         popd
+#TODO 
+#TODO     - uses: julia-actions/setup-julia@latest
+#TODO       with:
+#TODO         version: ${{ matrix.julia_version }}
+#TODO 
+#TODO     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#TODO     - name: Cache artifacts
+#TODO       uses: actions/cache@v1
+#TODO       env:
+#TODO         cache-name: cache-artifacts
+#TODO       with:
+#TODO         path: ~/.julia/artifacts
+#TODO         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#TODO         restore-keys: |
+#TODO           ${{ runner.os }}-test-${{ env.cache-name }}-
+#TODO           ${{ runner.os }}-test-
+#TODO           ${{ runner.os }}-
+#TODO 
+#TODO     # we can't use the usual actions here as we need to ensure the environment variables are set
+#TODO     - name: "Build package" 
+#TODO       run: |
+#TODO         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+#TODO         julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
+#TODO     - name: "Run tests"
+#TODO       run: |
+#TODO         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+#TODO         julia --project -e 'using Pkg; Pkg.test()'
+#TODO 
+#TODO 
+#TODO   test-system-msmpi:
+#TODO     timeout-minutes: 20
+#TODO     strategy:
+#TODO       matrix:
+#TODO         julia_version:
+#TODO           - "1.6"
+#TODO           # We don't need to test all combinations
+#TODO           # - "1.7"
+#TODO           # - "nightly"
+#TODO 
+#TODO       fail-fast: false
+#TODO 
+#TODO     runs-on: windows-latest
+#TODO 
+#TODO     env:
+#TODO       JULIA_MPI_BINARY: system
+#TODO       JULIA_MPIEXEC: "C:\\Program Files\\Microsoft MPI\\Bin\\mpiexec"
+#TODO 
+#TODO     steps:
+#TODO     - name: Cancel Previous Runs
+#TODO       uses: styfle/cancel-workflow-action@0.4.0
+#TODO       with:
+#TODO         access_token: ${{ github.token }}
+#TODO 
+#TODO     - name: Checkout
+#TODO       uses: actions/checkout@v2.2.0
+#TODO 
+#TODO     - name: Download Microsoft MPI
+#TODO       run: (new-object net.webclient).DownloadFile("https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe", "msmpisetup.exe")
+#TODO       shell: powershell
+#TODO 
+#TODO     - name: Install Microsoft MPI
+#TODO       run: msmpisetup.exe -unattend -minimal
+#TODO       shell: cmd
+#TODO 
+#TODO     - uses: julia-actions/setup-julia@latest
+#TODO       with:
+#TODO         version: ${{ matrix.julia_version }}
+#TODO 
+#TODO     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#TODO     - name: Cache artifacts
+#TODO       uses: actions/cache@v1
+#TODO       env:
+#TODO         cache-name: cache-artifacts
+#TODO       with:
+#TODO         path: ~/.julia/artifacts
+#TODO         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#TODO         restore-keys: |
+#TODO           ${{ runner.os }}-test-${{ env.cache-name }}-
+#TODO           ${{ runner.os }}-test-
+#TODO           ${{ runner.os }}-
+#TODO 
+#TODO     - uses: julia-actions/julia-buildpkg@latest
+#TODO     - uses: julia-actions/julia-runtest@latest
+#TODO 
+#TODO 
+#TODO   test-mpitrampoline-jll:
+#TODO     timeout-minutes: 20
+#TODO     strategy:
+#TODO       matrix:
+#TODO         os:
+#TODO           - macos-latest
+#TODO           - ubuntu-latest
+#TODO         mpi: [mpitrampoline]
+#TODO         julia_version:
+#TODO           - "1.6"
+#TODO           - "1.7"
+#TODO           - "nightly"
+#TODO         julia_arch:
+#TODO           - x64
+#TODO           - x86
+#TODO         exclude:
+#TODO           - os: macos-latest
+#TODO             julia_arch: x86
+#TODO 
+#TODO       fail-fast: false
+#TODO 
+#TODO     runs-on: ${{ matrix.os }}
+#TODO 
+#TODO     env:
+#TODO       JULIA_MPI_BINARY: MPItrampoline_jll
+#TODO 
+#TODO     steps:
+#TODO     - name: Cancel Previous Runs
+#TODO       uses: styfle/cancel-workflow-action@0.4.0
+#TODO       with:
+#TODO         access_token: ${{ github.token }}
+#TODO 
+#TODO     - name: Checkout
+#TODO       uses: actions/checkout@v2.2.0
+#TODO 
+#TODO     - uses: julia-actions/setup-julia@latest
+#TODO       with:
+#TODO         version: ${{ matrix.julia_version }}
+#TODO 
+#TODO     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#TODO     - name: Cache artifacts
+#TODO       uses: actions/cache@v1
+#TODO       env:
+#TODO         cache-name: cache-artifacts
+#TODO       with:
+#TODO         path: ~/.julia/artifacts
+#TODO         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#TODO         restore-keys: |
+#TODO           ${{ runner.os }}-test-${{ env.cache-name }}-
+#TODO           ${{ runner.os }}-test-
+#TODO           ${{ runner.os }}-
+#TODO 
+#TODO     - uses: julia-actions/julia-buildpkg@latest
+#TODO     - uses: julia-actions/julia-runtest@latest
+#TODO 
+#TODO 
+#TODO # It takes too long to build MPICH or OpenMPI from source.
+#TODO #   test-mpitrampoline-system-macos:
+#TODO #     timeout-minutes: 20
+#TODO #     strategy:
+#TODO #       matrix:
+#TODO #         mpi:
+#TODO #           - mpich
+#TODO #           - openmpi
+#TODO #         julia_version:
+#TODO #           - "1.6"
+#TODO #           - "1.7"
+#TODO #           - "nightly"
+#TODO # 
+#TODO #       fail-fast: false
+#TODO # 
+#TODO #     runs-on: macos-latest
+#TODO # 
+#TODO #     env:
+#TODO #       JULIA_MPI_BINARY: MPItrampoline_jll
+#TODO #       MPITRAMPOLINE_VERBOSE: 1   #TODO
+#TODO #       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
+#TODO #       MPITRAMPOLINE_MPIEXEC: /usr/local/bin/mpiexec
+#TODO # 
+#TODO #     steps:
+#TODO #     - name: Cancel Previous Runs
+#TODO #       uses: styfle/cancel-workflow-action@0.4.0
+#TODO #       with:
+#TODO #         access_token: ${{ github.token }}
+#TODO # 
+#TODO #     - name: Checkout
+#TODO #       uses: actions/checkout@v2.2.0
+#TODO # 
+#TODO #     - name: Install Homebrew packages
+#TODO #       run: brew install autoconf automake
+#TODO #       env:
+#TODO #         MPI: ${{ matrix.mpi }}
+#TODO # 
+#TODO #     # We cannot install MPICH or OpenMPI via Homebrew or MacPorts,
+#TODO #     # since the MPI libraries there use a flat namespace, which means
+#TODO #     # that they cannot be loaded as plugin. We need to build the
+#TODO #     # libraries ourselves.
+#TODO #     - name: Install MPI
+#TODO #       run: |
+#TODO #         case ${{ matrix.mpi }} in
+#TODO #         mpich)
+#TODO #             # Install MPICH 4.0.b1 (a beta version) since 3.4.2 has a
+#TODO #             # bug in MPI_Reduce
+#TODO #             wget http://www.mpich.org/static/downloads/4.0b1/mpich-4.0b1.tar.gz
+#TODO #             tar xzf mpich-4.0b1.tar.gz
+#TODO #             cd mpich*
+#TODO #             ./configure \
+#TODO #                 --enable-two-level-namespace \
+#TODO #                 --prefix=/usr/local \
+#TODO #                 CC=gcc-11 \
+#TODO #                 CXX=g++-11 \
+#TODO #                 FC=gfortran-11 \
+#TODO #                 FFLAGS=-fallow-argument-mismatch \
+#TODO #                 FCFLAGS=-fallow-argument-mismatch
+#TODO #             make -j$(nproc) 
+#TODO #             sudo make -j$(nproc) install
+#TODO #         ;;
+#TODO #         openmpi)
+#TODO #             wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.2.tar.gz
+#TODO #             tar xzf openmpi-4.1.2.tar.gz
+#TODO #             cd openmpi*
+#TODO #             find . -type f -print0 | xargs -0 perl -pi -e 's/-Wl,-flat_namespace//g'
+#TODO #             ./autogen.pl --force
+#TODO #             ./configure \
+#TODO #                 --prefix=/usr/local \
+#TODO #                 CC=gcc-11 \
+#TODO #                 CXX=g++-11 \
+#TODO #                 FC=gfortran-11
+#TODO #             make -j$(nproc) 
+#TODO #             sudo make -j$(nproc) install
+#TODO #         ;;
+#TODO #         esac
+#TODO #       env:
+#TODO #         MPI: ${{ matrix.mpi }}
+#TODO # 
+#TODO #     - name: Build MPIwrapper
+#TODO #       run: |
+#TODO #         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
+#TODO #         tar xzf v2.2.1.tar.gz
+#TODO #         cd MPIwrapper-*
+#TODO #         cmake \
+#TODO #             -DCMAKE_CXX_COMPILER=g++-11 \
+#TODO #             -DCMAKE_Fortran_COMPILER=gfortran-11 \
+#TODO #             -DMPIEXEC_EXECUTABLE=mpiexec \
+#TODO #             -DCMAKE_BUILD_TYPE=Debug \
+#TODO #             -DCMAKE_INSTALL_PREFIX=/usr/local \
+#TODO #             .
+#TODO #         # cmake \
+#TODO #         #     -DCMAKE_CXX_COMPILER=g++-11 \
+#TODO #         #     -DCMAKE_Fortran_COMPILER=gfortran-11 \
+#TODO #         #     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
+#TODO #         #     -DMPI_CXX_ADDITIONAL_INCLUDE_DIRS=/usr/local/include \
+#TODO #         #     -DMPI_CXX_LIB_NAMES='mpi' \
+#TODO #         #     -DMPI_Fortran_ADDITIONAL_INCLUDE_DIRS='/usr/local/include;/usr/local/lib' \
+#TODO #         #     -DMPI_Fortran_LIB_NAMES='mpi_usempif08;mpi_usempi_ignore_tkr;mpi_mpifh;mpi' \
+#TODO #         #     -DMPI_mpi_LIBRARY=/usr/local/lib/libmpi.dylib \
+#TODO #         #     -DMPI_mpi_mpifh_LIBRARY=/usr/local/lib/libmpi_mpifh.dylib \
+#TODO #         #     -DMPI_mpi_usempi_ignore_tkr_LIBRARY=/usr/local/lib/libmpi_usempi_ignore_tkr.dylib \
+#TODO #         #     -DMPI_mpi_usempif08_LIBRARY=/usr/local/lib/libmpi_usempif08.dylib \
+#TODO #         #     -DMPIEXEC_EXECUTABLE=/usr/local/bin/mpiexec \
+#TODO #         #     -DCMAKE_BUILD_TYPE=Debug \
+#TODO #         #     -DCMAKE_INSTALL_PREFIX=/usr/local \
+#TODO #         #     .
+#TODO #         cmake --build .
+#TODO #         sudo cmake --install .
+#TODO # 
+#TODO #     - uses: julia-actions/setup-julia@latest
+#TODO #       with:
+#TODO #         version: ${{ matrix.julia_version }}
+#TODO # 
+#TODO #     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#TODO #     - name: Cache artifacts
+#TODO #       uses: actions/cache@v1
+#TODO #       env:
+#TODO #         cache-name: cache-artifacts
+#TODO #       with:
+#TODO #         path: ~/.julia/artifacts
+#TODO #         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#TODO #         restore-keys: |
+#TODO #           ${{ runner.os }}-test-${{ env.cache-name }}-
+#TODO #           ${{ runner.os }}-test-
+#TODO #           ${{ runner.os }}-
+#TODO # 
+#TODO #     - uses: julia-actions/julia-buildpkg@latest
+#TODO #     - uses: julia-actions/julia-runtest@latest
+#TODO 
+#TODO 
+#TODO   test-mpitrampoline-system-apt:
+#TODO     timeout-minutes: 20
+#TODO     strategy:
+#TODO       matrix:
+#TODO         mpi:
+#TODO           - libmpich-dev
+#TODO           - libopenmpi-dev
+#TODO         julia_version:
+#TODO           - "1.6"
+#TODO           # We don't need to test all combinations
+#TODO           # - "1.7"
+#TODO           # - "nightly"
+#TODO 
+#TODO       fail-fast: false
+#TODO 
+#TODO     runs-on: ubuntu-20.04
+#TODO 
+#TODO     env:
+#TODO       JULIA_MPI_BINARY: MPItrampoline_jll
+#TODO       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
+#TODO       MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
+#TODO       OMPI_MCA_btl_base_warn_component_unused: 0
+#TODO 
+#TODO     steps:
+#TODO     - name: Cancel Previous Runs
+#TODO       uses: styfle/cancel-workflow-action@0.4.0
+#TODO       with:
+#TODO         access_token: ${{ github.token }}
+#TODO 
+#TODO     - name: Checkout
+#TODO       uses: actions/checkout@v2.2.0
+#TODO 
+#TODO     - name: Install MPI via apt
+#TODO       run: sudo apt-get install $MPI
+#TODO       env:
+#TODO         MPI: ${{ matrix.mpi }}
+#TODO 
+#TODO     - name: Build MPIwrapper
+#TODO       run: |
+#TODO         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
+#TODO         tar xzf v2.2.1.tar.gz
+#TODO         cd MPIwrapper-*
+#TODO         cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
+#TODO         cmake --build .
+#TODO         sudo cmake --install .
+#TODO 
+#TODO     - uses: julia-actions/setup-julia@latest
+#TODO       with:
+#TODO         version: ${{ matrix.julia_version }}
+#TODO 
+#TODO     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#TODO     - name: Cache artifacts
+#TODO       uses: actions/cache@v1
+#TODO       env:
+#TODO         cache-name: cache-artifacts
+#TODO       with:
+#TODO         path: ~/.julia/artifacts
+#TODO         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#TODO         restore-keys: |
+#TODO           ${{ runner.os }}-test-${{ env.cache-name }}-
+#TODO           ${{ runner.os }}-test-
+#TODO           ${{ runner.os }}-
+#TODO 
+#TODO     - uses: julia-actions/julia-buildpkg@latest
+#TODO     - uses: julia-actions/julia-runtest@latest
+#TODO 
+#TODO 
+#TODO   test-mpitrampoline-intel-linux:
+#TODO     timeout-minutes: 20
+#TODO     strategy:
+#TODO       matrix:
+#TODO         julia_version:
+#TODO           - "1.6"
+#TODO           # We don't need to test all combinations
+#TODO           # - "1.7"
+#TODO           # - "nightly"
+#TODO 
+#TODO       fail-fast: false
+#TODO 
+#TODO     runs-on: ubuntu-18.04  # 20.04 not supported
+#TODO 
+#TODO     env:
+#TODO       JULIA_MPI_BINARY: MPItrampoline_jll
+#TODO       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
+#TODO       MPITRAMPOLINE_MPIEXEC: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiexec
+#TODO 
+#TODO     steps:
+#TODO     - name: Cancel Previous Runs
+#TODO       uses: styfle/cancel-workflow-action@0.4.0
+#TODO       with:
+#TODO         access_token: ${{ github.token }}
+#TODO 
+#TODO     - name: Checkout
+#TODO       uses: actions/checkout@v2.2.0
+#TODO 
+#TODO     - name: Cache Intel MPI
+#TODO       id: cache-intelmpi
+#TODO       uses: actions/cache@v2
+#TODO       with:
+#TODO         path: l_mpi_2019.9.304.tgz
+#TODO         key: ${{ runner.os }}-intelmpi-2019.9.304
+#TODO 
+#TODO     - name: Download Intel MPI
+#TODO       if: steps.cache-intelmpi.outputs.cache-hit != 'true'
+#TODO       run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
+#TODO 
+#TODO     - name: Install Intel MPI
+#TODO       run: |        
+#TODO         tar -xzf l_mpi_2019.9.304.tgz
+#TODO         pushd l_mpi_2019.9.304
+#TODO         cat << EOF > intel.conf
+#TODO         ACCEPT_EULA=accept
+#TODO         CONTINUE_WITH_OPTIONAL_ERROR=yes
+#TODO         PSET_INSTALL_DIR=${HOME}/intel
+#TODO         CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
+#TODO         PSET_MODE=install
+#TODO         ARCH_SELECTED=ALL
+#TODO         COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
+#TODO         EOF
+#TODO         ./install.sh --silent intel.conf
+#TODO         popd
+#TODO 
+#TODO     - name: Build MPIwrapper
+#TODO       run: |
+#TODO         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+#TODO         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
+#TODO         tar xzf v2.2.1.tar.gz
+#TODO         cd MPIwrapper-*
+#TODO         cmake \
+#TODO             -DMPIEXEC_EXECUTABLE=mpiexec \
+#TODO             -DCMAKE_BUILD_TYPE=Debug \
+#TODO             -DCMAKE_INSTALL_PREFIX=/usr/local \
+#TODO             .
+#TODO         cmake --build .
+#TODO         sudo cmake --install .
+#TODO 
+#TODO     - uses: julia-actions/setup-julia@latest
+#TODO       with:
+#TODO         version: ${{ matrix.julia_version }}
+#TODO 
+#TODO     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
+#TODO     - name: Cache artifacts
+#TODO       uses: actions/cache@v1
+#TODO       env:
+#TODO         cache-name: cache-artifacts
+#TODO       with:
+#TODO         path: ~/.julia/artifacts
+#TODO         key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+#TODO         restore-keys: |
+#TODO           ${{ runner.os }}-test-${{ env.cache-name }}-
+#TODO           ${{ runner.os }}-test-
+#TODO           ${{ runner.os }}-
+#TODO 
+#TODO     # We can't use the usual actions here as we need to ensure the environment variables are set
+#TODO     - name: "Build package" 
+#TODO       run: |
+#TODO         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+#TODO         julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
+#TODO     - name: "Run tests"
+#TODO       run: |
+#TODO         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+#TODO         julia --project -e 'using Pkg; Pkg.test()'
