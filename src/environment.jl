@@ -93,7 +93,7 @@ function Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true
     else
         provided = _init_thread(threadlevel)
         if provided < threadlevel
-            @warn "MPI thread level requested = $required, provided = $provided"
+            @warn "MPI thread level requested = $threadlevel, provided = $provided"
         end
 
         if finalize_atexit
