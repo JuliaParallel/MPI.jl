@@ -65,11 +65,7 @@ end
 
 Broadcast the `obj` from `root` to all processes in `comm`. Returns the object.
 """
-function Bcast(obj::T, root::Integer, comm::Comm) where T
-    buf = Ref{T}(obj)
-    Bcast!(buf, root, comm)
-    return buf[]
-end
+Bcast(obj, root::Integer, comm::Comm) = Bcast!(Ref(obj), root, comm)[]
 Bcast(arr::AbstractArray, root::Integer, comm::Comm) = Bcast!(copy(arr), root, comm)
 Bcast(r::Ref, root::Integer, comm::Comm) = Ref(Bcast(r[], root, comm))
 
