@@ -17,24 +17,42 @@ associative, and if `iscommutative` is true, assumed to be commutative as well.
 - [`Scan!`](@ref)/[`Scan`](@ref)
 - [`Exscan!`](@ref)/[`Exscan`](@ref)
 """
-@mpi_handle Op MPI_Op fptr
-
-const OP_NULL = _Op(MPI_OP_NULL, nothing)
-const BAND    = _Op(MPI_BAND, nothing)
-const BOR     = _Op(MPI_BOR, nothing)
-const BXOR    = _Op(MPI_BXOR, nothing)
-const LAND    = _Op(MPI_LAND, nothing)
-const LOR     = _Op(MPI_LOR, nothing)
-const LXOR    = _Op(MPI_LXOR, nothing)
-const MAX     = _Op(MPI_MAX, nothing)
-const MIN     = _Op(MPI_MIN, nothing)
-const PROD    = _Op(MPI_PROD, nothing)
-const REPLACE = _Op(MPI_REPLACE, nothing)
-const SUM     = _Op(MPI_SUM, nothing)
-
-if @isdefined(MPI_NO_OP)
-    const NO_OP   = _Op(MPI_NO_OP, nothing)
+mutable struct Op
+    val::MPI_Op
+    fptr
+    Op(val::MPI_Op, fptr) = new(val, fptr)
 end
+Base.:(==)(a::Op, b::Op) = a.val == b.val
+Base.cconvert(::Type{MPI_Op}, op::Op) = op
+Base.unsafe_convert(::Type{MPI_Op}, op::Op) = op.val
+Base.unsafe_convert(::Type{Ptr{MPI_Op}}, op::Op) = convert(Ptr{MPI_Op}, pointer_from_objref(op))
+
+const OP_NULL = Op(Consts.MPI_OP_NULL[], nothing)
+const BAND    = Op(Consts.MPI_BAND[], nothing)
+const BOR     = Op(Consts.MPI_BOR[], nothing)
+const BXOR    = Op(Consts.MPI_BXOR[], nothing)
+const LAND    = Op(Consts.MPI_LAND[], nothing)
+const LOR     = Op(Consts.MPI_LOR[], nothing)
+const LXOR    = Op(Consts.MPI_LXOR[], nothing)
+const MAX     = Op(Consts.MPI_MAX[], nothing)
+const MIN     = Op(Consts.MPI_MIN[], nothing)
+const PROD    = Op(Consts.MPI_PROD[], nothing)
+const REPLACE = Op(Consts.MPI_REPLACE[], nothing)
+const SUM     = Op(Consts.MPI_SUM[], nothing)
+const NO_OP   = Op(Consts.MPI_NO_OP[], nothing)
+add_load_time_hook!(() -> OP_NULL.val = Consts.MPI_OP_NULL[])
+add_load_time_hook!(() -> BAND.val    = Consts.MPI_BAND[]   )
+add_load_time_hook!(() -> BOR.val     = Consts.MPI_BOR[]    )
+add_load_time_hook!(() -> BXOR.val    = Consts.MPI_BXOR[]   )
+add_load_time_hook!(() -> LAND.val    = Consts.MPI_LAND[]   )
+add_load_time_hook!(() -> LOR.val     = Consts.MPI_LOR[]    )
+add_load_time_hook!(() -> LXOR.val    = Consts.MPI_LXOR[]   )
+add_load_time_hook!(() -> MAX.val     = Consts.MPI_MAX[]    )
+add_load_time_hook!(() -> MIN.val     = Consts.MPI_MIN[]    )
+add_load_time_hook!(() -> PROD.val    = Consts.MPI_PROD[]   )
+add_load_time_hook!(() -> REPLACE.val = Consts.MPI_REPLACE[])
+add_load_time_hook!(() -> SUM.val     = Consts.MPI_SUM[]    )
+add_load_time_hook!(() -> NO_OP.val   = Consts.MPI_NO_OP[]  )
 
 Op(::typeof(min), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MIN
 Op(::typeof(max), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MAX
@@ -46,9 +64,11 @@ Op(::typeof(⊻), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BXOR
 
 
 function free(op::Op)
-    if op.val != OP_NULL.val && !Finalized()
+    if op != OP_NULL && !Finalized()
+        # int MPI_Op_free(MPI_Op *op)
         @mpichk ccall((:MPI_Op_free, libmpi), Cint, (Ptr{MPI_Op},), op)
     end
+    op.fptr = nothing
     return nothing
 end
 

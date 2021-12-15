@@ -1,67 +1,5 @@
 import Base: eltype
 
-# definition of the `Status` struct.
-# TODO: this bakes in a lot of assumptions about ordering and padding
-if !@isdefined(Status)
-    let
-        struct_fields = Any[]
-        empty_vals = Cint[]
-        offset = 0
-        i = 0
-
-        while offset < MPI_Status_Source_offset
-            push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            push!(empty_vals, zero(Cint))
-            offset += 4
-        end
-        @assert offset == MPI_Status_Source_offset
-        push!(struct_fields, :(source::Cint))
-        push!(empty_vals, MPI_ANY_SOURCE)
-        offset += 4
-
-        while offset < MPI_Status_Tag_offset
-            push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            push!(empty_vals, zero(Cint))
-            offset += 4
-        end
-        @assert offset == MPI_Status_Tag_offset
-        push!(struct_fields, :(tag::Cint))
-        push!(empty_vals, MPI_ANY_TAG)
-        offset += 4
-
-        while offset < MPI_Status_Error_offset
-            push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            push!(empty_vals, zero(Cint))
-            offset += 4
-        end
-        @assert offset == MPI_Status_Error_offset
-        push!(struct_fields, :(error::Cint))
-        push!(empty_vals, MPI_SUCCESS)
-        offset += 4
-
-        while offset < MPI_Status_size
-            push!(struct_fields, :($(Symbol(:_pad, i+=1))::Cint))
-            push!(empty_vals, zero(Cint))
-            offset += 4
-        end
-
-        @eval begin
-            struct Status
-                $(struct_fields...)
-            end
-            const STATUS_EMPTY = Status($(empty_vals...))
-        end
-    end
-
-    @assert fieldoffset(Status, findfirst(isequal(:source), fieldnames(Status))) == MPI_Status_Source_offset
-    @assert fieldoffset(Status, findfirst(isequal(:tag), fieldnames(Status))) == MPI_Status_Tag_offset
-    @assert fieldoffset(Status, findfirst(isequal(:error), fieldnames(Status))) == MPI_Status_Error_offset
-    @assert sizeof(Status) == MPI_Status_size
-end
-
-Base.cconvert(::Type{Ptr{Status}}, x::SentinelPtr) = x
-Base.unsafe_convert(::Type{Ptr{Status}}, x::SentinelPtr) = reinterpret(Ptr{Status}, x)
-
 """
     MPI.Status
 
@@ -74,15 +12,28 @@ The status of an MPI receive communication. It has 3 accessible fields
 Additionally, the accessor function [`MPI.Get_count`](@ref) can be used to determine the
 number of entries received.
 """
-Status
+const Status = MPI_Status
 
-"""
-    StatusRef()
+@eval const STATUS_ZERO = Status($([Cint(0) for i in 1:sizeof(Status) ÷ sizeof(Cint)]...))
 
-Construct an empty `Ref{Status}`. This can be passed to MPI Test/Wait operations.
-"""
-StatusRef() = Ref(STATUS_EMPTY)
+function Base.getproperty(status::Status, name::Symbol)
+    name ≡ :error && return status.MPI_ERROR
+    name ≡ :source && return status.MPI_SOURCE
+    name ≡ :tag && return status.MPI_TAG
+    return getfield(status, name)
+end
+function Base.setproperty!(status::Status, name::Symbol, x)
+    name ≡ :error && return (status.MPI_ERROR = x)
+    name ≡ :source && return (status.MPI_SOURCE = x)
+    name ≡ :tag && return (status.MPI_TAG = x)
+    return setfield!(status, name, x)
+end
 
+# TODO: I don't think we need `SentinelPtr`; we should remove it
+Base.cconvert(::Type{Ptr{Status}}, x::SentinelPtr) = x
+Base.unsafe_convert(::Type{Ptr{Status}}, x::SentinelPtr) = reinterpret(Ptr{Status}, x)
+
+# TODO: Deprecate these functions
 Get_source(status::Status) = Int(status.source)
 Get_tag(status::Status) = Int(status.tag)
 Get_error(status::Status) = Int(status.error)
@@ -102,17 +53,27 @@ checked by other means.
 
 See also [`Cancel!`](@ref).
 """
-@mpi_handle Request MPI_Request buffer
+mutable struct Request
+    val::MPI_Request
+    buffer
+end
+Base.:(==)(a::Request, b::Request) = a.val == b.val
+Base.cconvert(::Type{MPI_Request}, request::Request) = request
+Base.unsafe_convert(::Type{MPI_Request}, request::Request) = request.val
+Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
 
-const REQUEST_NULL = _Request(MPI_REQUEST_NULL, nothing)
+const REQUEST_NULL = Request(Consts.MPI_REQUEST_NULL[], nothing)
+add_load_time_hook!(() -> REQUEST_NULL.val = Consts.MPI_REQUEST_NULL[])
+
 Request() = Request(REQUEST_NULL.val, nothing)
-isnull(req::Request) = req.val == REQUEST_NULL.val
+isnull(req::Request) = req == REQUEST_NULL
 
 function free(req::Request)
-    if !isnull(req) && !MPI.Finalized()
+    if req != REQUEST_NULL && !MPI.Finalized()
+        # int MPI_Request_free(MPI_Request *req)
         @mpichk ccall((:MPI_Request_free, libmpi), Cint, (Ptr{MPI_Request},), req)
-        req.buffer = nothing
     end
+    req.buffer = nothing
     return nothing
 end
 
@@ -127,7 +88,7 @@ Blocks until there is a message that can be received matching `src`, `tag` and
 $(_doc_external("MPI_Probe"))
 """
 function Probe(src::Integer, tag::Integer, comm::Comm)
-    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    stat_ref = Ref(STATUS_ZERO)
     @mpichk ccall((:MPI_Probe, libmpi), Cint,
           (Cint, Cint, MPI_Comm, Ptr{Status}),
           src, tag, comm, stat_ref)
@@ -145,7 +106,7 @@ $(_doc_external("MPI_Iprobe"))
 """
 function Iprobe(src::Integer, tag::Integer, comm::Comm)
     flag = Ref{Cint}()
-    stat_ref = Ref{Status}(MPI.STATUS_EMPTY)
+    stat_ref = Ref(STATUS_ZERO)
     @mpichk ccall((:MPI_Iprobe, libmpi), Cint,
           (Cint, Cint, MPI_Comm, Ptr{Cint}, Ptr{Status}),
           src, tag, comm, flag, stat_ref)
@@ -187,18 +148,18 @@ The `Status` argument returns the `Status` of the completed request.
 # External links
 $(_doc_external("MPI_Wait"))
 """
-function Wait(req::Request, status::Union{Ref{Status},Nothing}=nothing)
+function Wait(req::Request, status::Union{Ref{Status}, Nothing}=nothing)
     # int MPI_Wait(MPI_Request *request, MPI_Status *status)
     @mpichk ccall((:MPI_Wait, libmpi), Cint,
                   (Ptr{MPI_Request}, MPIPtr),
-                  req, something(status, MPI_STATUS_IGNORE))
+                  req, something(status, Consts.MPI_STATUS_IGNORE[]))
     if isnull(req) # only clear the buffer for non-persistent requests
         req.buffer = nothing
     end
     return nothing
 end
 function Wait(req::Request, ::Type{Status})
-    status = Ref(STATUS_EMPTY)
+    status = Ref(STATUS_ZERO)
     Wait(req, status)
     return status[]
 end
@@ -214,19 +175,19 @@ The `Status` argument additionally returns the `Status` of the completed request
 # External links
 $(_doc_external("MPI_Test"))
 """
-function Test(req::Request, status::Union{Ref{Status},Nothing}=nothing)
+function Test(req::Request, status::Union{Ref{Status}, Nothing}=nothing)
     flag = Ref{Cint}()
     # int MPI_Test(MPI_Request *request, int *flag, MPI_Status *status)
     @mpichk ccall((:MPI_Test, libmpi), Cint,
                   (Ptr{MPI_Request}, Ptr{Cint}, Ptr{Status}),
-                  req, flag, something(status, MPI_STATUS_IGNORE))
+                  req, flag, something(status, Consts.MPI_STATUS_IGNORE[]))
     if isnull(req)
         req.buffer = nothing
     end
     return flag[] != 0
 end
 function Test(req::Request, ::Type{Status})
-    status = Ref(STATUS_EMPTY)
+    status = Ref(STATUS_ZERO)
     flag = Test(req, status)
     return flag, status[]
 end
@@ -302,7 +263,7 @@ function Waitall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothin
     #                 MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Waitall, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Status}),
-                  n, reqs.vals, something(statuses, MPI_STATUSES_IGNORE))
+                  n, reqs.vals, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     update!(reqs)
     return nothing
 end
@@ -336,7 +297,7 @@ function Testall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothin
     #                 MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Testall, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, MPIPtr),
-                  n, reqs.vals, flag, something(statuses, MPI_STATUSES_IGNORE))
+                  n, reqs.vals, flag, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     update!(reqs)
     return flag[] != 0
 end
@@ -369,9 +330,9 @@ function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     #                 MPI_Status *status)
     @mpichk ccall((:MPI_Waitany, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, MPIPtr),
-                  n, reqs.vals, ref_idx, something(status, MPI_STATUS_IGNORE))
+                  n, reqs.vals, ref_idx, something(status, Consts.MPI_STATUS_IGNORE[]))
     idx = ref_idx[]
-    if idx == MPI_UNDEFINED
+    if idx == Consts.MPI_UNDEFINED[]
         return nothing
     end
     i = Int(idx) + 1
@@ -379,7 +340,7 @@ function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     return i
 end
 function Waitany(reqs::RequestSet, ::Type{Status})
-    status = Ref(STATUS_EMPTY)
+    status = Ref(STATUS_ZERO)
     i = Waitany(reqs, status)
     return i, status[]
 end
@@ -411,11 +372,11 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     #                 int *flag, MPI_Status *status)
     @mpichk ccall((:MPI_Testany, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, MPIPtr),
-                  n, reqs.vals, ref_idx, rflag, something(status, MPI_STATUS_IGNORE))
+                  n, reqs.vals, ref_idx, rflag, something(status, Consts.MPI_STATUS_IGNORE[]))
     idx = ref_idx[]
     flag = rflag[] != 0
 
-    if idx == MPI_UNDEFINED
+    if idx == Consts.MPI_UNDEFINED[]
         return flag, nothing
     end
     i = Int(idx) + 1
@@ -423,7 +384,7 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     return flag, i
 end
 function Testany(reqs::RequestSet, ::Type{Status})
-    status = Ref(STATUS_EMPTY)
+    status = Ref(STATUS_ZERO)
     flag, i = Testany(reqs, status)
     return flag, i, status[]
 end
@@ -454,10 +415,10 @@ function Waitsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     #                  MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Waitsome, libmpi), Cint,
           (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{Status}),
-          n, reqs.vals, ref_nout, idxs, something(statuses, MPI_STATUSES_IGNORE))
+          n, reqs.vals, ref_nout, idxs, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     nout = Int(ref_nout[])
     # This can happen if there were no valid requests
-    if nout == MPI_UNDEFINED
+    if nout == Consts.MPI_UNDEFINED[]
         return nothing
     end
     update!(reqs)
@@ -496,10 +457,10 @@ function Testsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     #                  MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Testsome, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{Status}),
-                  n, reqs.vals, ref_nout, idxs, something(statuses, MPI_STATUSES_IGNORE))
+                  n, reqs.vals, ref_nout, idxs, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     nout = Int(ref_nout[])
     # This can happen if there were no valid requests
-    if nout == MPI_UNDEFINED
+    if nout == Consts.MPI_UNDEFINED[]
         return nothing
     end
     update!(reqs)

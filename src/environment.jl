@@ -44,10 +44,22 @@ function _warn_if_wrong_mpi()
 end
 
 
+"""
+    MPI.free(obj)
+
+Free the MPI object handle `obj`. This is typically used as the finalizer, and so need not be called directly unless otherwise noted.
+"""
+function free
+end
+
+
+const mpi_init_hooks = Any[]
+add_init_hook!(f) = push!(mpi_init_hooks, f)
 function run_init_hooks()
     for f in mpi_init_hooks
         f()
     end
+    empty!(mpi_init_hooks)
     return nothing
 end
 
@@ -137,26 +149,33 @@ An Enum denoting the level of threading support in the current process:
 - [`Init`](@ref)
 - [`Query_thread`](@ref)
 """
-@enum ThreadLevel begin
-    THREAD_SINGLE     = MPI_THREAD_SINGLE
-    THREAD_FUNNELED   = MPI_THREAD_FUNNELED
-    THREAD_SERIALIZED = MPI_THREAD_SERIALIZED
-    THREAD_MULTIPLE   = MPI_THREAD_MULTIPLE
+mutable struct ThreadLevel
+    val::Cint
 end
+const THREAD_SINGLE     = ThreadLevel(Consts.MPI_THREAD_SINGLE[])
+const THREAD_FUNNELED   = ThreadLevel(Consts.MPI_THREAD_FUNNELED[])
+const THREAD_SERIALIZED = ThreadLevel(Consts.MPI_THREAD_SERIALIZED[])
+const THREAD_MULTIPLE   = ThreadLevel(Consts.MPI_THREAD_MULTIPLE[])
+add_load_time_hook!(() -> THREAD_SINGLE.val     = Consts.MPI_THREAD_SINGLE[]    )
+add_load_time_hook!(() -> THREAD_FUNNELED.val   = Consts.MPI_THREAD_FUNNELED[]  )
+add_load_time_hook!(() -> THREAD_SERIALIZED.val = Consts.MPI_THREAD_SERIALIZED[])
+add_load_time_hook!(() -> THREAD_MULTIPLE.val   = Consts.MPI_THREAD_MULTIPLE[]  )
 ThreadLevel(threadlevel::Symbol) =
     threadlevel == :single ? THREAD_SINGLE :
     threadlevel == :funneled ? THREAD_FUNNELED :
     threadlevel == :serialized ? THREAD_SERIALIZED :
     threadlevel == :multiple ? THREAD_MULTIPLE :
     error("Invalid threadlevel: must be one of :single, :funneled, :serialized, or :multiple")
+Base.:(==)(tl1::ThreadLevel, tl2::ThreadLevel) = tl1.val == tl2.val
+Base.isless(tl1::ThreadLevel, tl2::ThreadLevel) = tl1.val < tl2.val
 
 function _init_thread(required::ThreadLevel)
-    r_provided = Ref{ThreadLevel}()
+    r_provided = Ref{Cint}()
     # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
     @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
-                    (Ptr{Cint},Ptr{Cvoid}, ThreadLevel, Ref{ThreadLevel}),
-                    C_NULL, C_NULL, required, r_provided)
-    return r_provided[]
+                    (Ptr{Cint},Ptr{Cvoid}, Cint, Ref{Cint}),
+                    C_NULL, C_NULL, required.val, r_provided)
+    return ThreadLevel(r_provided[])
 end
 
 
@@ -170,12 +189,12 @@ Returns a [`ThreadLevel`](@ref) value denoting
 $(_doc_external("MPI_Query_thread"))
 """
 function Query_thread()
-    r_provided = Ref{ThreadLevel}()
+    r_provided = Ref{Cint}()
 
     # int MPI_Query_thread(int *provided)
     @mpichk ccall((:MPI_Query_thread, libmpi), Cint,
-                  (Ref{ThreadLevel},), r_provided)
-    return r_provided[]
+                  (Ref{Cint},), r_provided)
+    return ThreadLevel(r_provided[])
 end
 
 """

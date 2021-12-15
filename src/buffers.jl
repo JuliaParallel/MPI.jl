@@ -11,25 +11,17 @@ MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
 
 Base.cconvert(::Type{MPIPtr}, x::Union{Ptr{T}, Array{T}, Ref{T}}) where T = Base.cconvert(Ptr{T}, x)
-function Base.cconvert(::Type{MPIPtr}, x::SubArray{T}) where T
-    Base.cconvert(Ptr{T}, x)
-end
+Base.cconvert(::Type{MPIPtr}, x::SubArray{T}) where T = Base.cconvert(Ptr{T}, x)
 function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
     ptr = Base.unsafe_convert(Ptr{T}, x)
     reinterpret(MPIPtr, ptr)
 end
 
 
-function Base.cconvert(::Type{MPIPtr}, x::String)
-    x
-end
-function Base.unsafe_convert(::Type{MPIPtr}, x::String)
-    reinterpret(MPIPtr, pointer(x))
-end
+Base.cconvert(::Type{MPIPtr}, x::String) = x
+Base.unsafe_convert(::Type{MPIPtr}, x::String) = reinterpret(MPIPtr, pointer(x))
 
-function Base.cconvert(::Type{MPIPtr}, ::Nothing)
-    reinterpret(MPIPtr, C_NULL)
-end
+Base.cconvert(::Type{MPIPtr}, ::Nothing) = reinterpret(MPIPtr, C_NULL)
 
 macro assert_minlength(buffer, count)
     quote
@@ -61,7 +53,7 @@ MPIPtr
 
 struct InPlace
 end
-Base.cconvert(::Type{MPIPtr}, ::InPlace) = MPI_IN_PLACE
+Base.cconvert(::Type{MPIPtr}, ::InPlace) = Consts.MPI_IN_PLACE[]
 
 
 """
@@ -341,7 +333,8 @@ RBuffer(senddata, recvdata, count::Integer, datatype::Datatype) =
     RBuffer(senddata, recvdata, Cint(count), datatype)
 
 function RBuffer(senddata::AbstractArray{T}, recvdata::AbstractArray{T}) where {T}
-    @assert (count = length(senddata)) == length(recvdata)
+    count = length(senddata)
+    @assert length(recvdata) == count
     @assert stride(senddata,1) == stride(recvdata,1) == 1
     RBuffer(senddata, recvdata, count, Datatype(T))
 end

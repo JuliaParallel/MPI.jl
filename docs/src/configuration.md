@@ -29,18 +29,18 @@ julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"
 ```
 This will attempt find and identify any available MPI implementation.
 
-The MPI standard doesn't specify the exact application binary interface (ABI), but the
-following implementations should work directly:
+The MPI standard doesn't specify the exact application binary interface (ABI).
+The build script will attempt to build a small C program to
+determine the appropriate type definitions and constants. This requires a compatible C
+compiler (`mpicc` by default).
+
+The following implementations should work:
 
 - [Open MPI](http://www.open-mpi.org/)
 - [MPICH](http://www.mpich.org/) (v3.1 or later)
 - [Intel MPI](https://software.intel.com/en-us/mpi-library)
 - [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
 - [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
-
-For other implementations, the build script will attempt to build a small C program to
-determine the appropriate type definitions and constants. This requires a compatible C
-compiler (`mpicc` by default).
 
 If the implementation is changed, you will need to re-run `Pkg.build("MPI")`.
 
@@ -58,16 +58,12 @@ MPI builds.
 - `JULIA_MPI_LIBRARY`: the library name or full path of the MPI shared library. By
   default, it will attempt to look for common MPI library names in the standard library
   paths (e.g. `libmpi`, `libmpich`, `msmpi`).
-- `JULIA_MPI_ABI`: the ABI used by the MPI implementation: one of `MPICH`, `OpenMPI`,
-  `MicrosoftMPI`, or `unknown`. By default it will attempt to determine this by looking at
-  the [`MPI_LIBRARY_VERSION_STRING`](@ref MPI.MPI_LIBRARY_VERSION_STRING).
 - `JULIA_MPIEXEC`: the name (or full path) of the MPI launcher executable. The default is
   `mpiexec`, but some clusters require using the scheduler launcher interface (e.g. `srun`
   on Slurm, `aprun` on PBS).
 - `JULIA_MPIEXEC_ARGS`: Additional arguments to be passed to MPI launcher.
 
-If the ABI is unknown and the constant generation program is required, then the following
-variables are also queried:
+The following variables are also queried:
 
 - `JULIA_MPI_INCLUDE_PATH`: the directory containing the MPI header files.
 - `JULIA_MPI_CFLAGS`: C flags passed to the constant generation build (default: `-lmpi`)

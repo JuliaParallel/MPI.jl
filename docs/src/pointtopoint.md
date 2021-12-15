@@ -9,10 +9,24 @@ MPI.Status
 MPI.StatusRef
 ```
 
+### Fields
+
+```
+MPI.Status.source::Cint
+MPI.Status.tag::Cint
+MPI.Status.error::Cint
+```
+
 ### Accessors
 
 ```@docs
 MPI.Get_count
+```
+
+## Constants
+
+```@docs
+MPI.STATUS_ZERO
 ```
 
 ## Blocking communication

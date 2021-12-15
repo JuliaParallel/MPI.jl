@@ -2,7 +2,7 @@ using Test, MPI
 
 # load test packages to trigger precompilation
 using DoubleFloats
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
+if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "CuArray"
     import CUDA
     ArrayType = CUDA.CuArray
 else
@@ -15,13 +15,14 @@ if Sys.isunix()
     include("mpiexecjl.jl")
 end
 
-nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS","")
+nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS", "")
 nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
+
+@info "Running MPI tests" ArrayType nprocs
+
 testdir = @__DIR__
 istest(f) = endswith(f, ".jl") && startswith(f, "test_")
 testfiles = sort(filter(istest, readdir(testdir)))
-
-@info "Running MPI tests" ArrayType nprocs
 
 @testset "$f" for f in testfiles
     mpiexec() do cmd
@@ -35,6 +36,12 @@ testfiles = sort(filter(istest, readdir(testdir)))
             r = run(ignorestatus(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`))
             @test !success(r)
         else
+            # MPI_Reduce with MPICH 3.4.2 on macOS when root != 0 and
+            # when recvbuf == C_NULL segfaults
+            # <https://github.com/pmodels/mpich/issues/5700>
+            if get(ENV, "JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE", "") != "" && Sys.isapple() && f == "test_reduce.jl"
+                return
+            end
             run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
         end
         @test true

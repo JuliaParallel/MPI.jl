@@ -110,7 +110,7 @@ Optionally returns the [`Status`](@ref) object of the receive.
 # External links
 $(_doc_external("MPI_Recv"))
 """
-Recv!(recvbuf, comm::Comm, status=nothing; source=MPI_ANY_SOURCE, tag=MPI_ANY_TAG) =
+Recv!(recvbuf, comm::Comm, status=nothing; source=Consts.MPI_ANY_SOURCE[], tag=Consts.MPI_ANY_TAG[]) =
     Recv!(recvbuf, source, tag, comm, status)
 
 function Recv!(recvbuf::Buffer, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing})
@@ -118,13 +118,13 @@ function Recv!(recvbuf::Buffer, source::Integer, tag::Integer, comm::Comm, statu
     #              int tag, MPI_Comm comm, MPI_Status *status)
     @mpichk ccall((:MPI_Recv, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{Status}),
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, MPI_STATUS_IGNORE))
+                  recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, Consts.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Recv!(recvbuf, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing}) =
     Recv!(Buffer(recvbuf), source, tag, comm, status)
 function Recv!(recvbuf, source::Integer, tag::Integer, comm::Comm, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     data = Recv!(recvbuf, source, tag, comm, status)
     return data, status[]
 end
@@ -147,7 +147,7 @@ Returns a tuple of the object of type `T` and optionally the [`Status`](@ref) of
 # External links
 $(_doc_external("MPI_Recv"))
 """
-Recv(::Type{T}, comm::Comm, status=nothing; source=MPI_ANY_SOURCE, tag=MPI_ANY_TAG) where {T} =
+Recv(::Type{T}, comm::Comm, status=nothing; source=Consts.MPI_ANY_SOURCE[], tag=Consts.MPI_ANY_TAG[]) where {T} =
     Recv(T, source, tag, comm, status)
 
 function Recv(::Type{T}, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing}) where T
@@ -155,7 +155,7 @@ function Recv(::Type{T}, source::Integer, tag::Integer, comm::Comm, status::Unio
     return data[]
 end
 function Recv(::Type{T}, source::Integer, tag::Integer, comm::Comm, ::Type{Status}) where T
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     val = Recv(T, source, tag, comm, status)
     return val, status[]
 end
@@ -171,7 +171,7 @@ Completes a blocking receive of a serialized object from MPI rank `source` of co
 
 Returns the deserialized object and optionally the [`Status`](@ref) of the receive.
 """
-recv(comm::Comm, status=nothing; source::Integer=MPI_ANY_SOURCE, tag::Integer=MPI_ANY_TAG) =
+recv(comm::Comm, status=nothing; source::Integer=Consts.MPI_ANY_SOURCE[], tag::Integer=Consts.MPI_ANY_TAG[]) =
     recv(source, tag, comm, status)
 function recv(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
     stat = Probe(source, tag, comm)
@@ -181,7 +181,7 @@ function recv(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Statu
     return MPI.deserialize(buf)
 end
 function recv(source::Integer, tag::Integer, comm::Comm, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     val = recv(source, tag, comm, status)
     return val, status[]
 end
@@ -202,7 +202,7 @@ Returns the [`Request`](@ref) object for the nonblocking receive.
 # External links
 $(_doc_external("MPI_Irecv"))
 """
-Irecv!(recvbuf, comm::Comm; source::Integer=MPI_ANY_SOURCE, tag::Integer=MPI_ANY_TAG) =
+Irecv!(recvbuf, comm::Comm; source::Integer=Consts.MPI_ANY_SOURCE[], tag::Integer=Consts.MPI_ANY_TAG[]) =
     Irecv!(recvbuf, source, tag, comm)
 function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm)
     req = Request()
@@ -247,7 +247,7 @@ element type and length of `sendbuf`/`recvbuf`, respectively.
 # External links
 $(_doc_external("MPI_Sendrecv"))
 """
-Sendrecv!(sendbuf, recvbuf, comm::MPI.Comm, status=nothing; dest::Integer, sendtag::Integer=0, source::Integer=MPI_ANY_SOURCE, recvtag::Integer=MPI_ANY_TAG) =
+Sendrecv!(sendbuf, recvbuf, comm::MPI.Comm, status=nothing; dest::Integer, sendtag::Integer=0, source::Integer=Consts.MPI_ANY_SOURCE[], recvtag::Integer=Consts.MPI_ANY_TAG[]) =
     Sendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, status)
 
 function Sendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
@@ -262,14 +262,14 @@ function Sendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
                    MPI_Comm, Ptr{Status}),
                   sendbuf.data, sendbuf.count, sendbuf.datatype, dest, sendtag,
                   recvbuf.data, recvbuf.count, recvbuf.datatype, source, recvtag,
-                  comm, something(status, MPI_STATUS_IGNORE))
+                  comm, something(status, Consts.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing}) =
     Sendrecv!(Buffer(sendbuf), dest, sendtag, Buffer(recvbuf), source, recvtag, comm, status)
 
 function Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm, ::Type{Status})
-    status = Ref{Status}()
+    status = Ref(STATUS_ZERO)
     data = Sendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, status)
     return data, status[]
 end

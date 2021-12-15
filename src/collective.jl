@@ -484,7 +484,7 @@ If only one buffer `sendrecvbuf` is used, then data is overwritten.
 $(_doc_external("MPI_Alltoall"))
 """
 function Alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
-    if sendbuf.data !== MPI_IN_PLACE && sendbuf.nchunks !== nothing
+    if sendbuf.data !== Consts.MPI_IN_PLACE[] && sendbuf.nchunks !== nothing
         @assert sendbuf.nchunks >= Comm_size(comm)
     end
     if recvbuf.nchunks !== nothing
@@ -543,7 +543,7 @@ Similar to [`Alltoall!`](@ref), except with different size chunks per process.
 $(_doc_external("MPI_Alltoallv"))
 """
 function Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
-    if sendbuf.data !== MPI_IN_PLACE
+    if sendbuf.data !== Consts.MPI_IN_PLACE[]
         @assert length(sendbuf.counts) >= Comm_size(comm)
     end
     @assert length(recvbuf.counts) >= Comm_size(comm)
@@ -602,8 +602,9 @@ function Reduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm)
 end
 
 # Convert user-provided functions to MPI.Op
-Reduce!(rbuf::RBuffer, op, root::Integer, comm::Comm) =
+function Reduce!(rbuf::RBuffer, op, root::Integer, comm::Comm)
     Reduce!(rbuf, Op(op, eltype(rbuf)), root, comm)
+end
 Reduce!(sendbuf, recvbuf, op, root::Integer, comm::Comm) =
     Reduce!(RBuffer(sendbuf, recvbuf), op, root, comm)
 
@@ -643,10 +644,11 @@ function Reduce(sendbuf::AbstractArray, op, root::Integer, comm::Comm)
     end
 end
 function Reduce(object::T, op, root::Integer, comm::Comm) where {T}
+    source = Ref(object)
     if Comm_rank(comm) == root
-        Reduce!(Ref(object), Ref{T}(), op, root, comm)[]
+        Reduce!(source, Ref{T}(), op, root, comm)[]
     else
-        Reduce!(Ref(object), nothing, op, root, comm)
+        Reduce!(source, nothing, op, root, comm)
     end
 end
 
@@ -681,8 +683,9 @@ function Allreduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
                   rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
 end
-Allreduce!(rbuf::RBuffer, op, comm::Comm) =
+function Allreduce!(rbuf::RBuffer, op, comm::Comm)
     Allreduce!(rbuf, Op(op, eltype(rbuf)), comm)
+end
 Allreduce!(sendbuf, recvbuf, op, comm::Comm) =
     Allreduce!(RBuffer(sendbuf, recvbuf), op, comm)
 
@@ -741,8 +744,9 @@ function Scan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
                   rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
 end
-Scan!(rbuf::RBuffer, op, comm::Comm) =
+function Scan!(rbuf::RBuffer, op, comm::Comm)
     Scan!(rbuf, Op(op, eltype(rbuf)), comm)
+end
 Scan!(sendbuf, recvbuf, op, comm::Comm) =
     Scan!(RBuffer(sendbuf, recvbuf), op, comm)
 
@@ -803,8 +807,9 @@ function Exscan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
           rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
 end
-Exscan!(rbuf::RBuffer, op, comm::Comm) =
+function Exscan!(rbuf::RBuffer, op, comm::Comm)
     Exscan!(rbuf, Op(op, eltype(rbuf)), comm)
+end
 Exscan!(sendbuf, recvbuf, op, comm::Comm) =
     Exscan!(RBuffer(sendbuf, recvbuf), op, comm)
 

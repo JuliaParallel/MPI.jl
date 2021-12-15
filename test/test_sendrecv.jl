@@ -34,32 +34,36 @@ stats = MPI.Waitall([sreq, rreq], MPI.Status)
 @test sreq isa MPI.Request
 @test MPI.Get_source(stats[2]) == src
 @test MPI.Get_tag(stats[2]) == src+32
+@test MPI.Get_count(stats[2], Float64) == N
 @test recv_mesg == recv_mesg_expected
 
 @test MPI.Testall([sreq, rreq])
 
-if rank == 0
-    MPI.send(send_mesg, comm; dest=dst, tag=rank+32)
-    recv_mesg = recv_mesg_expected
-elseif rank == size-1
-    recv_mesg = MPI.recv(comm; source=src, tag=src+32)
-else
-    recv_mesg = MPI.recv(comm; source=src, tag=src+32)
-    MPI.send(send_mesg, comm; dest=dst, tag=rank+32)
+
+if size > 1
+    if rank == 0
+        MPI.send(send_mesg, comm; dest=dst, tag=rank+32)
+        recv_mesg = recv_mesg_expected
+    elseif rank == size-1
+        recv_mesg = MPI.recv(comm; source=src, tag=src+32)
+    else
+        recv_mesg = MPI.recv(comm; source=src, tag=src+32)
+        MPI.send(send_mesg, comm; dest=dst, tag=rank+32)
+    end
 end
-@test recv_mesg == recv_mesg_expected
 
 
-if rank == 0
-    MPI.Send(Float64(rank), comm; dest=dst, tag=rank+32)
-    recv_val = Float64(src)
-elseif rank == size-1
-    recv_val = MPI.Recv(Float64, comm; source=src, tag=src+32)
-else
-    recv_val = MPI.Recv(Float64, comm; source=src, tag=src+32)
-    MPI.Send(Float64(rank), comm; dest=dst, tag=rank+32)
+if size > 1
+    if rank == 0
+        MPI.Send(Float64(rank), comm; dest=dst, tag=rank+32)
+        recv_val = Float64(src)
+    elseif rank == size-1
+        recv_val = MPI.Recv(Float64, comm; source=src, tag=src+32)
+    else
+        recv_val = MPI.Recv(Float64, comm; source=src, tag=src+32)
+        MPI.Send(Float64(rank), comm; dest=dst, tag=rank+32)
+    end
 end
-@test recv_val == Float64(src)
 
 
 rreq = MPI.Irecv!(recv_mesg, comm; source=src,  tag=src+32)
@@ -68,7 +72,9 @@ sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=rank+32)
 req_arr = [sreq,rreq]
 inds = MPI.Waitsome(req_arr)
 for i in inds
-    @test MPI.Test(req_arr[i])
+    global done
+    done = MPI.Test(req_arr[i])
+    @test done
 end
 
 rreq = MPI.Irecv!(recv_mesg, comm; source=src,  tag=src+32)

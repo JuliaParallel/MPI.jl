@@ -22,6 +22,7 @@ end
 
 primitive type MPIPtr Sys.WORD_SIZE
 end
+@assert sizeof(MPIPtr) == sizeof(Ptr{Cvoid})
 Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
 Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
 
@@ -33,13 +34,15 @@ function _doc_external(fname)
 end
 
 try
-    include(joinpath(dirname(@__DIR__), "deps","deps.jl"))
+    include(joinpath(dirname(@__DIR__), "deps", "deps.jl"))
+    include(joinpath(dirname(@__DIR__), "deps", "compile_time_mpi_constants.jl"))
 catch e
     error("MPI.jl not properly configured, please run `Pkg.build(\"MPI\")`.")
 end
+include("define_load_time_mpi_constants.jl")
+include("read_load_time_mpi_constants.jl")
 include("implementations.jl")
 include("error.jl")
-include("handle.jl")
 include("info.jl")
 include("group.jl")
 include("comm.jl")
@@ -53,7 +56,7 @@ include("collective.jl")
 include("topology.jl")
 include("onesided.jl")
 include("io.jl")
-include("errorhandler.jl")
+include("errhandler.jl")
 include("mpiexec_wrapper.jl")
 
 include("deprecated.jl")
@@ -61,13 +64,20 @@ include("deprecated.jl")
 function __init__()
 
     @static if Sys.isunix()
-        # need to open libmpi with RTLD_GLOBAL flag for Linux, before
-        # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
-        # at least on Ubuntu 15.10
+        # dlopen the MPI library before any ccall:
+        # - RTLD_GLOBAL is required for Open MPI
+        #   <https://www.open-mpi.org/community/lists/users/2010/04/12803.php>
+        # - also allows us to ccall global symbols, which enables
+        #   profilers which use LD_PRELOAD
+        # - don't use RTLD_DEEPBIND; this leads to segfaults at least
+        #   on Ubuntu 15.10
+        #   <https://github.com/JuliaParallel/MPI.jl/pull/109>
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
 
     __init__deps()
+
+    read_load_time_mpi_constants()
 
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
@@ -75,7 +85,7 @@ function __init__()
         ENV["UCX_MEMTYPE_CACHE"] = "no"
     end
 
-    # Julia multithreading uses SIGSEGV to sync thread
+    # Julia multithreading uses SIGSEGV to sync threads
     # https://docs.julialang.org/en/v1/devdocs/debuggingtips/#Dealing-with-signals-1
     # By default, UCX will error if this occurs (issue #337)
     if !haskey(ENV, "UCX_ERROR_SIGNALS")

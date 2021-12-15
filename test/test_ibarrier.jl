@@ -2,7 +2,7 @@ using Test
 using MPI
 
 function check_for_query(comm)
-    is_message, status  = MPI.Iprobe(MPI.MPI_ANY_SOURCE, MPI.MPI_ANY_TAG, comm)
+    is_message, status = MPI.Iprobe(MPI.Consts.MPI_ANY_SOURCE[], MPI.Consts.MPI_ANY_TAG[], comm)
     if is_message
         recv_id = status.source
         tag_ind = status.tag
@@ -55,14 +55,14 @@ while !all_done
   global myrank
   is_request, recv_id, tag_ind = check_for_query(comm)
   if is_request 
-    dummy     = [0]
-    rmsg      = MPI.Recv!(dummy, comm; source=recv_id, tag=tag_ind)
-    msg_num  += 1
+    dummy    = [0]
+    rmsg     = MPI.Recv!(dummy, comm; source=recv_id, tag=tag_ind)
+    msg_num += 1
     global localsum += dummy[1]
+    if msg_num == 10
+      smsg = MPI.Send(tag_ind, comm; dest=0, tag=myrank)
+    end
   end # is_request
-  if msg_num == 10
-    smsg = MPI.Send(tag_ind, comm; dest=0, tag=myrank)
-  end
   all_done = MPI.Test(barrier_req)
 end # !all_done 
 

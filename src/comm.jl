@@ -3,9 +3,17 @@
 
 An MPI Communicator object.
 """
-@mpi_handle Comm MPI_Comm
+mutable struct Comm
+    val::MPI_Comm
+end
+Base.:(==)(a::Comm, b::Comm) = a.val == b.val
+Base.cconvert(::Type{MPI_Comm}, comm::Comm) = comm
+Base.unsafe_convert(::Type{MPI_Comm}, comm::Comm) = comm.val
+Base.unsafe_convert(::Type{Ptr{MPI_Comm}}, comm::Comm) = convert(Ptr{MPI_Comm}, pointer_from_objref(comm))
 
-const COMM_NULL = _Comm(MPI_COMM_NULL)
+
+const COMM_NULL = Comm(Consts.MPI_COMM_NULL[])
+add_load_time_hook!(() -> COMM_NULL.val = Consts.MPI_COMM_NULL[])
 
 """
     MPI.COMM_WORLD
@@ -13,19 +21,22 @@ const COMM_NULL = _Comm(MPI_COMM_NULL)
 A communicator containing all processes with which the local rank can communicate at
 initialization. In a typical "static-process" model, this will be all processes.
 """
-const COMM_WORLD = _Comm(MPI_COMM_WORLD)
+const COMM_WORLD = Comm(Consts.MPI_COMM_WORLD[])
+add_load_time_hook!(() -> COMM_WORLD.val = Consts.MPI_COMM_WORLD[])
 
 """
     MPI.COMM_SELF
 
 A communicator containing only the local process.
 """
-const COMM_SELF = _Comm(MPI_COMM_SELF)
+const COMM_SELF = Comm(Consts.MPI_COMM_SELF[])
+add_load_time_hook!(() -> COMM_SELF.val = Consts.MPI_COMM_SELF[])
 
 Comm() = Comm(COMM_NULL.val)
 
 function free(comm::Comm)
-    if comm.val != COMM_NULL.val && !Finalized()
+    if comm != COMM_NULL && !Finalized()
+        # int MPI_Comm_free(MPI_Comm *comm)
         @mpichk ccall((:MPI_Comm_free, libmpi), Cint, (Ptr{MPI_Comm},), comm)
     end
     return nothing
@@ -238,7 +249,7 @@ function universe_size()
     result = Ref(Ptr{Cint}(C_NULL))
     # int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void *attribute_val, int *flag)
     @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), MPI.COMM_WORLD, MPI_UNIVERSE_SIZE, result, flag)
+        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), MPI.COMM_WORLD, Consts.MPI_UNIVERSE_SIZE[], result, flag)
     if flag[] == 0
         return nothing
     end
@@ -254,8 +265,8 @@ Compare two communicators and their underlying groups, returning an element of t
 $(_doc_external("MPI_Comm_compare"))
 """
 function Comm_compare(comm1::Comm, comm2::Comm)
-    result = Ref{Comparison}()
+    result = Ref{Cint}()
     @mpichk ccall((:MPI_Comm_compare, libmpi), Cint,
-                  (MPI_Comm, MPI_Comm, Ptr{Comparison}), comm1, comm2, result)
-    result[]
+                  (MPI_Comm, MPI_Comm, Ptr{Cint}), comm1, comm2, result)
+    return Comparison(result[])
 end

@@ -7,6 +7,16 @@ if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
 else
     ArrayType = Array
 end
+
+# Closures might not be supported by cfunction
+const can_do_closures =
+    ArrayType === Array &&
+    !(MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE == 32) &&
+    Sys.ARCH !== :powerpc64le &&
+    Sys.ARCH !== :ppc64le &&
+    Sys.ARCH !== :aarch64 &&
+    !startswith(string(Sys.ARCH), "arm")
+
 using DoubleFloats
 
 MPI.Init()
@@ -40,12 +50,10 @@ if isroot
     @test sum_mesg == sz .* mesg
 end
 
-if ArrayType != Array || MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE == 32 ||
-   Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
-   Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
-    operators = [MPI.SUM, +]
-else
+if can_do_closures
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
+else
+    operators = [MPI.SUM, +]
 end
 
 for T = [Int]
@@ -99,18 +107,14 @@ end
 
 MPI.Barrier( MPI.COMM_WORLD )
 
-if MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE == 32 ||
-   Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
-   Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
-   # Closures are not supported for cfunction
-else
-
+if can_do_closures
     send_arr = [Double64(i)/10 for i = 1:10]
 
+    result = MPI.Reduce(send_arr, +, MPI.COMM_WORLD; root=root)
     if rank == root
-        @test MPI.Reduce(send_arr, +, MPI.COMM_WORLD; root=root) ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
+        @test result ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
     else
-        @test MPI.Reduce(send_arr, +, MPI.COMM_WORLD; root=root) === nothing
+        @test result === nothing
     end
 
     MPI.Barrier( MPI.COMM_WORLD )
