@@ -77,7 +77,7 @@ if update_config
     end
 end
 
-default_binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll"
+default_binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPItrampoline_jll"
 binary = get(config, "binary", default_binary)
 
 # 2. generate deps.jl
