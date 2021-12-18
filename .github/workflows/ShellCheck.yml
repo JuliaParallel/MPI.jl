@@ -5,7 +5,11 @@ on:
     branches:
       - master
     tags: '*'
+    paths:
+      - 'bin/**'
   pull_request:
+    paths:
+      - 'bin/**'
 
 jobs:
   shellcheck:
