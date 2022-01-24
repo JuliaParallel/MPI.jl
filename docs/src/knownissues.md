@@ -67,7 +67,7 @@ at `__init__`. If set externally, it should be modified to exclude `SIGSEGV` fro
 
 ### CUDA.jl memory pool
 
-UCX does not support the CUDA memory allocations used by the [CUDA.jl memory pool](https://juliagpu.gitlab.io/CUDA.jl/usage/memory/#Memory-pool), see [UCX issue #7110](https://github.com/openucx/ucx/issues/7110). If using CUDA, you may need to set the environment variable `JULIA_CUDA_MEMORY_POOL=none`.
+UCX does not support the CUDA memory allocations used by the [CUDA.jl memory pool](https://juliagpu.gitlab.io/CUDA.jl/usage/memory/#Memory-pool), see [UCX issue #7110](https://github.com/openucx/ucx/issues/7110). If using CUDA.jl, you may need to set the environment variable `JULIA_CUDA_MEMORY_POOL=none`.
 
 ## Microsoft MPI
 
