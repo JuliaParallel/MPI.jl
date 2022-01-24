@@ -65,6 +65,10 @@ ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
 ```
 at `__init__`. If set externally, it should be modified to exclude `SIGSEGV` from the list.
 
+### CUDA.jl memory pool
+
+UCX does not support the CUDA memory allocations used by the [CUDA.jl memory pool](https://juliagpu.gitlab.io/CUDA.jl/usage/memory/#Memory-pool), see [UCX issue #7110](https://github.com/openucx/ucx/issues/7110). If using CUDA, you may need to set the environment variable `JULIA_CUDA_MEMORY_POOL=none`.
+
 ## Microsoft MPI
 
 ### Custom operators on 32-bit Windows
