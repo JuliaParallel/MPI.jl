@@ -224,3 +224,14 @@ import Base: @deprecate
 @deprecate(recv(source::Integer, tag::Integer, comm::Comm), recv(comm, MPI.Status; source=source, tag=tag), false)
 @deprecate(Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm),
            Sendrecv!(sendbuf, recvbuf, comm, MPI.Status; dest=dest, sendtag=sendtag, source=source, recvtag=recvtag)[2], false)
+
+@deprecate(Cart_create(comm_old::Comm, ndims::Integer, dims::MPIBuffertype{Cint}, periods::MPIBuffertype{Cint}, reorder),
+           Cart_create(comm_old, dims; periodic=periods, reorder=reorder), false)
+@deprecate(Cart_create(comm_old::Comm, dims::AbstractArray{T,N}, periods::Array{T,N}, reorder) where {T <: Integer, N},
+           Cart_create(comm_old, dims; periodic=periods, reorder=reorder), false)
+@deprecate(Dims_create!(nnodes::Integer, ndims::Integer, dims::MPIBuffertype{T}) where {T<:Integer},
+           dims .= Dims_create(nnodes, dims), false)
+@deprecate(Dims_create!(nnodes::Integer, dims::AbstractArray{T,N}) where {T<:Integer, N},
+           dims .= Dims_create(nnodes, dims), false)
+@deprecate(Cart_coords!(comm::Comm, rank::Integer, coords::MPIBuffertype{Cint}),
+           coords .= Cart_coords(comm, rank), false)
