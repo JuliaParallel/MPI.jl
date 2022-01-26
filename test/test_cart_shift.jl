@@ -7,9 +7,8 @@ nnodes = MPI.Comm_size(comm)
 ndims = 3
 reorder = 1
 periods = [0,1,0]
-dims = [0,0,0]
-MPI.Dims_create!(nnodes, dims)
-comm_cart = MPI.Cart_create(comm, dims, periods, reorder)
+dims = MPI.Dims_create(nnodes, [0,0,0])
+comm_cart = MPI.Cart_create(comm, dims; periodic=periods, reorder=reorder)
 coords = MPI.Cart_coords(comm_cart)
 disp = 1
 

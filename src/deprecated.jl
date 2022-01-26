@@ -227,7 +227,7 @@ import Base: @deprecate
 
 @deprecate(Cart_create(comm_old::Comm, ndims::Integer, dims::MPIBuffertype{Cint}, periods::MPIBuffertype{Cint}, reorder),
            Cart_create(comm_old, dims; periodic=periods, reorder=reorder), false)
-@deprecate(Cart_create(comm_old::Comm, dims::AbstractArray{T,N}, periods::Array{T,N}, reorder) where {T <: Integer, N},
+@deprecate(Cart_create(comm_old::Comm, dims::AbstractArray{T}, periods::Array{T}, reorder) where {T <: Integer},
            Cart_create(comm_old, dims; periodic=periods, reorder=reorder), false)
 @deprecate(Dims_create!(nnodes::Integer, ndims::Integer, dims::MPIBuffertype{T}) where {T<:Integer},
            dims .= Dims_create(nnodes, dims), false)

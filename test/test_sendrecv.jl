@@ -107,7 +107,7 @@ comm_size = MPI.Comm_size(comm)
 a = Float64[comm_rank, comm_rank, comm_rank]
 
 # construct cartesian communicator with 1D topology
-comm_cart = MPI.Cart_create(comm, 1, Cint[comm_size], Cint[1], false)
+comm_cart = MPI.Cart_create(comm, (comm_size,); periodic=(true,), reorder=false)
 
 # get source and dest ranks using Cart_shift
 src_rank, dest_rank = MPI.Cart_shift(comm_cart, 0, -1)
