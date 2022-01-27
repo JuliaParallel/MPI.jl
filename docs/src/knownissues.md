@@ -75,7 +75,7 @@ The call to cuIpcGetMemHandle failed. This means the GPU RDMA protocol
 cannot be used.
   cuIpcGetMemHandle return value:   1
 ```
-in the MPI layer, or fail on a segmentation fault (see [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060?)) with
+in the MPI layer, or fail on a segmentation fault (see [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060)) with
 ```
 [1642930332.032032] [gcn19:4087661:0] gdr_copy_md.c:122 UCX ERROR gdr_pin_buffer failed. length :65536 ret:22
 ```
