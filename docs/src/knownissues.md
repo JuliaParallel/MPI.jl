@@ -85,7 +85,7 @@ To circumvent this, one has to ensure the CUDA memory pool to be set to `none`:
 ```
 export JULIA_CUDA_MEMORY_POOL=none
 ```
-_More about CUDA.jl [memory environment-variables](https://juliagpu.gitlab.io/CUDA.jl/usage/memory/#Environment-variables)._
+_More about CUDA.jl [memory environment-variables](https://cuda.juliagpu.org/stable/usage/memory/#Memory-pool)._
 
 ### Hints to ensure CUDA-aware MPI to be functional
 
