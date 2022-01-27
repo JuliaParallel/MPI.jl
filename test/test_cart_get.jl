@@ -12,7 +12,7 @@ periods = Cint[0, 1,      0]
 dims    = Cint[1, 1, nnodes]
 
 # create
-comm_cart = MPI.Cart_create(comm, maxdims, dims, periods, false)
+comm_cart = MPI.Cart_create(comm, dims; periodic=periods, reorder=false)
 
 # check number of dimensions
 @test MPI.Cartdim_get(comm_cart) == maxdims
