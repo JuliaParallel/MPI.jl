@@ -65,6 +65,49 @@ ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
 ```
 at `__init__`. If set externally, it should be modified to exclude `SIGSEGV` from the list.
 
+## CUDA-aware MPI
+
+### Memory pool
+
+Using CUDA-aware MPI on multi-GPU nodes with recent CUDA.jl may trigger (see [here](https://github.com/JuliaGPU/CUDA.jl/issues/1053#issue-946826096))
+```
+The call to cuIpcGetMemHandle failed. This means the GPU RDMA protocol
+cannot be used.
+  cuIpcGetMemHandle return value:   1
+```
+in the MPI layer, or fail on a segmentation fault (see [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060)) with
+```
+[1642930332.032032] [gcn19:4087661:0] gdr_copy_md.c:122 UCX ERROR gdr_pin_buffer failed. length :65536 ret:22
+```
+This is due to the MPI implementation using legacy `cuIpc*` APIs, which are incompatible with stream-ordered allocator, now default in CUDA.jl, see [UCX issue #7110](https://github.com/openucx/ucx/issues/7110).
+
+To circumvent this, one has to ensure the CUDA memory pool to be set to `none`:
+```
+export JULIA_CUDA_MEMORY_POOL=none
+```
+_More about CUDA.jl [memory environment-variables](https://juliagpu.gitlab.io/CUDA.jl/usage/memory/#Environment-variables)._
+
+### Hints to ensure CUDA-aware MPI to be functional
+
+Make sure to:
+- Have MPI and CUDA on path (or module loaded) that were used to build the CUDA-aware MPI
+- Make sure to have:
+    ```
+    export JULIA_CUDA_MEMORY_POOL=none
+    export JULIA_MPI_BINARY=system
+    export JULIA_CUDA_USE_BINARYBUILDER=false
+    ```
+- Add CUDA and MPI packages in Julia. Build MPI.jl in verbose mode to check whether correct versions are built/used: 
+    ```
+    julia -e 'using Pkg; pkg"add CUDA"; pkg"add MPI"; Pkg.build("MPI"; verbose=true)'
+    ```
+- Then in Julia, upon loading MPI and CUDA modules, you can check
+  - CUDA version: `CUDA.versioninfo()`
+  - If MPI has CUDA: `MPI.has_cuda()`
+  - If you are using correct MPI implementation: `MPI.identify_implementation()`
+
+After that, it may be preferred to run the Julia MPI script (as suggested [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/11)) launching it from a shell script (as suggested [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/4)).
+
 ## Microsoft MPI
 
 ### Custom operators on 32-bit Windows
