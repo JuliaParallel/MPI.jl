@@ -18,6 +18,12 @@ for (example_title, example_md) in EXAMPLES
     example_jl = example_md[1:end-2]*"jl"
     @info "Building $example_md"
     open(joinpath(@__DIR__, "src", example_md), "w") do mdfile
+        println(mdfile, """
+            ```@meta
+            EditURL = "https://github.com/JuliaParallel/MPI.jl/blob/master/docs/$(example_jl)"
+            ```
+            """
+        )
         println(mdfile, "# $example_title")
         println(mdfile)
         println(mdfile, "```julia")
