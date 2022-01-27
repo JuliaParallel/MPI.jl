@@ -79,7 +79,7 @@ in the MPI layer, or fail on a segmentation fault (see [here](https://discourse.
 ```
 [1642930332.032032] [gcn19:4087661:0] gdr_copy_md.c:122 UCX ERROR gdr_pin_buffer failed. length :65536 ret:22
 ```
-This is due to the MPI implementation using legacy cuIpc* APIs, which are incompatible with stream-ordered allocator, now default in CUDA.jl, see [UCX issue #7110](https://github.com/openucx/ucx/issues/7110).
+This is due to the MPI implementation using legacy `cuIpc*` APIs, which are incompatible with stream-ordered allocator, now default in CUDA.jl, see [UCX issue #7110](https://github.com/openucx/ucx/issues/7110).
 
 To circumvent this, one has to ensure the CUDA memory pool to be set to `none`:
 ```
