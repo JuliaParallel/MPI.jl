@@ -69,7 +69,7 @@ function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
           (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf.data, buf.count, buf.datatype, dest, tag, comm, req)
     req.buffer = buf
-    finalizer(free, req)
+    # finalizer(free, req)
     return req
 end
 Isend(data, dest::Integer, tag::Integer, comm::Comm) =
@@ -212,7 +212,7 @@ function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm)
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
                   buf.data, buf.count, buf.datatype, source, tag, comm, req)
     req.buffer = buf
-    finalizer(free, req)
+    # finalizer(free, req)
     return req
 end
 Irecv!(data, source::Integer, tag::Integer, comm::Comm) =
