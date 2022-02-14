@@ -38,6 +38,10 @@ import MPIPreferences
 
 @static if MPIPreferences.binary == "MPICH_jll"
     import MPICH_jll: libmpi, mpiexec
+elseif MPIPreferences.binary == "OpenMPI_jll"
+    import OpenMPI_jll: libmpi, mpiexec
+elseif MPIPreferences.binary == "MicrosofMPI_jll"
+    import MicrosofMPI_jll: libmpi, mpiexec
 else
     error("Unknown MPI binarys")
 end
@@ -110,6 +114,8 @@ function __init__()
         # default is "SIGILL,SIGSEGV,SIGBUS,SIGFPE"
         ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
     end
+
+    run_load_time_hooks()
 
     @require CUDA="052768ef-5323-5732-b1bb-66c8b64840ba" include("cuda.jl")
 end
