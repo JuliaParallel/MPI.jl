@@ -33,14 +33,36 @@ function _doc_external(fname)
 """
 end
 
-try
-    include(joinpath(dirname(@__DIR__), "deps", "deps.jl"))
-    include(joinpath(dirname(@__DIR__), "deps", "compile_time_mpi_constants.jl"))
-catch e
-    error("MPI.jl not properly configured, please run `Pkg.build(\"MPI\")`.")
+
+import MPIPreferences
+
+@static if MPIPreferences.binary == "MPICH_jll"
+    import MPICH_jll: libmpi, mpiexec
+else
+    error("Unknown MPI binarys")
 end
-include("define_load_time_mpi_constants.jl")
-include("read_load_time_mpi_constants.jl")
+
+include("consts/consts.jl")
+using .Consts
+
+# These functions are run after reading the values of the constants above)
+const _mpi_load_time_hooks = Any[]
+const _finished_loading = Ref(false)
+function add_load_time_hook!(f)
+    @assert !_finished_loading[]
+    push!(_mpi_load_time_hooks, f)
+end
+function run_load_time_hooks()
+    @assert !_finished_loading[]
+    _finished_loading[] = true
+    for hook in _mpi_load_time_hooks
+        hook()
+    end
+    empty!(_mpi_load_time_hooks)
+    nothing
+end
+
+
 include("implementations.jl")
 include("error.jl")
 include("info.jl")
@@ -74,10 +96,6 @@ function __init__()
         #   <https://github.com/JuliaParallel/MPI.jl/pull/109>
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
-
-    __init__deps()
-
-    read_load_time_mpi_constants()
 
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061

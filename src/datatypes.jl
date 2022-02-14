@@ -71,7 +71,7 @@ end
 
 # names
 function get_name(datatype::Datatype)
-    buffer = Array{UInt8}(undef, MPI_MAX_OBJECT_NAME)
+    buffer = Array{UInt8}(undef, Consts.MPI_MAX_OBJECT_NAME)
     lenref = Ref{Cint}()
     @mpichk ccall((:MPI_Type_get_name, libmpi), Cint,
                   (MPI_Datatype, Ptr{UInt8}, Ptr{Cint}),
@@ -118,7 +118,7 @@ for (mpiname, T) in [
     :UNSIGNED           => Cuint
     :LONG               => Clong
     :UNSIGNED_LONG      => Culong
-    :LONG_LONG          => Clonglong
+    :LONG_LONG_INT      => Clonglong
     :UNSIGNED_LONG_LONG => Culonglong
     :CHAR               => Cchar
     :SIGNED_CHAR        => Cchar

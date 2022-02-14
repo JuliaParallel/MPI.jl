@@ -63,7 +63,11 @@ function use_system_binary(;
     )
 end
 
+"""
+    Get_library_version(libmpi)
 
+Get the version string of the MPI library.
+"""
 function Get_library_version(libmpi)
     # There is no way to query at runtime what the length of the buffer should be.
     # https://github.com/mpi-forum/mpi-issues/issues/159
