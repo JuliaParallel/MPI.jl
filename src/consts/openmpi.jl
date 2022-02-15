@@ -4,13 +4,13 @@
 
 # Implementation limits:
 const MPI_MAX_DATAREP_STRING = Cint(128)
-const MPI_MAX_ERROR_STRING = Cint(512)
-const MPI_MAX_INFO_KEY = Cint(255)
-const MPI_MAX_INFO_VAL = Cint(1024)
-const MPI_MAX_LIBRARY_VERSION_STRING = Cint(8192)
-const MPI_MAX_OBJECT_NAME = Cint(128)
-const MPI_MAX_PORT_NAME = Cint(256)
-const MPI_MAX_PROCESSOR_NAME = Cint(128)
+const MPI_MAX_ERROR_STRING = Cint(256)
+const MPI_MAX_INFO_KEY = Cint(36)
+const MPI_MAX_INFO_VAL = Cint(256)
+const MPI_MAX_LIBRARY_VERSION_STRING = Cint(256)
+const MPI_MAX_OBJECT_NAME = Cint(64)
+const MPI_MAX_PORT_NAME = Cint(1024)
+const MPI_MAX_PROCESSOR_NAME = Cint(256)
 
 # Types
 
