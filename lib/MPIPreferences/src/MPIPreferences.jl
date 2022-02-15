@@ -48,9 +48,7 @@ function use_system_binary(;
         error("MPI library could not be found")
     end
     if isnothing(abi)
-        versionstring = Get_library_version(libmpi)
-        impl, version = identify_implementation(versionstring)
-        abi = identify_abi(impl, version)
+        abi = identify_abi(libmpi)
     end
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
@@ -63,12 +61,14 @@ function use_system_binary(;
     )
 end
 
-"""
-    Get_library_version(libmpi)
 
-Get the version string of the MPI library.
 """
-function Get_library_version(libmpi)
+    identify_abi(libmpi)
+
+Identify the MPI implementation from the library version string
+"""
+function identify_abi(libmpi)
+    # 1) query MPI_Get_version
     # There is no way to query at runtime what the length of the buffer should be.
     # https://github.com/mpi-forum/mpi-issues/issues/159
     # 8192 is the maximum value of MPI_MAX_LIBRARY_VERSION_STRING across known
@@ -82,16 +82,9 @@ function Get_library_version(libmpi)
 
     @assert buflen[] < 8192
     resize!(buf, buflen[])
-    return String(buf)
-end
+    version_string = String(buf)
 
-
-"""
-    identify_abi(version_string)
-
-Identify the MPI implementation from the library version string
-"""
-function identify_abi(version_string::String)
+    # 2) try to identify the MPI implementation
     impl = "unknown"
     version = v"0"
 
@@ -143,22 +136,30 @@ function identify_abi(version_string::String)
         if (m = match(r"CRAY MPICH version (\d+.\d+.\d+)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+    elseif startswith(version_string, "FUJITSU MPI")
+        impl = "FujitsuMPI"
+        # "FUJITSU MPI Library 4.0.0 (4.0.1fj4.0.0)\0"
+        if (m = match(r"^FUJITSU MPI Library (\d+.\d+.\d+)", version_string)) !== nothing
+            version = VersionNumber(m.captures[1])
+        end
     end
-
-    # determine the abi from the implementation + version
+    # 3) determine the abi from the implementation + version
     if (impl == "MPICH" && version >= v"3.1" ||
         impl == "IntelMPI" && version > v"2014" ||
         impl == "MVAPICH" && version >= v"2" ||
         impl == "CrayMPICH" && version >= v"7")
         # https://www.mpich.org/abi/
         abi = "MPICH"
-    elseif impl == "OpenMPI" || impl == "IBMSpectrumMPI"
+    elseif impl == "OpenMPI" || impl == "IBMSpectrumMPI" || impl == "FujitsuMPI"
         abi = "OpenMPI"
     elseif impl == "MicrosoftMPI"
         abi = "MicrosoftMPI"
     else
         abi = "unknown"
     end
+
+    @info "MPI implementation" libmpi version_string impl version abi
+
     return abi
 end
 
