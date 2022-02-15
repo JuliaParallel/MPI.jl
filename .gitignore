@@ -5,3 +5,4 @@ libjuliampi.dylib
 *.mem
 *.so
 Manifest.toml
+LocalPreferences.toml
