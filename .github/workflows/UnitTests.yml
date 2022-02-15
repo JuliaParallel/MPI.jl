@@ -58,8 +58,11 @@ jobs:
           ${{ runner.os }}-test-
           ${{ runner.os }}-
 
-    - name: "add MPIPreferences"
-      run: julia --project -e 'using Pkg; Pkg.develop(path="lib/MPIPreferences")'
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
     - uses: julia-actions/julia-buildpkg@latest
     - uses: julia-actions/julia-runtest@latest
 
