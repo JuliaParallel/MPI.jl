@@ -59,7 +59,7 @@ jobs:
           ${{ runner.os }}-
 
     - name: "add MPIPreferences"
-      run: julia --project -e 'using Pkg; Pkg.develop(path="lib/MPIPreferences")
+      run: julia --project -e 'using Pkg; Pkg.develop(path="lib/MPIPreferences")'
     - uses: julia-actions/julia-buildpkg@latest
     - uses: julia-actions/julia-runtest@latest
 
@@ -114,9 +114,9 @@ jobs:
           ${{ runner.os }}-
 
     - name: "add MPIPreferences"
-      run: julia --project -e 'using Pkg; Pkg.develop(path="lib/MPIPreferences")
+      run: julia --project -e 'using Pkg; Pkg.develop(path="lib/MPIPreferences")'
     - name: "Use system binary"
-      run: julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()
+      run: julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
     - uses: julia-actions/julia-buildpkg@latest
     - uses: julia-actions/julia-runtest@latest
       env:
@@ -174,9 +174,9 @@ jobs:
           ${{ runner.os }}-test-
           ${{ runner.os }}-
     - name: "add MPIPreferences"
-      run: julia --project -e 'using Pkg; Pkg.develop(path="lib/MPIPreferences")
+      run: julia --project -e 'using Pkg; Pkg.develop(path="lib/MPIPreferences")'
     - name: "Use system binary"
-      run: julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()
+      run: julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
     - uses: julia-actions/julia-buildpkg@latest
     - uses: julia-actions/julia-runtest@latest
 
