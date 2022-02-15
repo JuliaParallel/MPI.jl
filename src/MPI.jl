@@ -43,7 +43,7 @@ elseif MPIPreferences.binary == "OpenMPI_jll"
 elseif MPIPreferences.binary == "MicrosofMPI_jll"
     import MicrosofMPI_jll: libmpi, mpiexec
 else
-    error("Unknown MPI binarys")
+    error("Unknown MPI binary: $(MPIPreferences.binary)")
 end
 
 include("consts/consts.jl")
