@@ -40,8 +40,8 @@ import MPIPreferences
     import MPICH_jll: libmpi, mpiexec
 elseif MPIPreferences.binary == "OpenMPI_jll"
     import OpenMPI_jll: libmpi, mpiexec
-elseif MPIPreferences.binary == "MicrosofMPI_jll"
-    import MicrosofMPI_jll: libmpi, mpiexec
+elseif MPIPreferences.binary == "MicrosoftMPI_jll"
+    import MicrosoftMPI_jll: libmpi, mpiexec
 else
     error("Unknown MPI binary: $(MPIPreferences.binary)")
 end
