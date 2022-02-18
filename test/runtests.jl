@@ -2,8 +2,6 @@ using Test, MPI
 
 using MPIPreferences
 
-@show MPIPreferences.abi MPIPreferences.binary
-
 # load test packages to trigger precompilation
 using DoubleFloats
 if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "CuArray"
@@ -22,7 +20,14 @@ end
 nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS", "")
 nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
 
-@info "Running MPI tests" ArrayType nprocs
+@info "Running MPI tests" ArrayType nprocs MPIPreferences.abi MPIPreferences.binary
+
+if haskey(ENV,"JULIA_MPI_TEST_BINARY")
+    @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary
+end
+if haskey(ENV,"JULIA_MPI_TEST_ABI")
+    @test ENV["JULIA_MPI_TEST_ABI"] == MPIPreferences.abi
+end
 
 testdir = @__DIR__
 istest(f) = endswith(f, ".jl") && startswith(f, "test_")
