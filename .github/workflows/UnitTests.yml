@@ -30,11 +30,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
@@ -73,11 +68,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
@@ -112,11 +102,6 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
@@ -164,11 +149,6 @@ jobs:
       OMPI_MCA_btl_base_warn_component_unused: 0
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
@@ -211,11 +191,6 @@ jobs:
       JULIA_MPI_PATH: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
@@ -275,11 +250,6 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
@@ -332,11 +302,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
@@ -512,11 +477,6 @@ jobs:
       OMPI_MCA_btl_base_warn_component_unused: 0
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
@@ -574,11 +534,6 @@ jobs:
       MPITRAMPOLINE_MPIEXEC: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiexec
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
     - name: Checkout
       uses: actions/checkout@v2.2.0
 
