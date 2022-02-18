@@ -83,13 +83,14 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - name: add test MPIPreferences, use system
+    - name: use OpenMPI_jll
       shell: julia --color=yes --project=test {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
         MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
+        rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
 
@@ -134,6 +135,8 @@ jobs:
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
         MPIPreferences.use_system_binary(export_prefs=true)
+        rm("test/Manifest.toml")
+
     - uses: julia-actions/julia-runtest@latest
       env:
         # TODO: Only disable this test for MPICH. OpenMPI works fine.
