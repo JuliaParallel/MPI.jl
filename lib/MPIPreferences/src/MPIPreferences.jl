@@ -13,7 +13,7 @@ elseif binary == "MPICH_jll"
 elseif binary == "OpenMPI_jll"
     "OpenMPI"
 elseif binary == "MPItrampoline_jll"
-    "MPItrampoline"
+    "MPIwrapper"
 else
     error("Unknown binary: $binary")
 end
@@ -26,14 +26,16 @@ module System
     mpiexec(f) = f(`$mpiexec_path`)
 end
 
-function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll")
+function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll";export_prefs=false, force=true)
     binary in ["MicrosoftMPI_jll", "MPICH_jll", "OpenMPI_jll", "MPItrampoline_jll"] ||
         error("Unknown jll: $binary")
-    @set_preferences!(
+    set_preferences!(MPIPreferences,
         "binary" => binary,
         "libmpi" => nothing,
         "abi" => nothing,
-        "mpiexec" => nothing
+        "mpiexec" => nothing;
+        export_prefs=export_prefs,
+        force=force
     )
 end
 
@@ -41,6 +43,8 @@ function use_system_binary(;
         library=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
         mpiexec="mpiexec",
         abi=nothing,
+        export_prefs=false,
+        force=true,
     )
 
     libmpi = find_library(library)
@@ -53,11 +57,13 @@ function use_system_binary(;
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
     end
-    @set_preferences!(
+    set_preferences!(MPIPreferences,
         "binary" => "system",
         "libmpi" => libmpi,
         "abi" => abi,
         "mpiexec" => mpiexec,
+        export_prefs=export_prefs,
+        force=force
     )
 end
 
@@ -142,6 +148,12 @@ function identify_abi(libmpi)
         if (m = match(r"^FUJITSU MPI Library (\d+.\d+.\d+)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+    elseif startswith(version_string, "MPIwrapper")
+        impl = "MPIwrapper"
+        # MPIwrapper 2.2.2
+        if (m = match(r"^MPIwrapper Version:\t(\d+.\d+.\d+\w*)", version_string)) !== nothing
+            version = VersionNumber(m.captures[1])
+        end
     end
     # 3) determine the abi from the implementation + version
     if (impl == "MPICH" && version >= v"3.1" ||
@@ -154,6 +166,8 @@ function identify_abi(libmpi)
         abi = "OpenMPI"
     elseif impl == "MicrosoftMPI"
         abi = "MicrosoftMPI"
+    elseif impl == "MPIwrapper"
+        abi = "MPIwrapper"
     else
         abi = "unknown"
     end

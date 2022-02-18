@@ -42,6 +42,9 @@ elseif MPIPreferences.binary == "OpenMPI_jll"
     import OpenMPI_jll: libmpi, mpiexec
 elseif MPIPreferences.binary == "MicrosoftMPI_jll"
     import MicrosoftMPI_jll: libmpi, mpiexec
+elseif MPIPreferences.binary == "MPItrampoline_jll"
+    import MPItrampoline_jll: libmpi, mpiexec
+    const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
 else
     error("Unknown MPI binary: $(MPIPreferences.binary)")
 end

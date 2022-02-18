@@ -1,5 +1,9 @@
 using Test, MPI
 
+using MPIPreferences
+
+@show MPIPreferences.abi MPIPreferences.binary
+
 # load test packages to trigger precompilation
 using DoubleFloats
 if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "CuArray"

@@ -33,8 +33,8 @@ elseif MPIPreferences.abi == "OpenMPI"
     include("openmpi.jl")
 elseif MPIPreferences.abi == "MicrosofMPI"
     include("microsoftmpi.jl")
-elseif MPIPreferences.abi == "MPItrampoline"
-    include("mpitrampoline.jl")
+elseif MPIPreferences.abi == "MPIwrapper"
+    include("mpiwrapper.jl")
 else
     error("Unknown MPI ABI")
 end
