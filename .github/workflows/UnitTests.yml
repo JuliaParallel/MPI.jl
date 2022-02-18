@@ -354,7 +354,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - name: use OpenMPI_jll
+    - name: use MPItrampoline_jll
       shell: julia --color=yes --project=test {0}
       run: |
         using Pkg
@@ -505,7 +505,7 @@ jobs:
           - libmpich-dev
           - libopenmpi-dev
         julia_version:
-          - "1.6"
+          - "1"
           # We don't need to test all combinations
           # - "1.7"
           # - "nightly"
@@ -515,7 +515,8 @@ jobs:
     runs-on: ubuntu-20.04
 
     env:
-      JULIA_MPI_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_ABI: MPIwrapper
       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
       MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
       OMPI_MCA_btl_base_warn_component_unused: 0
@@ -542,18 +543,22 @@ jobs:
       with:
         version: ${{ matrix.julia_version }}
 
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v1
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
+    - uses: julia-actions/cache@v1
+
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use MPItrampoline_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
 
