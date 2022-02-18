@@ -195,6 +195,7 @@ jobs:
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
         MPIPreferences.use_system_binary(export_prefs=true)
+        rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
 
