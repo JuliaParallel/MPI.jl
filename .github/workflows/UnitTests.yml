@@ -64,6 +64,9 @@ jobs:
             julia_arch: x86
 
       fail-fast: false
+    env:
+      JULIA_MPI_TEST_BINARY: OpenMPI_jll
+      JULIA_MPI_TEST_ABI: OpenMPI
 
     runs-on: ${{ matrix.os }}
 
@@ -107,6 +110,8 @@ jobs:
       fail-fast: false
 
     runs-on: macos-latest
+    env:
+      JULIA_MPI_TEST_BINARY: system
 
     steps:
     - name: Checkout
@@ -158,8 +163,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     env:
-      JULIA_MPI_BINARY: system
-      JULIA_MPI_PATH: /usr
+      JULIA_MPI_TEST_BINARY: system
       OMPI_MCA_btl_base_warn_component_unused: 0
 
     steps:
@@ -329,6 +333,9 @@ jobs:
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
+    env:
+      JULIA_MPI_TEST_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_ABI: MPIwrapper
 
     steps:
     - name: Checkout
@@ -340,13 +347,20 @@ jobs:
 
     - uses: julia-actions/cache@v1
 
-    - name: add MPIPreferences, use system
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use OpenMPI_jll
       shell: julia --color=yes --project=test {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
         MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
 
