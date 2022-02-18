@@ -8,7 +8,7 @@ on:
       - master
 
 jobs:
-  test-jll:
+  test-default:
     timeout-minutes: 20
     strategy:
       matrix:
@@ -53,6 +53,52 @@ jobs:
     - uses: julia-actions/julia-buildpkg@latest
     - uses: julia-actions/julia-runtest@latest
 
+  test-openmpi-jll:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        julia_version:
+          - "1.6"
+          - "1"
+          - "nightly"
+        julia_arch: [x64, x86]
+        exclude:
+          - os: macos-latest
+            julia_arch: x86
+
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.4.0
+      with:
+        access_token: ${{ github.token }}
+
+    - name: Checkout
+      uses: actions/checkout@v2.2.0
+
+    - uses: julia-actions/setup-julia@latest
+      with:
+        arch: ${{ matrix.julia_arch }}
+        version: ${{ matrix.julia_version }}
+    - uses: julia-actions/cache@v1
+
+    - name: add MPIPreferences, use system
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
+
+    - uses: julia-actions/julia-buildpkg@latest
+    - uses: julia-actions/julia-runtest@latest
 
   test-system-brew:
     timeout-minutes: 20
@@ -135,7 +181,9 @@ jobs:
       uses: actions/checkout@v2.2.0
 
     - name: Install MPI via apt
-      run: sudo apt-get install $MPI
+      run: |
+        sudo apt-get update
+        sudo apt-get install $MPI
       env:
         MPI: ${{ matrix.mpi }}
 
