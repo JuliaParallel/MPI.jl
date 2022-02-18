@@ -357,7 +357,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
-        MPIPreferences.use_jll_binary("MPItrampoline", export_prefs=true)
+        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
 
     - uses: julia-actions/julia-runtest@latest
 
