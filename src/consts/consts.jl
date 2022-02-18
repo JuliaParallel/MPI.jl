@@ -31,12 +31,12 @@ end
     include("mpich.jl")
 elseif MPIPreferences.abi == "OpenMPI"
     include("openmpi.jl")
-elseif MPIPreferences.abi == "MicrosofMPI"
+elseif MPIPreferences.abi == "MicrosoftMPI"
     include("microsoftmpi.jl")
 elseif MPIPreferences.abi == "MPIwrapper"
     include("mpiwrapper.jl")
 else
-    error("Unknown MPI ABI")
+    error("Unknown MPI ABI $(MPIPreferences.abi)")
 end
 
 @eval function __init__()
