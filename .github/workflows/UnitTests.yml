@@ -111,10 +111,6 @@ jobs:
 
     runs-on: macos-latest
 
-    env:
-      JULIA_MPI_BINARY: system
-      JULIA_MPI_PATH: /usr/local
-
     steps:
     - name: Cancel Previous Runs
       uses: styfle/cancel-workflow-action@0.4.0
