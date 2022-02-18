@@ -77,7 +77,13 @@ jobs:
         version: ${{ matrix.julia_version }}
     - uses: julia-actions/cache@v1
 
-    - name: add MPIPreferences, use system
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: add test MPIPreferences, use system
       shell: julia --color=yes --project=test {0}
       run: |
         using Pkg
@@ -115,6 +121,11 @@ jobs:
         version: ${{ matrix.julia_version }}
 
     - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
 
     - name: add MPIPreferences, use system
       shell: julia --color=yes --project=test {0}
@@ -164,6 +175,11 @@ jobs:
         version: ${{ matrix.julia_version }}
 
     - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
 
     - name: add MPIPreferences, use system
       shell: julia --color=yes --project=test {0}
@@ -226,6 +242,11 @@ jobs:
         version: ${{ matrix.julia_version }}
 
     - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
 
     # we can't use the usual actions here as we need to ensure the environment variables are set
     - name: "Build package"
@@ -266,6 +287,11 @@ jobs:
         version: ${{ matrix.julia_version }}
 
     - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
 
     - name: add MPIPreferences, use system
       shell: julia --color=yes --project=test {0}
