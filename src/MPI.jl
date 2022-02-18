@@ -49,7 +49,7 @@ elseif MPIPreferences.binary == "MPItrampoline_jll"
     import MPItrampoline_jll: MPItrampoline_jll, libmpi, mpiexec
     const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
 elseif MPIPreferences.binary == "system"
-    import MPIPreferences.Sysem: libmpi, mpiexec
+    import MPIPreferences.System: libmpi, mpiexec
     const libmpiconstants = nothing
 else
     error("Unknown MPI binary: $(MPIPreferences.binary)")
