@@ -59,7 +59,7 @@ jobs:
     strategy:
       matrix:
         mpi:
-          #BROKEN - mpich
+          - mpich
           - openmpi
         julia_version:
           - "1"
