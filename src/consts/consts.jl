@@ -5,7 +5,7 @@ export MPI_Aint, MPI_Count, MPI_Offset, MPI_Status,
     MPI_Info, MPI_Message, MPI_Op, MPI_Request, MPI_Win
 
 import MPIPreferences
-import ..libmpi
+import ..libmpi, ..libmpiconstants
 
 const initexprs = Any[]
 
