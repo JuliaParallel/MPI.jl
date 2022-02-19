@@ -14,7 +14,7 @@ number of entries received.
 """
 const Status = MPI_Status
 
-@eval const STATUS_ZERO = Status($([Cint(0) for i in 1:sizeof(Status) ÷ sizeof(Cint)]...))
+const STATUS_ZERO = Status(map(zero,fieldtypes(Status))...)
 
 function Base.getproperty(status::Status, name::Symbol)
     name ≡ :error && return status.MPI_ERROR

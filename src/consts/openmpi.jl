@@ -26,8 +26,7 @@ struct MPI_Status
     MPI_TAG::Cint
     MPI_ERROR::Cint
     _private0::Cint
-    _private1::Cint
-    _private2::Cint
+    _private1::Csize_t
 end
 
 # Opaque handles:
