@@ -19,6 +19,7 @@ else
 end
 
 module System
+    export libmpi, mpiexec
     using Preferences
     const libmpi = @load_preference("libmpi")
     const mpiexec_path = @load_preference("mpiexec")
