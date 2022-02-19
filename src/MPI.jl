@@ -124,6 +124,10 @@ function __init__()
         ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
     end
 
+    if MPIPreferences.binary == "MPItrampoline_jll" && !haskey(ENV, "MPITRAMPOLINE_MPIEXEC")
+        ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
+    end
+
     run_load_time_hooks()
 
     @require CUDA="052768ef-5323-5732-b1bb-66c8b64840ba" include("cuda.jl")
