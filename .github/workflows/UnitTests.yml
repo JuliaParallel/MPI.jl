@@ -395,7 +395,9 @@ jobs:
       uses: actions/checkout@v2.2.0
 
     - name: Install MPI via apt
-      run: sudo apt-get install $MPI
+      run: |
+        sudo apt-get update
+        sudo apt-get install $MPI
       env:
         MPI: ${{ matrix.mpi }}
 
