@@ -30,6 +30,7 @@ rreq = MPI.Irecv!(recv_mesg, comm; source=src,  tag=src+32)
 sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=rank+32)
 
 stats = MPI.Waitall([sreq, rreq], MPI.Status)
+@show stats[2]
 @test rreq isa MPI.Request
 @test sreq isa MPI.Request
 @test MPI.Get_source(stats[2]) == src
