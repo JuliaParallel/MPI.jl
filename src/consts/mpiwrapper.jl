@@ -24,12 +24,10 @@ struct MPI_Status
     _private1::Cint
     _private2::Cint
     _private3::Cint
-    _private4::Cint
-    _private5::Cint
+    _private4::Csize_t
     MPI_SOURCE::Cint
     MPI_TAG::Cint
     MPI_ERROR::Cint
-    _private9::Cint
 end
 
 # Opaque handles:
