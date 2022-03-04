@@ -36,7 +36,7 @@ end
 
 import MPIPreferences
 
-@static if MPIPreferences.binary == "MPICH_jll"
+if MPIPreferences.binary == "MPICH_jll"
     import MPICH_jll: libmpi, mpiexec
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "OpenMPI_jll"

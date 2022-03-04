@@ -41,14 +41,14 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
 end
 
 function use_system_binary(;
-        library=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
+        library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
         mpiexec="mpiexec",
         abi=nothing,
         export_prefs=false,
         force=true,
     )
 
-    libmpi = find_library(library)
+    libmpi = find_library(library_names)
     if libmpi == ""
         error("MPI library could not be found")
     end
