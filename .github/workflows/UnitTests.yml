@@ -388,6 +388,8 @@ jobs:
           # We don't need to test all combinations
           # - "1.7"
           # - "nightly"
+        MPIWrapper:
+          - "2.7.0"
 
       fail-fast: false
 
@@ -413,12 +415,14 @@ jobs:
 
     - name: Build MPIwrapper
       run: |
-        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.7.0.tar.gz
-        tar xzf v2.2.1.tar.gz
+        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
+        tar xzf v${MPIWrapper}.tar.gz
         cd MPIwrapper-*
         cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
         cmake --build .
         sudo cmake --install .
+      env:
+        MPIWrapper: ${{matrix.MPIWrapper}}
 
     - uses: julia-actions/setup-julia@latest
       with:
@@ -453,6 +457,8 @@ jobs:
           # We don't need to test all combinations
           # - "1.7"
           # - "nightly"
+        MPIWrapper:
+          - "2.7.0"
 
       fail-fast: false
 
@@ -497,8 +503,8 @@ jobs:
     - name: Build MPIwrapper
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.7.0.tar.gz
-        tar xzf v2.2.1.tar.gz
+        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
+        tar xzf v${MPIWrapper}.tar.gz
         cd MPIwrapper-*
         cmake \
             -DMPIEXEC_EXECUTABLE=mpiexec \
@@ -507,6 +513,8 @@ jobs:
             .
         cmake --build .
         sudo cmake --install .
+      env:
+        MPIWrapper: ${{matrix.MPIWrapper}}
 
     - uses: julia-actions/setup-julia@latest
       with:
