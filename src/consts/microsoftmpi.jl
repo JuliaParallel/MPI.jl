@@ -31,7 +31,7 @@ end
 const MPI_Comm = UInt32
 const MPI_Datatype = UInt32
 const MPI_Errhandler = UInt32
-const MPI_File = UInt32
+const MPI_File = UInt
 const MPI_Group = UInt32
 const MPI_Info = UInt32
 const MPI_Message = UInt32
