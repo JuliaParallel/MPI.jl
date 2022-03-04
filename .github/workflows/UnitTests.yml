@@ -410,7 +410,7 @@ jobs:
 
     - name: Build MPIwrapper
       run: |
-        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
+        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.7.0.tar.gz
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
         cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
@@ -494,7 +494,7 @@ jobs:
     - name: Build MPIwrapper
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.2.1.tar.gz
+        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v2.7.0.tar.gz
         tar xzf v2.2.1.tar.gz
         cd MPIwrapper-*
         cmake \
