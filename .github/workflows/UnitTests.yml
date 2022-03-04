@@ -313,7 +313,10 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
-        MPIPreferences.use_system_binary(export_prefs=true)
+        MPIPreferences.use_system_binary(;
+          export_prefs=true,
+          mpiexec="C:\\Program Files\\Microsoft MPI\\Bin\\mpiexec"
+        )
         rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
