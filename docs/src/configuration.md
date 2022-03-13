@@ -6,7 +6,7 @@ By default, MPI.jl will download and link against the following MPI implementati
 
 This is suitable for most single-node use cases, but for larger systems, such as HPC
 clusters or multi-GPU machines, you will probably want to configure against a
-system-provided MPI implementation in order to exploit feature such as fast network
+system-provided MPI implementation in order to exploit features such as fast network
 interfaces and CUDA-aware MPI interfaces.
 
 MPI.jl will attempt to detect when you are running on a HPC cluster, and warn the user
@@ -31,7 +31,7 @@ tell `MPI.install_mpiexecjl` to install to a different directory.
 ```sh
 $ julia
 julia> using MPI
-julia> MPI.Install_mpiexecjl()
+julia> MPI.install_mpiexecjl()
 ```
 
 To quickly call this wrapper we recommend you to add the destination directory
