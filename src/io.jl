@@ -486,4 +486,35 @@ function get_position_shared(file::FileHandle)
     return r[]
 end
 
+"""
+    MPI.File.get_atomicity(file::FileHandle)
+
+Get the consistency option for the `fh`. If `false` it is non-atomic.
+
+# External links
+$(_doc_external("MPI_File_get_atomicity"))
+"""
+function get_atomicity(file::FileHandle)
+    r = Ref{Cint}()
+    # int MPI_File_get_atomicity(MPI_File fh, Int *flag)
+    @mpichk ccall((:MPI_File_get_atomicity, libmpi), Cint,
+                  (MPI_File, Ptr{Cint}), file, r)
+    return r[] == 1
+end
+
+"""
+    MPI.File.set_atomicity(file::FileHandle, flag::Bool)
+
+Set the consitency option for the `fh`.
+
+# External links
+$(_doc_external("MPI_File_get_atomicity"))
+"""
+function set_atomicity(file::FileHandle, flag::Bool)
+    # int MPI_File_set_atomicity(MPI_File fh, Int flag)
+    @mpichk ccall((:MPI_File_set_atomicity, libmpi), Cint,
+                  (MPI_File, Cint), file, flag)
+    return nothing
+end
+
 end # module
