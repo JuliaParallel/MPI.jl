@@ -5,19 +5,14 @@ MPI.Init()
 comm = MPI.COMM_WORLD
 nnodes = MPI.Comm_size(comm)
 ndims = 3
-reorder = 1
-periods = [0 1 0]
-dims = [0 0 0]
-MPI.Dims_create!(nnodes, dims)
+dims = MPI.Dims_create(nnodes, [0,0,0])
 
 @test prod(dims) == nnodes
 
-cperiods = Cint.(periods[:])
-cdims = Cint.(dims[:])
-comm_cart = MPI.Cart_create(comm, ndims, cdims, cperiods, reorder)
+comm_cart = MPI.Cart_create(comm, dims; periodic=[0, 1, 0], reorder=1)
 @test MPI.Comm_size(comm_cart) == nnodes
 
-comm_cart2 = MPI.Cart_create(comm, dims, periods, reorder)
+comm_cart2 = MPI.Cart_create(comm, dims; periodic=(false, true, false), reorder=true)
 @test MPI.Comm_size(comm_cart2) == nnodes
 
 comm_sub1 = MPI.Cart_sub(comm_cart, (false, true, true))

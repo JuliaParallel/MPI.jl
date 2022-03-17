@@ -1,11 +1,20 @@
-name: Unit Tests
+name: MPI.jl Unit Tests
 
 on:
   pull_request:
-
+    paths:
+      - 'bin/**'
+      - 'deps/**'
+      - 'src/**'
+      - 'test/**'
   push:
     branches:
       - master
+    paths:
+      - 'bin/**'
+      - 'deps/**'
+      - 'src/**'
+      - 'test/**'
 
 jobs:
   test-default:

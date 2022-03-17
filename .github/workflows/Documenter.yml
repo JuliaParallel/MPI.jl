@@ -5,7 +5,13 @@ on:
     branches:
       - master
     tags: '*'
+    paths:
+      - 'docs/**'
+      - 'src/**'
   pull_request:
+    paths:
+      - 'docs/**'
+      - 'src/**'
 
 jobs:
   docs-build:
