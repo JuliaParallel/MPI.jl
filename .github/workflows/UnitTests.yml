@@ -121,6 +121,7 @@ jobs:
     runs-on: macos-latest
     env:
       JULIA_MPI_TEST_BINARY: system
+      ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
 
     steps:
     - name: Checkout
