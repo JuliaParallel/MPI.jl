@@ -77,7 +77,8 @@ if update_config
     end
 end
 
-binary = get(config, "binary", "")
+default_binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPItrampoline_jll"
+binary = get(config, "binary", default_binary)
 
 # 2. generate deps.jl
 if binary == "system"
@@ -128,43 +129,6 @@ if binary == "system"
                      error("MicrosoftMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
             @require(OpenMPI_jll       = "fe0851c0-eecd-5654-98d4-656369965a5c",
                      error("OpenMPI_jll cannot be loaded: MPI.jl is configured to use the system MPI library"))
-        end
-    end
-
-elseif binary == ""
-
-    @info "using default MPI jll"
-
-    if Sys.iswindows()
-        using MicrosoftMPI_jll
-        # run(MicrosoftMPI_jll.generate_compile_time_mpi_constants())
-        cp("compile_time_mpi_constants_msmpi_$(Sys.ARCH).jl", "compile_time_mpi_constants.jl"; force=true)
-    else
-        using MPICH_jll
-        run(MPICH_jll.generate_compile_time_mpi_constants())
-    end
-
-    deps = quote
-        if Sys.iswindows()
-            using MicrosoftMPI_jll
-            const libmpiconstants = MicrosoftMPI_jll.libload_time_mpi_constants
-            const _mpiexec = MicrosoftMPI_jll.mpiexec
-            const mpiexec_path = MicrosoftMPI_jll.mpiexec_path
-        else
-            using MPICH_jll
-            const libmpiconstants = MPICH_jll.libload_time_mpi_constants
-            const _mpiexec = MPICH_jll.mpiexec
-            const mpiexec_path = MPICH_jll.mpiexec_path
-        end
-
-        function __init__deps()
-            if (haskey(ENV, "SLURM_JOBID") || haskey(ENV, "PBS_JOBID") || haskey(ENV, "LSB_JOBID")) &&
-                get(ENV, "JULIA_MPI_CLUSTER_WARN", "") != "n"
-                @warn """
-                    You appear to be using MPI.jl with the default MPI binary on a cluster.
-                    We recommend using the system-provided MPI, see the Configuration section of the MPI.jl docs.
-                    """
-            end
         end
     end
 
