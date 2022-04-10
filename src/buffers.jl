@@ -52,6 +52,7 @@ Currently supported are:
  - `Array`
  - `SubArray`
  - `CUDA.CuArray` if CUDA.jl is loaded.
+ - `AMDGPU.ROCArray` if AMDGPU.jl is loaded.
 
 Additionally, certain sentinel values can be used, e.g. `MPI_IN_PLACE` or `MPI_BOTTOM`.
 """
@@ -110,8 +111,9 @@ and `datatype`. Methods are provided for
 
  - `Ref`
  - `Array`
- - `CUDA.CuArray` if CUDA.jl is loaded
- - `SubArray`s of an `Array` or `CUDA.CuArray` where the layout is contiguous, sequential or
+ - `CUDA.CuArray` if CUDA.jl is loaded.
+ - `AMDGPU.ROCArray` if AMDGPU.jl is loaded.
+ - `SubArray`s of an `Array`, `CUDA.CuArray` or `AMDGPU.ROCArray` where the layout is contiguous, sequential or
    blocked.
 
 # See also
