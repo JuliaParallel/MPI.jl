@@ -1,7 +1,7 @@
 using Test
 using MPI
 
-# TODO: enable CUDA tests once OpenMPI has full support
+# TODO: enable CUDA and AMDGPU tests once OpenMPI has full support
 ArrayType = Array
 
 MPI.Init()

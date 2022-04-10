@@ -4,6 +4,9 @@ using MPI
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     import CUDA
     ArrayType = CUDA.CuArray
+elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
+    import AMDGPU
+    ArrayType = AMDGPU.ROCArray
 else
     ArrayType = Array
 end
