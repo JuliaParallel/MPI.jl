@@ -7,7 +7,7 @@ By default, MPI.jl will download and link against the following MPI implementati
 This is suitable for most single-node use cases, but for larger systems, such as HPC
 clusters or multi-GPU machines, you will probably want to configure against a
 system-provided MPI implementation in order to exploit feature such as fast network
-interfaces and CUDA-aware MPI interfaces.
+interfaces and CUDA-aware or ROCm-aware MPI interfaces.
 
 MPI.jl will attempt to detect when you are running on a HPC cluster, and warn the user
 about this. To disable this warning, set the environment variable
@@ -77,7 +77,8 @@ The test suite can also be modified by the following variables:
 
 - `JULIA_MPIEXEC_TEST_ARGS`: Additional arguments to be passed to the MPI launcher for the tests only.
 - `JULIA_MPI_TEST_ARRAYTYPE`: Set to `CuArray` to test the CUDA-aware interface with
-  [`CUDA.CuArray](https://github.com/JuliaGPU/CUDA.jl) buffers.
+  [`CUDA.CuArray](https://github.com/JuliaGPU/CUDA.jl) buffers. Set to `ROCArray` to test the ROCm-aware
+  interface with [`AMDGPU.ROCarray`](https://github.com/JuliaGPU/AMDGPU.jl) buffers.
 
 ## Julia wrapper for `mpiexec`
 
