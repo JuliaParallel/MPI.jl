@@ -19,7 +19,7 @@ MPI.Init()
 
 @test MPI.has_cuda() isa Bool
 
-# DEBUG: needs another mechanism to fikter out CuArrays
+# DEBUG: needs another mechanism to filter out CuArrays
 if ArrayType != Array
     @test MPI.has_cuda()
 end
