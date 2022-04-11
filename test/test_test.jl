@@ -45,7 +45,7 @@ end
 if done && ind != 0
     (onedone,stat) = MPI.Test!(reqs[ind])
     @test onedone
-    @test stat == MPI.STATUS_EMPTY    
+    @test stat == MPI.STATUS_EMPTY
 end
 
 MPI.Waitall!(reqs)
