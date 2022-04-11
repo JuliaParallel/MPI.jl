@@ -22,9 +22,10 @@ Requires = "~0.5, 1.0"
 julia = "1"
 
 [extras]
+AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 DoubleFloats = "497a8b3b-efae-58df-a0af-a86822472b78"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["CUDA", "DoubleFloats", "Test"]
+test = ["AMDGPU", "CUDA", "DoubleFloats", "Test"]
