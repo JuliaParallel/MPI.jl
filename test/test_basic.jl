@@ -19,8 +19,8 @@ MPI.Init()
 
 @test MPI.has_cuda() isa Bool
 
-# DEBUG: needs another mechanism to filter out CuArrays
-if ArrayType != Array
+# DEBUG: a cleaner apporach may be designed
+if ArrayType != Array && ArrayType != AMDGPU.ROCArray
     @test MPI.has_cuda()
 end
 
