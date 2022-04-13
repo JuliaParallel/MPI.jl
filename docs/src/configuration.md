@@ -13,44 +13,6 @@ MPI.jl will attempt to detect when you are running on a HPC cluster, and warn th
 about this. To disable this warning, set the environment variable
 `JULIA_MPI_CLUSTER_WARN=n`.
 
-## Julia wrapper for `mpiexec`
-
-Since you can configure `MPI.jl` to use one of several MPI implementations, you
-may have different Julia projects using different implementation.  Thus, it may
-be cumbersome to find out which `mpiexec` executable is associated to a specific
-project.  To make this easy, on Unix-based systems `MPI.jl` comes with a thin
-project-aware wrapper around `mpiexec`, called `mpiexecjl`.
-
-### Installation
-
-You can install `mpiexecjl` with [`MPI.install_mpiexecjl()`](@ref).  The default
-destination directory is `joinpath(DEPOT_PATH[1], "bin")`, which usually
-translates to `~/.julia/bin`, but check the value on your system.  You can also
-tell `MPI.install_mpiexecjl` to install to a different directory.
-
-```sh
-$ julia
-julia> using MPI
-julia> MPI.install_mpiexecjl()
-```
-
-To quickly call this wrapper we recommend you to add the destination directory
-to your [`PATH`](https://en.wikipedia.org/wiki/PATH_(variable)) environment
-variable.
-
-### Usage
-
-`mpiexecjl` has the same syntax as the `mpiexec` binary that will be called, but
-it takes in addition a `--project` option to call the specific binary associated
-to the `MPI.jl` version in the given project.  If no `--project` flag is used,
-the `MPI.jl` in the global Julia environment will be used instead.
-
-After installing `mpiexecjl` and adding its directory to `PATH`, you can run it
-with:
-
-```sh
-$ mpiexecjl --project=/path/to/project -n 20 julia script.jl
-```
 
 ## Using a system-provided MPI
 
@@ -113,3 +75,43 @@ The test suite can also be modified by the following variables:
 - `JULIA_MPIEXEC_TEST_ARGS`: Additional arguments to be passed to the MPI launcher for the tests only.
 - `JULIA_MPI_TEST_ARRAYTYPE`: Set to `CuArray` to test the CUDA-aware interface with
   [`CUDA.CuArray](https://github.com/JuliaGPU/CUDA.jl) buffers.
+  
+  
+  ## Julia wrapper for `mpiexec`
+
+Since you can configure `MPI.jl` to use one of several MPI implementations, you
+may have different Julia projects using different implementation.  Thus, it may
+be cumbersome to find out which `mpiexec` executable is associated to a specific
+project.  To make this easy, on Unix-based systems `MPI.jl` comes with a thin
+project-aware wrapper around `mpiexec`, called `mpiexecjl`.
+
+### Installation
+
+You can install `mpiexecjl` with [`MPI.install_mpiexecjl()`](@ref).  The default
+destination directory is `joinpath(DEPOT_PATH[1], "bin")`, which usually
+translates to `~/.julia/bin`, but check the value on your system.  You can also
+tell `MPI.install_mpiexecjl` to install to a different directory.
+
+```sh
+$ julia
+julia> using MPI
+julia> MPI.install_mpiexecjl()
+```
+
+To quickly call this wrapper we recommend you to add the destination directory
+to your [`PATH`](https://en.wikipedia.org/wiki/PATH_(variable)) environment
+variable.
+
+### Usage
+
+`mpiexecjl` has the same syntax as the `mpiexec` binary that will be called, but
+it takes in addition a `--project` option to call the specific binary associated
+to the `MPI.jl` version in the given project.  If no `--project` flag is used,
+the `MPI.jl` in the global Julia environment will be used instead.
+
+After installing `mpiexecjl` and adding its directory to `PATH`, you can run it
+with:
+
+```sh
+$ mpiexecjl --project=/path/to/project -n 20 julia script.jl
+```
