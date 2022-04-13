@@ -33,14 +33,49 @@ function _doc_external(fname)
 """
 end
 
-try
-    include(joinpath(dirname(@__DIR__), "deps", "deps.jl"))
-    include(joinpath(dirname(@__DIR__), "deps", "compile_time_mpi_constants.jl"))
-catch e
-    error("MPI.jl not properly configured, please run `Pkg.build(\"MPI\")`.")
+
+import MPIPreferences
+
+if MPIPreferences.binary == "MPICH_jll"
+    import MPICH_jll: libmpi, mpiexec
+    const libmpiconstants = nothing
+elseif MPIPreferences.binary == "OpenMPI_jll"
+    import OpenMPI_jll: libmpi, mpiexec
+    const libmpiconstants = nothing
+elseif MPIPreferences.binary == "MicrosoftMPI_jll"
+    import MicrosoftMPI_jll: libmpi, mpiexec
+    const libmpiconstants = nothing
+elseif MPIPreferences.binary == "MPItrampoline_jll"
+    import MPItrampoline_jll: MPItrampoline_jll, libmpi, mpiexec
+    const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
+elseif MPIPreferences.binary == "system"
+    import MPIPreferences.System: libmpi, mpiexec
+    const libmpiconstants = nothing
+else
+    error("Unknown MPI binary: $(MPIPreferences.binary)")
 end
-include("define_load_time_mpi_constants.jl")
-include("read_load_time_mpi_constants.jl")
+
+include("consts/consts.jl")
+using .Consts
+
+# These functions are run after reading the values of the constants above)
+const _mpi_load_time_hooks = Any[]
+const _finished_loading = Ref(false)
+function add_load_time_hook!(f)
+    @assert !_finished_loading[]
+    push!(_mpi_load_time_hooks, f)
+end
+function run_load_time_hooks()
+    @assert !_finished_loading[]
+    _finished_loading[] = true
+    for hook in _mpi_load_time_hooks
+        hook()
+    end
+    empty!(_mpi_load_time_hooks)
+    nothing
+end
+
+
 include("implementations.jl")
 include("error.jl")
 include("info.jl")
@@ -75,10 +110,6 @@ function __init__()
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
 
-    __init__deps()
-
-    read_load_time_mpi_constants()
-
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
     if !haskey(ENV, "UCX_MEMTYPE_CACHE")
@@ -92,6 +123,12 @@ function __init__()
         # default is "SIGILL,SIGSEGV,SIGBUS,SIGFPE"
         ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
     end
+
+    if MPIPreferences.binary == "MPItrampoline_jll" && !haskey(ENV, "MPITRAMPOLINE_MPIEXEC")
+        ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
+    end
+
+    run_load_time_hooks()
 
     @require CUDA="052768ef-5323-5732-b1bb-66c8b64840ba" include("cuda.jl")
 end

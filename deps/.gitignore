@@ -1,6 +1,0 @@
-deps.jl
-build.log
-generate_compile_time_mpi_constants
-compile_time_mpi_constants.jl
-load_time_mpi_constants.dylib
-load_time_mpi_constants.so

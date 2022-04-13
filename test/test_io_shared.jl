@@ -20,6 +20,12 @@ MPI.Barrier(comm)
 fh = MPI.File.open(comm, filename, read=true, write=true, create=true)
 @test MPI.File.get_position_shared(fh) == 0
 
+if !MPI.File.get_atomicity(fh)
+    MPI.File.set_atomicity(fh, true)
+end
+
+@test MPI.File.get_atomicity(fh)
+
 MPI.Barrier(comm)
 MPI.File.sync(fh)
 

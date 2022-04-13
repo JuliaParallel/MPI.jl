@@ -34,6 +34,12 @@ This can be worked around be either:
 
 2. Launching julia with the  `--compiled-modules=no` option. This can result in much longer package load times.
 
+## Open MPI
+
+### Segmentation fault
+
+When attempting to use a system-provided Open MPI implementation, you may encounter a segmentation fault. This can be fixed by setting the environment variable `ZES_ENABLE_SYSMAN=1`. See [Open MPI issue #10142](https://github.com/open-mpi/ompi/issues/10142).
+
 ## UCX
 
 [UCX](https://www.openucx.org/) is a communication framework used by several MPI implementations.

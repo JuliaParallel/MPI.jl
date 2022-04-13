@@ -21,10 +21,7 @@ hello world
 hello world
 ```
 """
-function mpiexec(fn)
-    _mpiexec(cmd -> fn(`$cmd $(Base.shell_split(get(ENV, "JULIA_MPIEXEC_ARGS", "")))`))
-end
-
+mpiexec
 
 # Administrative functions
 function _warn_if_wrong_mpi()

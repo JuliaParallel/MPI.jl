@@ -51,7 +51,7 @@ function main()
         @test all(shared_arr[:, 1] .== 1:100)
         @test all(shared_arr[:, 2] .== 901:1000)
         if node_rank <= 1
-            len, elsize_bytes, baseptr = @test_deprecated MPI.Win_shared_query(win, owner_rank)
+            len, elsize_bytes, baseptr = MPI.Win_shared_query(Ptr{Float32}, win, owner_rank)
             @test elsize_bytes == sizeof(Float32)
             @test len == sizeof(shared_arr)
             @test baseptr == pointer(shared_arr)
