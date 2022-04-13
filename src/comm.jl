@@ -50,7 +50,7 @@ The rank of the process in the particular communicator's group.
 
 Returns an integer in the range `0:MPI.Comm_size()-1`.
 
-# See also 
+# See also
 - [`MPI.Comm_size`](@ref).
 
 # External links
@@ -237,6 +237,20 @@ function Intercomm_merge(intercomm::Comm, flag::Bool)
     return newcomm
 end
 
+
+function unsafe_get_attr(comm::Comm, keyval::Integer)
+    flag = Ref{Cint}()
+    result = Ref(C_NULL)
+    # int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void *attribute_val, int *flag)
+    @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
+        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), comm, keyval, result, flag)
+    if flag[] == 0
+        return nothing
+    end
+    return result[]
+end
+
+
 """
     universe_size()
 
@@ -245,16 +259,21 @@ The total number of available slots, or `nothing` if it is not defined. This is 
 This is typically dependent on the MPI implementation: for MPICH-based implementations, this is specified by the `-usize` argument. OpenMPI defines a default value based on the number of processes available.
 """
 function universe_size()
-    flag = Ref{Cint}()
-    result = Ref(Ptr{Cint}(C_NULL))
-    # int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void *attribute_val, int *flag)
-    @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), MPI.COMM_WORLD, Consts.MPI_UNIVERSE_SIZE[], result, flag)
-    if flag[] == 0
-        return nothing
-    end
-    Int(unsafe_load(result[]))
+    ptr = unsafe_get_attr(COMM_WORLD, Consts.MPI_UNIVERSE_SIZE[])
+    isnothing(ptr) && return nothing
+    return Int(unsafe_load(Ptr{Cint}(ptr)))
 end
+
+"""
+    tag_ub()
+
+The maximum value tag value for point-to-point operations.
+"""
+function tag_ub()
+    ptr = something(unsafe_get_attr(COMM_WORLD, Consts.MPI_TAG_UB[]))
+    return Int(unsafe_load(Ptr{Cint}(ptr)))
+end
+
 
 """
     Comm_compare(comm1::Comm, comm2::Comm)::MPI.Comparison
