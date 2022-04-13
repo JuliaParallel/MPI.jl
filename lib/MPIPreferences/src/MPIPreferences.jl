@@ -13,7 +13,7 @@ elseif binary == "MPICH_jll"
 elseif binary == "OpenMPI_jll"
     "OpenMPI"
 elseif binary == "MPItrampoline_jll"
-    "MPIwrapper"
+    "MPItrampoline"
 else
     error("Unknown binary: $binary")
 end
@@ -149,8 +149,8 @@ function identify_abi(libmpi)
         if (m = match(r"^FUJITSU MPI Library (\d+.\d+.\d+)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
-    elseif startswith(version_string, "MPIwrapper")
-        impl = "MPIwrapper"
+    elseif startswith(version_string, "MPItrampoline")
+        impl = "MPItrampoline"
         # MPIwrapper 2.2.2
         if (m = match(r"^MPIwrapper Version:\t(\d+.\d+.\d+\w*)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
@@ -167,8 +167,8 @@ function identify_abi(libmpi)
         abi = "OpenMPI"
     elseif impl == "MicrosoftMPI"
         abi = "MicrosoftMPI"
-    elseif impl == "MPIwrapper"
-        abi = "MPIwrapper"
+    elseif impl == "MPItrampoline"
+        abi = "MPItrampoline"
     else
         abi = "unknown"
     end
