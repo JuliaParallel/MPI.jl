@@ -8,10 +8,12 @@ on:
     paths:
       - 'docs/**'
       - 'src/**'
+      - 'lib/**'
   pull_request:
     paths:
       - 'docs/**'
       - 'src/**'
+      - 'lib/**'
 
 jobs:
   docs-build:
