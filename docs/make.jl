@@ -9,6 +9,8 @@ EXAMPLES = [
     "Send/receive" => "examples/04-sendrecv.md",
     "Job Scheduling" => "examples/05-job_schedule.md",
     "Scatterv and Gatherv" => "examples/06-scatterv.md",
+    "Active RMA" => "examples/07-rma_active.md",
+    "Passive RMA" => "examples/08-rma_passive.md",
 ]
 
 examples_md_dir = joinpath(@__DIR__,"src/examples")
