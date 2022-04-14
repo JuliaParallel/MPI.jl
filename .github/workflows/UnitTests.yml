@@ -356,7 +356,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       JULIA_MPI_TEST_BINARY: MPItrampoline_jll
-      JULIA_MPI_TEST_ABI: MPIwrapper
+      JULIA_MPI_TEST_ABI: MPItrampoline
 
     steps:
     - name: Checkout
@@ -407,7 +407,7 @@ jobs:
 
     env:
       JULIA_MPI_TEST_BINARY: MPItrampoline_jll
-      JULIA_MPI_TEST_ABI: MPIwrapper
+      JULIA_MPI_TEST_ABI: MPItrampoline
       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
       MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
       OMPI_MCA_btl_base_warn_component_unused: 0

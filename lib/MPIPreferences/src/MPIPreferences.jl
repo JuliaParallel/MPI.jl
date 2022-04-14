@@ -13,7 +13,7 @@ elseif binary == "MPICH_jll"
 elseif binary == "OpenMPI_jll"
     "OpenMPI"
 elseif binary == "MPItrampoline_jll"
-    "MPIwrapper"
+    "MPItrampoline"
 else
     error("Unknown binary: $binary")
 end
@@ -168,7 +168,7 @@ function identify_abi(libmpi)
     elseif impl == "MicrosoftMPI"
         abi = "MicrosoftMPI"
     elseif impl == "MPIwrapper"
-        abi = "MPIwrapper"
+        abi = "MPItrampoline"
     else
         abi = "unknown"
     end
