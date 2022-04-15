@@ -7,14 +7,17 @@ on:
       - 'deps/**'
       - 'src/**'
       - 'test/**'
+      - 'lib/**'
   push:
     branches:
       - master
+      - release-*
     paths:
       - 'bin/**'
       - 'deps/**'
       - 'src/**'
       - 'test/**'
+      - 'lib/**'
 
 jobs:
   test-default:

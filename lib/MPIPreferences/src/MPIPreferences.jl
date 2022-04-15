@@ -23,8 +23,8 @@ module System
     using Preferences
     const libmpi = @load_preference("libmpi")
     const mpiexec_path = @load_preference("mpiexec")
-    mpiexec() = `$mpiexec_path`
-    mpiexec(f) = f(`$mpiexec_path`)
+    mpiexec(;adjust_PATH=true, adjust_LIBPATH=true) = `$mpiexec_path`
+    mpiexec(f;adjust_PATH=true, adjust_LIBPATH=true) = f(`$mpiexec_path`)
 end
 
 function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll";export_prefs=false, force=true)
