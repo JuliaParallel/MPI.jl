@@ -143,9 +143,21 @@ function identify_abi(libmpi)
     # implementations.
     buf = Array{UInt8}(undef, 8192)
     buflen = Ref{Cint}()
-    dlopen(libmpi) do hdl
-        ptr = dlsym(hdl, :MPI_Get_library_version)
+
+    @static if Sys.isunix()
+        # need to open libmpi with RTLD_GLOBAL flag for Linux, before
+        # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
+        # at least on Ubuntu 15.10
+        hndl = Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+    else
+        hndl = Libdl.dlopen(libmpi)
+    end
+
+    try
+        ptr = dlsym(hndl, :MPI_Get_library_version)
         ccall(ptr, Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
+    finally
+        Libdl.dlclose(hndl)
     end
 
     @assert buflen[] < 8192
