@@ -55,6 +55,7 @@ steps:
       JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
       OMPI_ALLOW_RUN_AS_ROOT: 1
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+      OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
       OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
       JULIA_CUDA_MEMORY_POOL: "none"
     commands: |
@@ -94,6 +95,7 @@ steps:
       JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
       OMPI_ALLOW_RUN_AS_ROOT: 1
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+      OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
       OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
       JULIA_CUDA_MEMORY_POOL: "none"
     commands: |

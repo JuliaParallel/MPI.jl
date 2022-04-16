@@ -34,9 +34,6 @@ istest(f) = endswith(f, ".jl") && startswith(f, "test_")
 testfiles = sort(filter(istest, readdir(testdir)))
 
 @testset "$f" for f in testfiles
-    if f === "test_onesided.jl"
-        continue
-    end
     mpiexec() do cmd
         if f == "test_spawn.jl"
             run(`$cmd -n 1 $(Base.julia_cmd()) $(joinpath(testdir, f))`)
