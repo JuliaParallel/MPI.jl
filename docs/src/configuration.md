@@ -9,10 +9,6 @@ clusters or multi-GPU machines, you will probably want to configure against a
 system-provided MPI implementation in order to exploit features such as fast network
 interfaces and CUDA-aware MPI interfaces.
 
-MPI.jl will attempt to detect when you are running on a HPC cluster, and warn the user
-about this. To disable this warning, set the environment variable
-`JULIA_MPI_CLUSTER_WARN=n`.
-
 ## Julia wrapper for `mpiexec`
 
 Since you can configure `MPI.jl` to use one of several MPI implementations, you
@@ -52,26 +48,51 @@ with:
 $ mpiexecjl --project=/path/to/project -n 20 julia script.jl
 ```
 
-## Using a system-provided MPI
+## Using MPIPreferences.jl
 
-### Requirements
+MPI.jl uses [Preferences.jl](https://github.com/JuliaPackaging/Preferences.jl) to
+allow the user to choose which MPI implementation to use for a project. This provides
+a single source of truth that can be used for `JLL` (Julia packages providing C libraries)
+that link against MPI, as well as localizing the choice of MPI implementation to a project.
+
+Users can use the provided [`use_system_binary`](@ref) or [`use_jll_binary`](@ref)
+to switch MPI implementations.
+
+### Migration from MPI.jl `v0.19`
+
+Prior to MPI.jl `v0.20` environment variables were used to configure which MPI
+library to use. These have now been removed.
+
+- `JULIA_MPI_BINARY`
+- `JULIA_MPIEXEC`
+- `JULIA_MPI_INCLUDE_PATH`
+- `JULIA_MPI_CFLAGS`
+- `JULIA_MPICC`
+
+### Using a system-provided MPI
+
+#### Requirements
 
 MPI.jl requires a shared library installation of a C MPI library, supporting the MPI 3.0
 standard or later.
 
-### Building
+### Configuration
 
-To use the the system MPI, set the environment variable `JULIA_MPI_BINARY=system` and run
-`Pkg.build("MPI")`. This can be done by:
+To use the the system MPI, run `MPI.use_system_binary()`.
+This will attempt find and identify any available MPI implementation, and create
+a file called `LocalPreferences.toml` adjacent to the current `Project.toml`.
+
+```sh
+julia --project -e 'using MPI; MPI.use_system_binary()'
 ```
-julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
-```
-This will attempt find and identify any available MPI implementation.
+!!! note
+    You can copy `LocalPreferences.toml` to a different project, but you must list
+    `MPIPreferences` in the Project.toml either in `[deps]` or `[extras]` for the settings
+    to take effect. Due to a bug in Julia (until `v1.6.5` and `v1.7.1`), getting preferences
+    gtom transitive dependencies is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24).
+    To fix this either update your version of Julia, or add `MPIPreferences` as a direct dependency to your project.
 
 The MPI standard doesn't specify the exact application binary interface (ABI).
-The build script will attempt to build a small C program to
-determine the appropriate type definitions and constants. This requires a compatible C
-compiler (`mpicc` by default).
 
 The following implementations should work:
 
@@ -81,35 +102,59 @@ The following implementations should work:
 - [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
 - [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
 
-If the implementation is changed, you will need to re-run `Pkg.build("MPI")`.
+#### Advanced options
 
-### [Environment variables](@id environment_variables)
+```@doc
+MPI.use_system_binary
+```
+You can use the argument `mpiexec` to provide the the name (or full path) of the MPI launcher executable. The default is
+`mpiexec`, but some clusters require using the scheduler launcher interface (e.g. `srun`
+on Slurm, `aprun` on PBS). If the MPI library has an uncommon name you can provide it in `library_names`.
+In case ABI detection fails you can provide a manual choice,
+but also open an issue so that the auto-detection can be improved. `export_prefs=true` can be used to copy the preferences into the `Project.toml` instead of creating a
+`LocalPreferences.toml` file to hold them.
 
-The following optional environment variables can be used to control certain aspects of the
-build script and other library behaviour. The results of these will be cached in a
-configuration file located at `~/.julia/prefs/MPI.toml` and so can be used for subsequent
-MPI builds.
+#### Notes to HPC cluster adminstators
 
-- `JULIA_MPI_BINARY`: can be set to either the empty string (to use the default implementations
-  above) or `system` (to use a system-provided implementation).
-- `JULIA_MPI_PATH`: the top-level installation directory of MPI. i.e. the library should
-  be located in `${JULIA_MPI_PATH}/lib` and `mpiexec` in `${JULIA_MPI_PATH}/bin`
-- `JULIA_MPI_LIBRARY`: the library name or full path of the MPI shared library. By
-  default, it will attempt to look for common MPI library names in the standard library
-  paths (e.g. `libmpi`, `libmpich`, `msmpi`).
-- `JULIA_MPIEXEC`: the name (or full path) of the MPI launcher executable. The default is
-  `mpiexec`, but some clusters require using the scheduler launcher interface (e.g. `srun`
-  on Slurm, `aprun` on PBS).
-- `JULIA_MPIEXEC_ARGS`: Additional arguments to be passed to MPI launcher.
+Preferences are merged across the Julia load path, so it is feasible to provide a module file that appends a path to
+`JULIA_LOAD_PATH` variable that contains system wide preferences.
 
-The following variables are also queried:
+As an example you can use [`MPI.use_system_binary(;export_prefs)`](@ref) to create a file `Project.toml` containing:
 
-- `JULIA_MPI_INCLUDE_PATH`: the directory containing the MPI header files.
-- `JULIA_MPI_CFLAGS`: C flags passed to the constant generation build (default: `-lmpi`)
-- `JULIA_MPICC`: MPI C compiler (default: `mpicc`)
+```
+[extras]
+MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 
+[preferences.MPIPreferences]
+abi = "OpenMPI"
+binary = "system"
+libmpi = "/software/mpi/lib/libmpi.so"
+mpiexec = "/software/mpi/bin/mpiexec"
+```
+copying that to a central location like: `/software/mpi/julia` and setting `JULIA_LOAD_PATH=":/software/mpi/julia"` (note the `:` before the path) in the coressponding module file (preferrably the MPI installation, or the Julia module)
+, will cause the user to default to your cluster MPI installation.
+
+The user can still create a differing per Julia project that
+will take precedent.
+
+### Using a different JLL provided MPI library
+
+The following JLL implementations are provided:
+
+- `MicrosoftMPI_jll`: Default for Windows
+- `MPICH_jll`: Default on all Unix systems
+- [`MPItrampoline_jll`](https://github.com/eschnett/MPItrampoline): Binaries built against MPItrampoline can be efficiently retargetted to a system MPI implementation.
+- `OpenMPI_jll`
+
+```@doc
+MPI.use_jll_binary
+```
+
+## Environment variables for the testsuite
 The test suite can also be modified by the following variables:
 
-- `JULIA_MPIEXEC_TEST_ARGS`: Additional arguments to be passed to the MPI launcher for the tests only.
+- `JULIA_MPI_TEST_NPROCS`: How many ranks to use within the tests
 - `JULIA_MPI_TEST_ARRAYTYPE`: Set to `CuArray` to test the CUDA-aware interface with
   [`CUDA.CuArray](https://github.com/JuliaGPU/CUDA.jl) buffers.
+- `JULIA_MPI_TEST_BINARY`: Check that the correct MPI binary is used for the tests
+- `JULIA_MPI_TEST_ABI`: Check that the correct MPI ABI is used for the tests
