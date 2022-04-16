@@ -10,12 +10,14 @@ using MPI
         # Test installation
         @test_logs (:info, r"Installing") (:info, r"Done") MPI.install_mpiexecjl(; destdir = dir)
         # Test a run of mpiexec
+        nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS", "")
+        nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
         mpiexecjl = joinpath(dir, "mpiexecjl")
         julia = joinpath(Sys.BINDIR, Base.julia_exename())
         example = joinpath(@__DIR__, "..", "docs", "examples", "01-hello.jl")
         env = ["JULIA_BINDIR" => Sys.BINDIR]
         p = withenv(env...) do
-            run(`$(mpiexecjl) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
+            run(`$(mpiexecjl) -n $(nprocs) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
         end
         @test success(p)
         # Test help messages
