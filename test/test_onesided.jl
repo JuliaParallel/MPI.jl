@@ -3,6 +3,7 @@ using MPI
 
 # TODO: enable CUDA tests once OpenMPI has full support
 ArrayType = Array
+synchronize() = nothing
 
 MPI.Init()
 

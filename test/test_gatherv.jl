@@ -4,8 +4,10 @@ using MPI
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     import CUDA
     ArrayType = CUDA.CuArray
+    synchronize() = CUDA.synchronize()
 else
     ArrayType = Array
+    synchronize() = nothing
 end
 
 MPI.Init()
@@ -24,6 +26,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Test passing the output buffer
     B = ArrayType{T}(undef, sum(counts))
+    synchronize()
     MPI.Gatherv!(A, isroot ? VBuffer(B, counts) : nothing, comm; root=root)
     if isroot
         @test B == ArrayType{T}(check)
@@ -38,9 +41,11 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     # Test explicit MPI_IN_PLACE
     if isroot
         B = ArrayType(fill(T(rank), sum(counts)))
+        synchronize()
         MPI.Gatherv!(MPI.IN_PLACE, VBuffer(B, counts), comm; root=root)
     else
         B = ArrayType(fill(T(rank), counts[rank+1]))
+        synchronize()
         MPI.Gatherv!(B, nothing, comm; root=root)
     end
     if isroot

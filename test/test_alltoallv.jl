@@ -4,8 +4,10 @@ using MPI
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     import CUDA
     ArrayType = CUDA.CuArray
+    synchronize() = CUDA.synchronize()
 else
     ArrayType = Array
+    synchronize() = nothing
 end
 
 MPI.Init()
@@ -21,7 +23,7 @@ send_vals = collect(Iterators.flatten([1:i for i = 1:size]))
 recv_vals = collect(Iterators.flatten([1:rank+1 for i = 1:size]))
 
 for T in Base.uniontypes(MPI.MPIDatatype)
-        
+
     A = ArrayType{T}(send_vals)
 
     # Non Allocating version

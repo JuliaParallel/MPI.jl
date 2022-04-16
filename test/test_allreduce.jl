@@ -4,8 +4,10 @@ using MPI
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     import CUDA
     ArrayType = CUDA.CuArray
+    synchronize() = CUDA.synchronize()
 else
     ArrayType = Array
+    synchronize() = nothing
 end
 
 MPI.Init()
@@ -19,7 +21,7 @@ if ArrayType != Array ||
     operators = [MPI.SUM, +]
 else
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
-end    
+end
 
 for T = [Int]
     for dims = [1, 2, 3]
@@ -41,7 +43,7 @@ for T = [Int]
             recv_arr = copy(send_arr)
             MPI.Allreduce!(recv_arr, op, MPI.COMM_WORLD)
             @test recv_arr == comm_size .* send_arr
-            
+
             # Allocating version
             val = MPI.Allreduce(2, op, MPI.COMM_WORLD)
             @test val == comm_size*2

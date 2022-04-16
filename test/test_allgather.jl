@@ -4,8 +4,10 @@ using MPI
 if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     import CUDA
     ArrayType = CUDA.CuArray
+    synchronize() = CUDA.synchronize()
 else
     ArrayType = Array
+    synchronize() = nothing
 end
 
 
@@ -32,11 +34,11 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Test passing output buffer with set size
     A = ArrayType(T[val])
-    
+
     C = ArrayType{T}(undef, size)
     MPI.Allgather!(A, C, comm) # implied size
     @test C == ArrayType{T}(1:size)
-    
+
     C = ArrayType{T}(undef, size)
     MPI.Allgather!(A, UBuffer(C,1), comm)
     @test C == ArrayType{T}(1:size)

@@ -58,7 +58,6 @@ steps:
       OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
       OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
       JULIA_CUDA_MEMORY_POOL: "none"
-    soft_fail: true
     commands: |
       echo "--- Configure MPI"
       buildkite-agent artifact download --step "Build OpenMPI -- CUDA" openmpi.tar.gz .
@@ -99,7 +98,6 @@ steps:
       OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
       OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
       JULIA_CUDA_MEMORY_POOL: "none"
-    soft_fail: true
     commands: |
       echo "--- Configure MPI"
       buildkite-agent artifact download --step "Build OpenMPI -- CUDA" openmpi.tar.gz .
