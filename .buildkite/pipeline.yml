@@ -1,0 +1,121 @@
+steps:
+  - label: "Build OpenMPI -- CUDA"
+    agents:
+      queue: "juliagpu"
+      cuda: "11.0"
+    env:
+      OPENMPI_VER: "4.0"
+      OPENMPI_VER_FULL: "4.0.3"
+    commands: |
+      apt-get install --yes --no-install-recommends curl
+      curl https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
+      tar -zxvf openmpi.tar.gz
+      pushd openmpi-$${OPENMPI_VER_FULL}
+      ./configure --with-cuda --prefix=$$(realpath ../openmpi)
+      make -j
+      make install
+      popd
+      tar -zcvf openmpi.tar.gz openmpi/
+    artifact_paths:
+      - "openmpi.tar.gz"
+# TODO: Need to build UCX with ROCM support first
+#         Spack for CI?
+#  - label: "Build OpenMPI -- ROCM"
+#    agents:
+#      queue: "juliagpu"
+#      rocm: "*" # todo fix ROCM version
+#    env:
+#      OPENMPI_VER: "4.0"
+#      OPENMPI_VER_FULL: "4.0.3"
+#    commands: |
+#      apt-get install --yes --no-install-recommends curl
+#      curl https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
+#      tar -zxvf openmpi.tar.gz
+#      pushd openmpi-$${OPENMPI_VER_FULL}
+#      ./configure --with-ucx --prefix=$$(realpath ../openmpi)
+#      make -j
+#      make install
+#      popd
+#      tar -zcvf openmpi.tar.gz openmpi/
+#    artifact_paths:
+#      - "openmpi.tar.gz"
+  - wait: ~
+  - label: "CUDA -- 1.6"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1.6"
+    agents:
+      queue: "juliagpu"
+      cuda: "11.0"
+    if: build.message !~ /\[skip tests\]/
+    timeout_in_minutes: 60
+    env:
+      JULIA_MPI_TEST_ARRAYTYPE: Array
+      JULIA_MPI_TEST_NPROCS: 2
+      JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
+      OMPI_ALLOW_RUN_AS_ROOT: 1
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+      OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
+      OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
+      JULIA_CUDA_MEMORY_POOL: "none"
+    commands: |
+      echo "--- Configure MPI"
+      buildkite-agent artifact download --step "Build OpenMPI -- CUDA" openmpi.tar.gz .
+      mkdir -p $${JULIA_MPI_PATH}
+      tar -zxvf openmpi.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
+      export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
+      export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
+
+      echo "--- Setup Julia packages"
+      julia --color=yes --project=test -e '
+          using Pkg
+          Pkg.develop(path="lib/MPIPreferences")
+          using MPIPreferences
+          MPIPreferences.use_system_binary(export_prefs=true)
+          rm("test/Manifest.toml")'
+      julia -e 'import Pkg; Pkg.develop(; path = joinpath(pwd(), "lib", "MPIPreferences"))'
+      julia -e 'import Pkg; Pkg.develop(; path = pwd())'
+      julia -e 'import Pkg; Pkg.precompile()'
+
+      echo "+++ Run tests"
+      julia -e 'import Pkg; Pkg.test("MPI")'
+
+  - label: "CUDA -- 1.7"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1.7"
+    agents:
+      queue: "juliagpu"
+      cuda: "11.0"
+    if: build.message !~ /\[skip tests\]/
+    timeout_in_minutes: 60
+    env:
+      JULIA_MPI_TEST_ARRAYTYPE: Array
+      JULIA_MPI_TEST_NPROCS: 2
+      JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
+      OMPI_ALLOW_RUN_AS_ROOT: 1
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+      OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
+      OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
+      JULIA_CUDA_MEMORY_POOL: "none"
+    commands: |
+      echo "--- Configure MPI"
+      buildkite-agent artifact download --step "Build OpenMPI -- CUDA" openmpi.tar.gz .
+      mkdir -p $${JULIA_MPI_PATH}
+      tar -zxvf openmpi.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
+      export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
+      export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
+
+      echo "--- Setup Julia packages"
+      julia --color=yes --project=test -e '
+          using Pkg
+          Pkg.develop(path="lib/MPIPreferences")
+          using MPIPreferences
+          MPIPreferences.use_system_binary(export_prefs=true)
+          rm("test/Manifest.toml")'
+      julia -e 'import Pkg; Pkg.develop(; path = joinpath(pwd(), "lib", "MPIPreferences"))'
+      julia -e 'import Pkg; Pkg.develop(; path = pwd())'
+      julia -e 'import Pkg; Pkg.precompile()'
+
+      echo "+++ Run tests"
+      julia -e 'import Pkg; Pkg.test("MPI")'
