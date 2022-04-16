@@ -1,5 +1,6 @@
 using Documenter
 using MPI
+using MPIPreferences
 
 # generate example markdown
 EXAMPLES = [
@@ -50,7 +51,7 @@ makedocs(
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true"
     ),
-    modules = [MPI],
+    modules = [MPI, MPIPreferences],
     pages = Any[
         "index.md",
         "configuration.md",
@@ -58,6 +59,7 @@ makedocs(
         "knownissues.md",
         "Examples" => EXAMPLES,
         "Reference" => [
+            "mpipreferences.md",
             "library.md",
             "environment.md",
             "comm.md",

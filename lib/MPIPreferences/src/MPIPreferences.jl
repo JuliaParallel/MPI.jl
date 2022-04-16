@@ -2,8 +2,18 @@ module MPIPreferences
 
 using Preferences, Libdl
 
+"""
+    binary :: String
+
+The currently selected binary.
+"""
 const binary = @load_preference("binary", Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll")
 
+"""
+    abi :: String
+
+The ABI of the currently selected binary.
+"""
 const abi = if binary == "system"
     @load_preference("abi")
 elseif binary == "MicrosoftMPI_jll"
@@ -27,7 +37,20 @@ module System
     mpiexec(f;adjust_PATH=true, adjust_LIBPATH=true) = f(`$mpiexec_path`)
 end
 
-function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll";export_prefs=false, force=true)
+"""
+    use_jll_binary(binary; export_prefs=false, force=true)
+
+Switches the underlying MPI implementation to one provided by JLL packages.
+Available options are:
+- `MicrosoftMPI_jll` (Only option and default on Winddows)
+- `MPICH_jll` (Default on every other platform)
+- `OpenMPI_jll`
+- `MPItrampoline_jll`
+
+The `export_prefs` option determines whether the preferences being set should be stored
+within `LocalPreferences.toml` or `Project.toml`.
+"""
+function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll"; export_prefs=false, force=true)
     binary in ["MicrosoftMPI_jll", "MPICH_jll", "OpenMPI_jll", "MPItrampoline_jll"] ||
         error("Unknown jll: $binary")
     set_preferences!(MPIPreferences,
@@ -38,8 +61,34 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         export_prefs=export_prefs,
         force=force
     )
+
+    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary
+
+    if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
+        @warn """
+        Due to a bug in Julia (until 1.6.5 and 1.7.1), setting preferences in transitive dependencies
+        is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24). To fix this either update
+        your version of Julia, or add MPIPreferences as a direct dependency to your project.
+        """
+    end
+
+    return nothing
 end
 
+
+"""
+    use_system_binary(;library_names, mpiexec="mpiexec", abi=nothing, export_prefs=false, force=true)
+
+Switches the underlying MPI implementation to a system provided one. We will
+search for a matching library with the given `library_names`. You can provide
+a path to `mpiexec` if the system provides a different one, or if it is not in
+the system path.
+
+The `abi` of the found library is determined automatically using [`identify_abi`](@ref).
+
+The `export_prefs` option determines whether the preferences being set should be stored
+within `LocalPreferences.toml` or `Project.toml`.
+"""
 function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
         mpiexec="mpiexec",
@@ -66,6 +115,18 @@ function use_system_binary(;
         export_prefs=export_prefs,
         force=force
     )
+
+    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" libmpi abi mpiexec
+
+    if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
+        @warn """
+        Due to a bug in Julia (until 1.6.5 and 1.7.1), setting preferences in transitive dependencies
+        is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24). To fix this either update
+        your version of Julia, or add MPIPreferences as a direct dependency to your project.
+        """
+    end
+
+    return nothing
 end
 
 
