@@ -93,7 +93,7 @@ function identify_abi(libmpi)
     end
 
     try
-        ptr = dlsym(hdl, :MPI_Get_library_version)
+        ptr = dlsym(hndl, :MPI_Get_library_version)
         ccall(ptr, Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
     finally
         Libdl.dlclose(hndl)
