@@ -1,3 +1,12 @@
+# Working around https://github.com/JuliaLang/Pkg.jl/issues/2500 for CI
+if VERSION <= v"1.8-"
+    test_project = first(Base.load_path())
+    preferences_file = joinpath(@__DIR__, "LocalPreferences.toml")
+    test_preferences_file = joinpath(dirname(test_project), "LocalPreferences.toml")
+    if isfile(preferences_file) && !isfile(test_preferences_file)
+        cp(preferences_file, test_preferences_file)
+    end
+end
 using Test, MPI
 
 using MPIPreferences
