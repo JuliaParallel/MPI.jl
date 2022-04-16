@@ -55,4 +55,7 @@ testfiles = sort(filter(istest, readdir(testdir)))
         end
         @test true
     end
+    if f == "test_io_subarray.jl"
+        break
+    end
 end
