@@ -52,16 +52,16 @@ $ mpiexecjl --project=/path/to/project -n 20 julia script.jl
 
 MPI.jl uses [Preferences.jl](https://github.com/JuliaPackaging/Preferences.jl) to
 allow the user to choose which MPI implementation to use for a project. This provides
-a single source of truth that can be used for `JLL` (Julia packages providing C libraries)
-that link against MPI, as well as localizing the choice of MPI implementation to a project.
+a single source of truth that can be used for JLL packages (Julia packages providing C libraries)
+that link against MPI, localizes the choice of MPI implementation to a project.
 
 Users can use the provided [`use_system_binary`](@ref) or [`use_jll_binary`](@ref)
-to switch MPI implementations.
+to switch MPI implementations. By default, the JLL-provided binaries are used.
 
 ### Migration from MPI.jl `v0.19`
 
 Prior to MPI.jl `v0.20` environment variables were used to configure which MPI
-library to use. These have now been removed.
+library to use. These have now been removed and have no effect anymore:
 
 - `JULIA_MPI_BINARY`
 - `JULIA_MPIEXEC`
@@ -69,7 +69,7 @@ library to use. These have now been removed.
 - `JULIA_MPI_CFLAGS`
 - `JULIA_MPICC`
 
-### Using a system-provided MPI
+### Using a system-provided MPI backend
 
 #### Requirements
 
@@ -78,7 +78,7 @@ standard or later.
 
 ### Configuration
 
-To use the the system MPI, run `MPI.use_system_binary()`.
+To use the system MPI library, run `MPI.use_system_binary()`.
 This will attempt find and identify any available MPI implementation, and create
 a file called `LocalPreferences.toml` adjacent to the current `Project.toml`.
 
@@ -94,7 +94,7 @@ julia --project -e 'using MPI; MPI.use_system_binary()'
 
 The MPI standard doesn't specify the exact application binary interface (ABI).
 
-The following implementations should work:
+The following MPI implementations should work out-of-the-box with MPI.jl:
 
 - [Open MPI](http://www.open-mpi.org/)
 - [MPICH](http://www.mpich.org/) (v3.1 or later)
@@ -116,12 +116,12 @@ but also open an issue so that the auto-detection can be improved. `export_prefs
 
 #### Notes to HPC cluster adminstators
 
-Preferences are merged across the Julia load path, so it is feasible to provide a module file that appends a path to
-`JULIA_LOAD_PATH` variable that contains system wide preferences.
+Preferences are merged across the Julia load path, such that it is feasible to provide a module file that appends a path to
+`JULIA_LOAD_PATH` variable that contains system-wide preferences.
 
 As an example you can use [`MPI.use_system_binary(;export_prefs)`](@ref) to create a file `Project.toml` containing:
 
-```
+```toml
 [extras]
 MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 
@@ -131,18 +131,20 @@ binary = "system"
 libmpi = "/software/mpi/lib/libmpi.so"
 mpiexec = "/software/mpi/bin/mpiexec"
 ```
-copying that to a central location like: `/software/mpi/julia` and setting `JULIA_LOAD_PATH=":/software/mpi/julia"` (note the `:` before the path) in the coressponding module file (preferrably the MPI installation, or the Julia module)
-, will cause the user to default to your cluster MPI installation.
+Copying this `Project.toml` to a central location such as `/software/mpi/julia` and setting the environment
+variable `JULIA_LOAD_PATH=":/software/mpi/julia"` (note the `:` before the path) in the corresponding
+module file (preferably the module file for the MPI installation or for Julia),
+will cause the user to default to your cluster MPI installation.
 
-The user can still create a differing per Julia project that
-will take precedent.
+The user can still provide differing MPI configurations for each Julia project that
+will take precedent by modifying the local `Project.toml` or by providing a `LocalPreferences.toml` file.
 
 ### Using a different JLL provided MPI library
 
-The following JLL implementations are provided:
+The following MPI implementations are provided as JLL packages and automatically obtained when installing MPI.jl:
 
 - `MicrosoftMPI_jll`: Default for Windows
-- `MPICH_jll`: Default on all Unix systems
+- `MPICH_jll`: Default for all Unix-like systems
 - [`MPItrampoline_jll`](https://github.com/eschnett/MPItrampoline): Binaries built against MPItrampoline can be efficiently retargetted to a system MPI implementation.
 - `OpenMPI_jll`
 
