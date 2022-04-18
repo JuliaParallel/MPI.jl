@@ -104,7 +104,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
-        MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
+        MPIPreferences.use_jll_binary("OpenMPI_jll")
         rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
@@ -152,7 +152,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
-        MPIPreferences.use_system_binary(export_prefs=true)
+        MPIPreferences.use_system_binary()
         rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
@@ -207,7 +207,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
-        MPIPreferences.use_system_binary(export_prefs=true)
+        MPIPreferences.use_system_binary()
         rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
@@ -276,7 +276,7 @@ jobs:
           using Pkg
           Pkg.develop(path="lib/MPIPreferences")
           using MPIPreferences
-          MPIPreferences.use_system_binary(export_prefs=true)
+          MPIPreferences.use_system_binary()
           rm("test/Manifest.toml")'
 
     # we can't use the usual actions here as we need to ensure the environment variables are set
@@ -327,7 +327,6 @@ jobs:
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
         MPIPreferences.use_system_binary(;
-          export_prefs=true,
           mpiexec="C:\\Program Files\\Microsoft MPI\\Bin\\mpiexec"
         )
         rm("test/Manifest.toml")
@@ -383,7 +382,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
-        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        MPIPreferences.use_jll_binary("MPItrampoline_jll")
         rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
@@ -455,7 +454,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
-        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        MPIPreferences.use_jll_binary("MPItrampoline_jll")
         rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@latest
