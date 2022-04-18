@@ -17,6 +17,8 @@ MPI.File.get_byte_offset
 
 ```@docs
 MPI.File.sync
+MPI.File.get_atomicity
+MPI.File.set_atomicity
 ```
 
 ## Data access

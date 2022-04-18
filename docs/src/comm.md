@@ -46,7 +46,7 @@ MPI.Intercomm_merge
 
 ### Miscellaneous
 
-```
+```@docs
 MPI.universe_size
 MPI.tag_ub
 ```

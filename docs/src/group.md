@@ -11,13 +11,6 @@ MPI.Group
 MPI.Comparison
 ```
 
-## Constants
-
-```@docs
-MPI.GROUP_NULL
-MPI.GROUP_EMPTY
-```
-
 ## Functions
 
 ### Operations
@@ -25,15 +18,4 @@ MPI.GROUP_EMPTY
 ```@docs
 MPI.Group_size
 MPI.Group_rank
-MPI.Group_compare
-```
-
-### Constructors
-
-```@docs
-MPI.Group_difference
-MPI.Group_intersection
-MPI.Group_union
-MPI.Group_excl
-MPI.Group_incl
 ```

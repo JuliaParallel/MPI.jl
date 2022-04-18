@@ -23,5 +23,4 @@ MPI.Is_thread_main
 MPI.Initialized
 MPI.Finalize
 MPI.Finalized
-MPI.universe_size
 ```
