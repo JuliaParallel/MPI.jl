@@ -55,8 +55,9 @@ allow the user to choose which MPI implementation to use for a project. This pro
 a single source of truth that can be used for JLL packages (Julia packages providing C libraries)
 that link against MPI, localizes the choice of MPI implementation to a project.
 
-Users can use the provided [`use_system_binary`](@ref) or [`use_jll_binary`](@ref)
-to switch MPI implementations. By default, the JLL-provided binaries are used.
+Users can use the provided [`use_system_binary`](@ref MPIPreferences.use_system_binary) or
+[`use_jll_binary`](@ref MPIPreferences.use_jll_binary) to switch MPI implementations. By
+default, the JLL-provided binaries are used.
 
 ### Migration from MPI.jl `v0.19`
 
@@ -106,8 +107,8 @@ The following MPI implementations should work out-of-the-box with MPI.jl:
 - [Cray MPICH](https://docs.nersc.gov/development/compilers/wrappers/)
 - [Fujitsu MPI](https://www.fujitsu.com/global/about/resources/publications/technicalreview/2020-03/article07.html#cap-03)
 
-If the implementation is changed, you will need to use [`MPI.use_system_binary()`](@ref) or
-[`MPI.use_jll_binary()`](@ref).
+If the implementation is changed, you will need to use [`MPI.use_system_binary()`](@ref MPIPreferences.use_system_binary)
+or [`MPI.use_jll_binary()`](@ref MPIPreferences.use_jll_binary).
 
 #### Advanced options
 
@@ -129,7 +130,8 @@ but also open an issue such that the automatic detection can be improved.
 Preferences are merged across the Julia load path, such that it is feasible to provide a module file that appends a path to
 `JULIA_LOAD_PATH` variable that contains system-wide preferences.
 
-As an example you can use [`MPI.use_system_binary()`](@ref) to create a file `LocalPreferences.toml` containing:
+As an example you can use [`MPI.use_system_binary()`](@ref MPIPreferences.use_system_binary)
+to create a file `LocalPreferences.toml` containing:
 
 ```toml
 [MPIPreferences]

@@ -6,7 +6,6 @@
 MPI.Request
 MPI.RequestSet
 MPI.Status
-MPI.StatusRef
 ```
 
 ### Fields
@@ -21,12 +20,6 @@ MPI.Status.error::Cint
 
 ```@docs
 MPI.Get_count
-```
-
-## Constants
-
-```@docs
-MPI.STATUS_ZERO
 ```
 
 ## Blocking communication
