@@ -11,12 +11,6 @@ else
     ArrayType = Array
 end
 
-if Sys.isunix()
-    # This test doesn't need to be run with mpiexec.  `mpiexecjl` is currently
-    # available only on Unix systems
-    include("mpiexecjl.jl")
-end
-
 nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS", "")
 nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
 
@@ -27,6 +21,12 @@ if haskey(ENV,"JULIA_MPI_TEST_BINARY")
 end
 if haskey(ENV,"JULIA_MPI_TEST_ABI")
     @test ENV["JULIA_MPI_TEST_ABI"] == MPIPreferences.abi
+end
+
+if Sys.isunix()
+    # This test doesn't need to be run with mpiexec.  `mpiexecjl` is currently
+    # available only on Unix systems
+    include("mpiexecjl.jl")
 end
 
 testdir = @__DIR__
