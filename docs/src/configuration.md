@@ -101,6 +101,12 @@ The following MPI implementations should work out-of-the-box with MPI.jl:
 - [Intel MPI](https://software.intel.com/en-us/mpi-library)
 - [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
 - [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
+- [MVAPICH](http://mvapich.cse.ohio-state.edu/)
+- [Cray MPICH](https://docs.nersc.gov/development/compilers/wrappers/)
+- [Fujitsu MPI](https://www.fujitsu.com/global/about/resources/publications/technicalreview/2020-03/article07.html#cap-03)
+
+If the implementation is changed, you will need to use [`MPI.use_system_binary()`](@ref) or
+[`MPI.use_jll_binary()`](@ref).
 
 #### Advanced options
 
