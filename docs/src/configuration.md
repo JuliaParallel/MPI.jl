@@ -92,7 +92,6 @@ julia --project -e 'using MPI; MPI.use_system_binary()'
     from transitive dependencies is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24).
     To fix this update your version of Julia, or add `MPIPreferences` as a direct dependency to your project.
 
-The MPI standard doesn't specify the exact application binary interface (ABI).
 
 The following MPI implementations should work out-of-the-box with MPI.jl:
 
@@ -110,6 +109,7 @@ MPI.use_system_binary
 You can use the argument `mpiexec` to provide the name (or full path) of the MPI launcher executable. The default is
 `mpiexec`, but some clusters require using the scheduler launcher interface (e.g. `srun`
 on Slurm, `aprun` on PBS). If the MPI library has an uncommon name you can provide it in `library_names`.
+The MPI standard does not specify the exact application binary interface (ABI).
 In case ABI detection fails you can provide a manual choice,
 but also open an issue so that the auto-detection can be improved. `export_prefs=true` can be used to copy the preferences into the `Project.toml` instead of creating a
 `LocalPreferences.toml` file to hold them.
