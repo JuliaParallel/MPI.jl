@@ -86,11 +86,11 @@ a file called `LocalPreferences.toml` adjacent to the current `Project.toml`.
 julia --project -e 'using MPI; MPI.use_system_binary()'
 ```
 !!! note
-    You can copy `LocalPreferences.toml` to a different project, but you must list
-    `MPIPreferences` in the Project.toml either in `[deps]` or `[extras]` for the settings
+    You can copy `LocalPreferences.toml` to a different project folder, but you must list
+    `MPIPreferences` in the `[extras]` section of the `Project.toml` for the settings
     to take effect. Due to a bug in Julia (until `v1.6.5` and `v1.7.1`), getting preferences
-    gtom transitive dependencies is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24).
-    To fix this either update your version of Julia, or add `MPIPreferences` as a direct dependency to your project.
+    from transitive dependencies is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24).
+    To fix this update your version of Julia, or add `MPIPreferences` as a direct dependency to your project.
 
 The MPI standard doesn't specify the exact application binary interface (ABI).
 
@@ -107,7 +107,7 @@ The following MPI implementations should work out-of-the-box with MPI.jl:
 ```@doc
 MPI.use_system_binary
 ```
-You can use the argument `mpiexec` to provide the the name (or full path) of the MPI launcher executable. The default is
+You can use the argument `mpiexec` to provide the name (or full path) of the MPI launcher executable. The default is
 `mpiexec`, but some clusters require using the scheduler launcher interface (e.g. `srun`
 on Slurm, `aprun` on PBS). If the MPI library has an uncommon name you can provide it in `library_names`.
 In case ABI detection fails you can provide a manual choice,
