@@ -9,6 +9,11 @@ if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "CuArray"
     CUDA.version()
     CUDA.precompile_runtime()
     ArrayType = CUDA.CuArray
+elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
+    import AMDGPU
+    AMDGPU.versioninfo()
+    AMDGPU.default_device() # DEBUG: something else may be needed here.
+    ArrayType = AMDGPU.ROCArray
 else
     ArrayType = Array
 end
