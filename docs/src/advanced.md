@@ -41,3 +41,9 @@ MPI.Errhandler
 MPI.get_errorhandler
 MPI.set_errorhandler!
 ```
+
+## Miscellaneous
+
+```@docs
+MPI.Consts.@const_ref
+```

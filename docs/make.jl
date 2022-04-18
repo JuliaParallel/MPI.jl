@@ -72,7 +72,8 @@ makedocs(
             "advanced.md",
         ],
         "refindex.md",
-    ]
+    ],
+    strict = true,
 )
 
 deploydocs(
