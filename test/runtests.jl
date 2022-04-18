@@ -41,16 +41,30 @@ istest(f) = endswith(f, ".jl") && startswith(f, "test_")
 testfiles = sort(filter(istest, readdir(testdir)))
 
 @testset "$f" for f in testfiles
-    mpiexec() do cmd
+    mpiexec() do mpirun
+        cmd(n=nprocs) = `$mpirun -n $n $(Base.julia_cmd()) $(joinpath(testdir, f))`
         if f == "test_spawn.jl"
-            run(`$cmd -n 1 $(Base.julia_cmd()) $(joinpath(testdir, f))`)
+            # Some command as the others, but always use a single process
+            run(cmd(1))
         elseif f == "test_threads.jl"
             withenv("JULIA_NUM_THREADS" => "4") do
-                run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
+                run(cmd())
             end
         elseif f == "test_error.jl"
-            r = run(ignorestatus(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`))
+            r = run(ignorestatus(cmd()))
             @test !success(r)
+        elseif f == "test_errorhandler.jl" && (MPI.identify_implementation()[1] == MPI.UnknownMPI ||
+            # Fujitsu MPI is known to not work with custom error handlers
+            startswith(MPI.MPI_LIBRARY_VERSION_STRING, "FUJITSU MPI"))
+            try
+                run(cmd())
+            catch e
+                @error """
+                       $(f) tests failed.  This may due to the fact this implementation of MPI doesn't support custom error handlers.
+                       See the full error message for more details.  Some messages may have been written above.
+                       """ exception=(e, catch_backtrace())
+                @test_broken false
+            end
         else
             # MPI_Reduce with MPICH 3.4.2 on macOS when root != 0 and
             # when recvbuf == C_NULL segfaults
@@ -58,7 +72,7 @@ testfiles = sort(filter(istest, readdir(testdir)))
             if get(ENV, "JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE", "") != "" && Sys.isapple() && f == "test_reduce.jl"
                 return
             end
-            run(`$cmd -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`)
+            run(cmd())
         end
         @test true
     end
