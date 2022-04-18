@@ -32,8 +32,14 @@ The [`mpiexec`](@ref) function is provided for launching MPI programs from Julia
 
 If your MPI implementation has been compiled with CUDA support, then `CUDA.CuArray`s (from the
 [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) package) can be passed directly as
-send and receive buffers for point-to-point and collective operations (they may also work
-with one-sided operations, but these are not often supported).
+send and receive buffers for point-to-point and collective operations (they may also work with one-sided operations, but these are not often supported).
 
 If using Open MPI, the status of CUDA support can be checked via the
 [`MPI.has_cuda()`](@ref) function.
+
+## ROCm-aware MPI support
+
+If your MPI implementation has been compiled with ROCm support (AMDGPU), then `AMDGPU.ROCArray`s (from the
+[AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl) package) can be passed directly as send and receive buffers for point-to-point and collective operations (they may also work with one-sided operations, but these are not often supported).
+
+The status of ROCm (AMDGPU) support cannot currently be queried.
