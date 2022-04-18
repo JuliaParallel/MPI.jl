@@ -37,24 +37,22 @@ testfiles = sort(filter(istest, readdir(testdir)))
 
 @testset "$f" for f in testfiles
     mpiexec() do mpirun
-        cmd = `$mpirun -n $nprocs $(Base.julia_cmd()) $(joinpath(testdir, f))`
+        cmd(n=nprocs) = `$mpirun -n $n $(Base.julia_cmd()) $(joinpath(testdir, f))`
         if f == "test_spawn.jl"
             # Some command as the others, but always use a single process
-            _cmd = deepcopy(cmd)
-            _cmd.exec[findfirst(==("$nprocs"), _cmd.exec)] = "1"
-            run(_cmd)
+            run(cmd(1))
         elseif f == "test_threads.jl"
             withenv("JULIA_NUM_THREADS" => "4") do
-                run(cmd)
+                run(cmd())
             end
         elseif f == "test_error.jl"
-            r = run(ignorestatus(cmd))
+            r = run(ignorestatus(cmd()))
             @test !success(r)
         elseif f == "test_errorhandler.jl" && (MPI.identify_implementation()[1] == MPI.UnknownMPI ||
             # Fujitsu MPI is known to not work with custom error handlers
             startswith(MPI.MPI_LIBRARY_VERSION_STRING, "FUJITSU MPI"))
             try
-                run(cmd)
+                run(cmd())
             catch e
                 @error """
                        $(f) tests failed.  This may due to the fact this implementation of MPI doesn't support custom error handlers.
@@ -69,7 +67,7 @@ testfiles = sort(filter(istest, readdir(testdir)))
             if get(ENV, "JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE", "") != "" && Sys.isapple() && f == "test_reduce.jl"
                 return
             end
-            run(cmd)
+            run(cmd())
         end
         @test true
     end
