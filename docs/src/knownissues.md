@@ -97,7 +97,7 @@ _More about CUDA.jl [memory environment-variables](https://cuda.juliagpu.org/sta
 
 Make sure to:
 - Have MPI and CUDA on path (or module loaded) that were used to build the CUDA-aware MPI
-- Make sure to have:
+- Set the following environment variables:
     ```
     export JULIA_CUDA_MEMORY_POOL=none
     export JULIA_MPI_BINARY=system
@@ -113,6 +113,22 @@ Make sure to:
   - If you are using correct MPI implementation: `MPI.identify_implementation()`
 
 After that, it may be preferred to run the Julia MPI script (as suggested [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/11)) launching it from a shell script (as suggested [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/4)).
+
+## ROCm-aware MPI
+
+### Hints to ensure ROCm-aware MPI to be functional
+
+Make sure to:
+- Have MPI and ROCm on path (or module loaded) that were used to build the ROCm-aware MPI
+- Add AMDGPU and MPI packages in Julia: 
+    ```
+    julia -e 'using Pkg; pkg"add AMDGPU"; pkg"add MPI"; using MPI; MPI.use_system_binary()'
+    ```
+- Then in Julia, upon loading MPI and CUDA modules, you can check
+  - AMDGPU version: `AMDGPU.versioninfo()`
+  - If you are using correct MPI implementation: `MPI.identify_implementation()`
+
+After that, [this script](https://gist.github.com/luraess/c228ec08629737888a18c6a1e397643c) can be used to verify if ROCm-aware MPI is functional (modified after the CUDA-aware version from [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/11)). It may be preferred to run the Julia ROCm-aware MPI script launching it from a shell script (as suggested [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/4)).
 
 ## Microsoft MPI
 
