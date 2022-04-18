@@ -35,6 +35,8 @@ end
 
 
 import MPIPreferences
+const use_jll_binary = MPIPreferences.use_jll_binary
+const use_system_binary = MPIPreferences.use_system_binary
 
 if MPIPreferences.binary == "MPICH_jll"
     import MPICH_jll: libmpi, mpiexec
