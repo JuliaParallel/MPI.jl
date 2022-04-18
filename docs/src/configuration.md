@@ -79,12 +79,14 @@ standard or later.
 ### Configuration
 
 To use the system MPI library, run `MPI.use_system_binary()`.
-This will attempt find and identify any available MPI implementation, and create
+This will attempt to locate and to identify any available MPI implementation, and create
 a file called `LocalPreferences.toml` adjacent to the current `Project.toml`.
+Use `Base.active_project()` to obtain the location of the currently active project.
 
 ```sh
 julia --project -e 'using MPI; MPI.use_system_binary()'
 ```
+
 !!! note
     You can copy `LocalPreferences.toml` to a different project folder, but you must list
     `MPIPreferences` in the `[extras]` section of the `Project.toml` for the settings
@@ -106,6 +108,7 @@ The following MPI implementations should work out-of-the-box with MPI.jl:
 ```@doc
 MPI.use_system_binary
 ```
+
 You can use the argument `mpiexec` to provide the name (or full path) of the MPI launcher executable. The default is
 `mpiexec`, but some clusters require using the scheduler launcher interface (e.g. `srun`
 on Slurm, `aprun` on PBS). If the MPI library has an uncommon name you can provide it in `library_names`.
@@ -120,22 +123,28 @@ but also open an issue such that the automatic detection can be improved.
 Preferences are merged across the Julia load path, such that it is feasible to provide a module file that appends a path to
 `JULIA_LOAD_PATH` variable that contains system-wide preferences.
 
-As an example you can use [`MPI.use_system_binary(;export_prefs)`](@ref) to create a file `Project.toml` containing:
+As an example you can use [`MPI.use_system_binary()`](@ref) to create a file `LocalPreferences.toml` containing:
 
 ```toml
-[extras]
-MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
-
-[preferences.MPIPreferences]
+[MPIPreferences]
 abi = "OpenMPI"
 binary = "system"
 libmpi = "/software/mpi/lib/libmpi.so"
 mpiexec = "/software/mpi/bin/mpiexec"
 ```
-Copying this `Project.toml` to a central location such as `/software/mpi/julia` and setting the environment
-variable `JULIA_LOAD_PATH=":/software/mpi/julia"` (note the `:` before the path) in the corresponding
+
+Copying this `LocalPreferences.toml` to a central location such as `/software/mpi/julia` and
+create adjacent to it a `Project.toml` containing:
+
+```toml
+[extras]
+MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
+```
+
+Now exporting the environment variable `JULIA_LOAD_PATH=":/software/mpi/julia"`
+(note the `:` before the path) in the corresponding
 module file (preferably the module file for the MPI installation or for Julia),
-will cause the user to default to your cluster MPI installation.
+will cause MPI.jl to default to your cluster MPI installation.
 
 The user can still provide differing MPI configurations for each Julia project that
 will take precedent by modifying the local `Project.toml` or by providing a `LocalPreferences.toml` file.
@@ -147,13 +156,29 @@ The following MPI implementations are provided as JLL packages and automatically
 - `MicrosoftMPI_jll`: Default for Windows
 - `MPICH_jll`: Default for all Unix-like systems
 - [`MPItrampoline_jll`](https://github.com/eschnett/MPItrampoline): Binaries built against MPItrampoline can be efficiently retargetted to a system MPI implementation.
-- `OpenMPI_jll`
+- `OpenMPI_jll`:
 
 ```@doc
 MPI.use_jll_binary
 ```
 
-## Environment variables for the testsuite
+## Configuration of the MPI.jl testsuite
+
+### Testing against a different MPI implementation
+
+The `LocalPreferences.toml` must be located within the `test` folder, you can
+either create it in place or copy it into place.
+
+```
+~/MPI> julia --project=test
+julia> using MPIPreferences
+julia> MPIPreferences.use_system_binary()
+~/MPI> rm test/Manifest.toml
+~/MPI> julia --project
+(MPI) pkg> test
+```
+
+### Environment variables
 The test suite can also be modified by the following variables:
 
 - `JULIA_MPI_TEST_NPROCS`: How many ranks to use within the tests
