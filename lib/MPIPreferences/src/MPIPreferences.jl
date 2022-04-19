@@ -97,7 +97,10 @@ function use_system_binary(;
         force=true,
     )
 
-    libmpi = find_library(library_names)
+    # Set `ZES_ENABLE_SYSMAN` to work around https://github.com/open-mpi/ompi/issues/10142
+    libmpi = withenv("ZES_ENABLE_SYSMAN" => "1") do
+        find_library(library_names)
+    end
     if libmpi == ""
         error("MPI library could not be found")
     end
@@ -144,13 +147,16 @@ function identify_abi(libmpi)
     buf = Array{UInt8}(undef, 8192)
     buflen = Ref{Cint}()
 
-    @static if Sys.isunix()
-        # need to open libmpi with RTLD_GLOBAL flag for Linux, before
-        # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
-        # at least on Ubuntu 15.10
-        hndl = Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+    hndl = @static if Sys.isunix()
+        # Again, work around https://github.com/open-mpi/ompi/issues/10142
+        withenv("ZES_ENABLE_SYSMAN" => "1") do
+            # need to open libmpi with RTLD_GLOBAL flag for Linux, before
+            # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
+            # at least on Ubuntu 15.10
+            Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+        end
     else
-        hndl = Libdl.dlopen(libmpi)
+        Libdl.dlopen(libmpi)
     end
 
     try
