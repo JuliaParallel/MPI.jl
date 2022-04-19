@@ -19,8 +19,7 @@ MPI.Init()
 
 @test MPI.has_cuda() isa Bool
 
-# DEBUG: a cleaner apporach may be designed
-if ArrayType != Array && ArrayType != AMDGPU.ROCArray
+if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     @test MPI.has_cuda()
 end
 
