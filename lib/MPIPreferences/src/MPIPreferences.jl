@@ -157,96 +157,105 @@ function identify_abi(libmpi)
         ptr = dlsym(hndl, :MPI_Get_library_version)
         ccall(ptr, Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
     finally
-        Libdl.dlclose(hndl)
-    end
+        @assert buflen[] < 8192
+        resize!(buf, buflen[])
+        version_string = String(buf)
 
-    @assert buflen[] < 8192
-    resize!(buf, buflen[])
-    version_string = String(buf)
+        # 2) try to identify the MPI implementation
+        impl = "unknown"
+        version = v"0"
 
-    # 2) try to identify the MPI implementation
-    impl = "unknown"
-    version = v"0"
-
-    if startswith(version_string, "MPICH")
-        impl = "MPICH"
-        # "MPICH Version:\t%s\n" /  "MPICH2 Version:\t%s\n"
-        if (m = match(r"^MPICH2? Version:\t(\d+.\d+(?:.\d+)?\w*)\n", version_string)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif startswith(version_string, "Open MPI")
-        # Open MPI / Spectrum MPI
-        impl = occursin("IBM Spectrum MPI", version_string) ? "IBMSpectrumMPI" : "OpenMPI"
-
-        if (m = match(r"^Open MPI v(\d+.\d+.\d+\w*)", version_string)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif startswith(version_string, "Microsoft MPI")
-        impl = "MicrosoftMPI"
-        # "Microsoft MPI %u.%u.%u.%u%S"
-        # ignore last 2 (build numbers)
-        if (m = match(r"^Microsoft MPI (\d+.\d+)", version_string)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif startswith(version_string, "Intel")
-        impl = "IntelMPI"
-
-        # "Intel(R) MPI Library 2019 Update 4 for Linux* OS"
-        if (m = match(r"^Intel\(R\) MPI Library (\d+)(?: Update (\d+))?", version_string)) !== nothing
-            if m.captures[2] === nothing
+        if startswith(version_string, "MPICH")
+            impl = "MPICH"
+            # "MPICH Version:\t%s\n" /  "MPICH2 Version:\t%s\n"
+            if (m = match(r"^MPICH2? Version:\t(\d+.\d+(?:.\d+)?\w*)\n", version_string)) !== nothing
                 version = VersionNumber(m.captures[1])
-            else
-                version = VersionNumber(m.captures[1]*"."*m.captures[2])
+            end
+
+        elseif startswith(version_string, "Open MPI")
+            # Open MPI / Spectrum MPI
+            impl = occursin("IBM Spectrum MPI", version_string) ? "IBMSpectrumMPI" : "OpenMPI"
+
+            if (m = match(r"^Open MPI v(\d+.\d+.\d+\w*)", version_string)) !== nothing
+                version = VersionNumber(m.captures[1])
+            end
+
+        elseif startswith(version_string, "Microsoft MPI")
+            impl = "MicrosoftMPI"
+            # "Microsoft MPI %u.%u.%u.%u%S"
+            # ignore last 2 (build numbers)
+            if (m = match(r"^Microsoft MPI (\d+.\d+)", version_string)) !== nothing
+                version = VersionNumber(m.captures[1])
+            end
+
+        elseif startswith(version_string, "Intel")
+            impl = "IntelMPI"
+
+            # "Intel(R) MPI Library 2019 Update 4 for Linux* OS"
+            if (m = match(r"^Intel\(R\) MPI Library (\d+)(?: Update (\d+))?", version_string)) !== nothing
+                if m.captures[2] === nothing
+                    version = VersionNumber(m.captures[1])
+                else
+                    version = VersionNumber(m.captures[1]*"."*m.captures[2])
+                end
+            end
+
+        elseif startswith(version_string, "MVAPICH2")
+            impl = "MVAPICH"
+            # "MVAPICH2 Version      :\t%s\n")
+            if (m = match(r"^MVAPICH2? Version\s*:\t(\S*)\n", version_string)) !== nothing
+                version = VersionNumber(m.captures[1])
+            end
+
+        elseif occursin("CRAY MPICH", version_string)
+            impl = "CrayMPICH"
+            # "MPI VERSION    : CRAY MPICH version 7.7.10 (ANL base 3.2)\n"
+            if (m = match(r"CRAY MPICH version (\d+.\d+.\d+)", version_string)) !== nothing
+                version = VersionNumber(m.captures[1])
+            end
+        elseif startswith(version_string, "FUJITSU MPI")
+            impl = "FujitsuMPI"
+            # "FUJITSU MPI Library 4.0.0 (4.0.1fj4.0.0)\0"
+            if (m = match(r"^FUJITSU MPI Library (\d+.\d+.\d+)", version_string)) !== nothing
+                version = VersionNumber(m.captures[1])
+            end
+        elseif startswith(version_string, "MPIwrapper")
+            impl = "MPIwrapper"
+            # MPIwrapper 2.2.2
+            if (m = match(r"^MPIwrapper Version:\t(\d+.\d+.\d+\w*)", version_string)) !== nothing
+                version = VersionNumber(m.captures[1])
             end
         end
-
-    elseif startswith(version_string, "MVAPICH2")
-        impl = "MVAPICH"
-        # "MVAPICH2 Version      :\t%s\n")
-        if (m = match(r"^MVAPICH2? Version\s*:\t(\S*)\n", version_string)) !== nothing
-            version = VersionNumber(m.captures[1])
+        # 3) determine the abi from the implementation + version
+        if (impl == "MPICH" && version >= v"3.1" ||
+            impl == "IntelMPI" && version > v"2014" ||
+            impl == "MVAPICH" && version >= v"2" ||
+            impl == "CrayMPICH" && version >= v"7")
+            # https://www.mpich.org/abi/
+            abi = "MPICH"
+        elseif impl == "OpenMPI" || impl == "IBMSpectrumMPI" || impl == "FujitsuMPI"
+            abi = "OpenMPI"
+        elseif impl == "MicrosoftMPI"
+            abi = "MicrosoftMPI"
+        elseif impl == "MPIwrapper"
+            abi = "MPItrampoline"
+        else
+            abi = "unknown"
         end
 
-    elseif occursin("CRAY MPICH", version_string)
-        impl = "CrayMPICH"
-        # "MPI VERSION    : CRAY MPICH version 7.7.10 (ANL base 3.2)\n"
-        if (m = match(r"CRAY MPICH version (\d+.\d+.\d+)", version_string)) !== nothing
-            version = VersionNumber(m.captures[1])
+        @info "MPI implementation" libmpi version_string impl version abi
+
+        if impl == "OpenMPI" && v"4.1.2" ≤ version < v"5"
+            # The issue should be fixed in v5: https://github.com/open-mpi/ompi/pull/10185
+            @warn """
+                It appears you are using OpenMPI v$(version) which is known to be affected by an issue
+                which causes segmentation faults when dlclosing libmpi.  If this happens,  export
+                the environment variable `ZES_ENABLE_SYSMAN=1` before restarting Julia and trying again.
+                See <https://github.com/open-mpi/ompi/issues/10142> for more information.
+                """
         end
-    elseif startswith(version_string, "FUJITSU MPI")
-        impl = "FujitsuMPI"
-        # "FUJITSU MPI Library 4.0.0 (4.0.1fj4.0.0)\0"
-        if (m = match(r"^FUJITSU MPI Library (\d+.\d+.\d+)", version_string)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-    elseif startswith(version_string, "MPIwrapper")
-        impl = "MPIwrapper"
-        # MPIwrapper 2.2.2
-        if (m = match(r"^MPIwrapper Version:\t(\d+.\d+.\d+\w*)", version_string)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
+        Libdl.dlclose(hndl)
     end
-    # 3) determine the abi from the implementation + version
-    if (impl == "MPICH" && version >= v"3.1" ||
-        impl == "IntelMPI" && version > v"2014" ||
-        impl == "MVAPICH" && version >= v"2" ||
-        impl == "CrayMPICH" && version >= v"7")
-        # https://www.mpich.org/abi/
-        abi = "MPICH"
-    elseif impl == "OpenMPI" || impl == "IBMSpectrumMPI" || impl == "FujitsuMPI"
-        abi = "OpenMPI"
-    elseif impl == "MicrosoftMPI"
-        abi = "MicrosoftMPI"
-    elseif impl == "MPIwrapper"
-        abi = "MPItrampoline"
-    else
-        abi = "unknown"
-    end
-
-    @info "MPI implementation" libmpi version_string impl version abi
 
     return abi
 end
