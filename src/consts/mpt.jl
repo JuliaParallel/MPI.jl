@@ -64,7 +64,7 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 
 # Run-time constants
 
-@const_ref MPI_ANY_SOURCE Cint -2 # TODO Check if this works as const_ref (comes from C enum)
+@const_ref MPI_ANY_SOURCE Cint -2
 @const_ref MPI_ANY_TAG    Cint -1
 @const_ref MPI_PROC_NULL  Cint -1
 @const_ref MPI_ROOT       Cint -4
@@ -234,7 +234,7 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_COMM_NULL_COPY_FN     MPI_Comm_copy_attr_function   cglobal((:MPI_COMM_NULL_COPY_FN, libmpi))
 @const_ref MPI_COMM_NULL_DELETE_FN   MPI_Comm_delete_attr_function cglobal((:MPI_COMM_NULL_DELETE_FN, libmpi))
 
-@const_ref MPI_DATATYPE_NULL MPI_Datatype 0 # TODO: Should this be an int since it's an enum?
+@const_ref MPI_DATATYPE_NULL MPI_Datatype 0
 
 # Only define C constants, as we don't need the Fortran or C++ ones (and Fortran ones are compiler-dependent).
 @const_ref MPI_CHAR                MPI_Datatype  1
@@ -296,34 +296,34 @@ const MPI_C_COMPLEX = MPI_C_FLOAT_COMPLEX
 
 @const_ref MPI_FILE_NULL MPI_File C_NULL
 
-@const_ref MPI_GROUP_EMPTY MPI_Group 1 # TODO These two are enums in mpi.h
+@const_ref MPI_GROUP_EMPTY MPI_Group 1
 @const_ref MPI_GROUP_NULL  MPI_Group 0
 
-@const_ref MPI_INFO_ENV  MPI_Info 1 # TODO These two are enums in mpi.h
+@const_ref MPI_INFO_ENV  MPI_Info 1
 @const_ref MPI_INFO_NULL MPI_Info 0
 
-@const_ref MPI_MESSAGE_NO_PROC MPI_Message -1 # TODO These two are enums in mpi.h
-@const_ref MPI_MESSAGE_NULL    MPI_Message 0
+@const_ref MPI_MESSAGE_NO_PROC MPI_Message -1
+@const_ref MPI_MESSAGE_NULL    MPI_Message  0
 
 @const_ref MPI_DISPLACEMENT_CURRENT MPI_Offset -54278278
 
-@const_ref MPI_OP_NULL MPI_Op 0 # TODO These are all enums in mpi.h
-@const_ref MPI_MAX     MPI_Op 1
-@const_ref MPI_MIN     MPI_Op 2
-@const_ref MPI_SUM     MPI_Op 3
-@const_ref MPI_PROD    MPI_Op 4
-@const_ref MPI_LAND    MPI_Op 5
-@const_ref MPI_BAND    MPI_Op 6
-@const_ref MPI_LOR     MPI_Op 7
-@const_ref MPI_BOR     MPI_Op 8
-@const_ref MPI_LXOR    MPI_Op 9
+@const_ref MPI_OP_NULL MPI_Op  0
+@const_ref MPI_MAX     MPI_Op  1
+@const_ref MPI_MIN     MPI_Op  2
+@const_ref MPI_SUM     MPI_Op  3
+@const_ref MPI_PROD    MPI_Op  4
+@const_ref MPI_LAND    MPI_Op  5
+@const_ref MPI_BAND    MPI_Op  6
+@const_ref MPI_LOR     MPI_Op  7
+@const_ref MPI_BOR     MPI_Op  8
+@const_ref MPI_LXOR    MPI_Op  9
 @const_ref MPI_BXOR    MPI_Op 10
 @const_ref MPI_MINLOC  MPI_Op 12
 @const_ref MPI_MAXLOC  MPI_Op 11
 @const_ref MPI_REPLACE MPI_Op 13
 @const_ref MPI_NO_OP   MPI_Op 14
 
-@const_ref MPI_REQUEST_NULL MPI_Request 0 # TODO This is an enum in mpi.h
+@const_ref MPI_REQUEST_NULL MPI_Request 0
 
 @const_ref MPI_STATUS_IGNORE    Ptr{Cvoid} cglobal((:mpi_sgi_status_ignore, libmpi)
 @const_ref MPI_STATUSES_IGNORE  Ptr{Cvoid} cglobal((:mpi_sgi_status_ignore, libmpi)
@@ -332,7 +332,7 @@ const MPI_C_COMPLEX = MPI_C_FLOAT_COMPLEX
 @const_ref MPI_TYPE_NULL_COPY_FN    MPI_Type_copy_attr_function   cglobal((:MPI_TYPE_NULL_COPY_FN, libmpi))
 @const_ref MPI_TYPE_NULL_DELETE_FN  MPI_Type_delete_attr_function cglobal((:MPI_TYPE_NULL_DELETE_FN, libmpi))
 
-@const_ref MPI_WIN_NULL MPI_Win 0 # TODO This is an enum in mpi.h
+@const_ref MPI_WIN_NULL MPI_Win 0
 
 @const_ref MPI_WIN_DUP_FN           MPI_Win_copy_attr_function   cglobal((:MPI_WIN_DUP_FN, libmpi))
 @const_ref MPI_WIN_NULL_COPY_FN     MPI_Win_copy_attr_function   cglobal((:MPI_WIN_NULL_COPY_FN, libmpi))
