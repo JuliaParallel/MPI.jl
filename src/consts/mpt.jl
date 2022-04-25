@@ -224,7 +224,7 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_UNWEIGHTED     Ptr{Cvoid} cglobal((:MPI_UNWEIGHTED, libmpi), Ptr{Cvoid})
 @const_ref MPI_WEIGHTS_EMPTY  Ptr{Cvoid} cglobal((:MPI_WEIGHTS_EMPTY, libmpi), Ptr{Cvoid})
 @const_ref MPI_BOTTOM         Ptr{Cvoid} C_NULL
-@const_ref MPI_IN_PLACE       Ptr{Cvoid} cglobal((:mpi_sgi_inplace, libmpi)
+@const_ref MPI_IN_PLACE       Ptr{Cvoid} cglobal((:mpi_sgi_inplace, libmpi))
 
 @const_ref MPI_COMM_NULL  MPI_Comm 0
 @const_ref MPI_COMM_SELF  MPI_Comm 2
@@ -325,8 +325,8 @@ const MPI_C_COMPLEX = MPI_C_FLOAT_COMPLEX
 
 @const_ref MPI_REQUEST_NULL MPI_Request 0
 
-@const_ref MPI_STATUS_IGNORE    Ptr{Cvoid} cglobal((:mpi_sgi_status_ignore, libmpi)
-@const_ref MPI_STATUSES_IGNORE  Ptr{Cvoid} cglobal((:mpi_sgi_status_ignore, libmpi)
+@const_ref MPI_STATUS_IGNORE    Ptr{Cvoid} cglobal((:mpi_sgi_status_ignore, libmpi))
+@const_ref MPI_STATUSES_IGNORE  Ptr{Cvoid} cglobal((:mpi_sgi_status_ignore, libmpi))
 
 @const_ref MPI_TYPE_DUP_FN          MPI_Type_copy_attr_function   cglobal((:MPI_TYPE_DUP_FN, libmpi))
 @const_ref MPI_TYPE_NULL_COPY_FN    MPI_Type_copy_attr_function   cglobal((:MPI_TYPE_NULL_COPY_FN, libmpi))
