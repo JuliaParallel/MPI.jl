@@ -1,5 +1,5 @@
 # Compile-time constants
-# From MPT 2.23's `mpi.h` and `mpio.h` on HLRS' Hawk (2022-04-22)
+# From HPE MPT 2.23's `mpi.h` and `mpio.h` on HLRS Hawk (2022-04-22)
 
 # Implementation limits:
 const MPI_MAX_DATAREP_STRING = Cint(128)
