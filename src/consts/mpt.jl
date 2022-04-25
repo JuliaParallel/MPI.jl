@@ -2,7 +2,7 @@
 # From MPT 2.23's `mpi.h` and `mpio.h` on HLRS' Hawk (2022-04-22)
 
 # Implementation limits:
-# const MPI_MAX_DATAREP_STRING = Cint(128) # TODO undefined
+const MPI_MAX_DATAREP_STRING = Cint(128)
 const MPI_MAX_ERROR_STRING = Cint(256)
 const MPI_MAX_INFO_KEY = Cint(255)
 const MPI_MAX_INFO_VAL = Cint(1024)
@@ -14,10 +14,10 @@ const MPI_MAX_PROCESSOR_NAME = Cint(256)
 # Types
 
 # Various (signed) integer types:
-const MPI_Aint = Int
-const MPI_Fint = Int32
-const MPI_Count = Int
-const MPI_Offset = Int
+const MPI_Aint   = Clong
+const MPI_Fint   = Cint
+const MPI_Count  = Clonglong
+const MPI_Offset = Clonglong
 
 # Status:
 struct MPI_Status
@@ -29,28 +29,28 @@ struct MPI_Status
 end
 
 # Opaque handles:
-const MPI_Comm = UInt32 # TODO UInt32 vs Cuint? (applies also to rest of block)
-const MPI_Datatype = UInt32
-const MPI_Errhandler = UInt32
-const MPI_File = Ptr{Cvoid}
-const MPI_Group = UInt32
-const MPI_Info = UInt32
-const MPI_Message = Int32
-const MPI_Op = UInt32
-const MPI_Request = UInt32
-const MPI_Win = UInt32
+const MPI_Comm       = Cuint
+const MPI_Datatype   = Cuint
+const MPI_Errhandler = Cuint
+const MPI_File       = Ptr{Cvoid}
+const MPI_Group      = Cuint
+const MPI_Info       = Cuint
+const MPI_Message    = Cint
+const MPI_Op         = Cuint
+const MPI_Request    = Cuint
+const MPI_Win        = Cuint
 
-# Function pointers: # TODO: Not all checked by hand
+# Function pointers:
 const MPI_Comm_copy_attr_function = Ptr{Cvoid}
 const MPI_Comm_delete_attr_function = Ptr{Cvoid}
 const MPI_Comm_errhandler_function = Ptr{Cvoid}
 const MPI_Comm_errhandler_fn = MPI_Comm_errhandler_function
-const MPI_Copy_function = MPI_Comm_copy_attr_function
+const MPI_Copy_function = Ptr{Cvoid}
 const MPI_Datarep_conversion_function = Ptr{Cvoid}
 const MPI_Datarep_extent_function = Ptr{Cvoid}
 const MPI_Delete_function = Ptr{Cvoid}
 const MPI_File_errhandler_function = Ptr{Cvoid}
-const MPI_File_errhandler_fn = Ptr{Cvoid}
+const MPI_File_errhandler_fn = MPI_File_errhandler_function
 const MPI_Grequest_cancel_function = Ptr{Cvoid}
 const MPI_Grequest_free_function = Ptr{Cvoid}
 const MPI_Grequest_query_function = Ptr{Cvoid}
@@ -78,14 +78,14 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_SIMILAR    Cint 2
 @const_ref MPI_UNEQUAL    Cint 3
 
-@const_ref MPI_KEYVAL_INVALID     Cint 0
+@const_ref MPI_KEYVAL_INVALID     Cint  0
 @const_ref MPI_UNDEFINED          Cint -3
 
-@const_ref MPI_TAG_UB             Cint 1
-@const_ref MPI_HOST               Cint 2
-@const_ref MPI_IO                 Cint 3
-@const_ref MPI_WTIME_IS_GLOBAL    Cint 4
-@const_ref MPI_UNIVERSE_SIZE      Cint 9
+@const_ref MPI_TAG_UB             Cint  1
+@const_ref MPI_HOST               Cint  2
+@const_ref MPI_IO                 Cint  3
+@const_ref MPI_WTIME_IS_GLOBAL    Cint  4
+@const_ref MPI_UNIVERSE_SIZE      Cint  9
 @const_ref MPI_LASTUSEDCODE       Cint 13
 @const_ref MPI_APPNUM             Cint 11
 
@@ -96,22 +96,22 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_WIN_MODEL          Cint 9
 
 @const_ref MPI_COMBINER_NAMED            Cint -1
-@const_ref MPI_COMBINER_DUP              Cint 7
-@const_ref MPI_COMBINER_CONTIGUOUS       Cint 0
-@const_ref MPI_COMBINER_VECTOR           Cint 1
+@const_ref MPI_COMBINER_DUP              Cint  7
+@const_ref MPI_COMBINER_CONTIGUOUS       Cint  0
+@const_ref MPI_COMBINER_VECTOR           Cint  1
 @const_ref MPI_COMBINER_HVECTOR_INTEGER  Cint 12
-@const_ref MPI_COMBINER_HVECTOR          Cint 2
-@const_ref MPI_COMBINER_INDEXED          Cint 3
+@const_ref MPI_COMBINER_HVECTOR          Cint  2
+@const_ref MPI_COMBINER_INDEXED          Cint  3
 @const_ref MPI_COMBINER_HINDEXED_INTEGER Cint 11
-@const_ref MPI_COMBINER_HINDEXED         Cint 4
+@const_ref MPI_COMBINER_HINDEXED         Cint  4
 @const_ref MPI_COMBINER_INDEXED_BLOCK    Cint 13
 @const_ref MPI_COMBINER_STRUCT_INTEGER   Cint 15
-@const_ref MPI_COMBINER_STRUCT           Cint 5
+@const_ref MPI_COMBINER_STRUCT           Cint  5
 @const_ref MPI_COMBINER_SUBARRAY         Cint 16
-@const_ref MPI_COMBINER_DARRAY           Cint 6
+@const_ref MPI_COMBINER_DARRAY           Cint  6
 @const_ref MPI_COMBINER_F90_REAL         Cint 10
-@const_ref MPI_COMBINER_F90_COMPLEX      Cint 8
-@const_ref MPI_COMBINER_F90_INTEGER      Cint 9
+@const_ref MPI_COMBINER_F90_COMPLEX      Cint  8
+@const_ref MPI_COMBINER_F90_INTEGER      Cint  9
 @const_ref MPI_COMBINER_RESIZED          Cint 14
 @const_ref MPI_COMBINER_HINDEXED_BLOCK   Cint 17
 
@@ -224,30 +224,29 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_UNWEIGHTED     Ptr{Cvoid} cglobal((:MPI_UNWEIGHTED, libmpi), Ptr{Cvoid})
 @const_ref MPI_WEIGHTS_EMPTY  Ptr{Cvoid} cglobal((:MPI_WEIGHTS_EMPTY, libmpi), Ptr{Cvoid})
 @const_ref MPI_BOTTOM         Ptr{Cvoid} C_NULL
-@const_ref MPI_IN_PLACE       Ptr{Cvoid} -1 #TODO No idea what to do here
+@const_ref MPI_IN_PLACE       Ptr{Cvoid} cglobal((:mpi_sgi_inplace, libmpi)
 
 @const_ref MPI_COMM_NULL  MPI_Comm 0
 @const_ref MPI_COMM_SELF  MPI_Comm 2
 @const_ref MPI_COMM_WORLD MPI_Comm 1
 
-# TODO: next three - no idea /o\
-@const_ref MPI_COMM_DUP_FN           MPI_Comm_copy_attr_function   cglobal((:MPIR_Dup_fn, libmpi), MPI_Comm_copy_attr_function)
-@const_ref MPI_COMM_NULL_COPY_FN     MPI_Comm_copy_attr_function   C_NULL
-@const_ref MPI_COMM_NULL_DELETE_FN   MPI_Comm_delete_attr_function C_NULL
+@const_ref MPI_COMM_DUP_FN           MPI_Comm_copy_attr_function   cglobal((:MPI_COMM_DUP_FN, libmpi))
+@const_ref MPI_COMM_NULL_COPY_FN     MPI_Comm_copy_attr_function   cglobal((:MPI_COMM_NULL_COPY_FN, libmpi))
+@const_ref MPI_COMM_NULL_DELETE_FN   MPI_Comm_delete_attr_function cglobal((:MPI_COMM_NULL_DELETE_FN, libmpi))
 
 @const_ref MPI_DATATYPE_NULL MPI_Datatype 0 # TODO: Should this be an int since it's an enum?
 
 # Only define C constants, as we don't need the Fortran or C++ ones (and Fortran ones are compiler-dependent).
-@const_ref MPI_CHAR                MPI_Datatype 1
-@const_ref MPI_UNSIGNED_CHAR       MPI_Datatype 5
-@const_ref MPI_SHORT               MPI_Datatype 2
-@const_ref MPI_UNSIGNED_SHORT      MPI_Datatype 6
-@const_ref MPI_INT                 MPI_Datatype 3
-@const_ref MPI_UNSIGNED            MPI_Datatype 7
-@const_ref MPI_LONG                MPI_Datatype 4
-@const_ref MPI_UNSIGNED_LONG       MPI_Datatype 8
+@const_ref MPI_CHAR                MPI_Datatype  1
+@const_ref MPI_UNSIGNED_CHAR       MPI_Datatype  5
+@const_ref MPI_SHORT               MPI_Datatype  2
+@const_ref MPI_UNSIGNED_SHORT      MPI_Datatype  6
+@const_ref MPI_INT                 MPI_Datatype  3
+@const_ref MPI_UNSIGNED            MPI_Datatype  7
+@const_ref MPI_LONG                MPI_Datatype  4
+@const_ref MPI_UNSIGNED_LONG       MPI_Datatype  8
 # @const_ref MPI_LONG_LONG_INT       MPI_Datatype 
-@const_ref MPI_FLOAT               MPI_Datatype 9
+@const_ref MPI_FLOAT               MPI_Datatype  9
 @const_ref MPI_DOUBLE              MPI_Datatype 10
 @const_ref MPI_LONG_DOUBLE         MPI_Datatype 11
 @const_ref MPI_LONG_LONG           MPI_Datatype 12
@@ -326,17 +325,15 @@ const MPI_C_COMPLEX = MPI_C_FLOAT_COMPLEX
 
 @const_ref MPI_REQUEST_NULL MPI_Request 0 # TODO This is an enum in mpi.h
 
-@const_ref MPI_STATUS_IGNORE    Ptr{Cvoid} 1 # TODO These two should be pointers to a variable?
-@const_ref MPI_STATUSES_IGNORE  Ptr{Cvoid} 1
+@const_ref MPI_STATUS_IGNORE    Ptr{Cvoid} cglobal((:mpi_sgi_status_ignore, libmpi)
+@const_ref MPI_STATUSES_IGNORE  Ptr{Cvoid} cglobal((:mpi_sgi_status_ignore, libmpi)
 
-# TODO These three should all be calls to actual functions?
-@const_ref MPI_TYPE_DUP_FN          MPI_Comm_copy_attr_function   cglobal((:MPIR_Dup_fn, libmpi), MPI_Comm_copy_attr_function)
-@const_ref MPI_TYPE_NULL_COPY_FN    MPI_Type_copy_attr_function   C_NULL
-@const_ref MPI_TYPE_NULL_DELETE_FN  MPI_Type_delete_attr_function C_NULL
+@const_ref MPI_TYPE_DUP_FN          MPI_Type_copy_attr_function   cglobal((:MPI_TYPE_DUP_FN, libmpi))
+@const_ref MPI_TYPE_NULL_COPY_FN    MPI_Type_copy_attr_function   cglobal((:MPI_TYPE_NULL_COPY_FN, libmpi))
+@const_ref MPI_TYPE_NULL_DELETE_FN  MPI_Type_delete_attr_function cglobal((:MPI_TYPE_NULL_DELETE_FN, libmpi))
 
 @const_ref MPI_WIN_NULL MPI_Win 0 # TODO This is an enum in mpi.h
 
-# TODO These three should all be calls to actual functions?
-@const_ref MPI_WIN_DUP_FN           MPI_Win_copy_attr_function   cglobal((:MPIR_Dup_fn, libmpi), MPI_Win_copy_attr_function)
-@const_ref MPI_WIN_NULL_COPY_FN     MPI_Win_copy_attr_function   C_NULL
-@const_ref MPI_WIN_NULL_DELETE_FN   MPI_Win_delete_attr_function C_NULL
+@const_ref MPI_WIN_DUP_FN           MPI_Win_copy_attr_function   cglobal((:MPI_WIN_DUP_FN, libmpi))
+@const_ref MPI_WIN_NULL_COPY_FN     MPI_Win_copy_attr_function   cglobal((:MPI_WIN_NULL_COPY_FN, libmpi))
+@const_ref MPI_WIN_NULL_DELETE_FN   MPI_Win_delete_attr_function cglobal((:MPI_WIN_NULL_DELETE_FN, libmpi))
