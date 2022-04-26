@@ -6,39 +6,59 @@ steps:
     env:
       OPENMPI_VER: "4.0"
       OPENMPI_VER_FULL: "4.0.3"
+      UCX_VER: "1.12.1"
     commands: |
       apt-get install --yes --no-install-recommends curl
-      curl https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
-      tar -zxvf openmpi.tar.gz
-      pushd openmpi-$${OPENMPI_VER_FULL}
-      ./configure --with-cuda --prefix=$$(realpath ../openmpi)
+
+      curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
+      tar -zxvf ucx.tar.gz
+      pushd ucx-*
+      ./configure --with-cuda=/usr/local/cuda --enable-mt --prefix=$$(realpath ../mpi-prefix)
       make -j
       make install
       popd
-      tar -zcvf openmpi.tar.gz openmpi/
+
+      curl -L https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
+      tar -zxvf openmpi.tar.gz
+      pushd openmpi-$${OPENMPI_VER_FULL}
+      ./configure --with-ucx=$$(realpath ../mpi-prefix) --prefix=$$(realpath ../mpi-prefix)
+      make -j
+      make install
+      popd
+
+      tar -zcvf mpi-prefix.tar.gz mpi-prefix/
     artifact_paths:
-      - "openmpi.tar.gz"
-# TODO: Need to build UCX with ROCM support first
-#         Spack for CI?
-#  - label: "Build OpenMPI -- ROCM"
-#    agents:
-#      queue: "juliagpu"
-#      rocm: "*" # todo fix ROCM version
-#    env:
-#      OPENMPI_VER: "4.0"
-#      OPENMPI_VER_FULL: "4.0.3"
-#    commands: |
-#      apt-get install --yes --no-install-recommends curl
-#      curl https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
-#      tar -zxvf openmpi.tar.gz
-#      pushd openmpi-$${OPENMPI_VER_FULL}
-#      ./configure --with-ucx --prefix=$$(realpath ../openmpi)
-#      make -j
-#      make install
-#      popd
-#      tar -zcvf openmpi.tar.gz openmpi/
-#    artifact_paths:
-#      - "openmpi.tar.gz"
+      - "mpi-prefix.tar.gz"
+  - label: "Build OpenMPI -- ROCM"
+    agents:
+      queue: "juliagpu"
+      rocm: "*" # todo fix ROCM version
+    env:
+      OPENMPI_VER: "4.0"
+      OPENMPI_VER_FULL: "4.0.3"
+      UCX_VER: "1.12.1"
+    commands: |
+      apt-get install --yes --no-install-recommends curl
+
+      curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
+      tar -zxvf ucx.tar.gz
+      pushd ucx-*
+      ./configure --with-rocm --enable-mt --prefix=$$(realpath ../mpi-prefix)
+      make -j
+      make install
+      popd
+
+      curl -L https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
+      tar -zxvf openmpi.tar.gz
+      pushd openmpi-*
+      ./configure --with-ucx=$$(realpath ../mpi-prefix) --prefix=$$(realpath ../mpi-prefix)
+      make -j
+      make install
+      popd
+
+      tar -zcvf mpi-prefix.tar.gz mpi-prefix/
+    artifact_paths:
+      - "mpi-prefix.tar.gz"
   - wait: ~
   - label: "CUDA -- 1.6"
     plugins:
@@ -61,9 +81,9 @@ steps:
     soft_fail: true
     commands: |
       echo "--- Configure MPI"
-      buildkite-agent artifact download --step "Build OpenMPI -- CUDA" openmpi.tar.gz .
+      buildkite-agent artifact download --step "Build OpenMPI -- CUDA" mpi-prefix.tar.gz .
       mkdir -p $${JULIA_MPI_PATH}
-      tar -zxvf openmpi.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
+      tar -zxvf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
       export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
       export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
 
@@ -102,9 +122,9 @@ steps:
     soft_fail: true
     commands: |
       echo "--- Configure MPI"
-      buildkite-agent artifact download --step "Build OpenMPI -- CUDA" openmpi.tar.gz .
+      buildkite-agent artifact download --step "Build OpenMPI -- CUDA" mpi-prefix.tar.gz .
       mkdir -p $${JULIA_MPI_PATH}
-      tar -zxvf openmpi.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
+      tar -zxvf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
       export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
       export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
 
