@@ -106,6 +106,7 @@ The following MPI implementations should work out-of-the-box with MPI.jl:
 - [MVAPICH](http://mvapich.cse.ohio-state.edu/)
 - [Cray MPICH](https://docs.nersc.gov/development/compilers/wrappers/)
 - [Fujitsu MPI](https://www.fujitsu.com/global/about/resources/publications/technicalreview/2020-03/article07.html#cap-03)
+- [HPE MPT/HMPT](https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&docId=a00105727en_us)
 
 If the implementation is changed, you will need to use [`MPI.use_system_binary()`](@ref MPIPreferences.use_system_binary)
 or [`MPI.use_jll_binary()`](@ref MPIPreferences.use_jll_binary).
