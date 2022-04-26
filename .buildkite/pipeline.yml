@@ -82,6 +82,7 @@ steps:
     plugins:
       - JuliaCI/julia#v1:
           version: "1.6"
+          persist_depot_dirs: packages,artifacts,compiled
     agents:
       queue: "juliagpu"
       cuda: "11.0"
@@ -123,6 +124,7 @@ steps:
     plugins:
       - JuliaCI/julia#v1:
           version: "1.7"
+          persist_depot_dirs: packages,artifacts,compiled
     agents:
       queue: "juliagpu"
       cuda: "11.0"
