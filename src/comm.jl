@@ -166,10 +166,19 @@ end
 """
     Comm_split(comm::Comm, color::Integer, key::Integer)
 
+Partition the communicator `comm`, one for each value of `color`, returning a
+new communicator. Within each group, the processes are ranked in the order of
+`key`, with ties broken by the order of `comm`.
+
+`color` may be `nothing`, in which case a null communicator is returned.
+
 # External links
 $(_doc_external("MPI_Comm_split"))
 """
-function Comm_split(comm::Comm, color::Integer, key::Integer)
+function Comm_split(comm::Comm, color::Union{Integer, Nothing}, key::Integer)
+    if isnothing(color)
+        color = Consts.MPI_UNDEFINED[]
+    end
     newcomm = Comm()
     @mpichk ccall((:MPI_Comm_split, libmpi), Cint,
         (MPI_Comm, Cint, Cint, Ptr{MPI_Comm}), comm, color, key, newcomm)
@@ -177,13 +186,34 @@ function Comm_split(comm::Comm, color::Integer, key::Integer)
     newcomm
 end
 
+mutable struct SplitType
+    val::Cint
+end
+const COMM_TYPE_SHARED = SplitType(-1)
+add_load_time_hook!(() -> COMM_TYPE_SHARED.val     = Consts.MPI_COMM_TYPE_SHARED[])
+
+
 """
-    Comm_split_type(comm::Comm, split_type::Integer, key::Integer; kwargs...)
+    Comm_split_type(comm::Comm, split_type, key::Integer; kwargs...)
+
+Partitions the communicator `comm` based on `split_type`, returning a new
+communicator. Within each group, the processes are ranked in the order of
+`key`, with ties broken by the order of `comm`.
+
+Currently only one `split_type` is provided:
+
+- `MPI.COMM_TYPE_SHARED`: splits the communicator into subcommunicators, each of
+  which can create a shared memory region.
 
 # External links
 $(_doc_external("MPI_Comm_split_type"))
 """
-function Comm_split_type(comm::Comm,split_type::Integer,key::Integer; kwargs...)
+function Comm_split_type(comm::Comm, split_type, key::Integer; kwargs...)
+    if isnothing(split_type)
+        split_type = Consts.MPI_UNDEFINED[]
+    elseif split_type isa SplitType
+        split_type = split_type.val
+    end
     newcomm = Comm()
     @mpichk ccall((:MPI_Comm_split_type, libmpi), Cint,
           (MPI_Comm, Cint, Cint, MPI_Info, Ptr{MPI_Comm}),
