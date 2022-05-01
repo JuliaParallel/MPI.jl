@@ -52,7 +52,7 @@ function __init__()
         #   <https://github.com/JuliaParallel/MPI.jl/pull/109>
         #   and when using HPE's MPT MPI implementation
         #   <https://github.com/JuliaParallel/MPI.jl/pull/580>
-        # This call needs to be here instead of MPI.__init__ since the evaluation of
+        # This call needs to be here instead of `MPI.__init__` since the evaluation of
         # the `initexprs` below might otherwise load the MPI library in an uncontrolled
         # manner
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
