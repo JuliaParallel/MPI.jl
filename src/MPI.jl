@@ -49,7 +49,7 @@ elseif MPIPreferences.binary == "MicrosoftMPI_jll"
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "MPItrampoline_jll"
     import MPItrampoline_jll: MPItrampoline_jll, libmpi, mpiexec
-    const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
+    const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_handle
 elseif MPIPreferences.binary == "system"
     import MPIPreferences.System: libmpi, mpiexec
     const libmpiconstants = nothing
@@ -99,18 +99,6 @@ include("mpiexec_wrapper.jl")
 include("deprecated.jl")
 
 function __init__()
-
-    @static if Sys.isunix()
-        # dlopen the MPI library before any ccall:
-        # - RTLD_GLOBAL is required for Open MPI
-        #   <https://www.open-mpi.org/community/lists/users/2010/04/12803.php>
-        # - also allows us to ccall global symbols, which enables
-        #   profilers which use LD_PRELOAD
-        # - don't use RTLD_DEEPBIND; this leads to segfaults at least
-        #   on Ubuntu 15.10
-        #   <https://github.com/JuliaParallel/MPI.jl/pull/109>
-        Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-    end
 
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061

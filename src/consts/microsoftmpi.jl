@@ -227,7 +227,7 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_COMM_SELF  MPI_Comm 0x44000001
 @const_ref MPI_COMM_WORLD MPI_Comm 0x44000000
 
-@const_ref MPI_COMM_DUP_FN           MPI_Comm_copy_attr_function   cglobal((:MPIR_Dup_fn, libmpi), MPI_Comm_copy_attr_function)
+@const_ref MPI_COMM_DUP_FN           MPI_Comm_copy_attr_function   reinterpret(Ptr{MPI_Comm_copy_attr_function}, Libdl.dlsym(libmpi_handle[], :MPIR_Dup_fn))
 @const_ref MPI_COMM_NULL_COPY_FN     MPI_Comm_copy_attr_function   C_NULL
 @const_ref MPI_COMM_NULL_DELETE_FN   MPI_Comm_delete_attr_function C_NULL
 
@@ -323,12 +323,12 @@ const MPI_LONG_LONG = MPI_LONG_LONG_INT
 @const_ref MPI_STATUS_IGNORE    Ptr{Cvoid} 1
 @const_ref MPI_STATUSES_IGNORE  Ptr{Cvoid} 1
 
-@const_ref MPI_TYPE_DUP_FN          MPI_Comm_copy_attr_function   cglobal((:MPIR_Dup_fn, libmpi), MPI_Comm_copy_attr_function)
+@const_ref MPI_TYPE_DUP_FN          MPI_Comm_copy_attr_function   reinterpret(Ptr{MPI_Comm_copy_attr_function}, Libdl.dlsym(libmpi_handle[], :MPIR_Dup_fn))
 @const_ref MPI_TYPE_NULL_COPY_FN    MPI_Type_copy_attr_function   C_NULL
 @const_ref MPI_TYPE_NULL_DELETE_FN  MPI_Type_delete_attr_function C_NULL
 
 @const_ref MPI_WIN_NULL MPI_Win 0x20000000
 
-@const_ref MPI_WIN_DUP_FN           MPI_Win_copy_attr_function   cglobal((:MPIR_Dup_fn, libmpi), MPI_Win_copy_attr_function)
+@const_ref MPI_WIN_DUP_FN           MPI_Win_copy_attr_function   reinterpret(Ptr{MPI_Win_copy_attr_function}, Libdl.dlsym(libmpi_handle[], :MPIR_Dup_fn))
 @const_ref MPI_WIN_NULL_COPY_FN     MPI_Win_copy_attr_function   C_NULL
 @const_ref MPI_WIN_NULL_DELETE_FN   MPI_Win_delete_attr_function C_NULL
