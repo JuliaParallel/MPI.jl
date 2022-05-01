@@ -57,6 +57,16 @@ else
     error("Unknown MPI binary: $(MPIPreferences.binary)")
 end
 
+if Sys.isunix()
+    # The `DlopenHack` submodule is a hack to force `dlopen`ing system libmpi on Unix
+    # systems with the flags we want to use (`Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL` instead
+    # of the default flags `RTLD_LAZY | RTLD_DEEPBIND), _before_ getting to the `Consts`
+    # module which would otherwise automatically `dlopen` libmpi with the default flags as a
+    # side effect of using `cglobal`.
+    include("dlopen_hack.jl")
+    using .DlopenHack
+end
+
 include("consts/consts.jl")
 using .Consts
 
@@ -99,18 +109,6 @@ include("mpiexec_wrapper.jl")
 include("deprecated.jl")
 
 function __init__()
-
-    @static if Sys.isunix()
-        # dlopen the MPI library before any ccall:
-        # - RTLD_GLOBAL is required for Open MPI
-        #   <https://www.open-mpi.org/community/lists/users/2010/04/12803.php>
-        # - also allows us to ccall global symbols, which enables
-        #   profilers which use LD_PRELOAD
-        # - don't use RTLD_DEEPBIND; this leads to segfaults at least
-        #   on Ubuntu 15.10
-        #   <https://github.com/JuliaParallel/MPI.jl/pull/109>
-        Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-    end
 
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
