@@ -6,6 +6,7 @@ export MPI_Aint, MPI_Count, MPI_Offset, MPI_Status,
 
 import MPIPreferences
 import ..libmpi, ..libmpiconstants
+using Libdl: Libdl
 
 const initexprs = Any[]
 
@@ -39,8 +40,25 @@ else
     error("Unknown MPI ABI $(MPIPreferences.abi)")
 end
 
-@eval function __init__()
-    $(Expr(:block, initexprs...))
+function __init__()
+    @static if Sys.isunix()
+        # dlopen the MPI library before any ccall:
+        # - RTLD_GLOBAL is required for Open MPI
+        #   <https://www.open-mpi.org/community/lists/users/2010/04/12803.php>
+        # - also allows us to ccall global symbols, which enables
+        #   profilers which use LD_PRELOAD
+        # - don't use RTLD_DEEPBIND; this leads to segfaults at least
+        #   on Ubuntu 15.10
+        #   <https://github.com/JuliaParallel/MPI.jl/pull/109>
+        #   and when using HPE's MPT MPI implementation
+        #   <https://github.com/JuliaParallel/MPI.jl/pull/580>
+        # This call needs to be here instead of MPI.__init__ since the evaluation of
+        # the `initexprs` below might otherwise load the MPI library in an uncontrolled
+        # manner
+        Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+    end
+
+    eval(Expr(:block, initexprs...))
 end
 
 end
