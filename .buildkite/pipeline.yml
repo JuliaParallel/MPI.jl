@@ -179,6 +179,7 @@ steps:
       OMPI_ALLOW_RUN_AS_ROOT: 1
       OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
       OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
+      OMPI_MCA_plm_rsh_agent: 'sh' # the container doesn't have ssh installed, but we don't need it
       OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
     soft_fail: true
     commands: |
