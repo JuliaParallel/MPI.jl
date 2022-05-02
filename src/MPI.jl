@@ -99,18 +99,22 @@ include("mpiexec_wrapper.jl")
 include("deprecated.jl")
 
 function __init__()
-
     @static if Sys.isunix()
         # dlopen the MPI library before any ccall:
         # - RTLD_GLOBAL is required for Open MPI
-        #   <https://www.open-mpi.org/community/lists/users/2010/04/12803.php>
-        # - also allows us to ccall global symbols, which enables
-        #   profilers which use LD_PRELOAD
-        # - don't use RTLD_DEEPBIND; this leads to segfaults at least
-        #   on Ubuntu 15.10
-        #   <https://github.com/JuliaParallel/MPI.jl/pull/109>
+        #   https://www.open-mpi.org/community/lists/users/2010/04/12803.php
+        # - also allows us to ccall global symbols, which enables profilers
+        #   which use LD_PRELOAD
+        # - don't use RTLD_DEEPBIND; this leads to issues with multiple MPI
+        #   libraries:
+        #   https://github.com/JuliaParallel/MPI.jl/pull/109
+        #   https://github.com/JuliaParallel/MPI.jl/issues/587
         Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
     end
+
+    # Needs to be called after `dlopen`. Use `invokelatest` so that `cglobal`
+    # calls don't trigger early `dlopen`-ing of the library.
+    Base.invokelatest(Consts.init_consts)
 
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061
