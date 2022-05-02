@@ -161,3 +161,44 @@ steps:
 
       echo "+++ Run tests"
       julia -e 'import Pkg; Pkg.test("MPI")'
+
+      - label: "ROCm -- 1.7"
+    plugins:
+      - JuliaCI/julia#v1:
+          version: "1.7"
+          persist_depot_dirs: packages,artifacts,compiled
+    agents:
+      queue: "juliagpu"
+      rocm: "*" # todo fix ROCM version
+    if: build.message !~ /\[skip tests\]/
+    timeout_in_minutes: 60
+    env:
+      JULIA_MPI_TEST_ARRAYTYPE: ROCArray
+      JULIA_MPI_TEST_NPROCS: 2
+      JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
+      OMPI_ALLOW_RUN_AS_ROOT: 1
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+      OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
+      OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
+    soft_fail: true
+    commands: |
+      echo "--- Configure MPI"
+      buildkite-agent artifact download --step "Build OpenMPI -- ROCM" mpi-prefix.tar.gz .
+      mkdir -p $${JULIA_MPI_PATH}
+      tar -zxf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
+      export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
+      export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
+
+      echo "--- Setup Julia packages"
+      julia --color=yes --project=test -e '
+          using Pkg
+          Pkg.develop(path="lib/MPIPreferences")
+          using MPIPreferences
+          MPIPreferences.use_system_binary(export_prefs=true)
+          rm("test/Manifest.toml")'
+      julia -e 'import Pkg; Pkg.develop(; path = joinpath(pwd(), "lib", "MPIPreferences"))'
+      julia -e 'import Pkg; Pkg.develop(; path = pwd())'
+      julia -e 'import Pkg; Pkg.precompile()'
+
+      echo "+++ Run tests"
+      julia -e 'import Pkg; Pkg.test("MPI")'
