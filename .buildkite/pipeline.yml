@@ -7,26 +7,35 @@ steps:
       OPENMPI_VER: "4.0"
       OPENMPI_VER_FULL: "4.0.3"
       UCX_VER: "1.12.1"
+      CCACHE_DIR: "/root/ccache"
     commands: |
-      apt-get install --yes --no-install-recommends curl
+      echo "--- Install packages"
+      apt-get install --yes --no-install-recommends curl ccache
+      export PATH="/usr/lib/ccache/:$$PATH"
 
+      echo "--- Build UCX"
       curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
-      tar -zxvf ucx.tar.gz
+      tar -zxf ucx.tar.gz
       pushd ucx-*
       ./configure --with-cuda=/usr/local/cuda --enable-mt --prefix=$$(realpath ../mpi-prefix)
       make -j
       make install
       popd
 
+      echo "--- Build OpenMPI"
       curl -L https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
-      tar -zxvf openmpi.tar.gz
+      tar -zxf openmpi.tar.gz
       pushd openmpi-$${OPENMPI_VER_FULL}
       ./configure --with-ucx=$$(realpath ../mpi-prefix) --prefix=$$(realpath ../mpi-prefix)
       make -j
       make install
       popd
 
-      tar -zcvf mpi-prefix.tar.gz mpi-prefix/
+      echo "--- Package prefix"
+      tar -zcf mpi-prefix.tar.gz mpi-prefix/
+
+      echo "--- ccache stats"
+      ccache -s
     artifact_paths:
       - "mpi-prefix.tar.gz"
   - label: "Build OpenMPI -- ROCM"
@@ -37,26 +46,35 @@ steps:
       OPENMPI_VER: "4.0"
       OPENMPI_VER_FULL: "4.0.3"
       UCX_VER: "1.12.1"
+      CCACHE_DIR: "/root/ccache"
     commands: |
-      apt-get install --yes --no-install-recommends curl
+      echo "--- Install packages"
+      apt-get install --yes --no-install-recommends curl ccache
+      export PATH="/usr/lib/ccache/:$$PATH"
 
+      echo "--- Build UCX"
       curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
-      tar -zxvf ucx.tar.gz
+      tar -zxf ucx.tar.gz
       pushd ucx-*
       ./configure --with-rocm --enable-mt --prefix=$$(realpath ../mpi-prefix)
       make -j
       make install
       popd
 
+      echo "--- Build OpenMPI"
       curl -L https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
-      tar -zxvf openmpi.tar.gz
+      tar -zxf openmpi.tar.gz
       pushd openmpi-*
       ./configure --with-ucx=$$(realpath ../mpi-prefix) --prefix=$$(realpath ../mpi-prefix)
       make -j
       make install
       popd
 
-      tar -zcvf mpi-prefix.tar.gz mpi-prefix/
+      echo "--- Package prefix"
+      tar -zcf mpi-prefix.tar.gz mpi-prefix/
+
+      echo "--- ccache stats"
+      ccache -s
     artifact_paths:
       - "mpi-prefix.tar.gz"
   - wait: ~
@@ -64,6 +82,7 @@ steps:
     plugins:
       - JuliaCI/julia#v1:
           version: "1.6"
+          persist_depot_dirs: packages,artifacts,compiled
     agents:
       queue: "juliagpu"
       cuda: "11.0"
@@ -83,7 +102,7 @@ steps:
       echo "--- Configure MPI"
       buildkite-agent artifact download --step "Build OpenMPI -- CUDA" mpi-prefix.tar.gz .
       mkdir -p $${JULIA_MPI_PATH}
-      tar -zxvf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
+      tar -zxf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
       export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
       export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
 
@@ -105,6 +124,7 @@ steps:
     plugins:
       - JuliaCI/julia#v1:
           version: "1.7"
+          persist_depot_dirs: packages,artifacts,compiled
     agents:
       queue: "juliagpu"
       cuda: "11.0"
@@ -124,7 +144,7 @@ steps:
       echo "--- Configure MPI"
       buildkite-agent artifact download --step "Build OpenMPI -- CUDA" mpi-prefix.tar.gz .
       mkdir -p $${JULIA_MPI_PATH}
-      tar -zxvf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
+      tar -zxf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
       export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
       export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
 
