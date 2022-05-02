@@ -46,4 +46,7 @@ end
     $(Expr(:block, initexprs...))
 end
 
+# since this is called by invokelatest, it isn't automatically precompiled
+precompile(init_consts, ())
+
 end
