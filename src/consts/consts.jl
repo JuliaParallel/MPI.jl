@@ -41,8 +41,14 @@ else
     error("Unknown MPI ABI $(MPIPreferences.abi)")
 end
 
-@eval function __init__()
+# Initialize the ref constants from the library.
+# This is not `Consts.__init__`, as it should be called _after_
+# `dlopen` to ensure the library is opened correctly.
+@eval function init_consts()
     $(Expr(:block, initexprs...))
 end
+
+# since this is called by invokelatest, it isn't automatically precompiled
+precompile(init_consts, ())
 
 end
