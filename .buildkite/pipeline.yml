@@ -162,7 +162,7 @@ steps:
       echo "+++ Run tests"
       julia -e 'import Pkg; Pkg.test("MPI")'
 
-      - label: "ROCm -- 1.7"
+  - label: "ROCm -- 1.7"
     plugins:
       - JuliaCI/julia#v1:
           version: "1.7"
