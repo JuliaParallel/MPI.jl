@@ -1,5 +1,7 @@
 # MPIPreferences.jl
 
+MPIPreferences.jl is a small package used for selecting MPI implementations.
+
 ## Consts
 
 ```@docs
