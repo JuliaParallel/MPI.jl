@@ -36,15 +36,18 @@ standard or later. The following MPI implementations should work out-of-the-box 
 Run `MPIPreferences.use_system_binary()`. This will attempt to locate and to identify any available MPI implementation, and create a file called `LocalPreferences.toml` adjacent to the current `Project.toml`.
 
 ```sh
-julia --project -e 'using MPI; MPIPreferences.use_system_binary()'
+julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
 ```
 
 If the implementation is changed, you will need to call this function again. See the [`MPIPreferences.use_system_binary`](@ref) documentation for specific options.
 
 !!! note
     You can copy `LocalPreferences.toml` to a different project folder, but you must list
-    `MPIPreferences` in the `[extras]` section of the `Project.toml` for the settings
-    to take effect. Due to a bug in Julia (until `v1.6.5` and `v1.7.1`), getting preferences
+    `MPIPreferences` in the `[extras]` or `[deps]` section of the `Project.toml` for the settings
+    to take effect.
+
+!!! note
+    Due to a bug in Julia (until `v1.6.5` and `v1.7.1`), getting preferences
     from transitive dependencies is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24).
     To fix this update your version of Julia, or add `MPIPreferences` as a direct dependency to your project.
 
@@ -104,7 +107,7 @@ The following MPI implementations are provided as JLL packages and automatically
 
 Call [`MPIPreferences.use_jll_binary`](@ref), for example
 ```sh
-julia --project -e 'using MPI; MPIPreferences.use_jll_binary("MPItrampoline_jll")'
+julia --project -e 'using MPIPreferences; MPIPreferences.use_jll_binary("MPItrampoline_jll")'
 ```
 
 ## Configuration of the MPI.jl testsuite
