@@ -59,7 +59,7 @@ makedocs(
         "knownissues.md",
         "Examples" => EXAMPLES,
         "Reference" => [
-            "mpipreferences.md",
+            "reference/mpipreferences.md",
             "reference/library.md",
             "reference/environment.md",
             "reference/comm.md",
