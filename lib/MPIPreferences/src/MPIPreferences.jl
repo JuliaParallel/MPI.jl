@@ -222,25 +222,43 @@ function identify_abi(libmpi)
         if (m = match(r"CRAY MPICH version (\d+.\d+.\d+)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+
     elseif startswith(version_string, "FUJITSU MPI")
         impl = "FujitsuMPI"
         # "FUJITSU MPI Library 4.0.0 (4.0.1fj4.0.0)\0"
         if (m = match(r"^FUJITSU MPI Library (\d+.\d+.\d+)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+
     elseif startswith(version_string, "MPIwrapper")
         impl = "MPIwrapper"
         # MPIwrapper 2.2.2
         if (m = match(r"^MPIwrapper Version:\t(\d+.\d+.\d+\w*)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+
+    elseif startswith(version_string, "HPE MPT")
+        impl = "HPE MPT"
+        # HPE MPT 2.23  08/26/20 02:54:49-root
+        if (m = match(r"^HPE MPT (\d+.\d+)", version_string)) !== nothing
+            version = VersionNumber(m.captures[1])
+        end
+
+    elseif startswith(version_string, "HPE HMPT")
+        impl = "HPE HMPT"
+        # HPE HMPT 2.23  08/26/20 02:59:48-root
+        if (m = match(r"^HPE HMPT (\d+.\d+)", version_string)) !== nothing
+            version = VersionNumber(m.captures[1])
+        end
     end
+
     # 3) determine the abi from the implementation + version
     if (impl == "MPICH" && version >= v"3.1" ||
         impl == "IntelMPI" && version > v"2014" ||
         impl == "MVAPICH" && version >= v"2" ||
-        impl == "CrayMPICH" && version >= v"7")
+        impl == "CrayMPICH" && version >= v"7" ||
         # https://www.mpich.org/abi/
+        impl == "HPE HMPT")
         abi = "MPICH"
     elseif impl == "OpenMPI" || impl == "IBMSpectrumMPI" || impl == "FujitsuMPI"
         abi = "OpenMPI"
@@ -248,6 +266,8 @@ function identify_abi(libmpi)
         abi = "MicrosoftMPI"
     elseif impl == "MPIwrapper"
         abi = "MPItrampoline"
+    elseif impl == "HPE MPT"
+        abi = "HPE MPT"
     else
         abi = "unknown"
     end

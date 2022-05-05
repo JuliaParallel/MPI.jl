@@ -35,6 +35,8 @@ elseif MPIPreferences.abi == "MicrosoftMPI"
     include("microsoftmpi.jl")
 elseif MPIPreferences.abi == "MPItrampoline"
     include("mpitrampoline.jl")
+elseif MPIPreferences.abi == "HPE MPT"
+    include("mpt.jl")
 else
     error("Unknown MPI ABI $(MPIPreferences.abi)")
 end
