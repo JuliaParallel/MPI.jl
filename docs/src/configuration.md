@@ -9,10 +9,10 @@ clusters or multi-GPU machines, you will probably want to configure against a
 system-provided MPI implementation in order to exploit features such as fast network
 interfaces and CUDA-aware MPI interfaces.
 
-This can be configured using the MPIPreferences.jl package, which allows the user to choose their MPI implementation. This uses [Preferences.jl](https://github.com/JuliaPackaging/Preferences.jl) to
-allow the user to choose which MPI implementation to use for a project. This provides
+The MPIPreferences.jl package allows the user to choose which MPI implementation to use in MPI.jl. It uses [Preferences.jl](https://github.com/JuliaPackaging/Preferences.jl) to
+configure the MPI backend for each project separately. This provides
 a single source of truth that can be used for JLL packages (Julia packages providing C libraries)
-that link against MPI, localizes the choice of MPI implementation to a project.
+that link against MPI.
 
 ## Using a system-provided MPI backend
 
