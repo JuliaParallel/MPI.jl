@@ -4,7 +4,7 @@ MPI is based on a [single program, multiple data (SPMD)](https://en.wikipedia.or
 
 ## Basic example
 
-A script should include `using MPI` and [`MPI.Init()`](@ref) statements before calling any MPI operaions, for example
+A script should include `using MPI` and [`MPI.Init()`](@ref) statements before calling any MPI operations, for example
 
 ```julia
 # examples/01-hello.jl

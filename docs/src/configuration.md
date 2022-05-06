@@ -86,7 +86,7 @@ updating the contents of the `[preferences.MPIPreferences]` section match those 
 
 If this variable is _not_ already set, it should be prefixed with a colon to ensure correct
 behavior of the Julia load path, e.g. `JULIA_LOAD_PATH=":/software/mpi/julia"`.
-If using a environment modules, this can be achieved with
+If using environment modules, this can be achieved with
 ```
 append-path  -d {} JULIA_LOAD_PATH :/software/mpi/julia
 ```
