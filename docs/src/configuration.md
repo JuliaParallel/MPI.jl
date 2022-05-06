@@ -63,42 +63,42 @@ Preferences are merged across the Julia load path, such that it is feasible to p
 
 1. Run [`MPIPreferences.use_system_binary()`](@ref MPIPreferences.use_system_binary), which will generate a file `LocalPreferences.toml` containing something like the following:
 
-  ```toml
-  [MPIPreferences]
-  abi = "OpenMPI"
-  binary = "system"
-  libmpi = "/software/mpi/lib/libmpi.so"
-  mpiexec = "/software/mpi/bin/mpiexec"
-  ```
+   ```toml
+   [MPIPreferences]
+   abi = "OpenMPI"
+   binary = "system"
+   libmpi = "/software/mpi/lib/libmpi.so"
+   mpiexec = "/software/mpi/bin/mpiexec"
+   ```
 
 2. Create a file called `Project.toml` or `JuliaProject.toml` in a central location, for example `/software/mpi/julia` or in the same directory as the MPI library module, and add the following contents:
 
-  ```toml
-  [extras]
-  MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
+   ```toml
+   [extras]
+   MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 
-  [preferences.MPIPreferences]
-  abi = "OpenMPI"
-  binary = "system"
-  libmpi = "/software/mpi/lib/libmpi.so"
-  mpiexec = "/software/mpi/bin/mpiexec"
-  ```
+   [preferences.MPIPreferences]
+   abi = "OpenMPI"
+   binary = "system"
+   libmpi = "/software/mpi/lib/libmpi.so"
+   mpiexec = "/software/mpi/bin/mpiexec"
+   ```
 
-  updating the contents of the `[preferences.MPIPreferences]` section match those of the `[MPIPreferences]` in `LocalPreferences.toml`.
+   updating the contents of the `[preferences.MPIPreferences]` section match those of the `[MPIPreferences]` in `LocalPreferences.toml`.
 
 3. Append the directory containing the file to the [`JULIA_LOAD_PATH`](https://docs.julialang.org/en/v1/manual/environment-variables/#JULIA_LOAD_PATH) environment variable, with a colon (`:`) separator.
 
-  If this variable is _not_ already set, it should be prefixed with a colon to ensure correct
-  behavior of the Julia load path, e.g. `JULIA_LOAD_PATH=":/software/mpi/julia"`.
-  If using environment modules, this can be achieved with
-  ```
-  append-path  -d {} JULIA_LOAD_PATH :/software/mpi/julia
-  ```
-  in the corresponding module file (preferably the module file for the MPI installation or for Julia).
+   If this variable is _not_ already set, it should be prefixed with a colon to ensure correct
+   behavior of the Julia load path, e.g. `JULIA_LOAD_PATH=":/software/mpi/julia"`.
+   If using environment modules, this can be achieved with
+   ```
+   append-path  -d {} JULIA_LOAD_PATH :/software/mpi/julia
+   ```
+   in the corresponding module file (preferably the module file for the MPI installation or for Julia).
 
-  The user can still provide differing MPI configurations for each Julia project
-  that will take precedent by modifying the local `Project.toml` or by providing a
-  `LocalPreferences.toml` file.
+   The user can still provide differing MPI configurations for each Julia project
+   that will take precedent by modifying the local `Project.toml` or by providing a
+   `LocalPreferences.toml` file.
 
 ## Using an alternative JLL-provided MPI library
 
