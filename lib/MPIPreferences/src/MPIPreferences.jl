@@ -25,6 +25,7 @@ The ABI of the currently selected binary. Supported values are:
 - `"OpenMPI"`: Open MPI compatible ABI (Open MPI, IBM Spectrum MPI, Fujitsu MPI)
 - `"MicrosoftMPI"`: Microsoft MPI
 - `"MPItrampoline"`: MPItrampoline
+- `"HPE MPT"`: HPE MPT
 """
 const abi = if binary == "system"
     @load_preference("abi")
