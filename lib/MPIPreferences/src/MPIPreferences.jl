@@ -3,16 +3,29 @@ module MPIPreferences
 using Preferences, Libdl
 
 """
-    binary :: String
+    MPIPreferences.binary :: String
 
-The currently selected binary.
+The currently selected binary. The possible values are
+
+- `"MPICH_jll"`: use the binary provided by [MPICH_jll](https://github.com/JuliaBinaryWrappers/MPICH_jll.jl)
+- `"OpenMPI_jll"`: use the binary provided by [OpenMPI_jll](https://github.com/JuliaBinaryWrappers/OpenMPI_jll.jl)
+- `"MicrosoftMPI_jll"`: use binary provided by [MicrosoftMPI_jll](https://github.com/JuliaBinaryWrappers/MicrosoftMPI_jll.jl/)
+- `"MPItrampoline_jll"`: use the binary provided by [MPItrampoline_jll](https://github.com/JuliaBinaryWrappers/MPItrampoline_jll.jl/)
+- `"system"`: use a system-provided binary.
+
 """
 const binary = @load_preference("binary", Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll")
 
 """
-    abi :: String
+    MPIPreferences.abi :: String
 
-The ABI of the currently selected binary.
+The ABI of the currently selected binary. Supported values are:
+
+- `"MPICH"`: MPICH-compatible ABI (https://www.mpich.org/abi/)
+- `"OpenMPI"`: Open MPI compatible ABI (Open MPI, IBM Spectrum MPI, Fujitsu MPI)
+- `"MicrosoftMPI"`: Microsoft MPI
+- `"MPItrampoline"`: MPItrampoline
+- `"HPE MPT"`: HPE MPT
 """
 const abi = if binary == "system"
     @load_preference("abi")
@@ -38,14 +51,14 @@ module System
 end
 
 """
-    use_jll_binary(binary; export_prefs=false, force=true)
+    MPIPreferences.use_jll_binary(binary; export_prefs=false, force=true)
 
 Switches the underlying MPI implementation to one provided by JLL packages.
 Available options are:
-- `MicrosoftMPI_jll` (Only option and default on Winddows)
-- `MPICH_jll` (Default on every other platform)
-- `OpenMPI_jll`
-- `MPItrampoline_jll`
+- `"MicrosoftMPI_jll"` (Only option and default on Winddows)
+- `"MPICH_jll"` (Default on all other platform)
+- `"OpenMPI_jll"`
+- `"MPItrampoline_jll"`
 
 The `export_prefs` option determines whether the preferences being set should be stored
 within `LocalPreferences.toml` or `Project.toml`.
@@ -77,17 +90,34 @@ end
 
 
 """
-    use_system_binary(;library_names, mpiexec="mpiexec", abi=nothing, export_prefs=false, force=true)
+    MPIPreferences.use_system_binary(;
+        library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
+        mpiexec = "mpiexec",
+        abi = nothing,
+        export_prefs = false,
+        force = true)
 
-Switches the underlying MPI implementation to a system provided one. We will
-search for a matching library with the given `library_names`. You can provide
-a path to `mpiexec` if the system provides a different one, or if it is not in
-the system path.
+Switches the underlying MPI implementation to a system provided one.
 
-The `abi` of the found library is determined automatically using [`identify_abi`](@ref).
+Options:
 
-The `export_prefs` option determines whether the preferences being set should be stored
-within `LocalPreferences.toml` or `Project.toml`.
+- `library_names`: a name or collection of names of the MPI library, passed to
+  [`Libdl.find_library`](https://docs.julialang.org/en/v1/stdlib/Libdl/#Base.Libc.Libdl.find_library).
+  If the library isn't in the library search path, you can specify the full path
+  to the library.
+
+- `mpiexec`: the MPI launcher executable. The default is `mpiexec`, but some
+  clusters require using the scheduler launcher interface (e.g. `srun` on Slurm,
+  `aprun` on PBS). It is also possible to pass a [`Cmd`
+  object](https://docs.julialang.org/en/v1/manual/running-external-programs/#Cmd-Objects)
+  to include specific command line options.
+
+- `abi`: the ABI of the MPI library. By default this is determined automatically
+  using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported values.
+
+- `export_prefs`: if `true`, the preferences into the `Project.toml` instead of `LocalPreferences.toml`.
+
+- `force`: if `true`, the preferences are set even if they are already set.
 """
 function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
@@ -119,7 +149,7 @@ function use_system_binary(;
         force=force
     )
 
-    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" libmpi abi mpiexec
+    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary libmpi abi mpiexec
 
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
@@ -222,25 +252,43 @@ function identify_abi(libmpi)
         if (m = match(r"CRAY MPICH version (\d+.\d+.\d+)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+
     elseif startswith(version_string, "FUJITSU MPI")
         impl = "FujitsuMPI"
         # "FUJITSU MPI Library 4.0.0 (4.0.1fj4.0.0)\0"
         if (m = match(r"^FUJITSU MPI Library (\d+.\d+.\d+)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+
     elseif startswith(version_string, "MPIwrapper")
         impl = "MPIwrapper"
         # MPIwrapper 2.2.2
         if (m = match(r"^MPIwrapper Version:\t(\d+.\d+.\d+\w*)", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+
+    elseif startswith(version_string, "HPE MPT")
+        impl = "HPE MPT"
+        # HPE MPT 2.23  08/26/20 02:54:49-root
+        if (m = match(r"^HPE MPT (\d+.\d+)", version_string)) !== nothing
+            version = VersionNumber(m.captures[1])
+        end
+
+    elseif startswith(version_string, "HPE HMPT")
+        impl = "HPE HMPT"
+        # HPE HMPT 2.23  08/26/20 02:59:48-root
+        if (m = match(r"^HPE HMPT (\d+.\d+)", version_string)) !== nothing
+            version = VersionNumber(m.captures[1])
+        end
     end
+
     # 3) determine the abi from the implementation + version
     if (impl == "MPICH" && version >= v"3.1" ||
         impl == "IntelMPI" && version > v"2014" ||
         impl == "MVAPICH" && version >= v"2" ||
-        impl == "CrayMPICH" && version >= v"7")
+        impl == "CrayMPICH" && version >= v"7" ||
         # https://www.mpich.org/abi/
+        impl == "HPE HMPT")
         abi = "MPICH"
     elseif impl == "OpenMPI" || impl == "IBMSpectrumMPI" || impl == "FujitsuMPI"
         abi = "OpenMPI"
@@ -248,6 +296,8 @@ function identify_abi(libmpi)
         abi = "MicrosoftMPI"
     elseif impl == "MPIwrapper"
         abi = "MPItrampoline"
+    elseif impl == "HPE MPT"
+        abi = "HPE MPT"
     else
         abi = "unknown"
     end

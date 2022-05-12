@@ -100,17 +100,17 @@ Make sure to:
 - Set the following environment variables:
     ```
     export JULIA_CUDA_MEMORY_POOL=none
-    export JULIA_MPI_BINARY=system
     export JULIA_CUDA_USE_BINARYBUILDER=false
     ```
-- Add CUDA and MPI packages in Julia. Build MPI.jl in verbose mode to check whether correct versions are built/used: 
+- Add CUDA, MPIPreferences, and MPI packages in Julia. Switch to using the system binary
     ```
-    julia -e 'using Pkg; pkg"add CUDA"; pkg"add MPI"; Pkg.build("MPI"; verbose=true)'
+    julia -e 'using Pkg; pkg"add CUDA, MPIPreferences, MPI"'
+    julia -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
     ```
 - Then in Julia, upon loading MPI and CUDA modules, you can check
   - CUDA version: `CUDA.versioninfo()`
   - If MPI has CUDA: `MPI.has_cuda()`
-  - If you are using correct MPI implementation: `MPI.identify_implementation()`
+  - If you are using correct MPI library: `MPI.libmpi`
 
 After that, it may be preferred to run the Julia MPI script (as suggested [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/11)) launching it from a shell script (as suggested [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/4)).
 
