@@ -100,11 +100,10 @@ for T = [Int]
 
             # Allocating, Subarray
             recv_arr = MPI.Reduce(view(send_arr, 2:3), op, MPI.COMM_WORLD; root=root)
-            # DEBUG: currently failing with ROCArray
-            # if isroot
-            #     @test recv_arr isa ArrayType{T}
-            #     @test recv_arr == sz .* view(send_arr, 2:3)
-            # end
+            if isroot
+                @test recv_arr isa ArrayType{T}
+                @test recv_arr == sz .* view(send_arr, 2:3)
+            end
         end
     end
 end
