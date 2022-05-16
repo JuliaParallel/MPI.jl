@@ -92,66 +92,7 @@ This function is only intended for internal use. Users should use [`MPI_LIBRARY`
 [`MPI_LIBRARY_VERSION`](@ref).
 """
 function identify_implementation()
-    impl = UnknownMPI
-    version = v"0"
-
-    if startswith(MPI_LIBRARY_VERSION_STRING, "MPICH")
-        impl = MPICH
-        # "MPICH Version:\t%s\n" / "MPICH2 Version:\t%s\n"
-        if (m = match(r"^MPICH2? Version:\t(\d+.\d+(?:.\d+)?\w*)\n", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif startswith(MPI_LIBRARY_VERSION_STRING, "MPItrampoline") || startswith(MPI_LIBRARY_VERSION_STRING, "MPIwrapper")
-        impl = MPItrampoline
-        # "MPItrampoline %d.%d.%d," / "MPIwrapper %d.%d.%d,"
-        if (m = match(r"^MPI(wrapper|trampoline) (\d+.\d+.\d+),", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[2])
-        end
-
-    elseif startswith(MPI_LIBRARY_VERSION_STRING, "Open MPI")
-        # Open MPI / Spectrum MPI
-        impl = occursin("IBM Spectrum MPI", MPI_LIBRARY_VERSION_STRING) ? IBMSpectrumMPI : OpenMPI
-
-        if (m = match(r"^Open MPI v(\d+.\d+.\d+\w*)", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif startswith(MPI_LIBRARY_VERSION_STRING, "Microsoft MPI")
-        impl = MicrosoftMPI
-        # "Microsoft MPI %u.%u.%u.%u%S"
-        # ignore last 2 (build numbers)
-        if (m = match(r"^Microsoft MPI (\d+.\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif startswith(MPI_LIBRARY_VERSION_STRING, "Intel")
-        impl = IntelMPI
-
-        # "Intel(R) MPI Library 2019 Update 4 for Linux* OS"
-        if (m = match(r"^Intel\(R\) MPI Library (\d+)(?: Update (\d+))?", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            if m.captures[2] === nothing
-                version = VersionNumber(m.captures[1])
-            else
-                version = VersionNumber(m.captures[1]*"."*m.captures[2])
-            end
-        end
-
-    elseif startswith(MPI_LIBRARY_VERSION_STRING, "MVAPICH2")
-        impl = MVAPICH
-        # "MVAPICH2 Version      :\t%s\n")
-        if (m = match(r"^MVAPICH2? Version\s*:\t(\S*)\n", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-
-    elseif occursin("CRAY MPICH", MPI_LIBRARY_VERSION_STRING)
-        impl = CrayMPICH
-        # "MPI VERSION    : CRAY MPICH version 7.7.10 (ANL base 3.2)\n"
-        if (m = match(r"CRAY MPICH version (\d+.\d+.\d+)", MPI_LIBRARY_VERSION_STRING)) !== nothing
-            version = VersionNumber(m.captures[1])
-        end
-    end
-
+    impl, version, abi = MPIPreferences.identify_implementation_version_abi(MPI_LIBRARY_VERSION_STRING)
     return impl, version
 end
 

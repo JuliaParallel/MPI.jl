@@ -162,45 +162,7 @@ function use_system_binary(;
     return nothing
 end
 
-
-"""
-    identify_abi(libmpi)
-
-Identify the MPI implementation from the library version string
-"""
-function identify_abi(libmpi)
-    # 1) query MPI_Get_version
-    # There is no way to query at runtime what the length of the buffer should be.
-    # https://github.com/mpi-forum/mpi-issues/issues/159
-    # 8192 is the maximum value of MPI_MAX_LIBRARY_VERSION_STRING across known
-    # implementations.
-    buf = Array{UInt8}(undef, 8192)
-    buflen = Ref{Cint}()
-
-    hndl = @static if Sys.isunix()
-        # Again, work around https://github.com/open-mpi/ompi/issues/10142
-        withenv("ZES_ENABLE_SYSMAN" => "1") do
-            # need to open libmpi with RTLD_GLOBAL flag for Linux, before
-            # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
-            # at least on Ubuntu 15.10
-            Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-        end
-    else
-        Libdl.dlopen(libmpi)
-    end
-
-    try
-        ptr = dlsym(hndl, :MPI_Get_library_version)
-        ccall(ptr, Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
-    finally
-        Libdl.dlclose(hndl)
-    end
-
-    @assert buflen[] < 8192
-    resize!(buf, buflen[])
-    version_string = String(buf)
-
-    # 2) try to identify the MPI implementation
+function identify_implementation_version_abi(version_string::AbstractString)
     impl = "unknown"
     version = v"0"
 
@@ -301,6 +263,49 @@ function identify_abi(libmpi)
     else
         abi = "unknown"
     end
+
+    return (impl, version, abi)
+end
+
+"""
+    identify_abi(libmpi)
+
+Identify the MPI implementation from the library version string
+"""
+function identify_abi(libmpi)
+    # 1) query MPI_Get_version
+    # There is no way to query at runtime what the length of the buffer should be.
+    # https://github.com/mpi-forum/mpi-issues/issues/159
+    # 8192 is the maximum value of MPI_MAX_LIBRARY_VERSION_STRING across known
+    # implementations.
+    buf = Array{UInt8}(undef, 8192)
+    buflen = Ref{Cint}()
+
+    hndl = @static if Sys.isunix()
+        # Again, work around https://github.com/open-mpi/ompi/issues/10142
+        withenv("ZES_ENABLE_SYSMAN" => "1") do
+            # need to open libmpi with RTLD_GLOBAL flag for Linux, before
+            # any ccall cannot use RTLD_DEEPBIND; this leads to segfaults
+            # at least on Ubuntu 15.10
+            Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+        end
+    else
+        Libdl.dlopen(libmpi)
+    end
+
+    try
+        ptr = dlsym(hndl, :MPI_Get_library_version)
+        ccall(ptr, Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
+    finally
+        Libdl.dlclose(hndl)
+    end
+
+    @assert buflen[] < 8192
+    resize!(buf, buflen[])
+    version_string = String(buf)
+
+    # 2) try to identify the MPI implementation
+    impl, version, abi = identify_implementation_version_abi(version_string)
 
     @info "MPI implementation" libmpi version_string impl version abi
 
