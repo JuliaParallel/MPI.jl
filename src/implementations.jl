@@ -50,42 +50,12 @@ $(_doc_external("MPI_Get_library_version"))
 const MPI_LIBRARY_VERSION_STRING = Get_library_version()
 
 """
-    MPIImpl
-
-An enum corresponding to known MPI implementations
-
-- `UnknownMPI`: unable to determine MPI implementation
-- `MPICH`: [MPICH](https://www.mpich.org/)
-- `OpenMPI`: [Open MPI](https://www.open-mpi.org/)
-- `MicrosoftMPI`: [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
-- `IntelMPI`: [Intel MPI](https://software.intel.com/en-us/mpi-library)
-- `SpectrimMPI`: [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
-- `MVAPICH`: [MVAPICH](http://mvapich.cse.ohio-state.edu/)
-- `CrayMPICH`: Part of the Cray Message Passing Toolkit (MPT)
-
-# See also
-
-- [`MPI_LIBRARY`](@ref)
-"""
-@enum MPIImpl begin
-    UnknownMPI
-    MPICH
-    MPItrampoline
-    OpenMPI
-    MicrosoftMPI
-    IntelMPI
-    IBMSpectrumMPI
-    MVAPICH
-    CrayMPICH
-end
-
-"""
     impl, version = identify_implementation()
 
 Attempt to identify the MPI implementation based on
 [`MPI_LIBRARY_VERSION_STRING`](@ref). Returns a triple of values:
 
-- `impl`: a value of type [`MPIImpl`](@ref)
+- `impl`: a `String` with the name of the MPI implementation, or `"unknown"` if it cannot be determined,
 - `version`: a `VersionNumber` of the library, or `nothing` if it cannot be determined.
 
 This function is only intended for internal use. Users should use [`MPI_LIBRARY`](@ref),
@@ -99,12 +69,9 @@ end
 const MPI_LIBRARY, MPI_LIBRARY_VERSION = identify_implementation()
 
 """
-    MPI_LIBRARY :: MPIImpl
+    MPI_LIBRARY :: String
 
 The current MPI implementation: this is determined by
-
-# See also
-- [`MPIImpl`](@ref)
 """
 MPI_LIBRARY
 
