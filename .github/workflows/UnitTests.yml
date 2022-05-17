@@ -402,7 +402,7 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.3.2"
+          - "2.8.1"
 
       fail-fast: false
 
