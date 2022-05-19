@@ -32,7 +32,7 @@ elseif rank == 3
     recv   = [-1, -1]
 end
 
-graph_comm = MPI.Dist_graph_create(MPI.COMM_WORLD, source, degree, dest, weight, MPI.INFO_NULL)
+graph_comm = MPI.Dist_graph_create(comm, source, degree, dest, weight)
 MPI.Neighbor_alltoall!(UBuffer(send,1), UBuffer(recv,1), graph_comm);
 
 @test !issubset(recv, [-1])

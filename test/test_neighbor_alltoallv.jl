@@ -54,7 +54,7 @@ elseif rank == 3
     recv_count = [4, 4]
 end
 
-graph_comm = MPI.Dist_graph_create(MPI.COMM_WORLD, source, degree, dest, weight, MPI.INFO_NULL)
+graph_comm = MPI.Dist_graph_create(comm, source, degree, dest, weight)
 MPI.Neighbor_alltoallv!(VBuffer(send,send_count), VBuffer(recv,recv_count), graph_comm);
 
 @test !issubset(recv, [-1])

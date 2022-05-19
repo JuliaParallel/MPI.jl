@@ -222,19 +222,19 @@ end
 # end
 ######### ^^^ these functions are are not recommended anymore! ^^^ #########
 
-function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint}, info::Info, reorder=0)
+function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint}; reorder=false, infokws...)
     graph_comm = Comm()
     @mpichk ccall((:MPI_Dist_graph_create_adjacent, libmpi), Cint,
          (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
-         comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights,info,reorder,graph_comm)
+         comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights,Info(infokws...),reorder,graph_comm)
     return graph_comm
 end
 
-function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}, weights::Vector{Cint}, info::Info, reorder=0)
+function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}, weights::Vector{Cint}; reorder=false, infokws...)
     graph_comm = Comm()
     @mpichk ccall((:MPI_Dist_graph_create, libmpi), Cint,
          (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
-         comm,length(sources),sources,degrees,destinations,weights,info,reorder,graph_comm)
+         comm,length(sources),sources,degrees,destinations,weights,Info(infokws...),reorder,graph_comm)
     return graph_comm
 end
 
