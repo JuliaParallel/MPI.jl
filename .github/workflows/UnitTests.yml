@@ -283,7 +283,7 @@ jobs:
     - name: "Run tests"
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --project -e 'using Pkg; Pkg.test()'
+        julia --color=yes --project -e 'using Pkg; Pkg.test()'
 
 
   test-system-msmpi:
@@ -402,7 +402,7 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.3.2"
+          - "2.8.1"
 
       fail-fast: false
 
@@ -471,7 +471,7 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.3.2"
+          - "2.8.1"
 
       fail-fast: false
 
@@ -556,8 +556,8 @@ jobs:
     - name: "Build package"
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
+        julia --color=yes --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
     - name: "Run tests"
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --project -e 'using Pkg; Pkg.test()'
+        julia --color=yes --project -e 'using Pkg; Pkg.test()'
