@@ -239,13 +239,13 @@ function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Ci
 end
 
 function Dist_graph_neighbors_count(graph_comm::Comm)
-    indegree = Cint()
-    outdegree = Cint()
-    weighted = Cint()
+    indegree = Ref{Cint}()
+    outdegree = Ref{Cint}()
+    weighted = Ref{Cint}()
     @mpichk ccall((:MPI_Dist_graph_neighbors_count, libmpi), Cint,
         (MPI_Comm, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
         comm,indegree,outdegree,weighted)
-    (indegree, outdegree, weighted)
+    (indegree[], outdegree[], weighted[])
 end
 
 function Dist_graph_neighbors(graph_comm::Comm, sources::Array{Cint}, source_weights::Array{Cint}, destinations::Array{Cint}, destination_weights::Array{Cint})
