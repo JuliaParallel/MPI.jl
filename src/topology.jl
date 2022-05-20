@@ -191,19 +191,25 @@ function Cart_sub(comm::Comm, remain_dims)
     comm_sub
 end
 
+struct Unweighted 
+end
+Base.cconvert(::Type{Ptr{Cint}}, ::Unweighted) = Consts.MPI_UNWEIGHTED[] 
+const UNWEIGHTED = Unweighted()
 
-const UNWEIGHTED = Consts.MPI_UNWEIGHTED
-const WEIGHTS_EMPTY = Consts.MPI_WEIGHTS_EMPTY
+struct WeightsEmpty
+end
+Base.cconvert(::Type{Ptr{Cint}}, ::WeightsEmpty) = Consts.MPI_WEIGHTS_EMPTY[] 
+const WEIGHTS_EMPTY = WeightsEmpty()
 
 """
-    graph_comm = Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], destination_weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], reorder=false, infokws...)
+    graph_comm = Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, destination_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
 
 Create a new communicator from a given directed graph topology, described by local incoming and outgoing edges on an existing communicator.
 
 # External links
 $(_doc_external("MPI_Dist_graph_create_adjacent"))
 """
-function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], destination_weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], reorder=false, infokws...)
+function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, destination_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
     graph_comm = Comm()
     # int MPI_Dist_graph_create_adjacent(MPI_Comm comm_old,
     #       int indegree, const int sources[],
@@ -218,14 +224,14 @@ function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinati
 end
 
 """
-    graph_comm = Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}; weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], reorder=false, infokws...)
+    graph_comm = Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}; weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
 
 Create a new communicator from a given directed graph topology, described by incoming and outgoing edges on an existing communicator.
 
 # External links
 $(_doc_external("MPI_Dist_graph_create"))
 """
-function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}; weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], reorder=false, infokws...)
+function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}; weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
     graph_comm = Comm()
     # int MPI_Dist_graph_create(MPI_Comm comm_old, int n, const int sources[],
     #       const int degrees[], const int destinations[],
