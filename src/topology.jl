@@ -222,7 +222,10 @@ end
 # end
 ######### ^^^ these functions are are not recommended anymore! ^^^ #########
 
-function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint}; reorder=false, infokws...)
+const UNWEIGHTED = Consts.MPI_UNWEIGHTED
+const WEIGHTS_EMPTY = Consts.MPI_WEIGHTS_EMPTY
+
+function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Vector{Cint}=UNWEIGHTED[], destination_weights::Vector{Cint}=UNWEIGHTED[], reorder=false, infokws...)
     graph_comm = Comm()
     @mpichk ccall((:MPI_Dist_graph_create_adjacent, libmpi), Cint,
          (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
@@ -230,7 +233,7 @@ function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, source_we
     return graph_comm
 end
 
-function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}, weights::Vector{Cint}; reorder=false, infokws...)
+function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}; weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], reorder=false, infokws...)
     graph_comm = Comm()
     @mpichk ccall((:MPI_Dist_graph_create, libmpi), Cint,
          (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),

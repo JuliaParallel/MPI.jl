@@ -8,7 +8,6 @@ size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
 source = Cint[rank];
-weight = Cint[1, 1, 1, 1]
 
 # Rank i receives i+1 values from each adjacent process
 if rank == 0
@@ -54,7 +53,7 @@ elseif rank == 3
     recv_count = [4, 4]
 end
 
-graph_comm = MPI.Dist_graph_create(comm, source, degree, dest, weight)
+graph_comm = MPI.Dist_graph_create(comm, source, degree, dest)
 MPI.Neighbor_alltoallv!(VBuffer(send,send_count), VBuffer(recv,recv_count), graph_comm);
 
 @test !issubset(recv, [-1])

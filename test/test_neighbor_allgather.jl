@@ -7,9 +7,8 @@ comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-source = Cint[rank];
-weight = Cint[1, 1, 1, 1]
-send = [rank];
+source = Cint[rank]
+send = [rank]
 
 if rank == 0
     dest   = Cint[1,3]
@@ -29,7 +28,7 @@ elseif rank == 3
     recv   = [-1, -1]
 end
 
-graph_comm = MPI.Dist_graph_create(comm, source, degree, dest, weight)
+graph_comm = MPI.Dist_graph_create(comm, source, degree, dest)
 MPI.Neighbor_allgather!(send, recv, graph_comm);
 
 @test !issubset(recv, [-1])
