@@ -7,38 +7,18 @@ comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-source = Cint[rank];
-
-if rank == 0
-    dest   = Cint[1,3]
-    degree = Cint[length(dest)]
-    send   = [rank, rank]
-    recv   = [-1, -1, -1]
-elseif rank == 1
-    dest = Cint[0];
-    degree = Cint[length(dest)]
-    send = [rank]
-    recv   = [-1, -1, -1]
-elseif rank == 2
-    dest = Cint[3,0,1];
-    degree = Cint[length(dest)]
-    send = [rank, rank, rank]
-    recv   = [-1]
-elseif rank == 3
-    dest = Cint[0,2,1];
-    degree = Cint[length(dest)]
-    send = [rank, rank, rank]
-    recv   = [-1, -1]
-end
-
+source = Cint[rank]
+dest = Cint.(rank:(size-1))
+degree = Cint[length(dest)]
 graph_comm = MPI.Dist_graph_create(comm, source, degree, dest)
+
+send = Array{Int}(undef,rank+size)
+fill!(send, rank*rank)
+recv = collect(1:(rank+1))
+fill!(recv,-1)
 MPI.Neighbor_alltoall!(UBuffer(send,1), UBuffer(recv,1), graph_comm);
 
-@test !issubset(recv, [-1])
-rank == 0 && @test issubset(recv, [1, 2, 3])
-rank == 1 && @test issubset(recv, [0, 2, 3])
-rank == 2 && @test issubset(recv, [3])
-rank == 3 && @test issubset(recv, [0, 2])
+@test sort(recv) == collect(0:rank).^2
 
 MPI.Finalize()
 @test MPI.Finalized()
