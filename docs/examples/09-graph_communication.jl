@@ -8,7 +8,7 @@ size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
 if size != 4 # hide 
-    return   # hide
+    exit(0)  # hide
 end          # hide
 
 #
