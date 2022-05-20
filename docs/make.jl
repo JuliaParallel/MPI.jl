@@ -12,6 +12,7 @@ EXAMPLES = [
     "Scatterv and Gatherv" => "examples/06-scatterv.md",
     "Active RMA" => "examples/07-rma_active.md",
     "Passive RMA" => "examples/08-rma_passive.md",
+    "Graph Communication" => "examples/09-graph_communication.md",
 ]
 
 examples_md_dir = joinpath(@__DIR__,"src/examples")
