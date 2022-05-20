@@ -845,7 +845,7 @@ Exscan(object::T, op, comm::Comm) where {T} =
 
 Perform an all-to-all communication along the directed edges of the graph with fixed size messages.
 
-See also [`MPI.alltoall!`](@ref).
+See also [`MPI.Alltoall!`](@ref).
 
 # External links
 $(_doc_external("MPI_Neighbor_alltoall"))
@@ -873,7 +873,7 @@ Neighbor_alltoall(sendbuf::UBuffer, graph_comm::Comm) =
 
 Perform an all-to-all communication along the directed edges of the graph with variable size messages.
 
-See also [`MPI.alltoallv!`](@ref).
+See also [`MPI.Alltoallv!`](@ref).
 
 # External links
 $(_doc_external("MPI_Neighbor_alltoallv"))
@@ -899,7 +899,7 @@ end
 
 Perform an all-gather communication along the directed edges of the graph.
 
-See also [`MPI.allgather!`](@ref).
+See also [`MPI.Allgather!`](@ref).
 
 # External links
 $(_doc_external("MPI_Neighbor_allgather"))

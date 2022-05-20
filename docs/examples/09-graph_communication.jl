@@ -7,10 +7,6 @@ comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-if size != 4 # hide 
-    exit(0)  # hide
-end          # hide
-
 #
 # Setup the following communication graph
 #
