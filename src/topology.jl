@@ -196,14 +196,14 @@ const UNWEIGHTED = Consts.MPI_UNWEIGHTED
 const WEIGHTS_EMPTY = Consts.MPI_WEIGHTS_EMPTY
 
 """
-    graph_comm = Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Vector{Cint}=UNWEIGHTED[], destination_weights::Vector{Cint}=UNWEIGHTED[], reorder=false, infokws...)
+    graph_comm = Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], destination_weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], reorder=false, infokws...)
 
 Create a new communicator from a given directed graph topology, described by local incoming and outgoing edges on an existing communicator.
 
 # External links
 $(_doc_external("MPI_Dist_graph_create_adjacent"))
 """
-function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Vector{Cint}=UNWEIGHTED[], destination_weights::Vector{Cint}=UNWEIGHTED[], reorder=false, infokws...)
+function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], destination_weights::Union{Vector{Cint}, Ptr{Cvoid}}=UNWEIGHTED[], reorder=false, infokws...)
     graph_comm = Comm()
     # int MPI_Dist_graph_create_adjacent(MPI_Comm comm_old,
     #       int indegree, const int sources[],
@@ -252,44 +252,44 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
     # int MPI_Dist_graph_neighbors_count(MPI_Comm comm, int *indegree, int *outdegree, int *weighted)
     @mpichk ccall((:MPI_Dist_graph_neighbors_count, libmpi), Cint,
         (MPI_Comm, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-        comm,indegree,outdegree,weighted)
+        graph_comm,indegree,outdegree,weighted)
     (indegree[], outdegree[], weighted[])
 end
 
 """
-    Dist_graph_neighbors!(graph_comm::Comm, sources::Array{Cint}, source_weights::Array{Cint}, destinations::Array{Cint}, destination_weights::Array{Cint})
+    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
 
 Return the neighbors of the calling process in a distributed graph topology without edge weights.
 
 # External links
 $(_doc_external("MPI_Dist_graph_neighbors"))
 """
-function Dist_graph_neighbors!(graph_comm::Comm, sources::Array{Cint}, destinations::Array{Cint})
-    source_weights = Array{Cint}()
-    destination_weights = Array{Cint}()
+function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
+    source_weights = Array{Cint}(undef,0)
+    destination_weights = Array{Cint}(undef,0)
     # int MPI_Dist_graph_neighbors(MPI_Comm comm,
     #       int maxindegree, int sources[], int sourceweights[],
     #       int maxoutdegree, int destinations[], int destweights[])
-    @mpichk ccall((:Dist_graph_neighbors, libmpi), Cint,
+    @mpichk ccall((:MPI_Dist_graph_neighbors, libmpi), Cint,
         (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
-        comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
+        graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
 end
 
 """
-    Dist_graph_neighbors!(graph_comm::Comm, sources::Array{Cint}, source_weights::Array{Cint}, destinations::Array{Cint}, destination_weights::Array{Cint})
+    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
 
 Return the neighbors and edge weights of the calling process in a distributed graph topology.
 
 # External links
 $(_doc_external("MPI_Dist_graph_neighbors"))
 """
-function Dist_graph_neighbors!(graph_comm::Comm, sources::Array{Cint}, source_weights::Array{Cint}, destinations::Array{Cint}, destination_weights::Array{Cint})
+function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
     # int MPI_Dist_graph_neighbors(MPI_Comm comm,
     #       int maxindegree, int sources[], int sourceweights[],
     #       int maxoutdegree, int destinations[], int destweights[])
     @mpichk ccall((:Dist_graph_neighbors, libmpi), Cint,
         (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
-        comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
+        graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
 end
 
 """
@@ -302,26 +302,26 @@ See also [`MPI.alltoall!`](@ref).
 # External links
 $(_doc_external("MPI_Neighbor_alltoall"))
 """
-function Neighbor_alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
+function Neighbor_alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, graph_comm::Comm)
     # int MPI_Neighbor_alltoall(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf,
-    #       int recvcount, MPI_Datatype recvtype, MPI_Comm comm)
+    #       int recvcount, MPI_Datatype recvtype, MPI_Comm graph_comm)
     @mpichk ccall((:MPI_Neighbor_alltoall, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
                   sendbuf.data, sendbuf.count, sendbuf.datatype,
                   recvbuf.data, recvbuf.count, recvbuf.datatype,
-                  comm)
+                  graph_comm)
     return recvbuf.data
 end
 
-Neighbor_alltoall!(sendbuf::InPlace, recvbuf::UBuffer, comm::Comm) =
-    Neighbor_alltoall!(UBuffer(IN_PLACE), recvbuf, comm)
-Neighbor_alltoall!(sendrecvbuf::UBuffer, comm::Comm) =
+Neighbor_alltoall!(sendbuf::InPlace, recvbuf::UBuffer, graph_comm::Comm) =
+    Neighbor_alltoall!(UBuffer(IN_PLACE), recvbuf, graph_comm)
+Neighbor_alltoall!(sendrecvbuf::UBuffer, graph_comm::Comm) =
     Neighbor_alltoall!(IN_PLACE, sendrecvbuf, comm)
-Neighbor_alltoall(sendbuf::UBuffer, comm::Comm) =
-    Neighbor_alltoall!(sendbuf, similar(sendbuf), comm)
+Neighbor_alltoall(sendbuf::UBuffer, graph_comm::Comm) =
+    Neighbor_alltoall!(sendbuf, similar(sendbuf), graph_comm)
 
 """
-    Neighbor_alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
+    Neighbor_alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, graph_comm::Comm)
 
 Perform an all-to-all communication along the directed edges of the graph with variable size messages.
 
@@ -330,7 +330,7 @@ See also [`MPI.alltoallv!`](@ref).
 # External links
 $(_doc_external("MPI_Neighbor_alltoallv"))
 """
-function Neighbor_alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
+function Neighbor_alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, graph_comm::Comm)
     # int MPI_Neighbor_alltoallv!(const void* sendbuf, const int sendcounts[],
     #       const int sdispls[], MPI_Datatype sendtype, void* recvbuf,
     #       const int recvcounts[], const int rdispls[],
@@ -341,7 +341,7 @@ function Neighbor_alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
                     MPI_Comm),
                     sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
                     recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
-                    comm)
+                    graph_comm)
 
     return recvbuf.data
 end
@@ -356,23 +356,23 @@ See also [`MPI.allgather!`](@ref).
 # External links
 $(_doc_external("MPI_Neighbor_allgather"))
 """
-function Neighbor_allgather!(sendbuf::Buffer, recvbuf::UBuffer, comm::Comm)
+function Neighbor_allgather!(sendbuf::Buffer, recvbuf::UBuffer, graph_comm::Comm)
     # int MPI_Neighbor_allgather(const void* sendbuf, int sendcount,
     #       MPI_Datatype sendtype, void* recvbuf, int recvcount,
     #       MPI_Datatype recvtype, MPI_Comm comm)
     @mpichk ccall((:MPI_Neighbor_allgather, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
                   sendbuf.data, sendbuf.count, sendbuf.datatype,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, comm)
+                  recvbuf.data, recvbuf.count, recvbuf.datatype, graph_comm)
     return recvbuf.data
 end
-Neighbor_allgather!(sendbuf, recvbuf::UBuffer, comm::Comm) =
-    Neighbor_allgather!(Buffer_send(sendbuf), recvbuf, comm)
+Neighbor_allgather!(sendbuf, recvbuf::UBuffer, graph_comm::Comm) =
+    Neighbor_allgather!(Buffer_send(sendbuf), recvbuf, graph_comm)
 
-Neighbor_allgather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, comm::Comm) =
-    Neighbor_allgather!(sendbuf, UBuffer(recvbuf, length(sendbuf)), comm)
+Neighbor_allgather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, graph_comm::Comm) =
+    Neighbor_allgather!(sendbuf, UBuffer(recvbuf, length(sendbuf)), graph_comm)
 
 
-function Neighbor_allgather!(sendrecvbuf::UBuffer, comm::Comm)
-    Neighbor_allgather!(IN_PLACE, sendrecvbuf, comm)
+function Neighbor_allgather!(sendrecvbuf::UBuffer, graph_comm::Comm)
+    Neighbor_allgather!(IN_PLACE, sendrecvbuf, graph_comm)
 end
