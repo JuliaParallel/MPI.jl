@@ -253,7 +253,7 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
     @mpichk ccall((:MPI_Dist_graph_neighbors_count, libmpi), Cint,
         (MPI_Comm, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
         graph_comm,indegree,outdegree,weighted)
-    (indegree[], outdegree[], weighted[])
+    (indegree[], outdegree[], weighted[] != 0)
 end
 
 """
