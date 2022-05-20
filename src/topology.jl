@@ -206,6 +206,24 @@ const WEIGHTS_EMPTY = WeightsEmpty()
 
 Create a new communicator from a given directed graph topology, described by local incoming and outgoing edges on an existing communicator.
 
+# Arguments
+- `comm::Comm`: The communicator on which the distributed graph topology should be induced.
+- `sources::Vector{Cint}`: The local, incoming edges on the rank of the calling process.
+- `destinations::Vector{Cint}`: The local, outgoing edges on the rank of the calling process.
+- `source_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=MPI.UNWEIGHTED`: The edge weights of the local, incoming edges.
+- `destinations_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=MPI.UNWEIGHTED`: The edge weights of the local, outgoing edges.
+- `reorder::Bool=false`: If set true, then the MPI implementation can reorder the source and destination indices.
+
+# Example
+We can generate a ring graph `1 --> 2 --> ... --> N --> 1`, where N is the number of ranks in the communicator, as follows
+```julia
+julia> rank = MPI.Comm_rank(comm);
+julia> N = MPI.Comm_size(comm);
+julia> sources = Cint[mod(rank-1, N)];
+julia> destinations = Cint[mod(rank+1, N)];
+julia> graph_comm = Dist_graph_create_adjacent(comm, sources, destinations);
+```
+
 # External links
 $(_doc_external("MPI_Dist_graph_create_adjacent"))
 """
@@ -228,6 +246,26 @@ end
 
 Create a new communicator from a given directed graph topology, described by incoming and outgoing edges on an existing communicator.
 
+# Arguments
+- `comm::Comm`: The communicator on which the distributed graph topology should be induced.
+- `sources::Vector{Cint}`: An array with the ranks for which this call will specify outgoing edges.
+- `degrees::Vector{Cint}`: An array with the number of outgoing edges for each entry in the sources array.
+- `destinations::Vector{Cint}`: An array containing with lenght of the sum of the entries in the degrees array 
+                                describing the ranks towards the edges point.
+- `weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=MPI.UNWEIGHTED`: The edge weights of the specified edges.
+- `reorder::Bool=false`: If set true, then the MPI implementation can reorder the source and destination indices.
+
+# Example
+We can generate a ring graph `1 --> 2 --> ... --> N --> 1`, where N is the number of ranks in the communicator, as follows
+```julia
+julia> rank = MPI.Comm_rank(comm);
+julia> N = MPI.Comm_size(comm);
+julia> sources = Cint[rank];
+julia> degrees = Cint[1];
+julia> destinations = Cint[mod(rank-1, N)];
+julia> graph_comm = Dist_graph_create(comm, sources, degrees, destinations)
+```
+
 # External links
 $(_doc_external("MPI_Dist_graph_create"))
 """
@@ -248,6 +286,18 @@ end
 
 Return the number of in and out edges for the calling processes in a distributed graph topology and a flag indicating whether the distributed graph is weighted.
 
+# Arguments
+- `graph_comm::Comm`: The communicator of the distributed graph topology.
+
+# Example
+Let us assume the following graph `0 <--> 1 --> 2`, which has no weights on its edges, then the
+process with rank 1 will obtain the following result from calling the function
+
+```julia-repl
+julia> Dist_graph_neighbors_count(graph_comm)
+(1,2,false)
+```
+
 # External links
 $(_doc_external("MPI_Dist_graph_neighbors_count"))
 """
@@ -263,9 +313,31 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
 end
 
 """
-    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
+    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
 
 Return the neighbors of the calling process in a distributed graph topology without edge weights.
+
+# Arguments
+- `graph_comm::Comm`: The communicator of the distributed graph topology.
+- `sources::Vector{Cint}`: A preallocated vector, which will be filled with the ranks of the 
+                        processes whose edges pointing towards the calling process. The
+                        length is exactly the indegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
+- `destinations::Vector{Cint}`: A preallocated vector, which will be filled with the ranks
+                        of the processes towards which the edges of the calling process point. The
+                        length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
+
+# Example 
+Let us assume the following graph `0 <--> 1 --> 2`, then the process with rank 1 will require to
+preallocate a sources vector of length 1 and a destination vector of length 2. The call will fill
+the vectors as follows:
+
+```julia-repl
+julia> Dist_graph_neighbors!(graph_comm, sources, destinations);
+julia> sources
+[0]
+julia> destinations
+[0,2]
+```
 
 # External links
 $(_doc_external("MPI_Dist_graph_neighbors"))
@@ -285,6 +357,41 @@ end
     Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
 
 Return the neighbors and edge weights of the calling process in a distributed graph topology.
+
+# Arguments
+- `graph_comm::Comm`: The communicator of the distributed graph topology.
+- `sources::Vector{Cint}`: A preallocated vector, which will be filled with the ranks
+                        of the processes whose edges pointing towards the calling process. The
+                        length is exactly the indegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
+- `source_weights::Vector{Cint}`: A preallocated vector, which will be filled with the weights
+                        associated to the edges pointing towards the calling process. The
+                        length is exactly the indegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
+- `destinations::Vector{Cint}`: A preallocated vector, which will be filled with the ranks
+                        of the processes towards which the edges of the calling process point. The
+                        length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
+- `destination_weights::Vector{Cint}`: A preallocated vector, which will be filled with the weights
+                        associated to the edges of the outgoing edges of the calling process point. The
+                        length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
+
+# Example 
+Let us assume the following graph `0 <-3-> 1 -4-> 2`, then the process with rank 1 will require to
+preallocate a sources vector of length 1 and a destination vector of length 2. The call will fill
+the vectors as follows:
+
+```julia-repl
+julia> Dist_graph_neighbors!(graph_comm, sources, source_weights, destinations, destination_weights);
+julia> sources
+[0]
+julia> source_weights
+[3]
+julia> destinations
+[0,2]
+julia> destination_weights
+[3,4]
+```
+
+Note that the edge between ranks 0 and 1 can have a different weight depending on wether it is the 
+incoming edge "`(0,1)"` or the outgoing one "`(1,0)"`. 
 
 # External links
 $(_doc_external("MPI_Dist_graph_neighbors"))
