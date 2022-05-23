@@ -7,7 +7,7 @@ comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-# Tests with MPI.UNWEIGHTED only
+# Tests with MPI.UNWEIGHTED
 sources      = Cint.(0:rank)
 destinations = Cint.(rank:(size-1))
 graph_comm = MPI.Dist_graph_create_adjacent(comm, sources, destinations)
@@ -24,22 +24,14 @@ MPI.Dist_graph_neighbors!(graph_comm, incoming_edges, outgoing_edges)
 @test sort(incoming_edges) == collect(0:rank)
 @test sort(outgoing_edges) == collect(rank:(size-1))
 
-# Tests combined with with MPI.WEIGHTS_EMPTY
-sources      = Cint.(1:rank)
-destinations = Cint.((rank+1):(size-1))
-source_weights=MPI.UNWEIGHTED
-destination_weights=MPI.UNWEIGHTED
-if rank == 0
-    source_weights=MPI.WEIGHTS_EMPTY
-end
-if rank == (size-1)
-    destination_weights=MPI.WEIGHTS_EMPTY
-end
-graph_comm = MPI.Dist_graph_create_adjacent(comm, sources, destinations, source_weights=source_weights,destination_weights=destination_weights)
+# Tests with MPI.WEIGHTS_EMPTY
+sources      = Cint[]
+destinations = Cint[]
+graph_comm = MPI.Dist_graph_create_adjacent(comm, sources, destinations, source_weights=MPI.WEIGHTS_EMPTY,destination_weights=MPI.WEIGHTS_EMPTY)
 indegree, outdegree, weighted = MPI.Dist_graph_neighbors_count(graph_comm)
-@test indegree == (rank)
-@test outdegree == (size-rank-1)
-@test weighted == ((rank==0) || (rank==size-1))
+@test indegree == 0
+@test outdegree == 0
+@test weighted == true
 
 MPI.Finalize()
 @test MPI.Finalized()
