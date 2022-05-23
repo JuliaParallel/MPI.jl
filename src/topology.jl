@@ -287,8 +287,9 @@ function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Ci
             (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
             comm,length(sources),sources,degrees,destinations,weights,Info(infokws...),reorder,graph_comm)
     catch e
-        if isa(e, LoadError) && Get_version() < VersionNumber(2,2)
-            throw(FeatureLevelError(VersionNumber(2,2)))
+        miv_ver = v"2.2"
+        if contains(e.msg, "could not load symbol") && contains(e.msg, "MPI_Dist_graph_create") && MPI.Get_version() < miv_ver
+            throw(MPI.FeatureLevelError("MPI_Dist_graph_create", miv_ver))
         end
         rethrow(e)
     end
@@ -326,56 +327,9 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
             graph_comm,indegree,outdegree,weighted)
         (indegree[], outdegree[], weighted[] != 0)
     catch e
-        if isa(e, LoadError) && Get_version() < VersionNumber(2,2)
-            throw(FeatureLevelError(VersionNumber(2,2)))
-        end
-        rethrow(e)
-    end
-end
-
-"""
-    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
-
-Return the neighbors of the calling process in a distributed graph topology without edge weights.
-
-# Arguments
-- `graph_comm::Comm`: The communicator of the distributed graph topology.
-- `sources::Vector{Cint}`: A preallocated vector, which will be filled with the ranks of the 
-                        processes whose edges pointing towards the calling process. The
-                        length is exactly the indegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
-- `destinations::Vector{Cint}`: A preallocated vector, which will be filled with the ranks
-                        of the processes towards which the edges of the calling process point. The
-                        length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
-
-# Example 
-Let us assume the following graph `0 <--> 1 --> 2`, then the process with rank 1 will require to
-preallocate a sources vector of length 1 and a destination vector of length 2. The call will fill
-the vectors as follows:
-
-```julia-repl
-julia> Dist_graph_neighbors!(graph_comm, sources, destinations);
-julia> sources
-[0]
-julia> destinations
-[0,2]
-```
-
-# External links
-$(_doc_external("MPI_Dist_graph_neighbors"))
-"""
-function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
-    source_weights = Array{Cint}(undef,0)
-    destination_weights = Array{Cint}(undef,0)
-    # int MPI_Dist_graph_neighbors(MPI_Comm comm,
-    #       int maxindegree, int sources[], int sourceweights[],
-    #       int maxoutdegree, int destinations[], int destweights[])
-    try 
-        @mpichk ccall((:MPI_Dist_graph_neighbors, libmpi), Cint,
-            (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
-            graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
-    catch e
-        if isa(e, LoadError) && Get_version() < VersionNumber(2,2)
-            throw(FeatureLevelError(VersionNumber(2,2)))
+        miv_ver = v"2.2"
+        if contains(e.msg, "could not load symbol") && contains(e.msg, "MPI_Dist_graph_neighbors_count") && MPI.Get_version() < miv_ver
+            throw(MPI.FeatureLevelError("MPI_Dist_graph_neighbors_count", miv_ver))
         end
         rethrow(e)
     end
@@ -429,13 +383,50 @@ function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_w
     #       int maxindegree, int sources[], int sourceweights[],
     #       int maxoutdegree, int destinations[], int destweights[])
     try 
-        @mpichk ccall((:Dist_graph_neighbors, libmpi), Cint,
+        @mpichk ccall((:MPI_Dist_graph_neighbors, libmpi), Cint,
             (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
             graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
     catch e
-        if isa(e, LoadError) && Get_version() < VersionNumber(2,2)
-            throw(FeatureLevelError(VersionNumber(2,2)))
+        miv_ver = v"2.2"
+        if contains(e.msg, "could not load symbol") && contains(e.msg, "MPI_Dist_graph_neighbors") && MPI.Get_version() < miv_ver
+            throw(MPI.FeatureLevelError("MPI_Dist_graph_neighbors", miv_ver))
         end
         rethrow(e)
     end
+end
+
+"""
+    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
+
+Return the neighbors of the calling process in a distributed graph topology without edge weights.
+
+# Arguments
+- `graph_comm::Comm`: The communicator of the distributed graph topology.
+- `sources::Vector{Cint}`: A preallocated vector, which will be filled with the ranks of the 
+                        processes whose edges pointing towards the calling process. The
+                        length is exactly the indegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
+- `destinations::Vector{Cint}`: A preallocated vector, which will be filled with the ranks
+                        of the processes towards which the edges of the calling process point. The
+                        length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
+
+# Example 
+Let us assume the following graph `0 <--> 1 --> 2`, then the process with rank 1 will require to
+preallocate a sources vector of length 1 and a destination vector of length 2. The call will fill
+the vectors as follows:
+
+```julia-repl
+julia> Dist_graph_neighbors!(graph_comm, sources, destinations);
+julia> sources
+[0]
+julia> destinations
+[0,2]
+```
+
+# External links
+$(_doc_external("MPI_Dist_graph_neighbors"))
+"""
+function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
+    source_weights = Array{Cint}(undef,0)
+    destination_weights = Array{Cint}(undef,0)
+    Dist_graph_neighbors!(graph_comm, sources::Vector{Cint}, source_weights, destinations::Vector{Cint}, destination_weights)
 end
