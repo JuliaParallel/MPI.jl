@@ -26,6 +26,7 @@ MPI.Allgather!
 MPI.Allgather
 MPI.Allgatherv!
 MPI.Neighbor_allgather!
+MPI.Neighbor_allgatherv!
 ```
 
 ### Scatter
