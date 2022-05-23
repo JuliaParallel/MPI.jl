@@ -235,9 +235,16 @@ function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinati
     #       int outdegree, const int destinations[],
     #       const int destweights[],
     #       MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
-    @mpichk ccall((:MPI_Dist_graph_create_adjacent, libmpi), Cint,
-         (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
-         comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights,Info(infokws...),reorder,graph_comm)
+    try
+        @mpichk ccall((:MPI_Dist_graph_create_adjacent, libmpi), Cint,
+            (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
+            comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights,Info(infokws...),reorder,graph_comm)
+    catch e
+        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
+            throw(FeatureLevelError(VersionNumber(3,0)))
+        end
+        rethrow(e)
+    end
     return graph_comm
 end
 
@@ -275,9 +282,16 @@ function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Ci
     #       const int degrees[], const int destinations[],
     #       const int weights[],
     #       MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
-    @mpichk ccall((:MPI_Dist_graph_create, libmpi), Cint,
-         (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
-         comm,length(sources),sources,degrees,destinations,weights,Info(infokws...),reorder,graph_comm)
+    try
+        @mpichk ccall((:MPI_Dist_graph_create, libmpi), Cint,
+            (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
+            comm,length(sources),sources,degrees,destinations,weights,Info(infokws...),reorder,graph_comm)
+    catch e
+        if isa(e, LoadError) && Get_version() < VersionNumber(2,2)
+            throw(FeatureLevelError(VersionNumber(2,2)))
+        end
+        rethrow(e)
+    end
     return graph_comm
 end
 
@@ -312,8 +326,8 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
             graph_comm,indegree,outdegree,weighted)
         (indegree[], outdegree[], weighted[] != 0)
     catch e
-        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
-            throw(FeatureLevelError(VersionNumber(3,0)))
+        if isa(e, LoadError) && Get_version() < VersionNumber(2,2)
+            throw(FeatureLevelError(VersionNumber(2,2)))
         end
         rethrow(e)
     end
@@ -360,8 +374,8 @@ function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinat
             (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
             graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
     catch e
-        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
-            throw(FeatureLevelError(VersionNumber(3,0)))
+        if isa(e, LoadError) && Get_version() < VersionNumber(2,2)
+            throw(FeatureLevelError(VersionNumber(2,2)))
         end
         rethrow(e)
     end
@@ -419,8 +433,8 @@ function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_w
             (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
             graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
     catch e
-        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
-            throw(FeatureLevelError(VersionNumber(3,0)))
+        if isa(e, LoadError) && Get_version() < VersionNumber(2,2)
+            throw(FeatureLevelError(VersionNumber(2,2)))
         end
         rethrow(e)
     end
