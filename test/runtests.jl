@@ -67,18 +67,7 @@ testfiles = sort(filter(istest, readdir(testdir)))
             if get(ENV, "JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE", "") != "" && Sys.isapple() && f == "test_reduce.jl"
                 return
             end
-
-            # Some test may not be able to be executed because the used MPI version does not have the features available, so we just accept the test.
-            try
-                run(cmd())
-            catch e
-                if isa(e, FeatureLevelError)
-                    current_version = Get_version();
-                    println("Could not test '$(f)', feature level is too low. Minimum required MPI version: $(e.min_feature_level). Current MPI version: $(current_version)")
-                else
-                    rethrow(e)
-                end
-            end
+            run(cmd())
         end
         @test true
     end
