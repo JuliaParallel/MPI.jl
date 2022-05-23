@@ -306,10 +306,17 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
     outdegree = Ref{Cint}()
     weighted = Ref{Cint}()
     # int MPI_Dist_graph_neighbors_count(MPI_Comm comm, int *indegree, int *outdegree, int *weighted)
-    @mpichk ccall((:MPI_Dist_graph_neighbors_count, libmpi), Cint,
-        (MPI_Comm, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-        graph_comm,indegree,outdegree,weighted)
-    (indegree[], outdegree[], weighted[] != 0)
+    try
+        @mpichk ccall((:MPI_Dist_graph_neighbors_count, libmpi), Cint,
+            (MPI_Comm, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
+            graph_comm,indegree,outdegree,weighted)
+        (indegree[], outdegree[], weighted[] != 0)
+    catch e
+        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
+            throw(FeatureLevelError(VersionNumber(3,0)))
+        end
+        rethrow(e)
+    end
 end
 
 """
@@ -348,9 +355,16 @@ function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinat
     # int MPI_Dist_graph_neighbors(MPI_Comm comm,
     #       int maxindegree, int sources[], int sourceweights[],
     #       int maxoutdegree, int destinations[], int destweights[])
-    @mpichk ccall((:MPI_Dist_graph_neighbors, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
-        graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
+    try 
+        @mpichk ccall((:MPI_Dist_graph_neighbors, libmpi), Cint,
+            (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
+            graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
+    catch e
+        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
+            throw(FeatureLevelError(VersionNumber(3,0)))
+        end
+        rethrow(e)
+    end
 end
 
 """
@@ -400,7 +414,14 @@ function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_w
     # int MPI_Dist_graph_neighbors(MPI_Comm comm,
     #       int maxindegree, int sources[], int sourceweights[],
     #       int maxoutdegree, int destinations[], int destweights[])
-    @mpichk ccall((:Dist_graph_neighbors, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
-        graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
+    try 
+        @mpichk ccall((:Dist_graph_neighbors, libmpi), Cint,
+            (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
+            graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights)
+    catch e
+        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
+            throw(FeatureLevelError(VersionNumber(3,0)))
+        end
+        rethrow(e)
+    end
 end

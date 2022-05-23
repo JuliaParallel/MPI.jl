@@ -853,11 +853,18 @@ $(_doc_external("MPI_Neighbor_alltoall"))
 function Neighbor_alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, graph_comm::Comm)
     # int MPI_Neighbor_alltoall(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf,
     #       int recvcount, MPI_Datatype recvtype, MPI_Comm graph_comm)
-    @mpichk ccall((:MPI_Neighbor_alltoall, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype,
-                  graph_comm)
+    try
+        @mpichk ccall((:MPI_Neighbor_alltoall, libmpi), Cint,
+                    (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
+                    sendbuf.data, sendbuf.count, sendbuf.datatype,
+                    recvbuf.data, recvbuf.count, recvbuf.datatype,
+                    graph_comm)
+    catch e
+        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
+            throw(FeatureLevelError(VersionNumber(3,0)))
+        end
+        rethrow(e)
+    end
     return recvbuf.data
 end
 
@@ -883,14 +890,20 @@ function Neighbor_alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, graph_comm::Com
     #       const int sdispls[], MPI_Datatype sendtype, void* recvbuf,
     #       const int recvcounts[], const int rdispls[],
     #       MPI_Datatype recvtype, MPI_Comm comm)
-    @mpichk ccall((:MPI_Neighbor_alltoallv, libmpi), Cint,
-                    (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
-                    MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
-                    MPI_Comm),
-                    sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
-                    recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
-                    graph_comm)
-
+    try
+        @mpichk ccall((:MPI_Neighbor_alltoallv, libmpi), Cint,
+                        (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
+                        MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
+                        MPI_Comm),
+                        sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
+                        recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
+                        graph_comm)
+    catch e
+        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
+            throw(FeatureLevelError(VersionNumber(3,0)))
+        end
+        rethrow(e)
+    end
     return recvbuf.data
 end
 
@@ -908,10 +921,17 @@ function Neighbor_allgather!(sendbuf::Buffer, recvbuf::UBuffer, graph_comm::Comm
     # int MPI_Neighbor_allgather(const void* sendbuf, int sendcount,
     #       MPI_Datatype sendtype, void* recvbuf, int recvcount,
     #       MPI_Datatype recvtype, MPI_Comm comm)
-    @mpichk ccall((:MPI_Neighbor_allgather, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, graph_comm)
+    try
+        @mpichk ccall((:MPI_Neighbor_allgather, libmpi), Cint,
+                    (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
+                    sendbuf.data, sendbuf.count, sendbuf.datatype,
+                    recvbuf.data, recvbuf.count, recvbuf.datatype, graph_comm)
+    catch e
+        if isa(e, LoadError) && Get_version() < VersionNumber(3,0)
+            throw(FeatureLevelError(VersionNumber(3,0)))
+        end
+        rethrow(e)
+    end
     return recvbuf.data
 end
 Neighbor_allgather!(sendbuf, recvbuf::UBuffer, graph_comm::Comm) =

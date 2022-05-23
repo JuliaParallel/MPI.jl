@@ -2,6 +2,17 @@ struct MPIError <: Exception
     code::Cint
 end
 
+
+"""
+    FeatureLevelError
+
+This error is thrown if a feature is not implemented in the current MPI backend.
+"""
+struct FeatureLevelError <: Exception
+    min_feature_level::VersionNumber # minimal MPI version required for this feature to be available
+end
+
+
 macro mpichk(expr)
     expr = macroexpand(@__MODULE__, :(@mpicall($expr)))
     # MPI_SUCCESS is defined to be 0
