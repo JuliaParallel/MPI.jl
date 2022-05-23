@@ -840,7 +840,7 @@ Exscan(sendbuf::AbstractArray, op, comm::Comm) =
 Exscan(object::T, op, comm::Comm) where {T} =
     Exscan!(Ref(object), Ref{T}(), op, comm)[]
 
-    """
+"""
     Neighbor_alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
 
 Perform an all-to-all communication along the directed edges of the graph with fixed size messages.
