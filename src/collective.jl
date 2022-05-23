@@ -947,3 +947,42 @@ Neighbor_allgather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, g
 function Neighbor_allgather!(sendrecvbuf::UBuffer, graph_comm::Comm)
     Neighbor_allgather!(IN_PLACE, sendrecvbuf, graph_comm)
 end
+
+"""
+    Neighbor_allgatherv!(sendbuf::Buffer, recvbuf::VBuffer, comm::Comm)
+
+Perform an all-gather communication along the directed edges of the graph with variable sized data.
+
+See also [`MPI.Allgatherv!`](@ref).
+
+# External links
+$(_doc_external("MPI_Neighbor_allgatherv"))
+"""
+function Neighbor_allgatherv!(sendbuf::Buffer, recvbuf::VBuffer, graph_comm::Comm)
+    # int MPI_Neighbor_allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+    #                             void *recvbuf, const int recvcounts[], const int displs[],
+    #                             MPI_Datatype recvtype, MPI_Comm comm)
+    try
+        @mpichk ccall((:MPI_Neighbor_allgatherv, libmpi), Cint,
+                    (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
+                    sendbuf.data, sendbuf.count, sendbuf.datatype,
+                    recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, graph_comm)
+    catch e
+        miv_ver = v"3.0"
+        if contains(e.msg, "could not load symbol") && contains(e.msg, "MPI_Neighbor_allgatherv") && MPI.Get_version() < miv_ver
+            throw(MPI.FeatureLevelError("MPI_Neighbor_allgatherv", miv_ver))
+        end
+        rethrow(e)
+    end
+    return recvbuf.data
+end
+Neighbor_allgatherv!(sendbuf, recvbuf::VBuffer, graph_comm::Comm) =
+    Neighbor_allgatherv!(Buffer_send(sendbuf), recvbuf, graph_comm)
+
+Neighbor_allgatherv!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, graph_comm::Comm) =
+    Neighbor_allgatherv!(sendbuf, VBuffer(recvbuf, length(sendbuf)), graph_comm)
+
+
+function Neighbor_allgatherv!(sendrecvbuf::VBuffer, graph_comm::Comm)
+    Neighbor_allgatherv!(IN_PLACE, sendrecvbuf, graph_comm)
+end
