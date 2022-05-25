@@ -98,6 +98,7 @@ end
         library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
         mpiexec = "mpiexec",
         abi = nothing,
+        abi_file = nothing,
         export_prefs = false,
         force = true)
 
