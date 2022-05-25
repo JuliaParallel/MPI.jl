@@ -35,6 +35,9 @@ standard or later. The following MPI implementations should work out-of-the-box 
 - [Fujitsu MPI](https://www.fujitsu.com/global/about/resources/publications/technicalreview/2020-03/article07.html#cap-03)
 - [HPE MPT/HMPT](https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&docId=a00105727en_us)
 
+If you are using an MPI implementation that is not ABI-compatible with any one
+of these, please read the section on how to use a [Custom ABI file](@ref) below.
+
 ### Configuration
 
 Run `MPIPreferences.use_system_binary()`. This will attempt to locate and to identify any available MPI implementation, and create a file called `LocalPreferences.toml` adjacent to the current `Project.toml`.
@@ -99,6 +102,24 @@ Preferences are merged across the Julia load path, such that it is feasible to p
    The user can still provide differing MPI configurations for each Julia project
    that will take precedent by modifying the local `Project.toml` or by providing a
    `LocalPreferences.toml` file.
+
+
+### Custom ABI file
+If you want to use an MPI implementation not officially supported by MPI.jl, you
+need to create your own ABI file with all relevant MPI constants. The files for supported
+ABIs are stored in the `src/consts/` folder, e.g.,
+[`mpich.jl`](https://github.com/JuliaParallel/MPI.jl/blob/master/src/consts/mpich.jl)
+for MPICH-compatible implementations. To create your own ABI file, it is
+advisable to start with an existing constants file (e.g., for MPICH) and then
+adapt each entry to the contents of your MPI implementations's `mpi.h` C header
+file. You can use [`MPIPreferences.use_system_binary`](@ref) to configure MPI.jl
+to use your custom file by providing the path via the `abi_file` keyword
+argument, e.g.,
+```shell
+julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; abi_file="path/to/abifile.jl)'
+```
+You need to restart Julia for the change to take effect.
+
 
 ## Using an alternative JLL-provided MPI library
 
