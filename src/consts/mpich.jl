@@ -224,8 +224,8 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_ARGV_NULL      Ptr{Cvoid} C_NULL
 @const_ref MPI_ARGVS_NULL     Ptr{Cvoid} C_NULL
 
-@const_ref MPI_UNWEIGHTED     Ptr{Cvoid} unsafe_load(cglobal((:MPI_UNWEIGHTED, libmpi), Ptr{Cvoid}))
-@const_ref MPI_WEIGHTS_EMPTY  Ptr{Cvoid} unsafe_load(cglobal((:MPI_WEIGHTS_EMPTY, libmpi), Ptr{Cvoid}))
+@const_ref MPI_UNWEIGHTED     Ptr{Cint} unsafe_load(cglobal((:MPI_UNWEIGHTED, libmpi), Ptr{Cint}))
+@const_ref MPI_WEIGHTS_EMPTY  Ptr{Cint} unsafe_load(cglobal((:MPI_WEIGHTS_EMPTY, libmpi), Ptr{Cint}))
 @const_ref MPI_BOTTOM         Ptr{Cvoid} C_NULL
 @const_ref MPI_IN_PLACE       Ptr{Cvoid} -1
 
