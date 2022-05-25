@@ -36,7 +36,7 @@ standard or later. The following MPI implementations should work out-of-the-box 
 - [HPE MPT/HMPT](https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&docId=a00105727en_us)
 
 If you are using an MPI implementation that is not ABI-compatible with any one
-of these, please read the section on how to use a [Custom ABI file](@ref) below.
+of these, please read the section on [Supporting an unknown ABI](@ref) below.
 
 ### Configuration
 
@@ -104,7 +104,7 @@ Preferences are merged across the Julia load path, such that it is feasible to p
    `LocalPreferences.toml` file.
 
 
-### Custom ABI file
+### Supporting an unknown ABI
 If you want to use an MPI implementation not officially supported by MPI.jl, you
 need to create your own ABI file with all relevant MPI constants. The files for supported
 ABIs are stored in the `src/consts/` folder, e.g.,
@@ -112,7 +112,30 @@ ABIs are stored in the `src/consts/` folder, e.g.,
 for MPICH-compatible implementations. To create your own ABI file, it is
 advisable to start with an existing constants file (e.g., for MPICH) and then
 adapt each entry to the contents of your MPI implementations's `mpi.h` C header
-file. You can use [`MPIPreferences.use_system_binary`](@ref) to configure MPI.jl
+file.
+
+For example, if your `mpi.h` header file contains something like
+```c
+typedef unsigned int MPI_Request;
+enum {
+  MPI_REQUEST_NULL  = 0
+};
+
+#define MPI_ARGV_NULL ((char**) NULL)
+```
+you need to put the corresponding entries in your ABI file `abi_file.jl`:
+```julia
+const MPI_Request = Cuint
+@const_ref MPI_REQUEST_NULL MPI_Request 0
+
+@const_ref MPI_ARGV_NULL Ptr{Cvoid} C_NULL
+```
+As you can see, the syntax of such a Julia ABI file is non-trivial, thus the
+recommendation to start with an existing ABI file.
+Please note that sometimes information is also stored in ancillary header files (e.g.,
+`mpi_types.h` or `mpi_ext.h`).
+
+You can then use [`MPIPreferences.use_system_binary`](@ref) to configure MPI.jl
 to use your custom file by providing the path via the `abi_file` keyword
 argument, e.g.,
 ```shell
