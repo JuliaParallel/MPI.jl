@@ -853,19 +853,11 @@ $(_doc_external("MPI_Neighbor_alltoall"))
 function Neighbor_alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, graph_comm::Comm)
     # int MPI_Neighbor_alltoall(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf,
     #       int recvcount, MPI_Datatype recvtype, MPI_Comm graph_comm)
-    try
-        @mpichk ccall((:MPI_Neighbor_alltoall, libmpi), Cint,
-                    (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
-                    sendbuf.data, sendbuf.count, sendbuf.datatype,
-                    recvbuf.data, recvbuf.count, recvbuf.datatype,
-                    graph_comm)
-    catch e
-        miv_ver = v"3.0"
-        if contains(e.msg, "could not load symbol") && contains(e.msg, "MPI_Neighbor_alltoall") && MPI.Get_version() < miv_ver
-            throw(MPI.FeatureLevelError("MPI_Neighbor_alltoall", miv_ver))
-        end
-        rethrow(e)
-    end
+    @mpichk ccall((:MPI_Neighbor_alltoall, libmpi), Cint,
+                (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
+                sendbuf.data, sendbuf.count, sendbuf.datatype,
+                recvbuf.data, recvbuf.count, recvbuf.datatype,
+                graph_comm) v"3.0"
     return recvbuf.data
 end
 
@@ -891,21 +883,13 @@ function Neighbor_alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, graph_comm::Com
     #       const int sdispls[], MPI_Datatype sendtype, void* recvbuf,
     #       const int recvcounts[], const int rdispls[],
     #       MPI_Datatype recvtype, MPI_Comm comm)
-    try
-        @mpichk ccall((:MPI_Neighbor_alltoallv, libmpi), Cint,
-                        (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
-                        MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
-                        MPI_Comm),
-                        sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
-                        recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
-                        graph_comm)
-    catch e
-        miv_ver = v"3.0"
-        if contains(e.msg, "could not load symbol") && contains(e.msg, "MPI_Neighbor_alltoallv") && MPI.Get_version() < miv_ver
-            throw(MPI.FeatureLevelError("MPI_Neighbor_alltoallv", miv_ver))
-        end
-        rethrow(e)
-    end
+    @mpichk ccall((:MPI_Neighbor_alltoallv, libmpi), Cint,
+                    (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
+                    MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
+                    MPI_Comm),
+                    sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
+                    recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
+                    graph_comm) v"3.0"
     return recvbuf.data
 end
 
@@ -923,18 +907,11 @@ function Neighbor_allgather!(sendbuf::Buffer, recvbuf::UBuffer, graph_comm::Comm
     # int MPI_Neighbor_allgather(const void* sendbuf, int sendcount,
     #       MPI_Datatype sendtype, void* recvbuf, int recvcount,
     #       MPI_Datatype recvtype, MPI_Comm comm)
-    try
-        @mpichk ccall((:MPI_Neighbor_allgather, libmpi), Cint,
-                    (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
-                    sendbuf.data, sendbuf.count, sendbuf.datatype,
-                    recvbuf.data, recvbuf.count, recvbuf.datatype, graph_comm)
-    catch e
-        miv_ver = v"3.0"
-        if contains(e.msg, "could not load symbol") && contains(e.msg, "MPI_Neighbor_allgather") && MPI.Get_version() < miv_ver
-            throw(MPI.FeatureLevelError("MPI_Neighbor_allgather", miv_ver))
-        end
-        rethrow(e)
-    end
+    @mpichk ccall((:MPI_Neighbor_allgather, libmpi), Cint,
+                (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
+                sendbuf.data, sendbuf.count, sendbuf.datatype,
+                recvbuf.data, recvbuf.count, recvbuf.datatype, graph_comm) v"3.0"
+    
     return recvbuf.data
 end
 Neighbor_allgather!(sendbuf, recvbuf::UBuffer, graph_comm::Comm) =
@@ -962,18 +939,10 @@ function Neighbor_allgatherv!(sendbuf::Buffer, recvbuf::VBuffer, graph_comm::Com
     # int MPI_Neighbor_allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
     #                             void *recvbuf, const int recvcounts[], const int displs[],
     #                             MPI_Datatype recvtype, MPI_Comm comm)
-    try
-        @mpichk ccall((:MPI_Neighbor_allgatherv, libmpi), Cint,
-                    (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
-                    sendbuf.data, sendbuf.count, sendbuf.datatype,
-                    recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, graph_comm)
-    catch e
-        miv_ver = v"3.0"
-        if contains(e.msg, "could not load symbol") && contains(e.msg, "MPI_Neighbor_allgatherv") && MPI.Get_version() < miv_ver
-            throw(MPI.FeatureLevelError("MPI_Neighbor_allgatherv", miv_ver))
-        end
-        rethrow(e)
-    end
+    @mpichk ccall((:MPI_Neighbor_allgatherv, libmpi), Cint,
+                (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
+                sendbuf.data, sendbuf.count, sendbuf.datatype,
+                recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, graph_comm) v"3.0"
     return recvbuf.data
 end
 Neighbor_allgatherv!(sendbuf, recvbuf::VBuffer, graph_comm::Comm) =

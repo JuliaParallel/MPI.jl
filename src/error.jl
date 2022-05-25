@@ -17,10 +17,21 @@ function Base.show(io::IO, err::FeatureLevelError)
     print(io, "FeatureLevelError($(err.function_name)): Minimum version is $(err.min_feature_level)")
 end
 
-macro mpichk(expr)
+macro mpichk(expr, min_ver=v"1.0")
     expr = macroexpand(@__MODULE__, :(@mpicall($expr)))
-    # MPI_SUCCESS is defined to be 0
-    :((errcode = $(esc(expr))) == 0 || throw(MPIError(errcode)))
+    quote 
+        try
+            # MPI_SUCCESS is defined to be 0
+            (errcode = $(esc(expr))) == 0 || throw(MPIError(errcode))
+        catch e
+            typeof(e) != ErrorException && rethrow()
+            mpi_method_name = String($(esc(expr.args[2])))
+            if contains(e.msg, "could not load symbol") && contains(e.msg, mpi_method_name) && MPI.Get_version() < $(esc(min_ver))
+                throw(MPI.FeatureLevelError(mpi_method_name, $(esc(min_ver))))
+            end
+            rethrow()
+        end
+    end
 end
 
 
