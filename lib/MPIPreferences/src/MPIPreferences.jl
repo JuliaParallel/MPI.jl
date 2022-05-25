@@ -41,6 +41,10 @@ else
     error("Unknown binary: $binary")
 end
 
+# Default is empty string, indicating that the information in `abi` should be used to load the
+# correct ABI file
+const abi_file = @load_preference("abi_file", "")
+
 module System
     export libmpi, mpiexec
     using Preferences
@@ -115,6 +119,10 @@ Options:
 - `abi`: the ABI of the MPI library. By default this is determined automatically
   using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported values.
 
+- `abi_file`: the ABI file for the MPI library. By default, for ABIs supported by MPI.jl, the
+  corresponding ABI file is loaded automatically. This argument allows one to override the
+  automatic selection, e.g., to provide an ABI file for an MPI ABI unknown to MPI.jl.
+
 - `export_prefs`: if `true`, the preferences into the `Project.toml` instead of `LocalPreferences.toml`.
 
 - `force`: if `true`, the preferences are set even if they are already set.
@@ -123,6 +131,7 @@ function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
         mpiexec="mpiexec",
         abi=nothing,
+        abi_file=nothing,
         export_prefs=false,
         force=true,
     )
@@ -137,6 +146,11 @@ function use_system_binary(;
     if isnothing(abi)
         abi = identify_abi(libmpi)
     end
+    if isnothing(abi_file)
+        abi_file = ""
+    else
+        abi_file = abspath(abi_file)
+    end
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
     end
@@ -149,7 +163,7 @@ function use_system_binary(;
         force=force
     )
 
-    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary libmpi abi mpiexec
+    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary libmpi abi abi_file mpiexec
 
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
