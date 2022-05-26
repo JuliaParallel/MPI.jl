@@ -13,7 +13,7 @@ MPI.Init()
 comm_size = MPI.Comm_size(MPI.COMM_WORLD)
 
 if ArrayType != Array ||
-   MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE == 32 ||
+   MPI.MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32 ||
    Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
    Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
     operators = [MPI.SUM, +]
