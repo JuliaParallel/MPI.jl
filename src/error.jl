@@ -18,6 +18,9 @@ function Base.show(io::IO, err::FeatureLevelError)
 end
 
 macro mpichk(expr, min_ver=v"1.0")
+    if expr.args[2].head == :tuple
+        mpi_method_name_meta = expr.args[2].args[1]
+    end
     expr = macroexpand(@__MODULE__, :(@mpicall($expr)))
     quote 
         try
@@ -25,7 +28,7 @@ macro mpichk(expr, min_ver=v"1.0")
             (errcode = $(esc(expr))) == 0 || throw(MPIError(errcode))
         catch e
             typeof(e) != ErrorException && rethrow()
-            mpi_method_name = String($(esc(expr.args[2])))
+            mpi_method_name = String($(esc(mpi_method_name_meta)))
             if contains(e.msg, "could not load symbol") && contains(e.msg, mpi_method_name) && MPI.Get_version() < $(esc(min_ver))
                 throw(MPI.FeatureLevelError(mpi_method_name, $(esc(min_ver))))
             end
