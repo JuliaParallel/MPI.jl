@@ -2,7 +2,30 @@ struct MPIError <: Exception
     code::Cint
 end
 
-macro mpichk(expr)
+"""
+    FeatureLevelError
+
+This error is thrown if a feature is not implemented in the current MPI backend.
+"""
+struct FeatureLevelError <: Exception
+    function_name::String
+    min_version::VersionNumber # minimal MPI version required for this feature to be available
+end
+
+function Base.show(io::IO, err::FeatureLevelError)
+    print(io, "FeatureLevelError($(err.function_name)): Minimum MPI version is $(err.min_version)")
+end
+
+macro mpichk(expr, min_version=nothing)
+    if !isnothing(min_version) && expr.args[2].head == :tuple
+        fn = expr.args[2].args[1].value
+        if dlsym_e(Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL), fn) == C_NULL
+            return quote
+                throw(FeatureLevelError($(string(fn)), $min_version))
+            end
+        end
+    end
+
     expr = macroexpand(@__MODULE__, :(@mpicall($expr)))
     # MPI_SUCCESS is defined to be 0
     :((errcode = $(esc(expr))) == 0 || throw(MPIError(errcode)))
