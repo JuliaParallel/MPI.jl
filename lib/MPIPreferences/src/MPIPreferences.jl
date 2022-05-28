@@ -41,13 +41,8 @@ else
     error("Unknown binary: $binary")
 end
 
-module System
-    export libmpi, mpiexec
-    using Preferences
-    const libmpi = @load_preference("libmpi")
-    const mpiexec_path = @load_preference("mpiexec")
-    mpiexec(;adjust_PATH=true, adjust_LIBPATH=true) = `$mpiexec_path`
-    mpiexec(f;adjust_PATH=true, adjust_LIBPATH=true) = f(`$mpiexec_path`)
+@static if binary == "system"
+    include("system.jl")
 end
 
 """
