@@ -19,7 +19,7 @@ end
 macro mpichk(expr, min_version=nothing)
     if !isnothing(min_version) && expr.args[2].head == :tuple
         fn = expr.args[2].args[1].value
-        if dlsym_e(Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL), fn) == C_NULL
+        if dlsym(Libdl.dlopen(libmpi, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL), fn; throw_error=false) == C_NULL
             return quote
                 throw(FeatureLevelError($(string(fn)), $min_version))
             end
