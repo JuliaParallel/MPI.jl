@@ -52,7 +52,7 @@ If the implementation is changed, you will need to call this function again. See
 
 !!! note
     Due to a bug in Julia (until `v1.6.5` and `v1.7.1`), getting preferences
-    from transitive dependencies is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24).
+    from transitive dependencies is broken ([Preferences.jl#24](https://github.com/JuliaPackaging/Preferences.jl/issues/24)).
     To fix this update your version of Julia, or add `MPIPreferences` as a direct dependency to your project.
 
 
