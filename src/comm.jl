@@ -164,13 +164,14 @@ function Comm_dup(comm::Comm)
 end
 
 """
-    Comm_split(comm::Comm, color::Integer, key::Integer)
+    Comm_split(comm::Comm, color::Union{Integer,Nothing}, key::Integer)
 
 Partition the communicator `comm`, one for each value of `color`, returning a
 new communicator. Within each group, the processes are ranked in the order of
 `key`, with ties broken by the order of `comm`.
 
-`color` may be `nothing`, in which case a null communicator is returned.
+`color` should be a non-negative integer, or `nothing`, in which case a null
+communicator is returned for that rank.
 
 # External links
 $(_doc_external("MPI_Comm_split"))
