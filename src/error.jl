@@ -1,35 +1,38 @@
+"""
+    MPIError
+
+Error thrown when an MPI function returns an error code. The `code` field contains the MPI error code.
+"""
 struct MPIError <: Exception
     code::Cint
 end
-
+function Base.show(io::IO, err::MPIError)
+    print(io, "MPIError(", err.code, "): ", error_string(err))
+end
 
 """
     FeatureLevelError
 
-This error is thrown if a feature is not implemented in the current MPI backend.
+Error thrown if a feature is not implemented in the current MPI backend.
 """
 struct FeatureLevelError <: Exception
-    function_name::String
-    min_feature_level::VersionNumber # minimal MPI version required for this feature to be available
+    function_name::Symbol
+    min_version::VersionNumber # minimal MPI version required for this feature to be available
 end
-
 function Base.show(io::IO, err::FeatureLevelError)
-    print(io, "FeatureLevelError($(err.function_name)): Minimum version is $(err.min_feature_level)")
+    print(io, "FeatureLevelError($(err.function_name)): Minimum MPI version is $(err.min_version)")
 end
 
-macro mpichk(expr, min_ver_expr=v"1.0")
-    # This macro can currently just handle ccall expressions.
-    @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
-    
-    # A ccall can have either a tuple as its first argument or just the symbol, 
-    # if the called function does not have input arguments.
-    if expr.args[2].head == :tuple
-        mpi_method_name_meta = expr.args[2].args[1]
-    elseif expr.args[2].head == :symbol
-        mpi_method_name_meta = expr.args[2]
+macro mpichk(expr, min_version=nothing)
+    if !isnothing(min_version) && expr.args[2].head == :tuple
+        fn = expr.args[2].args[1].value
+        if isnothing(dlsym(libmpi_handle, fn; throw_error=false))
+            return quote
+                throw(FeatureLevelError($fn, $min_version))
+            end
+        end
     end
 
-    # Adjust MPI api call to platform-specific details.  
     expr = macroexpand(@__MODULE__, :(@mpicall($expr)))
     
     # Generate the check code
@@ -61,7 +64,6 @@ macro mpichk(expr, min_ver_expr=v"1.0")
     end
 end
 
-
 function error_string(err::MPIError)
     len_ref = Ref{Cint}()
     str_buf = Vector{UInt8}(undef, Consts.MPI_MAX_ERROR_STRING)
@@ -70,8 +72,4 @@ function error_string(err::MPIError)
                   (Cint, Ptr{UInt8}, Ref{Cint}), err.code, str_buf, len_ref)
     resize!(str_buf, len_ref[])
     return String(str_buf)
-end
-
-function Base.show(io::IO, err::MPIError)
-    print(io, "MPIError(", err.code, "): ", error_string(err))
 end

@@ -37,19 +37,19 @@ end
 import MPIPreferences
 
 if MPIPreferences.binary == "MPICH_jll"
-    import MPICH_jll: libmpi, mpiexec
+    import MPICH_jll: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "OpenMPI_jll"
-    import OpenMPI_jll: libmpi, mpiexec
+    import OpenMPI_jll: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "MicrosoftMPI_jll"
-    import MicrosoftMPI_jll: libmpi, mpiexec
+    import MicrosoftMPI_jll: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "MPItrampoline_jll"
-    import MPItrampoline_jll: MPItrampoline_jll, libmpi, mpiexec
+    import MPItrampoline_jll: MPItrampoline_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
 elseif MPIPreferences.binary == "system"
-    import MPIPreferences.System: libmpi, mpiexec
+    import MPIPreferences.System: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
 else
     error("Unknown MPI binary: $(MPIPreferences.binary)")

@@ -295,10 +295,10 @@ function has_cuda()
     flag = get(ENV, "JULIA_MPI_HAS_CUDA", nothing)
     if flag === nothing
         # Only Open MPI provides a function to check CUDA support
-        @static if MPI_LIBRARY == OpenMPI
+        @static if MPI_LIBRARY == "OpenMPI"
             # int MPIX_Query_cuda_support(void)
             return 0 != ccall((:MPIX_Query_cuda_support, libmpi), Cint, ())
-        elseif MPI_LIBRARY == IBMSpectrumMPI
+        elseif MPI_LIBRARY == "IBMSpectrumMPI"
             return true
         else
             return false
