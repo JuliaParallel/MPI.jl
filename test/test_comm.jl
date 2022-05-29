@@ -31,7 +31,6 @@ if comm_rank < 2
     @test MPI.Comm_size(splitcomm2) <= 2
     @test MPI.Comm_rank(splitcomm2) == comm_rank
 else
-    @test MPI.Comm_compare(splitcomm2, MPI.COMM_NULL) == MPI.IDENT
     @test splitcomm2 == MPI.COMM_NULL
 end
 
@@ -40,7 +39,6 @@ if comm_rank <= 2
     @test MPI.Comm_size(splitcomm3) <= 2
     @test MPI.Comm_rank(splitcomm3) < 2
 else
-    @test MPI.Comm_compare(splitcomm3, MPI.COMM_NULL) == MPI.IDENT
     @test splitcomm3 == MPI.COMM_NULL
 end
 
