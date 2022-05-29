@@ -20,6 +20,8 @@ try
     @test sort(recv) == collect(0:rank).^2
 catch e
     if isa(e, MPI.FeatureLevelError)
+        @show e.min_version
+        @show MPI.Get_version()
         @test_broken e.min_version <= MPI.Get_version()
     else
         rethrow(e)
