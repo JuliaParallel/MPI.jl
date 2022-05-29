@@ -46,5 +46,4 @@ MPI.set_errorhandler!
 
 ```@docs
 MPI.Consts.@const_ref
-MPI.FeatureLevelError
 ```
