@@ -121,7 +121,7 @@ function use_system_binary(;
         export_prefs=false,
         force=true,
     )
-
+    binary = "system"
     # Set `ZES_ENABLE_SYSMAN` to work around https://github.com/open-mpi/ompi/issues/10142
     libmpi = withenv("ZES_ENABLE_SYSMAN" => "1") do
         find_library(library_names)
@@ -136,7 +136,7 @@ function use_system_binary(;
         mpiexec = collect(mpiexec)
     end
     set_preferences!(MPIPreferences,
-        "binary" => "system",
+        "binary" => binary,
         "libmpi" => libmpi,
         "abi" => abi,
         "mpiexec" => mpiexec,
