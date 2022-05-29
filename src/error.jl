@@ -28,7 +28,7 @@ macro mpichk(expr, min_version=nothing)
         fn = expr.args[2].args[1].value
         if isnothing(dlsym(libmpi_handle, fn; throw_error=false))
             return quote
-                throw(FeatureLevelError($fn, $min_version))
+                throw(FeatureLevelError($(QuoteNode(fn)), $min_version))
             end
         end
     end
