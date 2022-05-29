@@ -132,6 +132,9 @@ const MPI_Request = Cuint
 ```
 As you can see, the syntax of such a Julia ABI file is non-trivial, thus the
 recommendation to start with an existing ABI file.
+It is further advisable to always use the corresponding Julia alias for
+standard C types, e.g., `Cuint` for `unsigned int` or `Clonglong` for `long
+long`.
 Please note that sometimes information is also stored in ancillary header files (e.g.,
 `mpi_types.h` or `mpi_ext.h`).
 
