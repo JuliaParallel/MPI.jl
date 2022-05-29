@@ -27,11 +27,7 @@ try
     @test sort(recv) == sort(repeat(0:rank, rank+1))
 catch e
     if isa(e, MPI.FeatureLevelError)
-        current_version = MPI.Get_version();
-        println("""Could not test '$(@__FILE__)', feature level is too low. Minimum required MPI version: $(e.min_feature_level).
-               Current MPI version: $(current_version)
-               """)
-        @test_broken false
+        @test_broken e.min_version <= MPI.Get_version()
     else
         rethrow(e)
     end
