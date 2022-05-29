@@ -34,8 +34,8 @@ else
     @test splitcomm2 == MPI.COMM_NULL
 end
 
-splitcomm3 = MPI.Comm_split_type(comm, comm_rank <= 2 ? MPI.COMM_TYPE_SHARED : nothing, 0)
-if comm_rank <= 2
+splitcomm3 = MPI.Comm_split_type(comm, comm_rank < 2 ? MPI.COMM_TYPE_SHARED : nothing, 0)
+if comm_rank < 2
     @test MPI.Comm_size(splitcomm3) <= 2
     @test MPI.Comm_rank(splitcomm3) < 2
 else
