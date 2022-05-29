@@ -25,7 +25,7 @@ end
 
 macro mpichk(expr, min_version=nothing)
     if !isnothing(min_version) && expr.args[2].head == :tuple
-        fn = expr.args[2].args[1]
+        fn = expr.args[2].args[1].value
         if isnothing(dlsym(libmpi_handle, fn; throw_error=false))
             return quote
                 throw(FeatureLevelError($(QuoteNode(fn)), $min_version))
