@@ -17,8 +17,8 @@ const MPI_MAX_PROCESSOR_NAME = Cint(256)
 # Various (signed) integer types:
 const MPI_Aint = Cptrdiff_t
 const MPI_Fint = Cint
-const MPI_Count = Clonglong
-const MPI_Offset = Clonglong
+const MPI_Count = Int  # needs to be Int to match different sizes on 32-bit/64-bit systems
+const MPI_Offset = Int # needs to be Int to match different sizes on 32-bit/64-bit systems
 
 # Status:
 struct MPI_Status
