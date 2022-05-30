@@ -3,7 +3,7 @@
 [![Docs latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliaparallel.github.io/MPI.jl/latest/)
 [![Docs stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliaparallel.github.io/MPI.jl/stable/)
 [![Unit tests](https://github.com/JuliaParallel/MPI.jl/workflows/Unit%20Tests/badge.svg?branch=master)](https://github.com/JuliaParallel/MPI.jl/actions?query=workflow%3A%22Unit+Tests%22+branch%3Amaster)
-[![GPU tests](https://gitlab.com/JuliaGPU/MPI.jl/badges/master/pipeline.svg)](https://gitlab.com/JuliaGPU/MPI.jl/pipelines)
+[![GPU tests](https://badge.buildkite.com/ed813bc4d79f557adbdb821b1c8c8de98999686e697df4a373.svg?branch=master)](https://buildkite.com/julialang/mpi-dot-jl)
 [![codecov.io](https://codecov.io/github/JuliaParallel/MPI.jl/coverage.svg?branch=master)](https://codecov.io/github/JuliaParallel/MPI.jl?branch=master)
 [![Coverage Status](https://coveralls.io/repos/JuliaParallel/MPI.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaParallel/MPI.jl?branch=master)
 
