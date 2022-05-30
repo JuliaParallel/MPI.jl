@@ -1,5 +1,6 @@
 steps:
   - label: "Build OpenMPI -- CUDA"
+    key: "build-openmpi-cuda"
     agents:
       queue: "juliagpu"
       cuda: "11.0"
@@ -38,7 +39,9 @@ steps:
       ccache -s
     artifact_paths:
       - "mpi-prefix.tar.gz"
+
   - label: "Build OpenMPI -- ROCM"
+    key: "build-openmpi-rocm"
     agents:
       queue: "juliagpu"
       rocm: "*" # todo fix ROCM version
@@ -77,8 +80,9 @@ steps:
       ccache -s
     artifact_paths:
       - "mpi-prefix.tar.gz"
-  - wait: ~
+
   - label: "CUDA -- 1.6"
+    depends_on: "build-openmpi-cuda"
     plugins:
       - JuliaCI/julia#v1:
           version: "1.6"
@@ -121,6 +125,7 @@ steps:
       julia -e 'import Pkg; Pkg.test("MPI")'
 
   - label: "CUDA -- 1.7"
+    depends_on: "build-openmpi-cuda"
     plugins:
       - JuliaCI/julia#v1:
           version: "1.7"
