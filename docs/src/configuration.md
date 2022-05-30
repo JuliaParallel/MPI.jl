@@ -123,7 +123,7 @@ enum {
 
 #define MPI_ARGV_NULL ((char**) NULL)
 ```
-you need to put the corresponding entries in your ABI file `abi_file.jl`:
+you need to put the corresponding entries in your ABI file `abi_source_file.jl`:
 ```julia
 const MPI_Request = Cuint
 @const_ref MPI_REQUEST_NULL MPI_Request 0
@@ -139,10 +139,10 @@ Please note that sometimes information is also stored in ancillary header files 
 `mpi_types.h` or `mpi_ext.h`).
 
 You can then use [`MPIPreferences.use_system_binary`](@ref) to configure MPI.jl
-to use your custom file by providing the path via the `abi_file` keyword
+to use your custom file by providing the path via the `abi_source_file` keyword
 argument, e.g.,
 ```shell
-julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; abi_file="path/to/abifile.jl)'
+julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; abi_source_file="path/to/file.jl)'
 ```
 You need to restart Julia for the change to take effect.
 

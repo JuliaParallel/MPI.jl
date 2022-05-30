@@ -27,8 +27,8 @@ macro const_ref(name, T, expr)
     :(const $(esc(name)) = Ref{$T}())
 end
 
-# If `abi_file` is empty, choose ABI file based on ABI string, otherwise load the specified file
-@static if MPIPreferences.abi_file == ""
+# If `abi_source_file` is empty, choose ABI file based on ABI string, otherwise load the specified file
+@static if MPIPreferences.abi_source_file == ""
     @static if MPIPreferences.abi == "MPICH"
         include("mpich.jl")
     elseif MPIPreferences.abi == "OpenMPI"
@@ -43,7 +43,7 @@ end
         error("Unknown MPI ABI $(MPIPreferences.abi)")
     end
 else
-    include(MPIPreferences.abi_file)
+    include(MPIPreferences.abi_source_file)
 end
 
 # Initialize the ref constants from the library.

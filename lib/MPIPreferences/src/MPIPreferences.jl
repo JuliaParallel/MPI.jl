@@ -47,7 +47,7 @@ end
 
 # Default is empty string, indicating that the information in `abi` should be used to load the
 # correct ABI file
-const abi_file = @load_preference("abi_file", "")
+const abi_source_file = @load_preference("abi_source_file", "")
 
 """
     MPIPreferences.use_jll_binary(binary; export_prefs=false, force=true)
@@ -93,7 +93,7 @@ end
         library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
         mpiexec = "mpiexec",
         abi = nothing,
-        abi_file = nothing,
+        abi_source_file = nothing,
         export_prefs = false,
         force = true)
 
@@ -115,7 +115,7 @@ Options:
 - `abi`: the ABI of the MPI library. By default this is determined automatically
   using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported values.
 
-- `abi_file`: the ABI file for the MPI library. By default, for ABIs supported by MPI.jl, the
+- `abi_source_file`: the ABI file for the MPI library. By default, for ABIs supported by MPI.jl, the
   corresponding ABI file is loaded automatically. This argument allows one to override the
   automatic selection, e.g., to provide an ABI file for an MPI ABI unknown to MPI.jl.
 
@@ -127,7 +127,7 @@ function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
         mpiexec="mpiexec",
         abi=nothing,
-        abi_file=nothing,
+        abi_source_file=nothing,
         export_prefs=false,
         force=true,
     )
@@ -142,10 +142,10 @@ function use_system_binary(;
     if isnothing(abi)
         abi = identify_abi(libmpi)
     end
-    if isnothing(abi_file)
-        abi_file = ""
+    if isnothing(abi_source_file)
+        abi_source_file = ""
     else
-        abi_file = abspath(abi_file)
+        abi_source_file = abspath(abi_source_file)
     end
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
@@ -154,13 +154,13 @@ function use_system_binary(;
         "binary" => binary,
         "libmpi" => libmpi,
         "abi" => abi,
-        "abi_file" => abi_file,
+        "abi_source_file" => abi_source_file,
         "mpiexec" => mpiexec,
         export_prefs=export_prefs,
         force=force
     )
 
-    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary libmpi abi abi_file mpiexec
+    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary libmpi abi abi_source_file mpiexec
 
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
