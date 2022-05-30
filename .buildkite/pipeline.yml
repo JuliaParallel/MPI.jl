@@ -46,8 +46,8 @@ steps:
       queue: "juliagpu"
       rocm: "*" # todo fix ROCM version
     env:
-      OPENMPI_VER: "4.0"
-      OPENMPI_VER_FULL: "4.0.3"
+      OPENMPI_VER: "4.1"
+      OPENMPI_VER_FULL: "4.1.4"
       UCX_VER: "1.12.1"
       CCACHE_DIR: "/root/ccache"
     commands: |
