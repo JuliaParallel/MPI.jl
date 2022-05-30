@@ -9,12 +9,6 @@ MPI.MPI_LIBRARY_VERSION
 MPI.MPI_LIBRARY_VERSION_STRING
 ```
 
-## Enums
-
-```@docs
-MPI.MPIImpl
-```
-
 ## Functions
 
 ```@docs

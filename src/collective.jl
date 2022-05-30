@@ -839,3 +839,119 @@ Exscan(sendbuf::AbstractArray, op, comm::Comm) =
     Exscan!(sendbuf, similar(sendbuf), op, comm)
 Exscan(object::T, op, comm::Comm) where {T} =
     Exscan!(Ref(object), Ref{T}(), op, comm)[]
+
+"""
+    Neighbor_alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
+
+Perform an all-to-all communication along the directed edges of the graph with fixed size messages.
+
+See also [`MPI.Alltoall!`](@ref).
+
+# External links
+$(_doc_external("MPI_Neighbor_alltoall"))
+"""
+function Neighbor_alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, graph_comm::Comm)
+    # int MPI_Neighbor_alltoall(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf,
+    #       int recvcount, MPI_Datatype recvtype, MPI_Comm graph_comm)
+    @mpichk ccall((:MPI_Neighbor_alltoall, libmpi), Cint,
+                (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
+                sendbuf.data, sendbuf.count, sendbuf.datatype,
+                recvbuf.data, recvbuf.count, recvbuf.datatype,
+                graph_comm) v"3.0"
+    return recvbuf.data
+end
+
+Neighbor_alltoall!(sendbuf::InPlace, recvbuf::UBuffer, graph_comm::Comm) =
+    Neighbor_alltoall!(UBuffer(IN_PLACE), recvbuf, graph_comm)
+Neighbor_alltoall!(sendrecvbuf::UBuffer, graph_comm::Comm) =
+    Neighbor_alltoall!(IN_PLACE, sendrecvbuf, comm)
+Neighbor_alltoall(sendbuf::UBuffer, graph_comm::Comm) =
+    Neighbor_alltoall!(sendbuf, similar(sendbuf), graph_comm)
+
+"""
+    Neighbor_alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, graph_comm::Comm)
+
+Perform an all-to-all communication along the directed edges of the graph with variable size messages.
+
+See also [`MPI.Alltoallv!`](@ref).
+
+# External links
+$(_doc_external("MPI_Neighbor_alltoallv"))
+"""
+function Neighbor_alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, graph_comm::Comm)
+    # int MPI_Neighbor_alltoallv!(const void* sendbuf, const int sendcounts[],
+    #       const int sdispls[], MPI_Datatype sendtype, void* recvbuf,
+    #       const int recvcounts[], const int rdispls[],
+    #       MPI_Datatype recvtype, MPI_Comm comm)
+    @mpichk ccall((:MPI_Neighbor_alltoallv, libmpi), Cint,
+                    (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
+                    MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
+                    MPI_Comm),
+                    sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
+                    recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
+                    graph_comm) v"3.0"
+    return recvbuf.data
+end
+
+"""
+    Neighbor_allgather!(sendbuf::Buffer, recvbuf::UBuffer, comm::Comm)
+
+Perform an all-gather communication along the directed edges of the graph.
+
+See also [`MPI.Allgather!`](@ref).
+
+# External links
+$(_doc_external("MPI_Neighbor_allgather"))
+"""
+function Neighbor_allgather!(sendbuf::Buffer, recvbuf::UBuffer, graph_comm::Comm)
+    # int MPI_Neighbor_allgather(const void* sendbuf, int sendcount,
+    #       MPI_Datatype sendtype, void* recvbuf, int recvcount,
+    #       MPI_Datatype recvtype, MPI_Comm comm)
+    @mpichk ccall((:MPI_Neighbor_allgather, libmpi), Cint,
+                (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
+                sendbuf.data, sendbuf.count, sendbuf.datatype,
+                recvbuf.data, recvbuf.count, recvbuf.datatype, graph_comm) v"3.0"
+    
+    return recvbuf.data
+end
+Neighbor_allgather!(sendbuf, recvbuf::UBuffer, graph_comm::Comm) =
+    Neighbor_allgather!(Buffer_send(sendbuf), recvbuf, graph_comm)
+
+Neighbor_allgather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, graph_comm::Comm) =
+    Neighbor_allgather!(sendbuf, UBuffer(recvbuf, length(sendbuf)), graph_comm)
+
+
+function Neighbor_allgather!(sendrecvbuf::UBuffer, graph_comm::Comm)
+    Neighbor_allgather!(IN_PLACE, sendrecvbuf, graph_comm)
+end
+
+"""
+    Neighbor_allgatherv!(sendbuf::Buffer, recvbuf::VBuffer, comm::Comm)
+
+Perform an all-gather communication along the directed edges of the graph with variable sized data.
+
+See also [`MPI.Allgatherv!`](@ref).
+
+# External links
+$(_doc_external("MPI_Neighbor_allgatherv"))
+"""
+function Neighbor_allgatherv!(sendbuf::Buffer, recvbuf::VBuffer, graph_comm::Comm)
+    # int MPI_Neighbor_allgatherv(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
+    #                             void *recvbuf, const int recvcounts[], const int displs[],
+    #                             MPI_Datatype recvtype, MPI_Comm comm)
+    @mpichk ccall((:MPI_Neighbor_allgatherv, libmpi), Cint,
+                (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
+                sendbuf.data, sendbuf.count, sendbuf.datatype,
+                recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, graph_comm) v"3.0"
+    return recvbuf.data
+end
+Neighbor_allgatherv!(sendbuf, recvbuf::VBuffer, graph_comm::Comm) =
+    Neighbor_allgatherv!(Buffer_send(sendbuf), recvbuf, graph_comm)
+
+Neighbor_allgatherv!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, graph_comm::Comm) =
+    Neighbor_allgatherv!(sendbuf, VBuffer(recvbuf, length(sendbuf)), graph_comm)
+
+
+function Neighbor_allgatherv!(sendrecvbuf::VBuffer, graph_comm::Comm)
+    Neighbor_allgatherv!(IN_PLACE, sendrecvbuf, graph_comm)
+end

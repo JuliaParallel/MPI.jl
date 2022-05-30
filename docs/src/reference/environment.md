@@ -24,3 +24,10 @@ MPI.Initialized
 MPI.Finalize
 MPI.Finalized
 ```
+
+## Errors
+
+```@docs
+MPI.MPIError
+MPI.FeatureLevelError
+```
