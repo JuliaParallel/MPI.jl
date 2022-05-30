@@ -159,6 +159,7 @@ function use_system_binary(;
         "binary" => "system",
         "libmpi" => libmpi,
         "abi" => abi,
+        "abi_file" => abi_file,
         "mpiexec" => mpiexec,
         export_prefs=export_prefs,
         force=force
