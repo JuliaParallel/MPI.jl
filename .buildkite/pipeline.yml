@@ -27,7 +27,7 @@ steps:
       curl -L https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
       tar -zxf openmpi.tar.gz
       pushd openmpi-$${OPENMPI_VER_FULL}
-      ./configure --with-ucx=$$(realpath ../mpi-prefix) --prefix=$$(realpath ../mpi-prefix)
+      ./configure --with-ucx=$$(realpath ../mpi-prefix) --with-cuda=/usr/local/cuda --prefix=$$(realpath ../mpi-prefix)
       make -j
       make install
       popd
