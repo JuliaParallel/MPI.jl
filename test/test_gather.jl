@@ -1,12 +1,4 @@
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-else
-    ArrayType = Array
-end
+include("common.jl")
 
 MPI.Init()
 
@@ -20,6 +12,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Allocating
     A = ArrayType{T}(fill(T(rank+1), 4))
+    synchronize()
     C = MPI.Gather(A, comm; root=root)
     if isroot
         @test C isa ArrayType{T}
@@ -37,6 +30,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Allocating, array
     A = ArrayType{T}([MPI.Comm_rank(comm) + 1])
+    synchronize()
     C = MPI.Gather(A, comm; root=root)
     if isroot
         @test C isa ArrayType{T}
@@ -47,6 +41,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Allocating, view
     A = ArrayType{T}([MPI.Comm_rank(comm) + 1, 0])
+    synchronize()
     C = MPI.Gather(view(A, 1:1), comm; root=root)
     if isroot
         @test C isa ArrayType{T}
@@ -55,6 +50,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Non Allocating
     A = ArrayType{T}(fill(T(rank+1), 4))
+    synchronize()
     C = ArrayType{T}(undef, 4sz)
     MPI.Gather!(A, C, comm; root=root)
     if isroot
@@ -70,6 +66,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     if isroot
         A = ArrayType{T}(fill(T(rank+1), 4*sz))
     end
+    synchronize()
     if root == MPI.Comm_rank(comm)
         MPI.Gather!(MPI.IN_PLACE, UBuffer(A,4), comm; root=root)
     else
