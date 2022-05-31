@@ -1,13 +1,5 @@
 # tests for the various kinds of waits
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-else
-    ArrayType = Array
-end
+include("common.jl")
 
 MPI.Init()
 
@@ -17,6 +9,7 @@ commsize = MPI.Comm_rank(MPI.COMM_WORLD)
 nsends = 2
 send_arr = [ArrayType{Int}([i]) for i = 1:nsends]
 recv_arr = [ArrayType{Int}(undef,1) for i = 1:nsends]
+synchronize()
 
 # send to self
 send_reqs = [MPI.Isend(send_arr[i], MPI.COMM_WORLD; dest=myrank, tag=i) for i = 1:nsends]

@@ -1,12 +1,4 @@
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-else
-    ArrayType = Array
-end
+include("common.jl")
 
 MPI.Init()
 
@@ -19,6 +11,7 @@ src  = mod(rank-1, comm_size)
 
 @testset "contiguous" begin
     X = ArrayType(rank .+ collect(reshape(1.0:16.0, 4, 4)))
+    synchronize()
     Y = ArrayType(zeros(4))
     req_send = MPI.Isend(@view(X[:,1]), comm; dest=dest)
     req_recv = MPI.Irecv!(Y, comm; source=src)
@@ -28,6 +21,7 @@ src  = mod(rank-1, comm_size)
     @test Y == X[:,1] .- rank .+ src
 
     Y = ArrayType(zeros(2))
+    synchronize()
 
     req_send = MPI.Isend(Y, comm; dest=dest, tag=1)
     req_recv = MPI.Irecv!(@view(X[3:4,1]), comm; source=src, tag=1)
@@ -39,6 +33,7 @@ end
 
 @testset "strided" begin
     X = ArrayType(rank .+ collect(reshape(1.0:16.0, 4, 4)))
+    synchronize()
     Y = ArrayType(zeros(4))
     req_send = MPI.Isend(@view(X[2,:]), comm; dest=dest, tag=0)
     req_recv = MPI.Irecv!(Y, comm; source=src, tag=0)
@@ -48,6 +43,7 @@ end
     @test Y == X[2,:] .- rank .+ src
 
     Y = ArrayType(zeros(2))
+    synchronize()
 
     req_send = MPI.Isend(Y, comm; dest=dest, tag=1)
     req_recv = MPI.Irecv!(@view(X[3,1:2]), comm; source=src, tag=1)
@@ -59,6 +55,7 @@ end
 
 @testset "dense subarray" begin
     X = ArrayType(rank .+ collect(reshape(1.0:16.0, 4, 4)))
+    synchronize()
     Y = ArrayType(zeros(2,2))
     req_send = MPI.Isend(@view(X[2:3,3:4]), comm; dest=dest, tag=0)
     req_recv = MPI.Irecv!(Y, comm; source=src, tag=0)
@@ -68,6 +65,7 @@ end
     @test Y == X[2:3,3:4] .- rank .+ src
 
     Y = ArrayType(zeros(2,2))
+    synchronize()
 
     req_send = MPI.Isend(Y, comm; dest=dest, tag=1)
     req_recv = MPI.Irecv!(@view(X[3:4,1:2]), comm; source=src, tag=1)
@@ -77,6 +75,5 @@ end
     @test X[3:4,1:2] == Y
 end
 
-GC.gc()
 MPI.Finalize()
 @test MPI.Finalized()
