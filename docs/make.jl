@@ -12,6 +12,7 @@ EXAMPLES = [
     "Scatterv and Gatherv" => "examples/06-scatterv.md",
     "Active RMA" => "examples/07-rma_active.md",
     "Passive RMA" => "examples/08-rma_passive.md",
+    "Graph Communication" => "examples/09-graph_communication.md",
 ]
 
 examples_md_dir = joinpath(@__DIR__,"src/examples")
@@ -36,9 +37,9 @@ for (example_title, example_md) in EXAMPLES
         println(mdfile)
 
         println(mdfile, "```")
-        println(mdfile, "> mpiexecjl -n 3 julia $example_jl")
+        println(mdfile, "> mpiexecjl -n 4 julia $example_jl")
         cd(@__DIR__) do
-            write(mdfile, mpiexec(cmd -> read(`$cmd -n 3 $(Base.julia_cmd()) --project $example_jl`)))
+            write(mdfile, mpiexec(cmd -> read(`$cmd -n 4 $(Base.julia_cmd()) --project $example_jl`)))
         end
         println(mdfile, "```")
     end

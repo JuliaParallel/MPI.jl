@@ -53,9 +53,9 @@ testfiles = sort(filter(istest, readdir(testdir)))
         elseif f == "test_error.jl"
             r = run(ignorestatus(cmd()))
             @test !success(r)
-        elseif f == "test_errorhandler.jl" && (MPI.identify_implementation()[1] == MPI.UnknownMPI ||
-            # Fujitsu MPI is known to not work with custom error handlers
-            startswith(MPI.MPI_LIBRARY_VERSION_STRING, "FUJITSU MPI"))
+        elseif f == "test_errorhandler.jl" && MPI.MPI_LIBRARY in ("unknown", "FujitsuMPI")
+            # Fujitsu MPI is known to not work with custom error handlers.  Also
+            # unknown implementations may fail for the same reason.
             try
                 run(cmd())
             catch e

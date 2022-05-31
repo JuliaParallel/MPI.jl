@@ -25,6 +25,8 @@ MPI.Gatherv!
 MPI.Allgather!
 MPI.Allgather
 MPI.Allgatherv!
+MPI.Neighbor_allgather!
+MPI.Neighbor_allgatherv!
 ```
 
 ### Scatter
@@ -41,6 +43,8 @@ MPI.Scatterv!
 MPI.Alltoall!
 MPI.Alltoall
 MPI.Alltoallv!
+MPI.Neighbor_alltoall!
+MPI.Neighbor_alltoallv!
 ```
 
 ## Reduce/Scan

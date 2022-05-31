@@ -1,20 +1,9 @@
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
-    import AMDGPU
-    ArrayType = AMDGPU.ROCArray
-else
-    ArrayType = Array
-end
+include("common.jl")
 
 # Closures might not be supported by cfunction
 const can_do_closures =
     ArrayType === Array &&
-    !(MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE == 32) &&
+    !(MPI.MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32) &&
     Sys.ARCH !== :powerpc64le &&
     Sys.ARCH !== :ppc64le &&
     Sys.ARCH !== :aarch64 &&
