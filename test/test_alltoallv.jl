@@ -1,15 +1,4 @@
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
-    import AMDGPU
-    ArrayType = AMDGPU.ROCArray
-else
-    ArrayType = Array
-end
+include("common.jl")
 
 MPI.Init()
 
@@ -24,8 +13,9 @@ send_vals = collect(Iterators.flatten([1:i for i = 1:size]))
 recv_vals = collect(Iterators.flatten([1:rank+1 for i = 1:size]))
 
 for T in Base.uniontypes(MPI.MPIDatatype)
-        
+
     A = ArrayType{T}(send_vals)
+    synchronize()
 
     # Non Allocating version
     C = ArrayType{T}(undef, sum(recv_counts))

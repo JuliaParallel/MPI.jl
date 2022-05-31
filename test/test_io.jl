@@ -1,18 +1,8 @@
-using Test
-using MPI
+include("common.jl")
 using Random
 
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
-    import AMDGPU
-    ArrayType = AMDGPU.ROCArray
-else
-    ArrayType = Array
-end
-
 MPI.Init()
+
 comm = MPI.COMM_WORLD
 rank = MPI.Comm_rank(comm)
 sz = MPI.Comm_size(comm)

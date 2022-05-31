@@ -1,16 +1,4 @@
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
-    import AMDGPU
-    ArrayType = AMDGPU.ROCArray
-else
-    ArrayType = Array
-end
-
+include("common.jl")
 
 MPI.Init()
 
@@ -21,6 +9,7 @@ rank = MPI.Comm_rank(comm)
 for T in Base.uniontypes(MPI.MPIDatatype)
     # test vector input
     A = ArrayType{T}([rank + 1])
+    synchronize()
     C = MPI.Allgather(A, comm)
     @test C isa ArrayType{T,1}
     @test C == ArrayType{T,1}(1:size)
@@ -35,11 +24,12 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Test passing output buffer with set size
     A = ArrayType(T[val])
-    
+    synchronize()
+
     C = ArrayType{T}(undef, size)
     MPI.Allgather!(A, C, comm) # implied size
     @test C == ArrayType{T}(1:size)
-    
+
     C = ArrayType{T}(undef, size)
     MPI.Allgather!(A, UBuffer(C,1), comm)
     @test C == ArrayType{T}(1:size)
@@ -50,12 +40,14 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Test explicit IN_PLACE
     C = ArrayType{T}([i == rank ? i : size + 1 for i = 0:size-1])
+    synchronize()
     MPI.Allgather!(MPI.IN_PLACE, UBuffer(C, 1), comm)
     @test C isa ArrayType{T,1}
     @test C == ArrayType{T}(0:size-1)
 
     # Test IN_PLACE
     C = ArrayType{T}([i == rank ? i : size + 1 for i = 0:size-1])
+    synchronize()
     MPI.Allgather!(UBuffer(C, 1), comm)
     @test C isa ArrayType{T,1}
     @test C == ArrayType{T}(0:size-1)

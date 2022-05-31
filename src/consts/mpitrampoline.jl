@@ -201,8 +201,8 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 
 @const_ref MPI_ARGV_NULL Ptr{Cchar} unsafe_load(cglobal((:MPICONSTANTS_ARGV_NULL, libmpiconstants), Ptr{Ptr{Cchar}}))
 @const_ref MPI_ARGVS_NULL Ptr{Cchar} unsafe_load(cglobal((:MPICONSTANTS_ARGVS_NULL, libmpiconstants), Ptr{Ptr{Ptr{Cchar}}}))
-# MPI_UNWEIGHTED Ptr{Cvoid} unsafe_load(cglobal((:MPICONSTANTS_UNWEIGHTED, libmpiconstants), Ptr{Cint}))
-# MPI_WEIGHTS_EMPTY Ptr{Cvoid} unsafe_load(cglobal((:MPICONSTANTS_WEIGHTS_EMPTY, libmpiconstants), Ptr{Cint}))
+@const_ref MPI_UNWEIGHTED Ptr{Cint} unsafe_load(cglobal((:MPICONSTANTS_UNWEIGHTED, libmpiconstants), Ptr{Cint}))
+@const_ref MPI_WEIGHTS_EMPTY Ptr{Cint} unsafe_load(cglobal((:MPICONSTANTS_WEIGHTS_EMPTY, libmpiconstants), Ptr{Cint}))
 @const_ref MPI_BOTTOM Ptr{Cvoid} unsafe_load(cglobal((:MPICONSTANTS_BOTTOM, libmpiconstants), Ptr{Cvoid}))
 @const_ref MPI_IN_PLACE Ptr{Cvoid} unsafe_load(cglobal((:MPICONSTANTS_IN_PLACE, libmpiconstants), Ptr{Cvoid}))
 

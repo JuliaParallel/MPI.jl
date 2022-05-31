@@ -15,10 +15,10 @@ const MPI_MAX_PROCESSOR_NAME = Cint(256)
 # Types
 
 # Various (signed) integer types:
-const MPI_Aint = Int
-const MPI_Fint = Int32
-const MPI_Count = Int
-const MPI_Offset = Int
+const MPI_Aint = Cptrdiff_t
+const MPI_Fint = Cint
+const MPI_Count = Int  # needs to be Int to match different sizes on 32-bit/64-bit systems
+const MPI_Offset = Int # needs to be Int to match different sizes on 32-bit/64-bit systems
 
 # Status:
 struct MPI_Status
@@ -242,8 +242,8 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_ARGV_NULL      Ptr{Cvoid} C_NULL
 @const_ref MPI_ARGVS_NULL     Ptr{Cvoid} C_NULL
 
-@const_ref MPI_UNWEIGHTED     Ptr{Cvoid} 2
-@const_ref MPI_WEIGHTS_EMPTY  Ptr{Cvoid} 3
+@const_ref MPI_UNWEIGHTED     Ptr{Cint} 2
+@const_ref MPI_WEIGHTS_EMPTY  Ptr{Cint} 3
 @const_ref MPI_BOTTOM         Ptr{Cvoid} 0
 @const_ref MPI_IN_PLACE       Ptr{Cvoid} 1
 

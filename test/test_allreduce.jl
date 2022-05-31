@@ -1,33 +1,23 @@
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
-    import AMDGPU
-    ArrayType = AMDGPU.ROCArray
-else
-    ArrayType = Array
-end
+include("common.jl")
 
 MPI.Init()
 
 comm_size = MPI.Comm_size(MPI.COMM_WORLD)
 
 if ArrayType != Array ||
-   MPI.MPI_LIBRARY == MPI.MicrosoftMPI && Sys.WORD_SIZE == 32 ||
+   MPI.MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32 ||
    Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
    Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
     operators = [MPI.SUM, +]
 else
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
-end    
+end
 
 for T = [Int]
     for dims = [1, 2, 3]
         send_arr = ArrayType(zeros(T, Tuple(3 for i in 1:dims)))
         send_arr[:] .= 1:length(send_arr)
+        synchronize()
 
         for op in operators
 
@@ -42,9 +32,10 @@ for T = [Int]
                                                        op, MPI.COMM_WORLD)
             # IN_PLACE
             recv_arr = copy(send_arr)
+            synchronize()
             MPI.Allreduce!(recv_arr, op, MPI.COMM_WORLD)
             @test recv_arr == comm_size .* send_arr
-            
+
             # Allocating version
             val = MPI.Allreduce(2, op, MPI.COMM_WORLD)
             @test val == comm_size*2
