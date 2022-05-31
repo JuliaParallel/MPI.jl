@@ -69,6 +69,7 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         "binary" => binary,
         "libmpi" => nothing,
         "abi" => nothing,
+        "abi_source_file" => nothing,
         "mpiexec" => nothing;
         export_prefs=export_prefs,
         force=force
@@ -116,8 +117,9 @@ Options:
   using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported values.
 
 - `abi_source_file`: the ABI file for the MPI library. By default, for ABIs supported by MPI.jl, the
-  corresponding ABI file is loaded automatically. This argument allows one to override the
-  automatic selection, e.g., to provide an ABI file for an MPI ABI unknown to MPI.jl.
+  corresponding ABI file is loaded automatically based on the value of `abi`. This argument allows
+  one to override the automatic selection, e.g., to provide an ABI file for an MPI ABI unknown to
+  MPI.jl. If specifying an ABI file, `abi` must be `nothing`.
 
 - `export_prefs`: if `true`, the preferences into the `Project.toml` instead of `LocalPreferences.toml`.
 
@@ -140,12 +142,15 @@ function use_system_binary(;
         error("MPI library could not be found")
     end
     if isnothing(abi)
-        abi = identify_abi(libmpi)
-    end
-    if isnothing(abi_source_file)
-        abi_source_file = ""
-    else
-        abi_source_file = abspath(abi_source_file)
+        if isnothing(abi_source_file)
+            # If ABI is `nothing` and ABI source file is `nothing`, auto-detect ABI
+            abi = identify_abi(libmpi)
+        else !isnothing(abi_source_file)
+            # If ABI is `nothing` and ABI source file is not `nothing`, use custom ABI source file
+            abi_source_file = abspath(abi_source_file)
+        end
+    elseif !isnothing(abi) && !isnothing(abi_source_file)
+        error("cannot set ABI and ABI source file simultaneously")
     end
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
