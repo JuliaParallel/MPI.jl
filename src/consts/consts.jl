@@ -27,6 +27,8 @@ macro const_ref(name, T, expr)
     :(const $(esc(name)) = Ref{$T}())
 end
 
+# Select packaged-provided ABI source file based on the value of the MPI ABI. If ABI is `nothing`,
+# use custom ABI source file provided by user
 @static if MPIPreferences.abi == "MPICH"
     include("mpich.jl")
 elseif MPIPreferences.abi == "OpenMPI"
