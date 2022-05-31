@@ -31,9 +31,11 @@ for T in Base.uniontypes(MPI.MPIDatatype)
     # Test explicit MPI_IN_PLACE
     if isroot
         B = ArrayType(fill(T(rank), sum(counts)))
+        synchronize()
         MPI.Gatherv!(MPI.IN_PLACE, VBuffer(B, counts), comm; root=root)
     else
         B = ArrayType(fill(T(rank), counts[rank+1]))
+        synchronize()
         MPI.Gatherv!(B, nothing, comm; root=root)
     end
     if isroot
