@@ -1,13 +1,5 @@
-using Test
-using MPI
+include("common.jl")
 using Random
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-else
-    ArrayType = Array
-end
 
 MPI.Init()
 comm = MPI.COMM_WORLD

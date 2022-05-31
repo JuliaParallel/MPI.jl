@@ -1,12 +1,4 @@
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-else
-    ArrayType = Array
-end
+include("common.jl")
 
 MPI.Init()
 
@@ -24,6 +16,7 @@ recv_mesg = ArrayType{Float64}(undef,N)
 recv_mesg_expected = ArrayType{Float64}(undef,N)
 fill!(send_mesg, Float64(rank))
 fill!(recv_mesg_expected, Float64(src))
+synchronize()
 
 rreq = MPI.Irecv!(recv_mesg, comm; source=src, tag=src+32)
 sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=rank+32, )

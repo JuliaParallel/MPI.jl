@@ -1,12 +1,4 @@
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-else
-    ArrayType = Array
-end
+include("common.jl")
 
 MPI.Init()
 
@@ -19,12 +11,13 @@ if ArrayType != Array ||
     operators = [MPI.SUM, +]
 else
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
-end    
+end
 
 for T = [Int]
     for dims = [1, 2, 3]
         send_arr = ArrayType(zeros(T, Tuple(3 for i in 1:dims)))
         send_arr[:] .= 1:length(send_arr)
+        synchronize()
 
         for op in operators
 
@@ -39,9 +32,10 @@ for T = [Int]
                                                        op, MPI.COMM_WORLD)
             # IN_PLACE
             recv_arr = copy(send_arr)
+            synchronize()
             MPI.Allreduce!(recv_arr, op, MPI.COMM_WORLD)
             @test recv_arr == comm_size .* send_arr
-            
+
             # Allocating version
             val = MPI.Allreduce(2, op, MPI.COMM_WORLD)
             @test val == comm_size*2

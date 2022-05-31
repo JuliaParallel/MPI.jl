@@ -1,12 +1,4 @@
-using Test
-using MPI
-
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
-    import CUDA
-    ArrayType = CUDA.CuArray
-else
-    ArrayType = Array
-end
+include("common.jl")
 
 MPI.Init()
 
@@ -19,6 +11,7 @@ check = collect(Iterators.flatten([fill(r, counts[r+1]) for r = 0:size-1]))
 
 for T in Base.uniontypes(MPI.MPIDatatype)
     A = ArrayType{T}(fill(T(rank), counts[rank+1]))
+    synchronize()
 
     # Test passing the output buffer
     B = ArrayType{T}(undef, sum(counts))
@@ -31,6 +24,7 @@ for T in Base.uniontypes(MPI.MPIDatatype)
 
     # Test explicit MPI_IN_PLACE
     B = ArrayType(fill(T(rank), sum(counts)))
+    synchronize()
     MPI.Allgatherv!(MPI.IN_PLACE, VBuffer(B, counts), comm)
     @test B == ArrayType{T}(check)
 end
