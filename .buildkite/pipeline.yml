@@ -147,14 +147,14 @@
       env:
         OPENMPI_VER: "4.1"
         OPENMPI_VER_FULL: "4.1.4"
-        UCX_VER: "1.12.1"
+        UCX_VER: "1.13-rc1"
         CCACHE_DIR: "/root/ccache"
       commands: |
         echo "--- Install packages"
         apt-get install --yes --no-install-recommends curl ccache
         export PATH="/usr/lib/ccache/:$$PATH"
         echo "--- Build UCX"
-        curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
+        curl -L https://github.com/openucx/ucx/releases/download/v1.13.0-rc1/ucx-1.13.0.tar.gz --output ucx.tar.gz
         tar -zxf ucx.tar.gz
         pushd ucx-*
         ./configure --with-rocm --enable-mt --prefix=$$(realpath ../mpi-prefix)
