@@ -7,8 +7,8 @@
         queue: "juliagpu"
         cuda: "11.0"
       env:
-        OPENMPI_VER: "4.0"
-        OPENMPI_VER_FULL: "4.0.3"
+        OPENMPI_VER: "4.1"
+        OPENMPI_VER_FULL: "4.1.4"
         UCX_VER: "1.12.1"
         CCACHE_DIR: "/root/ccache"
       commands: |
@@ -43,7 +43,7 @@
         - "mpi-prefix.tar.gz"
 
     - wait
-    
+
     - label: "Tests -- Julia 1.6"
       plugins:
         - JuliaCI/julia#v1:
@@ -112,6 +112,94 @@
       commands: |
         echo "--- Configure MPI"
         buildkite-agent artifact download --step "cuda-build-openmpi" mpi-prefix.tar.gz .
+        mkdir -p $${JULIA_MPI_PATH}
+        tar -zxf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
+        export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
+        export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
+
+        echo "--- Setup Julia packages"
+        julia --color=yes --project=. -e '
+            import Pkg
+            Pkg.develop(; path = joinpath(pwd(), "lib", "MPIPreferences"))
+            '
+        julia --color=yes --project=test -e '
+            using Pkg
+            Pkg.develop(path="lib/MPIPreferences")
+            using MPIPreferences
+            MPIPreferences.use_system_binary(export_prefs=true)
+            rm("test/Manifest.toml")
+            '
+
+        echo "+++ Run tests"
+        julia --color=yes --project=. -e '
+           import Pkg
+           Pkg.test("MPI")
+           '
+
+ - group: "ROCm"
+   key: "rocm"
+   steps:
+    - label: "Build OpenMPI"
+      key: "rocm-build-openmpi"
+      agents:
+        queue: "juliagpu"
+        rocm: "*" # todo fix ROCM version
+      env:
+        OPENMPI_VER: "4.1"
+        OPENMPI_VER_FULL: "4.1.4"
+        UCX_VER: "1.13-rc1"
+        CCACHE_DIR: "/root/ccache"
+      commands: |
+        echo "--- Install packages"
+        apt-get install --yes --no-install-recommends curl ccache
+        export PATH="/usr/lib/ccache/:$$PATH"
+        echo "--- Build UCX"
+        curl -L https://github.com/openucx/ucx/releases/download/v1.13.0-rc1/ucx-1.13.0.tar.gz --output ucx.tar.gz
+        tar -zxf ucx.tar.gz
+        pushd ucx-*
+        ./configure --with-rocm --enable-mt --prefix=$$(realpath ../mpi-prefix)
+        make -j
+        make install
+        popd
+        echo "--- Build OpenMPI"
+        curl -L https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
+        tar -zxf openmpi.tar.gz
+        pushd openmpi-*
+        ./configure --with-ucx=$$(realpath ../mpi-prefix) --prefix=$$(realpath ../mpi-prefix)
+        make -j
+        make install
+        popd
+        echo "--- Package prefix"
+        tar -zcf mpi-prefix.tar.gz mpi-prefix/
+        echo "--- ccache stats"
+        ccache -s
+      artifact_paths:
+        - "mpi-prefix.tar.gz"
+
+    - wait
+
+    - label: "Tests -- Julia 1.7"
+      plugins:
+        - JuliaCI/julia#v1:
+            version: "1.7"
+            persist_depot_dirs: packages,artifacts,compiled
+      agents:
+        queue: "juliagpu"
+        rocm: "*" # todo fix ROCM version
+      if: build.message !~ /\[skip tests\]/
+      timeout_in_minutes: 60
+      env:
+        JULIA_MPI_TEST_ARRAYTYPE: ROCArray
+        JULIA_MPI_TEST_NPROCS: 2
+        JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
+        OMPI_ALLOW_RUN_AS_ROOT: 1
+        OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+        OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
+        OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
+        JULIA_CUDA_MEMORY_POOL: "none"
+      commands: |
+        echo "--- Configure MPI"
+        buildkite-agent artifact download --step "rocm-build-openmpi" mpi-prefix.tar.gz .
         mkdir -p $${JULIA_MPI_PATH}
         tar -zxf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
         export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}

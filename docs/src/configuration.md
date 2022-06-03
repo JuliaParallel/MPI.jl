@@ -7,7 +7,7 @@ By default, MPI.jl will download and link against the following MPI implementati
 This is suitable for most single-node use cases, but for larger systems, such as HPC
 clusters or multi-GPU machines, you will probably want to configure against a
 system-provided MPI implementation in order to exploit features such as fast network
-interfaces and CUDA-aware MPI interfaces.
+interfaces and CUDA-aware or ROCm-aware MPI interfaces.
 
 The MPIPreferences.jl package allows the user to choose which MPI implementation to use in MPI.jl. It uses [Preferences.jl](https://github.com/JuliaPackaging/Preferences.jl) to
 configure the MPI backend for each project separately. This provides
@@ -134,8 +134,9 @@ julia> MPIPreferences.use_system_binary()
 The test suite can also be modified by the following variables:
 
 - `JULIA_MPI_TEST_NPROCS`: How many ranks to use within the tests
-- `JULIA_MPI_TEST_ARRAYTYPE`: Set to `CuArray` to test the CUDA-aware interface with
-  [`CUDA.CuArray](https://github.com/JuliaGPU/CUDA.jl) buffers.
+- `JULIA_MPI_TEST_ARRAYTYPE`: Set to `CuArray` or `ROCArray` to test the CUDA-aware interface with
+  [`CUDA.CuArray`](https://github.com/JuliaGPU/CUDA.jl) or the ROCm-aware interface with 
+  [`AMDGPU.ROCArray`](https://github.com/JuliaGPU/AMDGPU.jl) or buffers.
 - `JULIA_MPI_TEST_BINARY`: Check that the specified MPI binary is used for the tests
 - `JULIA_MPI_TEST_ABI`: Check that the specified MPI ABI is used for the tests
 

@@ -36,6 +36,7 @@ val = isroot ? sz : nothing
 @test MPI.Reduce(1, +, root, comm) == val
 
 mesg = ArrayType(1.0:5.0)
+synchronize()
 sum_mesg = MPI.Reduce(mesg, +, comm; root=root)
 if isroot
     @test sum_mesg isa ArrayType{Float64}
@@ -52,6 +53,7 @@ for T = [Int]
     for dims = [1, 2, 3]
         send_arr = ArrayType(zeros(T, Tuple(3 for i in 1:dims)))
         send_arr[:] .= 1:length(send_arr)
+        synchronize()
 
         for op in operators
 

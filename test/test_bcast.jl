@@ -3,9 +3,7 @@ using Random
 
 MPI.Init()
 
-
 comm = MPI.COMM_WORLD
-
 root = 0
 matsize = (17,17)
 

@@ -9,6 +9,11 @@ if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "CuArray"
     CUDA.version()
     CUDA.precompile_runtime()
     ArrayType = CUDA.CuArray
+elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
+    import AMDGPU
+    AMDGPU.versioninfo()
+    # DEBUG: currently no `precompile_runtime()` functionnality is implemented in AMDGPU.jl. If needed, it could be added by analogy of CUDA; no use of caps in AMDGPU.jl, but https://github.com/JuliaGPU/AMDGPU.jl/blob/cfaade146977594bf18e14b285ee3a9c84fbc7f2/src/execution.jl#L351-L357 shows how to construct a CompilerJob for a given agent.
+    ArrayType = AMDGPU.ROCArray
 else
     ArrayType = Array
 end

@@ -2,6 +2,7 @@ include("common.jl")
 using Random
 
 MPI.Init()
+
 comm = MPI.COMM_WORLD
 rank = MPI.Comm_rank(comm)
 sz = MPI.Comm_size(comm)

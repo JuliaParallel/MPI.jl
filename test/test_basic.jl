@@ -8,7 +8,7 @@ MPI.Init()
 
 @test MPI.has_cuda() isa Bool
 
-if ArrayType != Array
+if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     @test MPI.has_cuda()
 end
 
