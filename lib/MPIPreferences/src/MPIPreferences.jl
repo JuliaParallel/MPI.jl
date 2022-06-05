@@ -26,6 +26,7 @@ The ABI of the currently selected binary. Supported values are:
 - `"MicrosoftMPI"`: Microsoft MPI
 - `"MPItrampoline"`: MPItrampoline
 - `"HPE MPT"`: HPE MPT
+- `"custom"`: ABI is defined via custom ABI source file
 """
 const abi = if binary == "system"
     @load_preference("abi")
@@ -45,9 +46,14 @@ end
     include("system.jl")
 end
 
-# Default is empty string, indicating that the information in `abi` should be used to load the
-# correct ABI file
-const abi_source_file = @load_preference("abi_source_file", "")
+"""
+    MPIPreferences.abi_source_file :: Union{String, Nothing}
+
+Path to a custom ABI source file holding constants for an MPI implementation not supported
+out-of-the-box by MPI.jl. Will only be used if MPI binary is set to `"system"` and the ABI is set to
+`"custom"` in [`use_system_binary`](@ref).
+"""
+const abi_source_file = @load_preference("abi_source_file")
 
 """
     MPIPreferences.use_jll_binary(binary; export_prefs=false, force=true)
@@ -119,7 +125,7 @@ Options:
 - `abi_source_file`: the ABI file for the MPI library. By default, for ABIs supported by MPI.jl, the
   corresponding ABI file is loaded automatically based on the value of `abi`. This argument allows
   one to override the automatic selection, e.g., to provide an ABI file for an MPI ABI unknown to
-  MPI.jl. If specifying an ABI file, `abi` must be `nothing`.
+  MPI.jl. If specifying an ABI file, `abi` must not be set simultaneously.
 
 - `export_prefs`: if `true`, the preferences into the `Project.toml` instead of `LocalPreferences.toml`.
 
@@ -128,8 +134,8 @@ Options:
 function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
         mpiexec="mpiexec",
-        abi=nothing,
         abi_source_file=nothing,
+        abi=isnothing(abi_source_file) ? nothing : "custom",
         export_prefs=false,
         force=true,
     )
@@ -142,15 +148,13 @@ function use_system_binary(;
         error("MPI library could not be found")
     end
     if isnothing(abi)
-        if isnothing(abi_source_file)
-            # If ABI is `nothing` and ABI source file is `nothing`, auto-detect ABI
-            abi = identify_abi(libmpi)
-        else !isnothing(abi_source_file)
-            # If ABI is `nothing` and ABI source file is not `nothing`, use custom ABI source file
-            abi_source_file = abspath(abi_source_file)
+        abi = identify_abi(libmpi)
+    end
+    if !isnothing(abi_source_file)
+        if abi != "custom"
+            error("`abi` must be set to `\"custom\"` when using ABI source file")
         end
-    elseif !isnothing(abi) && !isnothing(abi_source_file)
-        error("cannot set ABI and ABI source file simultaneously")
+        abi_source_file = abspath(abi_source_file)
     end
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
