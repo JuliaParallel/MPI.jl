@@ -86,7 +86,7 @@ end
 
 """
     MPIPreferences.use_system_binary(;
-        library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
+        library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec = "mpiexec",
         abi = nothing,
         export_prefs = false,
@@ -115,7 +115,7 @@ Options:
 - `force`: if `true`, the preferences are set even if they are already set.
 """
 function use_system_binary(;
-        library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpitrampoline"],
+        library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec="mpiexec",
         abi=nothing,
         export_prefs=false,
@@ -127,7 +127,11 @@ function use_system_binary(;
         find_library(library_names)
     end
     if libmpi == ""
-        error("MPI library could not be found")
+        error("""
+            MPI library could not be found with the following name(s):
+                $(library_names)
+            If you want to try different name(s) for the MPI library, use
+                MPIPreferences.use_system_binary(; library_names=[...])""")
     end
     if isnothing(abi)
         abi = identify_abi(libmpi)
