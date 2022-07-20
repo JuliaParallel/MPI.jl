@@ -82,6 +82,9 @@ If using Open MPI, the status of CUDA support can be checked via the
 If your MPI implementation has been compiled with ROCm support (AMDGPU), then `AMDGPU.ROCArray`s (from the
 [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl) package) can be passed directly as send and receive buffers for point-to-point and collective operations (they may also work with one-sided operations, but these are not often supported).
 
-Successfully running the [alltoall_test_rocm.jl](https://gist.github.com/luraess/c228ec08629737888a18c6a1e397643c) should confirm your MPI implementation to have the ROCm support (AMDGPU) enabled. Moreover, successfully running the [alltoall_test_rocm_mulitgpu.jl](https://gist.github.com/luraess/d478b3f98eae984931fd39a7158f4b9e) should confirm your ROCm-aware MPI implementation to use multiple AMD GPUs (one GPU per rank).
+Successfully running the [alltoall\_test\_rocm.jl](https://gist.github.com/luraess/c228ec08629737888a18c6a1e397643c) 
+should confirm your MPI implementation to have the ROCm support (AMDGPU) enabled. Moreover, successfully running the 
+[alltoall\_test\_rocm\_multigpu.jl](https://gist.github.com/luraess/a47931d7fb668bd4348a2c730d5489f4) should confirm 
+your ROCm-aware MPI implementation to use multiple AMD GPUs (one GPU per rank).
 
 The status of ROCm (AMDGPU) support cannot currently be queried.
