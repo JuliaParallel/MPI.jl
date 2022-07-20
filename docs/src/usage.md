@@ -84,7 +84,7 @@ If your MPI implementation has been compiled with ROCm support (AMDGPU), then `A
 
 Successfully running the [alltoall\_test\_rocm.jl](https://gist.github.com/luraess/c228ec08629737888a18c6a1e397643c) 
 should confirm your MPI implementation to have the ROCm support (AMDGPU) enabled. Moreover, successfully running the 
-[alltoall\_test\_rocm_multigpu.jl](https://gist.github.com/luraess/d478b3f98eae984931fd39a7158f4b9e) should confirm 
+[alltoall\_test\_rocm\_multigpu.jl](https://gist.github.com/luraess/d478b3f98eae984931fd39a7158f4b9e) should confirm 
 your ROCm-aware MPI implementation to use multiple AMD GPUs (one GPU per rank).
 
 The status of ROCm (AMDGPU) support cannot currently be queried.
