@@ -88,3 +88,23 @@ should confirm your MPI implementation to have the ROCm support (AMDGPU) enabled
 your ROCm-aware MPI implementation to use multiple AMD GPUs (one GPU per rank).
 
 The status of ROCm (AMDGPU) support cannot currently be queried.
+
+## Writing MPI tests
+
+It is recommended to use the `mpiexec()` wrapper when writing your package tests in `runtests.jl`:
+
+```julia
+# test/runtests.jl
+using MPI
+using Test
+
+@testset "hello" begin
+    n = 2  # number of processes
+    mpiexec() do exe  # MPI wrapper
+        run(`$exe -n $n $(Base.julia_cmd()) [...]/01-hello.jl`)
+        # alternatively:
+        # p = run(ignorestatus(`...`))
+        # @test success(p)
+    end
+end
+```
