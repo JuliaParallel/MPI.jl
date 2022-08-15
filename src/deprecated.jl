@@ -235,3 +235,7 @@ import Base: @deprecate
            dims .= Dims_create(nnodes, dims), false)
 @deprecate(Cart_coords!(comm::Comm, rank::Integer, coords::MPIBuffertype{Cint}),
            coords .= Cart_coords(comm, rank), false)
+
+@deprecate(get_errorhandler(obj), get_errorhandler(obj), false)
+@deprecate(set_errorhandler!(obj, errhandler), set_errorhandler!(obj, errhandler), false)
+@deprecate(Errhandler(args...), ErrorHandler(args...), false)

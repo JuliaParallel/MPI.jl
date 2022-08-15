@@ -37,9 +37,9 @@ MPI.infoval
 ## Error handler objects
 
 ```@docs
-MPI.Errhandler
-MPI.get_errorhandler
-MPI.set_errorhandler!
+MPI.ErrorHandler
+MPI.get_error_handler
+MPI.set_error_handler!
 ```
 
 ## Miscellaneous
