@@ -96,7 +96,7 @@ function Comm_group(comm::Comm)
 end
 
 """
-Comm_remote_group(comm::Comm)
+    Comm_remote_group(comm::Comm)
 
 Accesses the remote group associated with the given inter-communicator.
 
