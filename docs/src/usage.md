@@ -74,7 +74,12 @@ If your MPI implementation has been compiled with CUDA support, then `CUDA.CuArr
 [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) package) can be passed directly as
 send and receive buffers for point-to-point and collective operations (they may also work with one-sided operations, but these are not often supported).
 
-If using Open MPI, the status of CUDA support can be checked via the
+Successfully running the [alltoall\_test\_cuda.jl](https://gist.github.com/luraess/0063e90cb08eb2208b7fe204bbd90ed2) 
+should confirm your MPI implementation to have the CUDA support enabled. Moreover, successfully running the 
+[alltoall\_test\_cuda\_multigpu.jl](https://gist.github.com/luraess/ed93cc09ba04fe16f63b4219c1811566) should confirm 
+your CUDA-aware MPI implementation to use multiple Nvidia GPUs (one GPU per rank).
+
+If using OpenMPI, the status of CUDA support can be checked via the
 [`MPI.has_cuda()`](@ref) function.
 
 ## ROCm-aware MPI support
