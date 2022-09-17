@@ -307,3 +307,21 @@ function has_cuda()
         return parse(Bool, flag)
     end
 end
+
+"""
+    Get_processor_name()
+
+Returns the name of the processor
+
+# External links
+$(_doc_external("MPI_Get_processor_name"))
+"""
+function Get_processor_name()
+    buf = Array{UInt8}(undef, MPI.Consts.MPI_MAX_PROCESSOR_NAME)
+    buflen = Ref{Cint}()
+
+    @mpicall ccall((:MPI_Get_processor_name, libmpi), Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
+    @assert buflen[] < MPI.Consts.MPI_MAX_PROCESSOR_NAME
+    resize!(buf, buflen[])
+    return String(buf)
+end
