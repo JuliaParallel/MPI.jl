@@ -103,6 +103,7 @@ include("onesided.jl")
 include("io.jl")
 include("errhandler.jl")
 include("mpiexec_wrapper.jl")
+include("misc.jl")
 
 include("deprecated.jl")
 
