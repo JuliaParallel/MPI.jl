@@ -236,13 +236,9 @@ end
     data, status = Sendrecv!(sendbuf, recvbuf, comm, MPI.Status;
             dest::Integer, sendtag::Integer=0, source::Integer=MPI_ANY_SOURCE, recvtag::Integer=MPI_ANY_TAG)
 
-Complete a blocking send-receive operation over the MPI communicator `comm`. Send
-`sendcount` elements of type `sendtype` from `sendbuf` to the MPI rank `dest` using message
-tag `tag`, and receive `recvcount` elements of type `recvtype` from MPI rank `source` into
-the buffer `recvbuf` using message tag `tag`. Return a [`Status`](@ref) object.
-
-If not provided, `sendtype`/`recvtype` and `sendcount`/`recvcount` are derived from the
-element type and length of `sendbuf`/`recvbuf`, respectively.
+Complete a blocking send-receive operation over the MPI communicator `comm`. Send `sendbuf`
+to the MPI rank `dest` using message tag `tag`, and receive from MPI rank `source` into the
+buffer `recvbuf` using message tag `tag`. Return a [`Status`](@ref) object.
 
 # External links
 $(_doc_external("MPI_Sendrecv"))
