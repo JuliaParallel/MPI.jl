@@ -255,6 +255,37 @@ function create_vector!(newtype::Datatype, count::Integer, blocklength::Integer,
 end
 
 """
+    MPI.Types.create_hvector(count::Integer, blocklength::Integer, stride::Integer, oldtype::MPI.Datatype)
+
+Create a derived [`Datatype`](@ref) that replicates `oldtype` into locations that
+consist of equally spaced (bytes) blocks.
+
+Note that [`MPI.Types.commit!`](@ref) must be used before the datatype can be used for
+communication.
+
+# Example
+
+```julia
+datatype = MPI.Types.create_hvector(3, 2, 5, MPI.Datatype(Int64))
+MPI.Types.commit!(datatype)
+```
+
+# External links
+$(_doc_external("MPI_Type_hvector"))
+"""
+function create_hvector(count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
+    finalizer(free, create_hvector!(Datatype(), count, blocklength, stride, oldtype))
+end
+function create_hvector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
+    # int MPI_Type_hvector(int count, int blocklength, MPI_Aint stride,
+    #          MPI_Datatype oldtype, MPI_Datatype *newtype)
+    @mpichk ccall((:MPI_Type_hvector, libmpi), Cint,
+                  (Cint, Cint, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
+                  count, blocklength, MPI_Aint(stride), oldtype, newtype)
+    return newtype
+end
+
+"""
     MPI.Types.create_subarray(sizes, subsizes, offset, oldtype::Datatype;
                               rowmajor=false)
 

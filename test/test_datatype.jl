@@ -158,6 +158,10 @@ end
     RowType = MPI.Types.create_vector(8, 1, 8, MPI.DOUBLE)
     @test typeof(RowType) == MPI.Datatype
 
+    # create_hvector
+    DType = MPI.Types.create_hvector(8, 1, 8, MPI.DOUBLE)
+    @test typeof(DType) == MPI.Datatype
+
     # create_subarray
     SubMatrixType = MPI.Types.create_subarray((8, 8), (4, 4), (0, 0), MPI.INT64_T)
     @test typeof(SubMatrixType) == MPI.Datatype
