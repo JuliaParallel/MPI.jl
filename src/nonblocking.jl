@@ -201,7 +201,7 @@ allocations in [`Waitall`](@ref), [`Testall`](@ref), [`Waitany`](@ref), [`Testan
 [`Waitsome`](@ref) or [`Testsome`](@ref).
 
 """
-mutable struct RequestSet <: AbstractVector{Request}
+struct RequestSet <: AbstractVector{Request}
     requests::Vector{Request}
     vals::Vector{MPI_Request}
 end
