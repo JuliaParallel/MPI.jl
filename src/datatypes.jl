@@ -271,15 +271,15 @@ MPI.Types.commit!(datatype)
 ```
 
 # External links
-$(_doc_external("MPI_Type_hvector"))
+$(_doc_external("MPI_Type_create_hvector"))
 """
 function create_hvector(count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
     finalizer(free, create_hvector!(Datatype(), count, blocklength, stride, oldtype))
 end
 function create_hvector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
-    # int MPI_Type_hvector(int count, int blocklength, MPI_Aint stride,
+    # int MPI_Type_create_hvector(int count, int blocklength, MPI_Aint stride,
     #          MPI_Datatype oldtype, MPI_Datatype *newtype)
-    @mpichk ccall((:MPI_Type_hvector, libmpi), Cint,
+    @mpichk ccall((:MPI_Type_create_hvector, libmpi), Cint,
                   (Cint, Cint, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
                   count, blocklength, MPI_Aint(stride), oldtype, newtype)
     return newtype
