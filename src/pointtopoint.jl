@@ -16,15 +16,16 @@ $(_doc_external("MPI_Send"))
 Send(data, comm::Comm; dest::Integer, tag::Integer=Cint(0)) =
     Send(data, dest, tag, comm)
 
-
-function Send(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
+function Send(data::Union{MPIPtr, MPIBuffertype}, count::Integer, datatype::Union{MPI_Datatype, Datatype}, dest::Integer, tag::Integer, comm::Union{MPI_Comm, Comm})
     # int MPI_Send(const void* buf, int count, MPI_Datatype datatype, int dest,
     #              int tag, MPI_Comm comm)
     @mpichk ccall((:MPI_Send, libmpi), Cint,
           (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm),
-          buf.data, buf.count, buf.datatype, dest, tag, comm)
+          data, count, datatype, dest, tag, comm)
     return nothing
 end
+Send(buf::Buffer, dest::Integer, tag::Integer, comm::Comm) =
+    Send(buf.data, buf.count, buf.datatype, dest, tag, comm.val)
 Send(arr::Union{Ref,AbstractArray}, dest::Integer, tag::Integer, comm::Comm) =
     Send(Buffer(arr), dest, tag, comm)
 function Send(obj::T, dest::Integer, tag::Integer, comm::Comm) where T
@@ -60,14 +61,17 @@ $(_doc_external("MPI_Isend"))
 """
 Isend(data, comm::Comm; dest::Integer, tag::Integer=0) =
     Isend(data, dest, tag, comm)
-
-function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
-    req = Request()
+function Isend(data::Union{MPIPtr, MPIBuffertype}, count::Integer, datatype::Union{MPI_Datatype, Datatype}, dest::Integer, tag::Integer, comm::Union{MPI_Comm, Comm}, req::Union{MPI_Request, Request})
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     @mpichk ccall((:MPI_Isend, libmpi), Cint,
           (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
-                  buf.data, buf.count, buf.datatype, dest, tag, comm, req)
+                  data, count, datatype, dest, tag, comm, req)
+    return nothing
+end
+function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
+    req = Request()
+    Isend(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
     req.buffer = buf
     finalizer(free, req)
     return req
@@ -113,12 +117,16 @@ $(_doc_external("MPI_Recv"))
 Recv!(recvbuf, comm::Comm, status=nothing; source=Consts.MPI_ANY_SOURCE[], tag=Consts.MPI_ANY_TAG[]) =
     Recv!(recvbuf, source, tag, comm, status)
 
-function Recv!(recvbuf::Buffer, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing})
+function Recv!(data::Union{MPIPtr, MPIBuffertype}, count::Integer, datatype::Union{MPI_Datatype, Datatype}, source::Integer, tag::Integer, comm::Union{MPI_Comm, Comm}, status::Union{Ref{Status}, Ptr{Nothing}})
     # int MPI_Recv(void* buf, int count, MPI_Datatype datatype, int source,
     #              int tag, MPI_Comm comm, MPI_Status *status)
     @mpichk ccall((:MPI_Recv, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{Status}),
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, Consts.MPI_STATUS_IGNORE[]))
+                  data, count, datatype, source, tag, comm, status)
+    return nothing
+end
+function Recv!(recvbuf::Buffer, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing})
+    Recv!(recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, Consts.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Recv!(recvbuf, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing}) =
@@ -204,13 +212,19 @@ $(_doc_external("MPI_Irecv"))
 """
 Irecv!(recvbuf, comm::Comm; source::Integer=Consts.MPI_ANY_SOURCE[], tag::Integer=Consts.MPI_ANY_TAG[]) =
     Irecv!(recvbuf, source, tag, comm)
-function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm)
-    req = Request()
+function Irecv!(data::Union{MPIPtr, MPIBuffertype}, count::Integer, datatype::Union{MPI_Datatype, Datatype}, source::Integer, tag::Integer, comm::Union{MPI_Comm, Comm}, req::Union{MPI_Request, Request})
     # int MPI_Irecv(void* buf, int count, MPI_Datatype datatype, int source,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     @mpichk ccall((:MPI_Irecv, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
-                  buf.data, buf.count, buf.datatype, source, tag, comm, req)
+                  data, count, datatype, source, tag, comm, req)
+    return nothing
+end
+Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm, req::Request) =
+    Irecv!(buf.data, buf.count, buf.datatype, source, tag, comm, req)
+function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm)
+    req = Request()
+    Irecv!(buf.data, buf.count, buf.datatype, source, tag, comm, req)
     req.buffer = buf
     finalizer(free, req)
     return req
@@ -249,10 +263,9 @@ $(_doc_external("MPI_Sendrecv"))
 """
 Sendrecv!(sendbuf, recvbuf, comm::MPI.Comm, status=nothing; dest::Integer, sendtag::Integer=0, source::Integer=Consts.MPI_ANY_SOURCE[], recvtag::Integer=Consts.MPI_ANY_TAG[]) =
     Sendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, status)
-
-function Sendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
-                   recvbuf::Buffer, source::Integer, recvtag::Integer,
-                   comm::Comm, status::Union{Ref{Status}, Nothing})
+function Sendrecv!(sendbuf::Union{MPIPtr, MPIBuffertype}, sendcount::Integer, sendtype::Union{MPI_Datatype, Datatype}, dest::Integer, sendtag::Integer,
+                   recvbuf::Union{MPIPtr, MPIBuffertype}, recvcount::Integer, recvtype::Union{MPI_Datatype, Datatype}, source::Integer, recvtag::Integer,
+                   comm::Union{MPI_Comm, Comm}, status::Union{Ref{Status}, Ptr{Nothing}})
     # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,   int sendtag,
     #                        void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
     #                    MPI_Comm comm, MPI_Status *status)
@@ -260,9 +273,17 @@ function Sendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint,
                    MPIPtr, Cint, MPI_Datatype, Cint, Cint,
                    MPI_Comm, Ptr{Status}),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype, dest, sendtag,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, source, recvtag,
-                  comm, something(status, Consts.MPI_STATUS_IGNORE[]))
+                  sendbuf, sendcount, sendtype, dest, sendtag,
+                  recvbuf, recvcount, recvtype, source, recvtag,
+                  comm, status)
+    return nothing
+end
+function Sendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
+                   recvbuf::Buffer, source::Integer, recvtag::Integer,
+                   comm::Comm, status::Union{Ref{Status}, Nothing})
+    Sendrecv!(sendbuf.data, sendbuf.count, sendbuf.datatype, dest, sendtag,
+              recvbuf.data, recvbuf.count, recvbuf.datatype, source, recvtag,
+              comm, something(status, Consts.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing}) =
