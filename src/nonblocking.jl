@@ -244,7 +244,7 @@ end
 
 
 """
-    Waitall(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
+    Waitall([count::Integer,] reqs::AbstractVector{Request}[, statuses::Vector{Status}])
     statuses = Waitall(reqs::AbstractVector{Request}, Status)
 
 Block until all active requests in the array `reqs` are complete.
@@ -255,15 +255,20 @@ each request.
 # External links
 $(_doc_external("MPI_Waitall"))
 """
-function Waitall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothing}=nothing)
-    n = length(reqs)
-    n == 0 && return nothing
-    @assert isnothing(statuses) || length(statuses) >= n
+function Waitall(count::Integer, reqs::AbstractVector{MPI_Request}, statuses::Union{AbstractVector{Status},Nothing}=nothing)
     # int MPI_Waitall(int count, MPI_Request array_of_requests[],
     #                 MPI_Status array_of_statuses[])
     @mpichk ccall((:MPI_Waitall, libmpi), Cint,
                   (Cint, Ptr{MPI_Request}, Ptr{Status}),
-                  n, reqs.vals, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
+                  count, reqs, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
+
+    return nothing
+end
+function Waitall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothing}=nothing)
+    n = length(reqs)
+    n == 0 && return nothing
+    @assert isnothing(statuses) || length(statuses) >= n
+    Waitall(n, reqs.vals, statuses)
     update!(reqs)
     return nothing
 end
@@ -272,6 +277,7 @@ function Waitall(reqs::RequestSet, ::Type{Status})
     Waitall(reqs, statuses)
     return statuses
 end
+
 Waitall(reqs::AbstractVector{Request}, args...) = Waitall(RequestSet(reqs), args...)
 
 
