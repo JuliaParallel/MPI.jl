@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 {
-  julia --project=@. -e '
-    import MPIgen
-    MPIgen.generate_signatures()
-  '
+  ${JULIA-julia} --project=@. -e 'import MPIgen; MPIgen.generate_signatures()'
   exit
 }
