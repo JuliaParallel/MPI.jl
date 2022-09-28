@@ -37,10 +37,14 @@ end
 import MPIPreferences
 
 if MPIPreferences.binary == "MPICH_jll"
-    import MPICH_jll: libmpi, libmpi_handle, mpiexec
+    include("../gen/out/libMPICH.jl")
+    import libMPICH
+    libmpi, libmpi_handle, mpiexec = getfield(libMPICH.MPICH_jll, (:libmpi, :libmpi_handle, :mpiexec))
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "OpenMPI_jll"
-    import OpenMPI_jll: libmpi, libmpi_handle, mpiexec
+    include("../gen/out/libOpenMPI.jl")
+    import libOpenMPI
+    libmpi, libmpi_handle, mpiexec = getfield(libOpenMPI.OpenMPI_jll, (:libmpi, :libmpi_handle, :mpiexec))
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "MicrosoftMPI_jll"
     import MicrosoftMPI_jll: libmpi, libmpi_handle, mpiexec

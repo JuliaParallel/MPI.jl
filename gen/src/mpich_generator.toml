@@ -1,0 +1,6 @@
+[general]
+library_name = "libmpi"
+output_file_path = "./out/libMPICH.jl"
+module_name = "libMPICH"
+jll_pkg_name = "MPICH_jll"
+export_symbol_prefixes = ["MPI_"]
