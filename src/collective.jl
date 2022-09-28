@@ -29,10 +29,10 @@ If `comm` is an intercommunicator, then it blocks until all members of the other
 $(_doc_external("MPI_Ibarrier"))
 """
 function Ibarrier(comm::Comm)
-    req = Request()
+    rreq = Ref{MPI_Request}()
     # int MPI_Ibarrier(MPI_Comm comm, MPI_Req req)
-    @mpichk ccall((:MPI_Ibarrier, libmpi), Cint, (MPI_Comm, Ptr{MPI_Request}), comm, req)
-    return req
+    @mpichk ccall((:MPI_Ibarrier, libmpi), Cint, (MPI_Comm, Ptr{MPI_Request}), comm, rreq)
+    return Request(rreq[])
 end
 
 
@@ -911,7 +911,7 @@ function Neighbor_allgather!(sendbuf::Buffer, recvbuf::UBuffer, graph_comm::Comm
                 (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
                 sendbuf.data, sendbuf.count, sendbuf.datatype,
                 recvbuf.data, recvbuf.count, recvbuf.datatype, graph_comm) v"3.0"
-    
+
     return recvbuf.data
 end
 Neighbor_allgather!(sendbuf, recvbuf::UBuffer, graph_comm::Comm) =

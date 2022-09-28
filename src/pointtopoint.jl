@@ -62,15 +62,13 @@ Isend(data, comm::Comm; dest::Integer, tag::Integer=0) =
     Isend(data, dest, tag, comm)
 
 function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
-    req = Request()
+    rreq = Ref{MPI_Request}()
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     @mpichk ccall((:MPI_Isend, libmpi), Cint,
           (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
-                  buf.data, buf.count, buf.datatype, dest, tag, comm, req)
-    req.buffer = buf
-    finalizer(free, req)
-    return req
+                  buf.data, buf.count, buf.datatype, dest, tag, comm, rreq)
+    return Request(rreq[])
 end
 Isend(data, dest::Integer, tag::Integer, comm::Comm) =
     Isend(Buffer_send(data), dest, tag, comm)
@@ -205,15 +203,13 @@ $(_doc_external("MPI_Irecv"))
 Irecv!(recvbuf, comm::Comm; source::Integer=Consts.MPI_ANY_SOURCE[], tag::Integer=Consts.MPI_ANY_TAG[]) =
     Irecv!(recvbuf, source, tag, comm)
 function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm)
-    req = Request()
+    rreq = Ref{MPI_Request}()
     # int MPI_Irecv(void* buf, int count, MPI_Datatype datatype, int source,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     @mpichk ccall((:MPI_Irecv, libmpi), Cint,
                   (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
-                  buf.data, buf.count, buf.datatype, source, tag, comm, req)
-    req.buffer = buf
-    finalizer(free, req)
-    return req
+                  buf.data, buf.count, buf.datatype, source, tag, comm, rreq)
+    return Request(rreq[])
 end
 Irecv!(data, source::Integer, tag::Integer, comm::Comm) =
     Irecv!(Buffer(data), source, tag, comm)

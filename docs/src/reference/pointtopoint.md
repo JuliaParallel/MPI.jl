@@ -4,7 +4,6 @@
 
 ```@docs
 MPI.Request
-MPI.RequestSet
 MPI.Status
 ```
 
