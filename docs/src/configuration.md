@@ -35,6 +35,9 @@ standard or later. The following MPI implementations should work out-of-the-box 
 - [Fujitsu MPI](https://www.fujitsu.com/global/about/resources/publications/technicalreview/2020-03/article07.html#cap-03)
 - [HPE MPT/HMPT](https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&docId=a00105727en_us)
 
+If you are using an MPI implementation that is not ABI-compatible with any one
+of these, please read the section on [Supporting an unknown ABI](@ref) below.
+
 ### Configuration
 
 Run `MPIPreferences.use_system_binary()`. This will attempt to locate and to identify any available MPI implementation, and create a file called `LocalPreferences.toml` adjacent to the current `Project.toml`.
@@ -99,6 +102,50 @@ Preferences are merged across the Julia load path, such that it is feasible to p
    The user can still provide differing MPI configurations for each Julia project
    that will take precedent by modifying the local `Project.toml` or by providing a
    `LocalPreferences.toml` file.
+
+
+### Supporting an unknown ABI
+If you want to use an MPI implementation not officially supported by MPI.jl, you
+need to create your own ABI file with all relevant MPI constants. The files for supported
+ABIs are stored in the `src/consts/` folder, e.g.,
+[`mpich.jl`](https://github.com/JuliaParallel/MPI.jl/blob/master/src/consts/mpich.jl)
+for MPICH-compatible implementations. To create your own ABI file, it is
+advisable to start with an existing constants file (e.g., for MPICH) and then
+adapt each entry to the contents of your MPI implementations's `mpi.h` C header
+file.
+
+For example, if your `mpi.h` header file contains something like
+```c
+typedef unsigned int MPI_Request;
+enum {
+  MPI_REQUEST_NULL  = 0
+};
+
+#define MPI_ARGV_NULL ((char**) NULL)
+```
+you need to put the corresponding entries in your ABI file `abi_source_file.jl`:
+```julia
+const MPI_Request = Cuint
+@const_ref MPI_REQUEST_NULL MPI_Request 0
+
+@const_ref MPI_ARGV_NULL Ptr{Cvoid} C_NULL
+```
+As you can see, the syntax of such a Julia ABI file is non-trivial, thus the
+recommendation to start with an existing ABI file.
+It is further advisable to always use the corresponding Julia alias for
+standard C types, e.g., `Cuint` for `unsigned int` or `Clonglong` for `long
+long`.
+Please note that sometimes information is also stored in ancillary header files (e.g.,
+`mpi_types.h` or `mpi_ext.h`).
+
+You can then use [`MPIPreferences.use_system_binary`](@ref) to configure MPI.jl
+to use your custom file by providing the path via the `abi_source_file` keyword
+argument, e.g.,
+```shell
+julia --project -e 'using MPIPreferences; MPIPreferences.use_system_binary(; abi_source_file="path/to/file.jl)'
+```
+You need to restart Julia for the change to take effect.
+
 
 ## Using an alternative JLL-provided MPI library
 

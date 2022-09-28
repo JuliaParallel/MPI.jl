@@ -26,6 +26,7 @@ The ABI of the currently selected binary. Supported values are:
 - `"MicrosoftMPI"`: Microsoft MPI
 - `"MPItrampoline"`: MPItrampoline
 - `"HPE MPT"`: HPE MPT
+- `"custom"`: ABI is defined via custom ABI source file
 """
 const abi = if binary == "system"
     @load_preference("abi")
@@ -44,6 +45,15 @@ end
 @static if binary == "system"
     include("system.jl")
 end
+
+"""
+    MPIPreferences.abi_source_file :: Union{String, Nothing}
+
+Path to a custom ABI source file holding constants for an MPI implementation not supported
+out-of-the-box by MPI.jl. Will only be used if MPI binary is set to `"system"` and the ABI is set to
+`"custom"` in [`use_system_binary`](@ref).
+"""
+const abi_source_file = @load_preference("abi_source_file")
 
 """
     MPIPreferences.use_jll_binary(binary; export_prefs=false, force=true)
@@ -65,6 +75,7 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         "binary" => binary,
         "libmpi" => nothing,
         "abi" => nothing,
+        "abi_source_file" => nothing,
         "mpiexec" => nothing;
         export_prefs=export_prefs,
         force=force
@@ -89,6 +100,7 @@ end
         library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec = "mpiexec",
         abi = nothing,
+        abi_source_file = nothing,
         export_prefs = false,
         force = true)
 
@@ -110,6 +122,11 @@ Options:
 - `abi`: the ABI of the MPI library. By default this is determined automatically
   using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported values.
 
+- `abi_source_file`: the ABI file for the MPI library. By default, for ABIs supported by MPI.jl, the
+  corresponding ABI file is loaded automatically based on the value of `abi`. This argument allows
+  one to override the automatic selection, e.g., to provide an ABI file for an MPI ABI unknown to
+  MPI.jl. If specifying an ABI file, `abi` must not be set simultaneously.
+
 - `export_prefs`: if `true`, the preferences into the `Project.toml` instead of `LocalPreferences.toml`.
 
 - `force`: if `true`, the preferences are set even if they are already set.
@@ -117,7 +134,8 @@ Options:
 function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec="mpiexec",
-        abi=nothing,
+        abi_source_file=nothing,
+        abi=isnothing(abi_source_file) ? nothing : "custom",
         export_prefs=false,
         force=true,
     )
@@ -136,6 +154,12 @@ function use_system_binary(;
     if isnothing(abi)
         abi = identify_abi(libmpi)
     end
+    if !isnothing(abi_source_file)
+        if abi != "custom"
+            error("`abi` must be set to `\"custom\"` when using ABI source file")
+        end
+        abi_source_file = abspath(abi_source_file)
+    end
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
     end
@@ -143,12 +167,13 @@ function use_system_binary(;
         "binary" => binary,
         "libmpi" => libmpi,
         "abi" => abi,
+        "abi_source_file" => abi_source_file,
         "mpiexec" => mpiexec,
         export_prefs=export_prefs,
         force=force
     )
 
-    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary libmpi abi mpiexec
+    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary libmpi abi abi_source_file mpiexec
 
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
