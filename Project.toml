@@ -4,7 +4,6 @@ authors = []
 version = "0.20-dev"
 
 [deps]
-CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
