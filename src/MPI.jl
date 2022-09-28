@@ -56,36 +56,21 @@ else
 end
 
 include("consts/consts.jl")
-import .Consts
+using .Consts
 
 module API
     using ..MPIPreferences
+    using ..Consts
 
-    # FIXME: code duplicated from consts/Consts
-    const initexprs = Any[]
-    macro const_ref(name, T, expr)
-        push!(initexprs, :($name[] = $expr))
-        :(const $(esc(name)) = Ref{$T}())
-    end
-    @static if MPIPreferences.abi == "MPICH"
-        include("consts/mpich.jl")
-    elseif MPIPreferences.abi == "OpenMPI"
-        include("consts/openmpi.jl")
-    elseif MPIPreferences.abi == "MicrosoftMPI"
-        include("consts/microsoftmpi.jl")
-    elseif MPIPreferences.abi == "MPItrampoline"
-        include("consts/mpitrampoline.jl")
-    elseif MPIPreferences.abi == "HPE MPT"
-        include("consts/mpt.jl")
-    else
-        error("Unknown MPI ABI $(MPIPreferences.abi)")
+    names_Consts = filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true)) |> collect
+    for n in names_Consts
+        @eval $n = Consts.$n  # signatures need types and constants
     end
 
     include("../gen/out/api.jl")
-    for name in names(@__MODULE__; all=true), prefix in ("MPI_",)
-        if startswith(string(name), prefix)
-            @eval export $name
-        end
+    for name in names(@__MODULE__; all=true)
+        name in names_Consts && continue  # only export symbols from api
+        startswith(string(name), "MPI_") && @eval export $name
     end
 end
 using .API
