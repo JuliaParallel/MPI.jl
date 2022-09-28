@@ -62,8 +62,8 @@ module API
     using ..Consts
     import ..libmpi
 
-    for n in filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true)) |> collect
-        @eval $n = Consts.$n  # signatures need types and constants
+    for name in filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true))
+        @eval $name = Consts.$name  # signatures need types
     end
 
     struct MPIError <: Exception
