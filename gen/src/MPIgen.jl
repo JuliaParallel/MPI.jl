@@ -2,10 +2,12 @@ module MPIgen
   using Clang.Generators
   using MPICH_jll
 
-  mkpath(joinpath(@__DIR__, "..", "out"))
-
   generate_signatures(dir = MPICH_jll.artifact_dir) = begin
     @info "Generate MPI bindings for MPICH in $dir"
+
+    out = joinpath(@__DIR__, "..", "out")
+    mkpath(out)
+
     include_dir = normpath(dir, "include")
 
     # wrapper generator options
@@ -24,6 +26,8 @@ module MPIgen
 
     # run generator
     build!(ctx)
+
+    rm(joinpath(out, "common.jl"))
   end
 
 end

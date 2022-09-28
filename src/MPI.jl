@@ -82,7 +82,7 @@ module API
     end
 
     include("../gen/out/api.jl")
-    for name in names(@__MODULE__; all=true), prefix in ("MPI_")
+    for name in names(@__MODULE__; all=true), prefix in ("MPI_",)
         if startswith(string(name), prefix)
             @eval export $name
         end
