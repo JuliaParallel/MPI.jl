@@ -1,0 +1,8 @@
+[general]
+library_name = "libmpi"
+output_common_file_path = "./out/common.jl"
+output_api_file_path = "./out/api.jl"
+output_ignoreregex = ["^PMPI_", "^QMPI_", "^MPIX_", "^PMPIX_", "^QMPIX_", "^MPI_T_", "^MPI_Session_"]
+output_ignorelist = ["MPI_Status_f082c", "MPI_Status_c2f08", "MPI_Status_f082f", "MPI_Status_f2f08", "MPI_Group_from_session_pset"]
+module_name = "API"
+export_symbol_prefixes = ["MPI_"]

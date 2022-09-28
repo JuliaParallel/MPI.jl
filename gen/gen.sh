@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 {
   julia --project=@. -e '
-    using MPIgen
-    mpich()
-    openmpi()
+    import MPIgen
+    MPIgen.generate_signatures()
   '
   exit
 }

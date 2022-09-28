@@ -1,6 +1,0 @@
-[general]
-library_name = "libmpi"
-output_file_path = "./out//libOpenMPI.jl"
-module_name = "libOpenMPI"
-jll_pkg_name = "OpenMPI_jll"
-export_symbol_prefixes = ["MPI_"]
