@@ -61,7 +61,7 @@ $(_doc_external("MPI_Isend"))
 """
 Isend(data, comm::Comm; dest::Integer, tag::Integer=0) =
     Isend(data, dest, tag, comm)
-function Isend(data::Union{MPIPtr, MPIBuffertype}, count::Integer, datatype::Union{MPI_Datatype, Datatype}, dest::Integer, tag::Integer, comm::Union{MPI_Comm, Comm}, req::Union{MPI_Request, Request})
+function Isend(data::Union{MPIPtr, MPIBuffertype}, count::Integer, datatype::Union{MPI_Datatype, Datatype}, dest::Integer, tag::Integer, comm::Union{MPI_Comm, Comm}, req::Union{Ptr{MPI_Request}, Request})
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     @mpichk ccall((:MPI_Isend, libmpi), Cint,
