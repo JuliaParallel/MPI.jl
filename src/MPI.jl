@@ -97,6 +97,23 @@ include("mpiexec_wrapper.jl")
 include("deprecated.jl")
 
 function __init__()
+
+    # an empty string was used to indicate "default"
+    # https://github.com/JuliaParallel/MPI.jl/blob/v0.19.2/deps/build.jl#L142
+    mpi_env_binary = get(ENV, "JULIA_MPI_BINARY", "")
+    if mpi_env_binary != "" && mpi_env_binary != MPIPreferences.binary
+        @info """
+        The JULIA_MPI_BINARY environment variable is no longer used to configure the MPI binary.
+        Please use the MPIPreferences.jl package instead:
+
+            MPIPreferences.use_system_binary()  # use the system binary
+            MPIPreferences.use_jll_binary()     # use JLL binary
+
+        See https://juliaparallel.org/MPI.jl/stable/configuration/ for more details
+
+        """ ENV["JULIA_MPI_BINARY"]=mpi_env_binary MPIPreferences.binary
+    end
+
     @static if Sys.isunix()
         # dlopen the MPI library before any ccall:
         # - RTLD_GLOBAL is required for Open MPI
