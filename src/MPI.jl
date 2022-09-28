@@ -59,21 +59,21 @@ include("consts/consts.jl")
 using .Consts
 
 module API
-    using ..MPIPreferences
     using ..Consts
+    import ..libmpi
 
-    names_Consts = filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true)) |> collect
-    for n in names_Consts
+    for n in filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true)) |> collect
         @eval $n = Consts.$n  # signatures need types and constants
     end
 
-    include("../gen/out/api.jl")
-    for name in names(@__MODULE__; all=true)
-        name in names_Consts && continue  # only export symbols from api
-        startswith(string(name), "MPI_") && @eval export $name
+    struct MPIError <: Exception
+        code::Cint
     end
+    macro mpichk(expr)
+        :((errcode = $(esc(expr))) == 0 || throw(MPIError(errcode)))
+    end
+    include("../gen/out/api.jl")
 end
-using .API
 
 # These functions are run after reading the values of the constants above)
 const _mpi_load_time_hooks = Any[]

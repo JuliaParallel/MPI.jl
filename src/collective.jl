@@ -12,7 +12,7 @@ $(_doc_external("MPI_Barrier"))
 """
 function Barrier(comm::Comm)
     # int MPI_Barrier(MPI_Comm comm)
-    @mpichk ccall((:MPI_Barrier, libmpi), Cint, (MPI_Comm,), comm)
+    API.MPI_Barrier(comm)
     return nothing
 end
 
