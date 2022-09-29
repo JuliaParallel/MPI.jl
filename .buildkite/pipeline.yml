@@ -90,10 +90,10 @@
            Pkg.test("MPI")
            '
 
-    - label: "Tests -- Julia 1.7"
+    - label: "Tests -- Julia latest"
       plugins:
         - JuliaCI/julia#v1:
-            version: "1.7"
+            version: "1"
             persist_depot_dirs: packages,artifacts,compiled
       agents:
         queue: "juliagpu"
@@ -178,10 +178,10 @@
 
     - wait
 
-    - label: "Tests -- Julia 1.7"
+    - label: "Tests -- Julia latest"
       plugins:
         - JuliaCI/julia#v1:
-            version: "1.7"
+            version: "1"
             persist_depot_dirs: packages,artifacts,compiled
       agents:
         queue: "juliagpu"
