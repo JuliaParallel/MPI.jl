@@ -20,9 +20,7 @@ Send(data, comm::Comm; dest::Integer, tag::Integer=Cint(0)) =
 function Send(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
     # int MPI_Send(const void* buf, int count, MPI_Datatype datatype, int dest,
     #              int tag, MPI_Comm comm)
-    @mpichk ccall((:MPI_Send, libmpi), Cint,
-          (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm),
-          buf.data, buf.count, buf.datatype, dest, tag, comm)
+    API.MPI_Send(buf.data, buf.count, buf.datatype, dest, tag, comm)
     return nothing
 end
 Send(arr::Union{Ref,AbstractArray}, dest::Integer, tag::Integer, comm::Comm) =
@@ -65,9 +63,7 @@ function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
     req = Request()
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
-    @mpichk ccall((:MPI_Isend, libmpi), Cint,
-          (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
-                  buf.data, buf.count, buf.datatype, dest, tag, comm, req)
+    API.MPI_Isend(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
     req.buffer = buf
     finalizer(free, req)
     return req
@@ -116,9 +112,7 @@ Recv!(recvbuf, comm::Comm, status=nothing; source=Consts.MPI_ANY_SOURCE[], tag=C
 function Recv!(recvbuf::Buffer, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing})
     # int MPI_Recv(void* buf, int count, MPI_Datatype datatype, int source,
     #              int tag, MPI_Comm comm, MPI_Status *status)
-    @mpichk ccall((:MPI_Recv, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{Status}),
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, Consts.MPI_STATUS_IGNORE[]))
+    AI.MPI_Recv(recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, Consts.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Recv!(recvbuf, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing}) =
