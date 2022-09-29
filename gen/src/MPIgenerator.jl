@@ -3,8 +3,9 @@ module MPIgenerator
     using MPICH_jll
 
     signatures(dir = MPICH_jll.artifact_dir) = begin
-        @info "Generate MPI bindings for MPICH in $dir"
+        @info "Generate MPI bindings for MPICH located in $dir"
 
+        # scratch directory for `Clang.jl`
         out = joinpath(@__DIR__, "..", "out")
         mkpath(out)
 
@@ -25,6 +26,8 @@ module MPIgenerator
         # run generator
         build!(ctx)
 
+        ############################
+        # custom MPI post-processing
         rm(joinpath(out, "common.jl"))  # remove un-needed file
 
         # these methods must be called with `@mpicall` instead of `@mpichk`
@@ -37,7 +40,7 @@ module MPIgenerator
         )
 
         fn = joinpath(out, "api.jl")
-        lines = String[]
+        lines = String["# WARNING: this file has been auto-generated, please edit $(replace(@__FILE__, r".*MPI.jl" => "MPI.jl")) instead !\n"]
         for line in readlines(fn)
             if startswith(lstrip(line), "ccall")
                 m = match(r".*(:[\w_]+)", line)
@@ -47,10 +50,17 @@ module MPIgenerator
                     "@mpichk ccall"
                 end
                 line = replace(line, "ccall" => repl)
+                line = replace(line, "Ptr{Cvoid}" => "MPIPtr")
             end
             push!(lines, line)
         end
         write(fn, join(lines, "\n"))
+
+        # move the generated file to src
+        mv(fn, joinpath(@__DIR__, "..", "..", "src", "auto_generated_api.jl"); force=true)
+
+        rm(out)  # cleanup
+
         nothing
     end
 

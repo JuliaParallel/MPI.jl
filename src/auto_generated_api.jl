@@ -1,5 +1,7 @@
+# WARNING: this file has been auto-generated, please edit MPI.jl/gen/src/MPIgenerator.jl instead !
+
 function MPIR_Dup_fn(oldcomm, keyval, extra_state, attribute_val_in, attribute_val_out, flag)
-    @mpichk ccall((:MPIR_Dup_fn, libmpi), Cint, (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}), oldcomm, keyval, extra_state, attribute_val_in, attribute_val_out, flag)
+    @mpichk ccall((:MPIR_Dup_fn, libmpi), Cint, (MPI_Comm, Cint, MPIPtr, MPIPtr, MPIPtr, Ptr{Cint}), oldcomm, keyval, extra_state, attribute_val_in, attribute_val_out, flag)
 end
 
 function MPI_Wait(request, status)
@@ -35,15 +37,15 @@ function MPI_Attr_delete(comm, keyval)
 end
 
 function MPI_Attr_get(comm, keyval, attribute_val, flag)
-    @mpichk ccall((:MPI_Attr_get, libmpi), Cint, (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), comm, keyval, attribute_val, flag)
+    @mpichk ccall((:MPI_Attr_get, libmpi), Cint, (MPI_Comm, Cint, MPIPtr, Ptr{Cint}), comm, keyval, attribute_val, flag)
 end
 
 function MPI_Attr_put(comm, keyval, attribute_val)
-    @mpichk ccall((:MPI_Attr_put, libmpi), Cint, (MPI_Comm, Cint, Ptr{Cvoid}), comm, keyval, attribute_val)
+    @mpichk ccall((:MPI_Attr_put, libmpi), Cint, (MPI_Comm, Cint, MPIPtr), comm, keyval, attribute_val)
 end
 
 function MPI_Comm_create_keyval(comm_copy_attr_fn, comm_delete_attr_fn, comm_keyval, extra_state)
-    @mpichk ccall((:MPI_Comm_create_keyval, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}), comm_copy_attr_fn, comm_delete_attr_fn, comm_keyval, extra_state)
+    @mpichk ccall((:MPI_Comm_create_keyval, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), comm_copy_attr_fn, comm_delete_attr_fn, comm_keyval, extra_state)
 end
 
 function MPI_Comm_delete_attr(comm, comm_keyval)
@@ -55,15 +57,15 @@ function MPI_Comm_free_keyval(comm_keyval)
 end
 
 function MPI_Comm_get_attr(comm, comm_keyval, attribute_val, flag)
-    @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint, (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), comm, comm_keyval, attribute_val, flag)
+    @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint, (MPI_Comm, Cint, MPIPtr, Ptr{Cint}), comm, comm_keyval, attribute_val, flag)
 end
 
 function MPI_Comm_set_attr(comm, comm_keyval, attribute_val)
-    @mpichk ccall((:MPI_Comm_set_attr, libmpi), Cint, (MPI_Comm, Cint, Ptr{Cvoid}), comm, comm_keyval, attribute_val)
+    @mpichk ccall((:MPI_Comm_set_attr, libmpi), Cint, (MPI_Comm, Cint, MPIPtr), comm, comm_keyval, attribute_val)
 end
 
 function MPI_Keyval_create(copy_fn, delete_fn, keyval, extra_state)
-    @mpichk ccall((:MPI_Keyval_create, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}), copy_fn, delete_fn, keyval, extra_state)
+    @mpichk ccall((:MPI_Keyval_create, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), copy_fn, delete_fn, keyval, extra_state)
 end
 
 function MPI_Keyval_free(keyval)
@@ -71,7 +73,7 @@ function MPI_Keyval_free(keyval)
 end
 
 function MPI_Type_create_keyval(type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
-    @mpichk ccall((:MPI_Type_create_keyval, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}), type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
+    @mpichk ccall((:MPI_Type_create_keyval, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
 end
 
 function MPI_Type_delete_attr(datatype, type_keyval)
@@ -83,15 +85,15 @@ function MPI_Type_free_keyval(type_keyval)
 end
 
 function MPI_Type_get_attr(datatype, type_keyval, attribute_val, flag)
-    @mpichk ccall((:MPI_Type_get_attr, libmpi), Cint, (MPI_Datatype, Cint, Ptr{Cvoid}, Ptr{Cint}), datatype, type_keyval, attribute_val, flag)
+    @mpichk ccall((:MPI_Type_get_attr, libmpi), Cint, (MPI_Datatype, Cint, MPIPtr, Ptr{Cint}), datatype, type_keyval, attribute_val, flag)
 end
 
 function MPI_Type_set_attr(datatype, type_keyval, attribute_val)
-    @mpichk ccall((:MPI_Type_set_attr, libmpi), Cint, (MPI_Datatype, Cint, Ptr{Cvoid}), datatype, type_keyval, attribute_val)
+    @mpichk ccall((:MPI_Type_set_attr, libmpi), Cint, (MPI_Datatype, Cint, MPIPtr), datatype, type_keyval, attribute_val)
 end
 
 function MPI_Win_create_keyval(win_copy_attr_fn, win_delete_attr_fn, win_keyval, extra_state)
-    @mpichk ccall((:MPI_Win_create_keyval, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cvoid}), win_copy_attr_fn, win_delete_attr_fn, win_keyval, extra_state)
+    @mpichk ccall((:MPI_Win_create_keyval, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), win_copy_attr_fn, win_delete_attr_fn, win_keyval, extra_state)
 end
 
 function MPI_Win_delete_attr(win, win_keyval)
@@ -103,59 +105,59 @@ function MPI_Win_free_keyval(win_keyval)
 end
 
 function MPI_Win_get_attr(win, win_keyval, attribute_val, flag)
-    @mpichk ccall((:MPI_Win_get_attr, libmpi), Cint, (MPI_Win, Cint, Ptr{Cvoid}, Ptr{Cint}), win, win_keyval, attribute_val, flag)
+    @mpichk ccall((:MPI_Win_get_attr, libmpi), Cint, (MPI_Win, Cint, MPIPtr, Ptr{Cint}), win, win_keyval, attribute_val, flag)
 end
 
 function MPI_Win_set_attr(win, win_keyval, attribute_val)
-    @mpichk ccall((:MPI_Win_set_attr, libmpi), Cint, (MPI_Win, Cint, Ptr{Cvoid}), win, win_keyval, attribute_val)
+    @mpichk ccall((:MPI_Win_set_attr, libmpi), Cint, (MPI_Win, Cint, MPIPtr), win, win_keyval, attribute_val)
 end
 
 function MPI_Allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
-    @mpichk ccall((:MPI_Allgather, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
+    @mpichk ccall((:MPI_Allgather, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 end
 
 function MPI_Allgather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Allgather_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Allgather_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 end
 
 function MPI_Allgatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
-    @mpichk ccall((:MPI_Allgatherv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
+    @mpichk ccall((:MPI_Allgatherv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
 end
 
 function MPI_Allgatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Allgatherv_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Allgatherv_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
 end
 
 function MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm)
-    @mpichk ccall((:MPI_Allreduce, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
+    @mpichk ccall((:MPI_Allreduce, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
 end
 
 function MPI_Allreduce_init(sendbuf, recvbuf, count, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Allreduce_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Allreduce_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
 end
 
 function MPI_Alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
-    @mpichk ccall((:MPI_Alltoall, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
+    @mpichk ccall((:MPI_Alltoall, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 end
 
 function MPI_Alltoall_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Alltoall_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Alltoall_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 end
 
 function MPI_Alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
-    @mpichk ccall((:MPI_Alltoallv, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
+    @mpichk ccall((:MPI_Alltoallv, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
 end
 
 function MPI_Alltoallv_init(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Alltoallv_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Alltoallv_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
 end
 
 function MPI_Alltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
-    @mpichk ccall((:MPI_Alltoallw, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
+    @mpichk ccall((:MPI_Alltoallw, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
 end
 
 function MPI_Alltoallw_init(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
-    @mpichk ccall((:MPI_Alltoallw_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
+    @mpichk ccall((:MPI_Alltoallw_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
 end
 
 function MPI_Barrier(comm)
@@ -167,59 +169,59 @@ function MPI_Barrier_init(comm, info, request)
 end
 
 function MPI_Bcast(buffer, count, datatype, root, comm)
-    @mpichk ccall((:MPI_Bcast, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm), buffer, count, datatype, root, comm)
+    @mpichk ccall((:MPI_Bcast, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm), buffer, count, datatype, root, comm)
 end
 
 function MPI_Bcast_init(buffer, count, datatype, root, comm, info, request)
-    @mpichk ccall((:MPI_Bcast_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buffer, count, datatype, root, comm, info, request)
+    @mpichk ccall((:MPI_Bcast_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buffer, count, datatype, root, comm, info, request)
 end
 
 function MPI_Exscan(sendbuf, recvbuf, count, datatype, op, comm)
-    @mpichk ccall((:MPI_Exscan, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
+    @mpichk ccall((:MPI_Exscan, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
 end
 
 function MPI_Exscan_init(sendbuf, recvbuf, count, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Exscan_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Exscan_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
 end
 
 function MPI_Gather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
-    @mpichk ccall((:MPI_Gather, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
+    @mpichk ccall((:MPI_Gather, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
 end
 
 function MPI_Gather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
-    @mpichk ccall((:MPI_Gather_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
+    @mpichk ccall((:MPI_Gather_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 end
 
 function MPI_Gatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm)
-    @mpichk ccall((:MPI_Gatherv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm)
+    @mpichk ccall((:MPI_Gatherv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm)
 end
 
 function MPI_Gatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
-    @mpichk ccall((:MPI_Gatherv_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
+    @mpichk ccall((:MPI_Gatherv_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
 end
 
 function MPI_Iallgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
-    @mpichk ccall((:MPI_Iallgather, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
+    @mpichk ccall((:MPI_Iallgather, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 end
 
 function MPI_Iallgatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
-    @mpichk ccall((:MPI_Iallgatherv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
+    @mpichk ccall((:MPI_Iallgatherv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
 end
 
 function MPI_Iallreduce(sendbuf, recvbuf, count, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Iallreduce, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Iallreduce, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
 end
 
 function MPI_Ialltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ialltoall, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ialltoall, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 end
 
 function MPI_Ialltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ialltoallv, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ialltoallv, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
 end
 
 function MPI_Ialltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
-    @mpichk ccall((:MPI_Ialltoallw, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
+    @mpichk ccall((:MPI_Ialltoallw, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
 end
 
 function MPI_Ibarrier(comm, request)
@@ -227,155 +229,155 @@ function MPI_Ibarrier(comm, request)
 end
 
 function MPI_Ibcast(buffer, count, datatype, root, comm, request)
-    @mpichk ccall((:MPI_Ibcast, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), buffer, count, datatype, root, comm, request)
+    @mpichk ccall((:MPI_Ibcast, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), buffer, count, datatype, root, comm, request)
 end
 
 function MPI_Iexscan(sendbuf, recvbuf, count, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Iexscan, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Iexscan, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
 end
 
 function MPI_Igather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
-    @mpichk ccall((:MPI_Igather, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
+    @mpichk ccall((:MPI_Igather, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
 end
 
 function MPI_Igatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, request)
-    @mpichk ccall((:MPI_Igatherv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, request)
+    @mpichk ccall((:MPI_Igatherv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, request)
 end
 
 function MPI_Ineighbor_allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_allgather, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_allgather, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 end
 
 function MPI_Ineighbor_allgatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_allgatherv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_allgatherv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
 end
 
 function MPI_Ineighbor_alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_alltoall, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_alltoall, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 end
 
 function MPI_Ineighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_alltoallv, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_alltoallv, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
 end
 
 function MPI_Ineighbor_alltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_alltoallw, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_alltoallw, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
 end
 
 function MPI_Ireduce(sendbuf, recvbuf, count, datatype, op, root, comm, request)
-    @mpichk ccall((:MPI_Ireduce, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, request)
+    @mpichk ccall((:MPI_Ireduce, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, request)
 end
 
 function MPI_Ireduce_scatter(sendbuf, recvbuf, recvcounts, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Ireduce_scatter, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Ireduce_scatter, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, request)
 end
 
 function MPI_Ireduce_scatter_block(sendbuf, recvbuf, recvcount, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Ireduce_scatter_block, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Ireduce_scatter_block, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, request)
 end
 
 function MPI_Iscan(sendbuf, recvbuf, count, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Iscan, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Iscan, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
 end
 
 function MPI_Iscatter(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
-    @mpichk ccall((:MPI_Iscatter, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
+    @mpichk ccall((:MPI_Iscatter, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
 end
 
 function MPI_Iscatterv(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
-    @mpichk ccall((:MPI_Iscatterv, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
+    @mpichk ccall((:MPI_Iscatterv, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
 end
 
 function MPI_Neighbor_allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
-    @mpichk ccall((:MPI_Neighbor_allgather, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
+    @mpichk ccall((:MPI_Neighbor_allgather, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 end
 
 function MPI_Neighbor_allgather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_allgather_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_allgather_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 end
 
 function MPI_Neighbor_allgatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
-    @mpichk ccall((:MPI_Neighbor_allgatherv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
+    @mpichk ccall((:MPI_Neighbor_allgatherv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
 end
 
 function MPI_Neighbor_allgatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_allgatherv_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_allgatherv_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
 end
 
 function MPI_Neighbor_alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
-    @mpichk ccall((:MPI_Neighbor_alltoall, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
+    @mpichk ccall((:MPI_Neighbor_alltoall, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 end
 
 function MPI_Neighbor_alltoall_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_alltoall_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_alltoall_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 end
 
 function MPI_Neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
-    @mpichk ccall((:MPI_Neighbor_alltoallv, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
+    @mpichk ccall((:MPI_Neighbor_alltoallv, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
 end
 
 function MPI_Neighbor_alltoallv_init(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_alltoallv_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_alltoallv_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
 end
 
 function MPI_Neighbor_alltoallw(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
-    @mpichk ccall((:MPI_Neighbor_alltoallw, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
+    @mpichk ccall((:MPI_Neighbor_alltoallw, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
 end
 
 function MPI_Neighbor_alltoallw_init(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_alltoallw_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_alltoallw_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
 end
 
 function MPI_Reduce(sendbuf, recvbuf, count, datatype, op, root, comm)
-    @mpichk ccall((:MPI_Reduce, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm), sendbuf, recvbuf, count, datatype, op, root, comm)
+    @mpichk ccall((:MPI_Reduce, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm), sendbuf, recvbuf, count, datatype, op, root, comm)
 end
 
 function MPI_Reduce_init(sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
-    @mpichk ccall((:MPI_Reduce_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
+    @mpichk ccall((:MPI_Reduce_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
 end
 
 function MPI_Reduce_local(inbuf, inoutbuf, count, datatype, op)
-    @mpichk ccall((:MPI_Reduce_local, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op), inbuf, inoutbuf, count, datatype, op)
+    @mpichk ccall((:MPI_Reduce_local, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op), inbuf, inoutbuf, count, datatype, op)
 end
 
 function MPI_Reduce_scatter(sendbuf, recvbuf, recvcounts, datatype, op, comm)
-    @mpichk ccall((:MPI_Reduce_scatter, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcounts, datatype, op, comm)
+    @mpichk ccall((:MPI_Reduce_scatter, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcounts, datatype, op, comm)
 end
 
 function MPI_Reduce_scatter_block(sendbuf, recvbuf, recvcount, datatype, op, comm)
-    @mpichk ccall((:MPI_Reduce_scatter_block, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcount, datatype, op, comm)
+    @mpichk ccall((:MPI_Reduce_scatter_block, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcount, datatype, op, comm)
 end
 
 function MPI_Reduce_scatter_block_init(sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Reduce_scatter_block_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Reduce_scatter_block_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
 end
 
 function MPI_Reduce_scatter_init(sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Reduce_scatter_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Reduce_scatter_init, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
 end
 
 function MPI_Scan(sendbuf, recvbuf, count, datatype, op, comm)
-    @mpichk ccall((:MPI_Scan, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
+    @mpichk ccall((:MPI_Scan, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
 end
 
 function MPI_Scan_init(sendbuf, recvbuf, count, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Scan_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Scan_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
 end
 
 function MPI_Scatter(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
-    @mpichk ccall((:MPI_Scatter, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
+    @mpichk ccall((:MPI_Scatter, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
 end
 
 function MPI_Scatter_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
-    @mpichk ccall((:MPI_Scatter_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
+    @mpichk ccall((:MPI_Scatter_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 end
 
 function MPI_Scatterv(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm)
-    @mpichk ccall((:MPI_Scatterv, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm)
+    @mpichk ccall((:MPI_Scatterv, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm)
 end
 
 function MPI_Scatterv_init(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
-    @mpichk ccall((:MPI_Scatterv_init, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
+    @mpichk ccall((:MPI_Scatterv_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 end
 
 function MPI_Comm_compare(comm1, comm2, result)
@@ -471,7 +473,7 @@ function MPI_Intercomm_merge(intercomm, high, newintracomm)
 end
 
 function MPI_Get_address(location, address)
-    @mpichk ccall((:MPI_Get_address, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Aint}), location, address)
+    @mpichk ccall((:MPI_Get_address, libmpi), Cint, (MPIPtr, Ptr{MPI_Aint}), location, address)
 end
 
 function MPI_Get_count(status, datatype, count)
@@ -487,11 +489,11 @@ function MPI_Get_elements_x(status, datatype, count)
 end
 
 function MPI_Pack(inbuf, incount, datatype, outbuf, outsize, position, comm)
-    @mpichk ccall((:MPI_Pack, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, Ptr{Cint}, MPI_Comm), inbuf, incount, datatype, outbuf, outsize, position, comm)
+    @mpichk ccall((:MPI_Pack, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, Ptr{Cint}, MPI_Comm), inbuf, incount, datatype, outbuf, outsize, position, comm)
 end
 
 function MPI_Pack_external(datarep, inbuf, incount, datatype, outbuf, outsize, position)
-    @mpichk ccall((:MPI_Pack_external, libmpi), Cint, (Ptr{Cchar}, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, MPI_Aint, Ptr{MPI_Aint}), datarep, inbuf, incount, datatype, outbuf, outsize, position)
+    @mpichk ccall((:MPI_Pack_external, libmpi), Cint, (Ptr{Cchar}, MPIPtr, Cint, MPI_Datatype, MPIPtr, MPI_Aint, Ptr{MPI_Aint}), datarep, inbuf, incount, datatype, outbuf, outsize, position)
 end
 
 function MPI_Pack_external_size(datarep, incount, datatype, size)
@@ -611,15 +613,15 @@ function MPI_Type_vector(count, blocklength, stride, oldtype, newtype)
 end
 
 function MPI_Unpack(inbuf, insize, position, outbuf, outcount, datatype, comm)
-    @mpichk ccall((:MPI_Unpack, libmpi), Cint, (Ptr{Cvoid}, Cint, Ptr{Cint}, Ptr{Cvoid}, Cint, MPI_Datatype, MPI_Comm), inbuf, insize, position, outbuf, outcount, datatype, comm)
+    @mpichk ccall((:MPI_Unpack, libmpi), Cint, (MPIPtr, Cint, Ptr{Cint}, MPIPtr, Cint, MPI_Datatype, MPI_Comm), inbuf, insize, position, outbuf, outcount, datatype, comm)
 end
 
 function MPI_Unpack_external(datarep, inbuf, insize, position, outbuf, outcount, datatype)
-    @mpichk ccall((:MPI_Unpack_external, libmpi), Cint, (Ptr{Cchar}, Ptr{Cvoid}, MPI_Aint, Ptr{MPI_Aint}, Ptr{Cvoid}, Cint, MPI_Datatype), datarep, inbuf, insize, position, outbuf, outcount, datatype)
+    @mpichk ccall((:MPI_Unpack_external, libmpi), Cint, (Ptr{Cchar}, MPIPtr, MPI_Aint, Ptr{MPI_Aint}, MPIPtr, Cint, MPI_Datatype), datarep, inbuf, insize, position, outbuf, outcount, datatype)
 end
 
 function MPI_Address(location, address)
-    @mpichk ccall((:MPI_Address, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Aint}), location, address)
+    @mpichk ccall((:MPI_Address, libmpi), Cint, (MPIPtr, Ptr{MPI_Aint}), location, address)
 end
 
 function MPI_Type_extent(datatype, extent)
@@ -663,7 +665,7 @@ function MPI_Comm_call_errhandler(comm, errorcode)
 end
 
 function MPI_Comm_create_errhandler(comm_errhandler_fn, errhandler)
-    @mpichk ccall((:MPI_Comm_create_errhandler, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
+    @mpichk ccall((:MPI_Comm_create_errhandler, libmpi), Cint, (MPIPtr, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
 end
 
 function MPI_Comm_get_errhandler(comm, errhandler)
@@ -691,7 +693,7 @@ function MPI_File_call_errhandler(fh, errorcode)
 end
 
 function MPI_File_create_errhandler(file_errhandler_fn, errhandler)
-    @mpichk ccall((:MPI_File_create_errhandler, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Errhandler}), file_errhandler_fn, errhandler)
+    @mpichk ccall((:MPI_File_create_errhandler, libmpi), Cint, (MPIPtr, Ptr{MPI_Errhandler}), file_errhandler_fn, errhandler)
 end
 
 function MPI_File_get_errhandler(file, errhandler)
@@ -707,7 +709,7 @@ function MPI_Win_call_errhandler(win, errorcode)
 end
 
 function MPI_Win_create_errhandler(win_errhandler_fn, errhandler)
-    @mpichk ccall((:MPI_Win_create_errhandler, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Errhandler}), win_errhandler_fn, errhandler)
+    @mpichk ccall((:MPI_Win_create_errhandler, libmpi), Cint, (MPIPtr, Ptr{MPI_Errhandler}), win_errhandler_fn, errhandler)
 end
 
 function MPI_Win_get_errhandler(win, errhandler)
@@ -719,7 +721,7 @@ function MPI_Win_set_errhandler(win, errhandler)
 end
 
 function MPI_Errhandler_create(comm_errhandler_fn, errhandler)
-    @mpichk ccall((:MPI_Errhandler_create, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
+    @mpichk ccall((:MPI_Errhandler_create, libmpi), Cint, (MPIPtr, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
 end
 
 function MPI_Errhandler_get(comm, errhandler)
@@ -883,7 +885,7 @@ function MPI_Op_commutative(op, commute)
 end
 
 function MPI_Op_create(user_fn, commute, op)
-    @mpichk ccall((:MPI_Op_create, libmpi), Cint, (Ptr{Cvoid}, Cint, Ptr{MPI_Op}), user_fn, commute, op)
+    @mpichk ccall((:MPI_Op_create, libmpi), Cint, (MPIPtr, Cint, Ptr{MPI_Op}), user_fn, commute, op)
 end
 
 function MPI_Op_free(op)
@@ -907,31 +909,31 @@ function MPI_Pready_range(partition_low, partition_high, request)
 end
 
 function MPI_Precv_init(buf, partitions, count, datatype, dest, tag, comm, info, request)
-    @mpichk ccall((:MPI_Precv_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buf, partitions, count, datatype, dest, tag, comm, info, request)
+    @mpichk ccall((:MPI_Precv_init, libmpi), Cint, (MPIPtr, Cint, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buf, partitions, count, datatype, dest, tag, comm, info, request)
 end
 
 function MPI_Psend_init(buf, partitions, count, datatype, dest, tag, comm, info, request)
-    @mpichk ccall((:MPI_Psend_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buf, partitions, count, datatype, dest, tag, comm, info, request)
+    @mpichk ccall((:MPI_Psend_init, libmpi), Cint, (MPIPtr, Cint, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buf, partitions, count, datatype, dest, tag, comm, info, request)
 end
 
 function MPI_Bsend(buf, count, datatype, dest, tag, comm)
-    @mpichk ccall((:MPI_Bsend, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
+    @mpichk ccall((:MPI_Bsend, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
 end
 
 function MPI_Bsend_init(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Bsend_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Bsend_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Buffer_attach(buffer, size)
-    @mpichk ccall((:MPI_Buffer_attach, libmpi), Cint, (Ptr{Cvoid}, Cint), buffer, size)
+    @mpichk ccall((:MPI_Buffer_attach, libmpi), Cint, (MPIPtr, Cint), buffer, size)
 end
 
 function MPI_Buffer_detach(buffer_addr, size)
-    @mpichk ccall((:MPI_Buffer_detach, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cint}), buffer_addr, size)
+    @mpichk ccall((:MPI_Buffer_detach, libmpi), Cint, (MPIPtr, Ptr{Cint}), buffer_addr, size)
 end
 
 function MPI_Ibsend(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Ibsend, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Ibsend, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Improbe(source, tag, comm, flag, message, status)
@@ -939,7 +941,7 @@ function MPI_Improbe(source, tag, comm, flag, message, status)
 end
 
 function MPI_Imrecv(buf, count, datatype, message, request)
-    @mpichk ccall((:MPI_Imrecv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Request}), buf, count, datatype, message, request)
+    @mpichk ccall((:MPI_Imrecv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Request}), buf, count, datatype, message, request)
 end
 
 function MPI_Iprobe(source, tag, comm, flag, status)
@@ -947,27 +949,27 @@ function MPI_Iprobe(source, tag, comm, flag, status)
 end
 
 function MPI_Irecv(buf, count, datatype, source, tag, comm, request)
-    @mpichk ccall((:MPI_Irecv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request)
+    @mpichk ccall((:MPI_Irecv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request)
 end
 
 function MPI_Irsend(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Irsend, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Irsend, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Isend(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Isend, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Isend, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Isendrecv(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
-    @mpichk ccall((:MPI_Isendrecv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
+    @mpichk ccall((:MPI_Isendrecv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
 end
 
 function MPI_Isendrecv_replace(buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
-    @mpichk ccall((:MPI_Isendrecv_replace, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
+    @mpichk ccall((:MPI_Isendrecv_replace, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
 end
 
 function MPI_Issend(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Issend, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Issend, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Mprobe(source, tag, comm, message, status)
@@ -975,7 +977,7 @@ function MPI_Mprobe(source, tag, comm, message, status)
 end
 
 function MPI_Mrecv(buf, count, datatype, message, status)
-    @mpichk ccall((:MPI_Mrecv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Status}), buf, count, datatype, message, status)
+    @mpichk ccall((:MPI_Mrecv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Status}), buf, count, datatype, message, status)
 end
 
 function MPI_Probe(source, tag, comm, status)
@@ -983,43 +985,43 @@ function MPI_Probe(source, tag, comm, status)
 end
 
 function MPI_Recv(buf, count, datatype, source, tag, comm, status)
-    @mpichk ccall((:MPI_Recv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, source, tag, comm, status)
+    @mpichk ccall((:MPI_Recv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, source, tag, comm, status)
 end
 
 function MPI_Recv_init(buf, count, datatype, source, tag, comm, request)
-    @mpichk ccall((:MPI_Recv_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request)
+    @mpichk ccall((:MPI_Recv_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request)
 end
 
 function MPI_Rsend(buf, count, datatype, dest, tag, comm)
-    @mpichk ccall((:MPI_Rsend, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
+    @mpichk ccall((:MPI_Rsend, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
 end
 
 function MPI_Rsend_init(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Rsend_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Rsend_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Send(buf, count, datatype, dest, tag, comm)
-    @mpichk ccall((:MPI_Send, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
+    @mpichk ccall((:MPI_Send, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
 end
 
 function MPI_Send_init(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Send_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Send_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status)
-    @mpichk ccall((:MPI_Sendrecv, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status)
+    @mpichk ccall((:MPI_Sendrecv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status)
 end
 
 function MPI_Sendrecv_replace(buf, count, datatype, dest, sendtag, source, recvtag, comm, status)
-    @mpichk ccall((:MPI_Sendrecv_replace, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, dest, sendtag, source, recvtag, comm, status)
+    @mpichk ccall((:MPI_Sendrecv_replace, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, dest, sendtag, source, recvtag, comm, status)
 end
 
 function MPI_Ssend(buf, count, datatype, dest, tag, comm)
-    @mpichk ccall((:MPI_Ssend, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
+    @mpichk ccall((:MPI_Ssend, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
 end
 
 function MPI_Ssend_init(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Ssend_init, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Ssend_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Cancel(request)
@@ -1031,7 +1033,7 @@ function MPI_Grequest_complete(request)
 end
 
 function MPI_Grequest_start(query_fn, free_fn, cancel_fn, extra_state, request)
-    @mpichk ccall((:MPI_Grequest_start, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{MPI_Request}), query_fn, free_fn, cancel_fn, extra_state, request)
+    @mpichk ccall((:MPI_Grequest_start, libmpi), Cint, (MPIPtr, MPIPtr, MPIPtr, MPIPtr, Ptr{MPI_Request}), query_fn, free_fn, cancel_fn, extra_state, request)
 end
 
 function MPI_Request_free(request)
@@ -1083,63 +1085,63 @@ function MPI_Waitsome(incount, array_of_requests, outcount, array_of_indices, ar
 end
 
 function MPI_Accumulate(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
-    @mpichk ccall((:MPI_Accumulate, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
+    @mpichk ccall((:MPI_Accumulate, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
 end
 
 function MPI_Alloc_mem(size, info, baseptr)
-    @mpichk ccall((:MPI_Alloc_mem, libmpi), Cint, (MPI_Aint, MPI_Info, Ptr{Cvoid}), size, info, baseptr)
+    @mpichk ccall((:MPI_Alloc_mem, libmpi), Cint, (MPI_Aint, MPI_Info, MPIPtr), size, info, baseptr)
 end
 
 function MPI_Compare_and_swap(origin_addr, compare_addr, result_addr, datatype, target_rank, target_disp, win)
-    @mpichk ccall((:MPI_Compare_and_swap, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, MPI_Datatype, Cint, MPI_Aint, MPI_Win), origin_addr, compare_addr, result_addr, datatype, target_rank, target_disp, win)
+    @mpichk ccall((:MPI_Compare_and_swap, libmpi), Cint, (MPIPtr, MPIPtr, MPIPtr, MPI_Datatype, Cint, MPI_Aint, MPI_Win), origin_addr, compare_addr, result_addr, datatype, target_rank, target_disp, win)
 end
 
 function MPI_Fetch_and_op(origin_addr, result_addr, datatype, target_rank, target_disp, op, win)
-    @mpichk ccall((:MPI_Fetch_and_op, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Datatype, Cint, MPI_Aint, MPI_Op, MPI_Win), origin_addr, result_addr, datatype, target_rank, target_disp, op, win)
+    @mpichk ccall((:MPI_Fetch_and_op, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Datatype, Cint, MPI_Aint, MPI_Op, MPI_Win), origin_addr, result_addr, datatype, target_rank, target_disp, op, win)
 end
 
 function MPI_Free_mem(base)
-    @mpichk ccall((:MPI_Free_mem, libmpi), Cint, (Ptr{Cvoid},), base)
+    @mpichk ccall((:MPI_Free_mem, libmpi), Cint, (MPIPtr,), base)
 end
 
 function MPI_Get(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
-    @mpichk ccall((:MPI_Get, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
+    @mpichk ccall((:MPI_Get, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
 end
 
 function MPI_Get_accumulate(origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
-    @mpichk ccall((:MPI_Get_accumulate, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
+    @mpichk ccall((:MPI_Get_accumulate, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
 end
 
 function MPI_Put(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
-    @mpichk ccall((:MPI_Put, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
+    @mpichk ccall((:MPI_Put, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
 end
 
 function MPI_Raccumulate(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
-    @mpichk ccall((:MPI_Raccumulate, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
+    @mpichk ccall((:MPI_Raccumulate, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
 end
 
 function MPI_Rget(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
-    @mpichk ccall((:MPI_Rget, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
+    @mpichk ccall((:MPI_Rget, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
 end
 
 function MPI_Rget_accumulate(origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
-    @mpichk ccall((:MPI_Rget_accumulate, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
+    @mpichk ccall((:MPI_Rget_accumulate, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
 end
 
 function MPI_Rput(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
-    @mpichk ccall((:MPI_Rput, libmpi), Cint, (Ptr{Cvoid}, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
+    @mpichk ccall((:MPI_Rput, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Aint, Cint, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
 end
 
 function MPI_Win_allocate(size, disp_unit, info, comm, baseptr, win)
-    @mpichk ccall((:MPI_Win_allocate, libmpi), Cint, (MPI_Aint, Cint, MPI_Info, MPI_Comm, Ptr{Cvoid}, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win)
+    @mpichk ccall((:MPI_Win_allocate, libmpi), Cint, (MPI_Aint, Cint, MPI_Info, MPI_Comm, MPIPtr, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win)
 end
 
 function MPI_Win_allocate_shared(size, disp_unit, info, comm, baseptr, win)
-    @mpichk ccall((:MPI_Win_allocate_shared, libmpi), Cint, (MPI_Aint, Cint, MPI_Info, MPI_Comm, Ptr{Cvoid}, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win)
+    @mpichk ccall((:MPI_Win_allocate_shared, libmpi), Cint, (MPI_Aint, Cint, MPI_Info, MPI_Comm, MPIPtr, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win)
 end
 
 function MPI_Win_attach(win, base, size)
-    @mpichk ccall((:MPI_Win_attach, libmpi), Cint, (MPI_Win, Ptr{Cvoid}, MPI_Aint), win, base, size)
+    @mpichk ccall((:MPI_Win_attach, libmpi), Cint, (MPI_Win, MPIPtr, MPI_Aint), win, base, size)
 end
 
 function MPI_Win_complete(win)
@@ -1147,7 +1149,7 @@ function MPI_Win_complete(win)
 end
 
 function MPI_Win_create(base, size, disp_unit, info, comm, win)
-    @mpichk ccall((:MPI_Win_create, libmpi), Cint, (Ptr{Cvoid}, MPI_Aint, Cint, MPI_Info, MPI_Comm, Ptr{MPI_Win}), base, size, disp_unit, info, comm, win)
+    @mpichk ccall((:MPI_Win_create, libmpi), Cint, (MPIPtr, MPI_Aint, Cint, MPI_Info, MPI_Comm, Ptr{MPI_Win}), base, size, disp_unit, info, comm, win)
 end
 
 function MPI_Win_create_dynamic(info, comm, win)
@@ -1155,7 +1157,7 @@ function MPI_Win_create_dynamic(info, comm, win)
 end
 
 function MPI_Win_detach(win, base)
-    @mpichk ccall((:MPI_Win_detach, libmpi), Cint, (MPI_Win, Ptr{Cvoid}), win, base)
+    @mpichk ccall((:MPI_Win_detach, libmpi), Cint, (MPI_Win, MPIPtr), win, base)
 end
 
 function MPI_Win_fence(assert, win)
@@ -1215,7 +1217,7 @@ function MPI_Win_set_name(win, win_name)
 end
 
 function MPI_Win_shared_query(win, rank, size, disp_unit, baseptr)
-    @mpichk ccall((:MPI_Win_shared_query, libmpi), Cint, (MPI_Win, Cint, Ptr{MPI_Aint}, Ptr{Cint}, Ptr{Cvoid}), win, rank, size, disp_unit, baseptr)
+    @mpichk ccall((:MPI_Win_shared_query, libmpi), Cint, (MPI_Win, Cint, Ptr{MPI_Aint}, Ptr{Cint}, MPIPtr), win, rank, size, disp_unit, baseptr)
 end
 
 function MPI_Win_start(group, assert, win)
@@ -1379,259 +1381,259 @@ function MPI_Topo_test(comm, status)
 end
 
 function MPI_Allgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
-    @mpichk ccall((:MPI_Allgather_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
+    @mpichk ccall((:MPI_Allgather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 end
 
 function MPI_Allgather_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Allgather_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Allgather_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 end
 
 function MPI_Allgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
-    @mpichk ccall((:MPI_Allgatherv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
+    @mpichk ccall((:MPI_Allgatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
 end
 
 function MPI_Allgatherv_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Allgatherv_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Allgatherv_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
 end
 
 function MPI_Allreduce_c(sendbuf, recvbuf, count, datatype, op, comm)
-    @mpichk ccall((:MPI_Allreduce_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
+    @mpichk ccall((:MPI_Allreduce_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
 end
 
 function MPI_Allreduce_init_c(sendbuf, recvbuf, count, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Allreduce_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Allreduce_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
 end
 
 function MPI_Alltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
-    @mpichk ccall((:MPI_Alltoall_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
+    @mpichk ccall((:MPI_Alltoall_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 end
 
 function MPI_Alltoall_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Alltoall_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Alltoall_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 end
 
 function MPI_Alltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
-    @mpichk ccall((:MPI_Alltoallv_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
+    @mpichk ccall((:MPI_Alltoallv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
 end
 
 function MPI_Alltoallv_init_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Alltoallv_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Alltoallv_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
 end
 
 function MPI_Alltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
-    @mpichk ccall((:MPI_Alltoallw_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
+    @mpichk ccall((:MPI_Alltoallw_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
 end
 
 function MPI_Alltoallw_init_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
-    @mpichk ccall((:MPI_Alltoallw_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
+    @mpichk ccall((:MPI_Alltoallw_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
 end
 
 function MPI_Bcast_c(buffer, count, datatype, root, comm)
-    @mpichk ccall((:MPI_Bcast_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm), buffer, count, datatype, root, comm)
+    @mpichk ccall((:MPI_Bcast_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm), buffer, count, datatype, root, comm)
 end
 
 function MPI_Bcast_init_c(buffer, count, datatype, root, comm, info, request)
-    @mpichk ccall((:MPI_Bcast_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buffer, count, datatype, root, comm, info, request)
+    @mpichk ccall((:MPI_Bcast_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buffer, count, datatype, root, comm, info, request)
 end
 
 function MPI_Exscan_c(sendbuf, recvbuf, count, datatype, op, comm)
-    @mpichk ccall((:MPI_Exscan_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
+    @mpichk ccall((:MPI_Exscan_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
 end
 
 function MPI_Exscan_init_c(sendbuf, recvbuf, count, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Exscan_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Exscan_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
 end
 
 function MPI_Gather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
-    @mpichk ccall((:MPI_Gather_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
+    @mpichk ccall((:MPI_Gather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
 end
 
 function MPI_Gather_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
-    @mpichk ccall((:MPI_Gather_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
+    @mpichk ccall((:MPI_Gather_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 end
 
 function MPI_Gatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm)
-    @mpichk ccall((:MPI_Gatherv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm)
+    @mpichk ccall((:MPI_Gatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm)
 end
 
 function MPI_Gatherv_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
-    @mpichk ccall((:MPI_Gatherv_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
+    @mpichk ccall((:MPI_Gatherv_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
 end
 
 function MPI_Iallgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
-    @mpichk ccall((:MPI_Iallgather_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
+    @mpichk ccall((:MPI_Iallgather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 end
 
 function MPI_Iallgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
-    @mpichk ccall((:MPI_Iallgatherv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
+    @mpichk ccall((:MPI_Iallgatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
 end
 
 function MPI_Iallreduce_c(sendbuf, recvbuf, count, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Iallreduce_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Iallreduce_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
 end
 
 function MPI_Ialltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ialltoall_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ialltoall_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 end
 
 function MPI_Ialltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ialltoallv_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ialltoallv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
 end
 
 function MPI_Ialltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
-    @mpichk ccall((:MPI_Ialltoallw_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
+    @mpichk ccall((:MPI_Ialltoallw_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
 end
 
 function MPI_Ibcast_c(buffer, count, datatype, root, comm, request)
-    @mpichk ccall((:MPI_Ibcast_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), buffer, count, datatype, root, comm, request)
+    @mpichk ccall((:MPI_Ibcast_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), buffer, count, datatype, root, comm, request)
 end
 
 function MPI_Iexscan_c(sendbuf, recvbuf, count, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Iexscan_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Iexscan_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
 end
 
 function MPI_Igather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
-    @mpichk ccall((:MPI_Igather_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
+    @mpichk ccall((:MPI_Igather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
 end
 
 function MPI_Igatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, request)
-    @mpichk ccall((:MPI_Igatherv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, request)
+    @mpichk ccall((:MPI_Igatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, request)
 end
 
 function MPI_Ineighbor_allgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_allgather_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_allgather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 end
 
 function MPI_Ineighbor_allgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_allgatherv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_allgatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
 end
 
 function MPI_Ineighbor_alltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_alltoall_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_alltoall_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 end
 
 function MPI_Ineighbor_alltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_alltoallv_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_alltoallv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
 end
 
 function MPI_Ineighbor_alltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
-    @mpichk ccall((:MPI_Ineighbor_alltoallw_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
+    @mpichk ccall((:MPI_Ineighbor_alltoallw_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
 end
 
 function MPI_Ireduce_c(sendbuf, recvbuf, count, datatype, op, root, comm, request)
-    @mpichk ccall((:MPI_Ireduce_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, request)
+    @mpichk ccall((:MPI_Ireduce_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, request)
 end
 
 function MPI_Ireduce_scatter_c(sendbuf, recvbuf, recvcounts, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Ireduce_scatter_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{MPI_Count}, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Ireduce_scatter_c, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{MPI_Count}, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, request)
 end
 
 function MPI_Ireduce_scatter_block_c(sendbuf, recvbuf, recvcount, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Ireduce_scatter_block_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Ireduce_scatter_block_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, request)
 end
 
 function MPI_Iscan_c(sendbuf, recvbuf, count, datatype, op, comm, request)
-    @mpichk ccall((:MPI_Iscan_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
+    @mpichk ccall((:MPI_Iscan_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request)
 end
 
 function MPI_Iscatter_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
-    @mpichk ccall((:MPI_Iscatter_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
+    @mpichk ccall((:MPI_Iscatter_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
 end
 
 function MPI_Iscatterv_c(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
-    @mpichk ccall((:MPI_Iscatterv_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
+    @mpichk ccall((:MPI_Iscatterv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
 end
 
 function MPI_Neighbor_allgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
-    @mpichk ccall((:MPI_Neighbor_allgather_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
+    @mpichk ccall((:MPI_Neighbor_allgather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 end
 
 function MPI_Neighbor_allgather_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_allgather_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_allgather_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 end
 
 function MPI_Neighbor_allgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
-    @mpichk ccall((:MPI_Neighbor_allgatherv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
+    @mpichk ccall((:MPI_Neighbor_allgatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
 end
 
 function MPI_Neighbor_allgatherv_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_allgatherv_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_allgatherv_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
 end
 
 function MPI_Neighbor_alltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
-    @mpichk ccall((:MPI_Neighbor_alltoall_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
+    @mpichk ccall((:MPI_Neighbor_alltoall_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 end
 
 function MPI_Neighbor_alltoall_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_alltoall_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_alltoall_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 end
 
 function MPI_Neighbor_alltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
-    @mpichk ccall((:MPI_Neighbor_alltoallv_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
+    @mpichk ccall((:MPI_Neighbor_alltoallv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
 end
 
 function MPI_Neighbor_alltoallv_init_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_alltoallv_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_alltoallv_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
 end
 
 function MPI_Neighbor_alltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
-    @mpichk ccall((:MPI_Neighbor_alltoallw_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
+    @mpichk ccall((:MPI_Neighbor_alltoallw_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
 end
 
 function MPI_Neighbor_alltoallw_init_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
-    @mpichk ccall((:MPI_Neighbor_alltoallw_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
+    @mpichk ccall((:MPI_Neighbor_alltoallw_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
 end
 
 function MPI_Reduce_c(sendbuf, recvbuf, count, datatype, op, root, comm)
-    @mpichk ccall((:MPI_Reduce_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, Cint, MPI_Comm), sendbuf, recvbuf, count, datatype, op, root, comm)
+    @mpichk ccall((:MPI_Reduce_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, Cint, MPI_Comm), sendbuf, recvbuf, count, datatype, op, root, comm)
 end
 
 function MPI_Reduce_init_c(sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
-    @mpichk ccall((:MPI_Reduce_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
+    @mpichk ccall((:MPI_Reduce_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
 end
 
 function MPI_Reduce_local_c(inbuf, inoutbuf, count, datatype, op)
-    @mpichk ccall((:MPI_Reduce_local_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op), inbuf, inoutbuf, count, datatype, op)
+    @mpichk ccall((:MPI_Reduce_local_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op), inbuf, inoutbuf, count, datatype, op)
 end
 
 function MPI_Reduce_scatter_c(sendbuf, recvbuf, recvcounts, datatype, op, comm)
-    @mpichk ccall((:MPI_Reduce_scatter_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{MPI_Count}, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcounts, datatype, op, comm)
+    @mpichk ccall((:MPI_Reduce_scatter_c, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{MPI_Count}, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcounts, datatype, op, comm)
 end
 
 function MPI_Reduce_scatter_block_c(sendbuf, recvbuf, recvcount, datatype, op, comm)
-    @mpichk ccall((:MPI_Reduce_scatter_block_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcount, datatype, op, comm)
+    @mpichk ccall((:MPI_Reduce_scatter_block_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcount, datatype, op, comm)
 end
 
 function MPI_Reduce_scatter_block_init_c(sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Reduce_scatter_block_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Reduce_scatter_block_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
 end
 
 function MPI_Reduce_scatter_init_c(sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Reduce_scatter_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{MPI_Count}, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Reduce_scatter_init_c, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{MPI_Count}, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
 end
 
 function MPI_Scan_c(sendbuf, recvbuf, count, datatype, op, comm)
-    @mpichk ccall((:MPI_Scan_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
+    @mpichk ccall((:MPI_Scan_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
 end
 
 function MPI_Scan_init_c(sendbuf, recvbuf, count, datatype, op, comm, info, request)
-    @mpichk ccall((:MPI_Scan_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
+    @mpichk ccall((:MPI_Scan_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request)
 end
 
 function MPI_Scatter_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
-    @mpichk ccall((:MPI_Scatter_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
+    @mpichk ccall((:MPI_Scatter_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
 end
 
 function MPI_Scatter_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
-    @mpichk ccall((:MPI_Scatter_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
+    @mpichk ccall((:MPI_Scatter_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 end
 
 function MPI_Scatterv_c(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm)
-    @mpichk ccall((:MPI_Scatterv_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm)
+    @mpichk ccall((:MPI_Scatterv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm)
 end
 
 function MPI_Scatterv_init_c(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
-    @mpichk ccall((:MPI_Scatterv_init_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
+    @mpichk ccall((:MPI_Scatterv_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 end
 
 function MPI_Get_count_c(status, datatype, count)
@@ -1643,11 +1645,11 @@ function MPI_Get_elements_c(status, datatype, count)
 end
 
 function MPI_Pack_c(inbuf, incount, datatype, outbuf, outsize, position, comm)
-    @mpichk ccall((:MPI_Pack_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, Ptr{MPI_Count}, MPI_Comm), inbuf, incount, datatype, outbuf, outsize, position, comm)
+    @mpichk ccall((:MPI_Pack_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, Ptr{MPI_Count}, MPI_Comm), inbuf, incount, datatype, outbuf, outsize, position, comm)
 end
 
 function MPI_Pack_external_c(datarep, inbuf, incount, datatype, outbuf, outsize, position)
-    @mpichk ccall((:MPI_Pack_external_c, libmpi), Cint, (Ptr{Cchar}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, Ptr{MPI_Count}), datarep, inbuf, incount, datatype, outbuf, outsize, position)
+    @mpichk ccall((:MPI_Pack_external_c, libmpi), Cint, (Ptr{Cchar}, MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, Ptr{MPI_Count}), datarep, inbuf, incount, datatype, outbuf, outsize, position)
 end
 
 function MPI_Pack_external_size_c(datarep, incount, datatype, size)
@@ -1723,155 +1725,155 @@ function MPI_Type_vector_c(count, blocklength, stride, oldtype, newtype)
 end
 
 function MPI_Unpack_c(inbuf, insize, position, outbuf, outcount, datatype, comm)
-    @mpichk ccall((:MPI_Unpack_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, Ptr{MPI_Count}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, MPI_Comm), inbuf, insize, position, outbuf, outcount, datatype, comm)
+    @mpichk ccall((:MPI_Unpack_c, libmpi), Cint, (MPIPtr, MPI_Count, Ptr{MPI_Count}, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), inbuf, insize, position, outbuf, outcount, datatype, comm)
 end
 
 function MPI_Unpack_external_c(datarep, inbuf, insize, position, outbuf, outcount, datatype)
-    @mpichk ccall((:MPI_Unpack_external_c, libmpi), Cint, (Ptr{Cchar}, Ptr{Cvoid}, MPI_Count, Ptr{MPI_Count}, Ptr{Cvoid}, MPI_Count, MPI_Datatype), datarep, inbuf, insize, position, outbuf, outcount, datatype)
+    @mpichk ccall((:MPI_Unpack_external_c, libmpi), Cint, (Ptr{Cchar}, MPIPtr, MPI_Count, Ptr{MPI_Count}, MPIPtr, MPI_Count, MPI_Datatype), datarep, inbuf, insize, position, outbuf, outcount, datatype)
 end
 
 function MPI_Op_create_c(user_fn, commute, op)
-    @mpichk ccall((:MPI_Op_create_c, libmpi), Cint, (Ptr{Cvoid}, Cint, Ptr{MPI_Op}), user_fn, commute, op)
+    @mpichk ccall((:MPI_Op_create_c, libmpi), Cint, (MPIPtr, Cint, Ptr{MPI_Op}), user_fn, commute, op)
 end
 
 function MPI_Bsend_c(buf, count, datatype, dest, tag, comm)
-    @mpichk ccall((:MPI_Bsend_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
+    @mpichk ccall((:MPI_Bsend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
 end
 
 function MPI_Bsend_init_c(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Bsend_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Bsend_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Buffer_attach_c(buffer, size)
-    @mpichk ccall((:MPI_Buffer_attach_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count), buffer, size)
+    @mpichk ccall((:MPI_Buffer_attach_c, libmpi), Cint, (MPIPtr, MPI_Count), buffer, size)
 end
 
 function MPI_Buffer_detach_c(buffer_addr, size)
-    @mpichk ccall((:MPI_Buffer_detach_c, libmpi), Cint, (Ptr{Cvoid}, Ptr{MPI_Count}), buffer_addr, size)
+    @mpichk ccall((:MPI_Buffer_detach_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}), buffer_addr, size)
 end
 
 function MPI_Ibsend_c(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Ibsend_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Ibsend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Imrecv_c(buf, count, datatype, message, request)
-    @mpichk ccall((:MPI_Imrecv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Request}), buf, count, datatype, message, request)
+    @mpichk ccall((:MPI_Imrecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Request}), buf, count, datatype, message, request)
 end
 
 function MPI_Irecv_c(buf, count, datatype, source, tag, comm, request)
-    @mpichk ccall((:MPI_Irecv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request)
+    @mpichk ccall((:MPI_Irecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request)
 end
 
 function MPI_Irsend_c(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Irsend_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Irsend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Isend_c(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Isend_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Isend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Isendrecv_c(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
-    @mpichk ccall((:MPI_Isendrecv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
+    @mpichk ccall((:MPI_Isendrecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
 end
 
 function MPI_Isendrecv_replace_c(buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
-    @mpichk ccall((:MPI_Isendrecv_replace_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
+    @mpichk ccall((:MPI_Isendrecv_replace_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
 end
 
 function MPI_Issend_c(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Issend_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Issend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Mrecv_c(buf, count, datatype, message, status)
-    @mpichk ccall((:MPI_Mrecv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Status}), buf, count, datatype, message, status)
+    @mpichk ccall((:MPI_Mrecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Status}), buf, count, datatype, message, status)
 end
 
 function MPI_Recv_c(buf, count, datatype, source, tag, comm, status)
-    @mpichk ccall((:MPI_Recv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, source, tag, comm, status)
+    @mpichk ccall((:MPI_Recv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, source, tag, comm, status)
 end
 
 function MPI_Recv_init_c(buf, count, datatype, source, tag, comm, request)
-    @mpichk ccall((:MPI_Recv_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request)
+    @mpichk ccall((:MPI_Recv_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request)
 end
 
 function MPI_Rsend_c(buf, count, datatype, dest, tag, comm)
-    @mpichk ccall((:MPI_Rsend_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
+    @mpichk ccall((:MPI_Rsend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
 end
 
 function MPI_Rsend_init_c(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Rsend_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Rsend_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Send_c(buf, count, datatype, dest, tag, comm)
-    @mpichk ccall((:MPI_Send_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
+    @mpichk ccall((:MPI_Send_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
 end
 
 function MPI_Send_init_c(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Send_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Send_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Sendrecv_c(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status)
-    @mpichk ccall((:MPI_Sendrecv_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status)
+    @mpichk ccall((:MPI_Sendrecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status)
 end
 
 function MPI_Sendrecv_replace_c(buf, count, datatype, dest, sendtag, source, recvtag, comm, status)
-    @mpichk ccall((:MPI_Sendrecv_replace_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, dest, sendtag, source, recvtag, comm, status)
+    @mpichk ccall((:MPI_Sendrecv_replace_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, dest, sendtag, source, recvtag, comm, status)
 end
 
 function MPI_Ssend_c(buf, count, datatype, dest, tag, comm)
-    @mpichk ccall((:MPI_Ssend_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
+    @mpichk ccall((:MPI_Ssend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm)
 end
 
 function MPI_Ssend_init_c(buf, count, datatype, dest, tag, comm, request)
-    @mpichk ccall((:MPI_Ssend_init_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
+    @mpichk ccall((:MPI_Ssend_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request)
 end
 
 function MPI_Accumulate_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
-    @mpichk ccall((:MPI_Accumulate_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
+    @mpichk ccall((:MPI_Accumulate_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
 end
 
 function MPI_Get_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
-    @mpichk ccall((:MPI_Get_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
+    @mpichk ccall((:MPI_Get_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
 end
 
 function MPI_Get_accumulate_c(origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
-    @mpichk ccall((:MPI_Get_accumulate_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
+    @mpichk ccall((:MPI_Get_accumulate_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
 end
 
 function MPI_Put_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
-    @mpichk ccall((:MPI_Put_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
+    @mpichk ccall((:MPI_Put_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
 end
 
 function MPI_Raccumulate_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
-    @mpichk ccall((:MPI_Raccumulate_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
+    @mpichk ccall((:MPI_Raccumulate_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
 end
 
 function MPI_Rget_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
-    @mpichk ccall((:MPI_Rget_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
+    @mpichk ccall((:MPI_Rget_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
 end
 
 function MPI_Rget_accumulate_c(origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
-    @mpichk ccall((:MPI_Rget_accumulate_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
+    @mpichk ccall((:MPI_Rget_accumulate_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
 end
 
 function MPI_Rput_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
-    @mpichk ccall((:MPI_Rput_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
+    @mpichk ccall((:MPI_Rput_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
 end
 
 function MPI_Win_allocate_c(size, disp_unit, info, comm, baseptr, win)
-    @mpichk ccall((:MPI_Win_allocate_c, libmpi), Cint, (MPI_Aint, MPI_Aint, MPI_Info, MPI_Comm, Ptr{Cvoid}, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win)
+    @mpichk ccall((:MPI_Win_allocate_c, libmpi), Cint, (MPI_Aint, MPI_Aint, MPI_Info, MPI_Comm, MPIPtr, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win)
 end
 
 function MPI_Win_allocate_shared_c(size, disp_unit, info, comm, baseptr, win)
-    @mpichk ccall((:MPI_Win_allocate_shared_c, libmpi), Cint, (MPI_Aint, MPI_Aint, MPI_Info, MPI_Comm, Ptr{Cvoid}, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win)
+    @mpichk ccall((:MPI_Win_allocate_shared_c, libmpi), Cint, (MPI_Aint, MPI_Aint, MPI_Info, MPI_Comm, MPIPtr, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win)
 end
 
 function MPI_Win_create_c(base, size, disp_unit, info, comm, win)
-    @mpichk ccall((:MPI_Win_create_c, libmpi), Cint, (Ptr{Cvoid}, MPI_Aint, MPI_Aint, MPI_Info, MPI_Comm, Ptr{MPI_Win}), base, size, disp_unit, info, comm, win)
+    @mpichk ccall((:MPI_Win_create_c, libmpi), Cint, (MPIPtr, MPI_Aint, MPI_Aint, MPI_Info, MPI_Comm, Ptr{MPI_Win}), base, size, disp_unit, info, comm, win)
 end
 
 function MPI_Win_shared_query_c(win, rank, size, disp_unit, baseptr)
-    @mpichk ccall((:MPI_Win_shared_query_c, libmpi), Cint, (MPI_Win, Cint, Ptr{MPI_Aint}, Ptr{MPI_Aint}, Ptr{Cvoid}), win, rank, size, disp_unit, baseptr)
+    @mpichk ccall((:MPI_Win_shared_query_c, libmpi), Cint, (MPI_Win, Cint, Ptr{MPI_Aint}, Ptr{MPI_Aint}, MPIPtr), win, rank, size, disp_unit, baseptr)
 end
 
 function MPI_File_open(comm, filename, amode, info, fh)
@@ -1923,51 +1925,51 @@ function MPI_File_get_view(fh, disp, etype, filetype, datarep)
 end
 
 function MPI_File_read_at(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_at, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
 end
 
 function MPI_File_read_at_all(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_at_all, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
 end
 
 function MPI_File_write_at(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_at, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
 end
 
 function MPI_File_write_at_all(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_at_all, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
 end
 
 function MPI_File_iread_at(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_at, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite_at(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_at, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 function MPI_File_read(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_read_all(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_all, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_write(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_write_all(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_all, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_iread(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_seek(fh, offset, whence)
@@ -1983,27 +1985,27 @@ function MPI_File_get_byte_offset(fh, offset, disp)
 end
 
 function MPI_File_read_shared(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_shared, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_write_shared(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_shared, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_iread_shared(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_shared, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite_shared(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_shared, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_read_ordered(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_ordered, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_ordered, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_write_ordered(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_seek_shared(fh, offset, whence)
@@ -2015,51 +2017,51 @@ function MPI_File_get_position_shared(fh, offset)
 end
 
 function MPI_File_read_at_all_begin(fh, offset, buf, count, datatype)
-    @mpichk ccall((:MPI_File_read_at_all_begin, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype), fh, offset, buf, count, datatype)
+    @mpichk ccall((:MPI_File_read_at_all_begin, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype), fh, offset, buf, count, datatype)
 end
 
 function MPI_File_read_at_all_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_read_at_all_end, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Ptr{MPI_Status}), fh, buf, status)
+    @mpichk ccall((:MPI_File_read_at_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
 end
 
 function MPI_File_write_at_all_begin(fh, offset, buf, count, datatype)
-    @mpichk ccall((:MPI_File_write_at_all_begin, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype), fh, offset, buf, count, datatype)
+    @mpichk ccall((:MPI_File_write_at_all_begin, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype), fh, offset, buf, count, datatype)
 end
 
 function MPI_File_write_at_all_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_write_at_all_end, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Ptr{MPI_Status}), fh, buf, status)
+    @mpichk ccall((:MPI_File_write_at_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
 end
 
 function MPI_File_read_all_begin(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_read_all_begin, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype), fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_read_all_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
 end
 
 function MPI_File_read_all_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_read_all_end, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Ptr{MPI_Status}), fh, buf, status)
+    @mpichk ccall((:MPI_File_read_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
 end
 
 function MPI_File_write_all_begin(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_write_all_begin, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype), fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_write_all_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
 end
 
 function MPI_File_write_all_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_write_all_end, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Ptr{MPI_Status}), fh, buf, status)
+    @mpichk ccall((:MPI_File_write_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
 end
 
 function MPI_File_read_ordered_begin(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_read_ordered_begin, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype), fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_read_ordered_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
 end
 
 function MPI_File_read_ordered_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_read_ordered_end, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Ptr{MPI_Status}), fh, buf, status)
+    @mpichk ccall((:MPI_File_read_ordered_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
 end
 
 function MPI_File_write_ordered_begin(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_write_ordered_begin, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype), fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_write_ordered_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
 end
 
 function MPI_File_write_ordered_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_write_ordered_end, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Ptr{MPI_Status}), fh, buf, status)
+    @mpichk ccall((:MPI_File_write_ordered_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
 end
 
 function MPI_File_get_type_extent(fh, datatype, extent)
@@ -2067,7 +2069,7 @@ function MPI_File_get_type_extent(fh, datatype, extent)
 end
 
 function MPI_Register_datarep(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
-    @mpichk ccall((:MPI_Register_datarep, libmpi), Cint, (Ptr{Cchar}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
+    @mpichk ccall((:MPI_Register_datarep, libmpi), Cint, (Ptr{Cchar}, MPIPtr, MPIPtr, MPIPtr, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
 end
 
 function MPI_File_set_atomicity(fh, flag)
@@ -2083,131 +2085,131 @@ function MPI_File_sync(fh)
 end
 
 function MPI_File_iread_at_all(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_at_all, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite_at_all(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_at_all, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 function MPI_File_iread_all(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_all, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite_all(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_all, libmpi), Cint, (MPI_File, Ptr{Cvoid}, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_read_c(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_read_all_c(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_all_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_read_all_begin_c(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_read_all_begin_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype), fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_read_all_begin_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype), fh, buf, count, datatype)
 end
 
 function MPI_File_read_at_c(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_at_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
 end
 
 function MPI_File_read_at_all_c(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
 end
 
 function MPI_File_read_at_all_begin_c(fh, offset, buf, count, datatype)
-    @mpichk ccall((:MPI_File_read_at_all_begin_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype), fh, offset, buf, count, datatype)
+    @mpichk ccall((:MPI_File_read_at_all_begin_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype), fh, offset, buf, count, datatype)
 end
 
 function MPI_File_read_ordered_c(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_ordered_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_ordered_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_read_ordered_begin_c(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_read_ordered_begin_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype), fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_read_ordered_begin_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype), fh, buf, count, datatype)
 end
 
 function MPI_File_read_shared_c(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_shared_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_write_c(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_write_all_c(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_all_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_write_all_begin_c(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_write_all_begin_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype), fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_write_all_begin_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype), fh, buf, count, datatype)
 end
 
 function MPI_File_write_at_c(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_at_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
 end
 
 function MPI_File_write_at_all_c(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
 end
 
 function MPI_File_write_at_all_begin_c(fh, offset, buf, count, datatype)
-    @mpichk ccall((:MPI_File_write_at_all_begin_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype), fh, offset, buf, count, datatype)
+    @mpichk ccall((:MPI_File_write_at_all_begin_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype), fh, offset, buf, count, datatype)
 end
 
 function MPI_File_write_ordered_c(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_ordered_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_ordered_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_write_ordered_begin_c(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_write_ordered_begin_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype), fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_write_ordered_begin_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype), fh, buf, count, datatype)
 end
 
 function MPI_File_write_shared_c(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_shared_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
 end
 
 function MPI_File_iread_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_iread_all_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_all_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_iread_at_c(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_at_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 function MPI_File_iread_at_all_c(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 function MPI_File_iread_shared_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_shared_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite_all_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_all_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite_at_c(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_at_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite_at_all_c(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 function MPI_File_iwrite_shared_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_shared_c, libmpi), Cint, (MPI_File, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 function MPI_File_get_type_extent_c(fh, datatype, extent)
@@ -2215,7 +2217,7 @@ function MPI_File_get_type_extent_c(fh, datatype, extent)
 end
 
 function MPI_Register_datarep_c(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
-    @mpichk ccall((:MPI_Register_datarep_c, libmpi), Cint, (Ptr{Cchar}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
+    @mpichk ccall((:MPI_Register_datarep_c, libmpi), Cint, (Ptr{Cchar}, MPIPtr, MPIPtr, MPIPtr, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
 end
 
 function MPI_File_f2c(file)

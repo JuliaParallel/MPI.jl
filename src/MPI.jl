@@ -77,14 +77,15 @@ include("implementations.jl")
 include("error.jl")
 
 module API
-    import ..libmpi, ..libmpi_handle, ..use_stdcall, ..@mpicall, ..@mpichk, ..MPIError
+    import ..libmpi, ..libmpi_handle, ..MPIPtr
+    import ..use_stdcall, ..MPIError, ..@mpicall, ..@mpichk
     using ..Consts
 
     for name in filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true))
         @eval $name = Consts.$name  # signatures need types
     end
 
-    include("../gen/out/api.jl")
+    include("auto_generated_api.jl")
 end
 
 include("info.jl")

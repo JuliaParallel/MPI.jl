@@ -31,7 +31,7 @@ $(_doc_external("MPI_Ibarrier"))
 function Ibarrier(comm::Comm)
     req = Request()
     # int MPI_Ibarrier(MPI_Comm comm, MPI_Req req)
-    @mpichk ccall((:MPI_Ibarrier, libmpi), Cint, (MPI_Comm, Ptr{MPI_Request}), comm, req)
+    API.MPI_Ibarrier(comm, req)
     return req
 end
 
@@ -53,9 +53,7 @@ Bcast!(buf, comm::Comm; root::Integer=Cint(0)) =
 function Bcast!(buf::Buffer, root::Integer, comm::Comm)
     # int MPI_Bcast(void* buffer, int count, MPI_Datatype datatype, int root,
     #               MPI_Comm comm)
-    @mpichk ccall((:MPI_Bcast, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
-                  buf.data, buf.count, buf.datatype, root, comm)
+    API.MPI_Bcast(buf.data, buf.count, buf.datatype, root, comm)
     return buf.data
 end
 function Bcast!(data, root::Integer, comm::Comm)
@@ -129,11 +127,8 @@ function Scatter!(sendbuf::UBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
     # int MPI_Scatter(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                 void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
     #                 MPI_Comm comm)
-    @mpichk ccall((:MPI_Scatter, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype,
-                   MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
+    API.MPI_Scatter(sendbuf.data, sendbuf.count, sendbuf.datatype,
+                    recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
     return recvbuf.data
 end
 Scatter!(sendbuf::UBuffer, recvbuf, root::Integer, comm::Comm) =
@@ -194,12 +189,9 @@ function Scatterv!(sendbuf::VBuffer, recvbuf::Buffer, root::Integer, comm::Comm)
     # int MPI_Scatterv(const void* sendbuf, const int sendcounts[],
     #                  const int displs[], MPI_Datatype sendtype, void* recvbuf,
     #                  int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
-    @mpichk ccall((:MPI_Scatterv, libmpi), Cint,
-                  (MPIPtr, Ptr{Cint}, Ptr{Cint},  MPI_Datatype,
-                   MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
-                  sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype,
-                  root, comm)
+    API.MPI_Scatterv(sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
+                     recvbuf.data, recvbuf.count, recvbuf.datatype,
+                     root, comm)
     return recvbuf.data
 end
 Scatterv!(sendbuf::VBuffer, recvbuf, root::Integer, comm::Comm) =
