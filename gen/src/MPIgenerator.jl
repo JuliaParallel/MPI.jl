@@ -49,7 +49,7 @@ module MPIgenerator
 
         src = joinpath(out, "api.jl")
         fn = replace(@__FILE__, r".*MPI.jl" => "MPI.jl")
-        lines = String["# WARNING: this file has been auto-generated, please edit $fn instead !\n"]
+        lines = String["# WARNING: this signature file for $(MPIPreferences.binary) has been auto-generated, please edit $fn instead !\n"]
         for line in readlines(src)
             if startswith(lstrip(line), "ccall")
                 m = match(r".*(:[\w_]+)", line)
