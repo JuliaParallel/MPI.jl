@@ -40,25 +40,37 @@ module MPIgenerator
 
         # these methods must be called with `@mpicall` instead of `@mpichk`
         mpicall = (
-            ":MPI_Get_library_version",
-            ":MPI_Get_processor_name",
-            ":MPI_Get_version",
-            ":MPI_Wtime",
-            ":MPI_Wtick",
+            :MPI_Get_library_version,
+            :MPI_Get_processor_name,
+            :MPI_Get_version,
+            :MPI_Wtime,
+            :MPI_Wtick,
         )
 
-        src = joinpath(out, "api.jl")
-        fn = replace(@__FILE__, r".*MPI.jl" => "MPI.jl")
+        versioned = Dict(
+            :MPI_Dist_graph_create_adjacent => v"2.2",
+            :MPI_Dist_graph_create => v"2.2",
+            :MPI_Dist_graph_neighbors_count => v"2.2",
+            :MPI_Dist_graph_neighbors => v"2.2",
+            :MPI_Neighbor_alltoall => v"3.0",
+            :MPI_Neighbor_alltoallv => v"3.0",
+            :MPI_Neighbor_allgather => v"3.0",
+            :MPI_Neighbor_allgatherv => v"3.0",
+        )
+
+        src, fn = joinpath(out, "api.jl"), replace(@__FILE__, r".*MPI.jl" => "MPI.jl")
         lines = String["# WARNING: this signature file for $(MPIPreferences.binary) has been auto-generated, please edit $fn instead !\n"]
         for line in readlines(src)
             if startswith(lstrip(line), "ccall")
-                m = match(r".*(:[\w_]+)", line)
-                repl = if m ≢ nothing && first(m.captures) ∈ mpicall
-                    "@mpicall ccall"
-                else
-                    "@mpichk ccall"
-                end
+                m = match(r".*:([\w_]+)", line)
+                sym = m ≡ nothing ? nothing : first(m.captures) |> Symbol
+                repl = sym ∈ mpicall ? "@mpicall ccall" : "@mpichk ccall"
                 line = replace(line, "Ptr{Cvoid}" => "MPIPtr", "ccall" => repl)
+                if sym ∈ keys(versioned)
+                    if (ver = get(versioned, sym, nothing)) ≢ nothing
+                        line *= " $(repr(ver))"
+                    end
+                end
             end
             push!(lines, line)
         end
