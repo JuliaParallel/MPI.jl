@@ -176,10 +176,6 @@ Buffer_send(::InPlace) = Buffer(InPlace())
 Buffer_send(::Nothing) = Buffer(nothing)
 
 
-
-
-
-
 """
     MPI.UBuffer
 
@@ -229,7 +225,6 @@ Base.similar(buf::UBuffer) =
 
 UBuffer(::Nothing) = UBuffer(nothing, 0, nothing, DATATYPE_NULL)
 UBuffer(::InPlace) = UBuffer(IN_PLACE, 0, nothing, DATATYPE_NULL)
-
 
 
 """

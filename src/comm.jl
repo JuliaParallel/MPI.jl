@@ -37,7 +37,7 @@ Comm() = Comm(COMM_NULL.val)
 function free(comm::Comm)
     if comm != COMM_NULL && !Finalized()
         # int MPI_Comm_free(MPI_Comm *comm)
-        @mpichk ccall((:MPI_Comm_free, libmpi), Cint, (Ptr{MPI_Comm},), comm)
+        API.MPI_Comm_free(comm)
     end
     return nothing
 end
@@ -58,7 +58,7 @@ $(_doc_external("MPI_Comm_rank"))
 """
 function Comm_rank(comm::Comm)
     rank = Ref{Cint}()
-    @mpichk ccall((:MPI_Comm_rank, libmpi), Cint, (MPI_Comm, Ptr{Cint}), comm, rank)
+    API.MPI_Comm_rank(comm, rank)
     Int(rank[])
 end
 
@@ -75,7 +75,7 @@ $(_doc_external("MPI_Comm_size"))
 """
 function Comm_size(comm::Comm)
     size = Ref{Cint}()
-    @mpichk ccall((:MPI_Comm_size, libmpi), Cint, (MPI_Comm, Ptr{Cint}), comm, size)
+    API.MPI_Comm_size(comm, size)
     Int(size[])
 end
 
@@ -89,8 +89,7 @@ $(_doc_external("MPI_Comm_group"))
 """
 function Comm_group(comm::Comm)
     newgroup = Group()
-    @mpichk ccall((:MPI_Comm_group, libmpi), Cint,
-        (MPI_Comm, Ptr{MPI_Group}), comm, newgroup)
+    API.MPI_Comm_group(comm, newgroup)
     finalizer(free, newgroup)
     newgroup
 end
@@ -105,8 +104,7 @@ $(_doc_external("MPI_Comm_remote_group"))
 """
 function Comm_remote_group(comm::Comm)
     newgroup = Group()
-    @mpichk ccall((:MPI_Comm_remote_group, libmpi), Cint,
-        (MPI_Comm, Ptr{MPI_Group}), comm, newgroup)
+    API.MPI_Comm_remote_group(comm, newgroup)
     finalizer(free, newgroup)
     newgroup
 end
@@ -124,9 +122,7 @@ $(_doc_external("MPI_Comm_create"))
 """
 function Comm_create(comm::Comm, group::Group)
     newcomm = Comm()
-    @mpichk ccall((:MPI_Comm_create, libmpi), Cint,
-          (MPI_Comm, MPI_Group, Ptr{MPI_Comm}),
-          comm, group, newcomm)
+    API.MPI_Comm_create(comm, group, newcomm)
     finalizer(free, newcomm)
     newcomm
 end
@@ -144,8 +140,7 @@ $(_doc_external("MPI_Comm_create_group"))
 """
 function Comm_create_group(comm::Comm, group::Group, tag::Integer)
     newcomm = Comm()
-    @mpichk ccall((:MPI_Comm_create_group, libmpi), Cint,
-        (MPI_Comm, MPI_Group, Cint, Ptr{MPI_Comm}), comm, group, tag, newcomm)
+    API.MPI_Comm_create_group(comm, group, tag, newcomm)
     finalizer(free, newcomm)
     newcomm
 end
@@ -158,7 +153,7 @@ $(_doc_external("MPI_Comm_dup"))
 """
 function Comm_dup(comm::Comm)
     newcomm = Comm()
-    @mpichk ccall((:MPI_Comm_dup, libmpi), Cint, (MPI_Comm, Ptr{MPI_Comm}), comm, newcomm)
+    API.MPI_Comm_dup(comm, newcomm)
     finalizer(free, newcomm)
     newcomm
 end
@@ -181,8 +176,7 @@ function Comm_split(comm::Comm, color::Union{Integer, Nothing}, key::Integer)
         color = Consts.MPI_UNDEFINED[]
     end
     newcomm = Comm()
-    @mpichk ccall((:MPI_Comm_split, libmpi), Cint,
-        (MPI_Comm, Cint, Cint, Ptr{MPI_Comm}), comm, color, key, newcomm)
+    API.MPI_Comm_split(comm, color, key, newcomm)
     finalizer(free, newcomm)
     newcomm
 end
@@ -216,9 +210,7 @@ function Comm_split_type(comm::Comm, split_type, key::Integer; kwargs...)
         split_type = split_type.val
     end
     newcomm = Comm()
-    @mpichk ccall((:MPI_Comm_split_type, libmpi), Cint,
-          (MPI_Comm, Cint, Cint, MPI_Info, Ptr{MPI_Comm}),
-          comm, split_type, key, Info(kwargs...), newcomm)
+    API.MPI_Comm_split_type(comm, split_type, key, Info(kwargs...), newcomm)
     finalizer(free, newcomm)
     newcomm
 end
@@ -231,7 +223,7 @@ $(_doc_external("MPI_Comm_get_parent"))
 """
 function Comm_get_parent()
     comm = Comm()
-    @mpichk ccall((:MPI_Comm_get_parent, libmpi), Cint, (Ptr{MPI_Comm},), comm)
+    API.MPI_Comm_get_parent(comm)
     comm
 end
 
@@ -247,9 +239,7 @@ function Comm_spawn(command::String, argv::Vector{String}, nprocs::Integer,
     # int MPI_Comm_spawn(const char *command, char *argv[], int maxprocs,
     #                    MPI_Info info, int root, MPI_Comm comm, MPI_Comm *intercomm,
     #                    int array_of_errcodes[])
-    @mpichk ccall((:MPI_Comm_spawn, libmpi), Cint,
-         (Cstring, Ptr{Ptr{Cchar}}, Cint, MPI_Info, Cint, MPI_Comm, Ptr{MPI_Comm}, Ptr{Cint}),
-          command, argv, nprocs, Info(kwargs...), 0, comm, intercomm, errors)
+    API.MPI_Comm_spawn(command, argv, nprocs, Info(kwargs...), 0, comm, intercomm, errors)
     finalizer(free, intercomm)
     return intercomm
 end
@@ -262,8 +252,7 @@ $(_doc_external("MPI_Intercomm_merge"))
 """
 function Intercomm_merge(intercomm::Comm, flag::Bool)
     newcomm = Comm()
-    @mpichk ccall((:MPI_Intercomm_merge, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{MPI_Comm}), intercomm, Cint(flag), newcomm)
+    API.MPI_Intercomm_merge(intercomm, Cint(flag), newcomm)
     finalizer(free, newcomm)
     return newcomm
 end
@@ -273,11 +262,8 @@ function unsafe_get_attr(comm::Comm, keyval::Integer)
     flag = Ref{Cint}()
     result = Ref(C_NULL)
     # int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void *attribute_val, int *flag)
-    @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cvoid}, Ptr{Cint}), comm, keyval, result, flag)
-    if flag[] == 0
-        return nothing
-    end
+    API.MPI_Comm_get_attr(comm, keyval, result, flag)
+    flag[] == 0 && return nothing
     return result[]
 end
 
@@ -316,7 +302,6 @@ $(_doc_external("MPI_Comm_compare"))
 """
 function Comm_compare(comm1::Comm, comm2::Comm)
     result = Ref{Cint}()
-    @mpichk ccall((:MPI_Comm_compare, libmpi), Cint,
-                  (MPI_Comm, MPI_Comm, Ptr{Cint}), comm1, comm2, result)
+    API.MPI_Comm_compare(comm1, comm2, result)
     return Comparison(result[])
 end

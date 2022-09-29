@@ -13,18 +13,15 @@ FileHandle() = FileHandle(FILE_NULL.val)
 
 module File
 
-import MPI: MPI, @mpichk, _doc_external, MPIPtr, libmpi, Finalized,
-    Comm, MPI_Comm, FileHandle, MPI_File, Info, MPI_Info, FILE_NULL,
-    Datatype, MPI_Datatype, MPI_Offset, Status, Buffer, Buffer_send
+import ..MPI, ..API, .._doc_external, ..Finalized, ..Comm, ..MPI_Comm, ..FileHandle
+import ..FILE_NULL, ..Datatype, ..MPI_Offset, ..Buffer, ..Buffer_send, ..Info
 import Base: close
 
 function open(comm::Comm, filename::AbstractString, amode::Cint, info::Info)
     file = FileHandle()
     # int MPI_File_open(MPI_Comm comm, const char *filename, int amode,
     #                   MPI_Info info, MPI_File *fh)
-    @mpichk ccall((:MPI_File_open, libmpi), Cint,
-                  (MPI_Comm, Cstring, Cint, MPI_Info, Ptr{MPI_File}),
-                  comm, filename, amode, info, file)
+    API.MPI_File_open(comm, filename, amode, info, file)
     finalizer(close, file)
     file
 end
@@ -50,29 +47,23 @@ function open(comm::Comm, filename::AbstractString;
               sequential=false, uniqueopen=false, deleteonclose=false,
               infokws...)
     flags = Base.open_flags(read=read, write=write, create=create, truncate=nothing, append=append)
-    amode = flags.read ? (flags.write ? MPI.Consts.MPI_MODE_RDWR[] : MPI.Consts.MPI_MODE_RDONLY[]) : (flags.write ? MPI.Consts.MPI_MODE_WRONLY[] : zero(Cint))
-    if flags.write
-        amode |= flags.create ? MPI.Consts.MPI_MODE_CREATE[] : MPI.Consts.MPI_MODE_EXCL[]
+    amode = if flags.read
+        flags.write ? MPI.Consts.MPI_MODE_RDWR[] : MPI.Consts.MPI_MODE_RDONLY[]
+    else
+        flags.write ? MPI.Consts.MPI_MODE_WRONLY[] : zero(Cint)
     end
-    if flags.append
-        amode |= MPI.Consts.MPI_MODE_APPEND[]
-    end
-    if sequential
-        amode |= MPI.Consts.MPI_MODE_SEQUENTIAL[]
-    end
-    if uniqueopen
-        amode |= MPI.Consts.MPI_MODE_UNIQUE_OPEN[]
-    end
-    if deleteonclose
-        amode |= MPI.Consts.MPI_MODE_DELETE_ON_CLOSE[]
-    end
+    flags.write && (amode |= flags.create ? MPI.Consts.MPI_MODE_CREATE[] : MPI.Consts.MPI_MODE_EXCL[])
+    flags.append && (amode |= MPI.Consts.MPI_MODE_APPEND[])
+    sequential && (amode |= MPI.Consts.MPI_MODE_SEQUENTIAL[])
+    uniqueopen && (amode |= MPI.Consts.MPI_MODE_UNIQUE_OPEN[])
+    deleteonclose && (amode |= MPI.Consts.MPI_MODE_DELETE_ON_CLOSE[])
     open(comm, filename, amode, Info(infokws...))
 end
 
 function close(file::FileHandle)
     if file != FILE_NULL && !Finalized()
         # int MPI_File_close(MPI_File *fh)
-        @mpichk ccall((:MPI_File_close, libmpi), Cint, (Ptr{MPI_File},), file)
+        API.MPI_File_close(file)
     end
     return nothing
 end
@@ -93,9 +84,7 @@ $(_doc_external("MPI_File_set_view"))
 function set_view!(file::FileHandle, disp::Integer, etype::Datatype, filetype::Datatype, datarep::AbstractString, info::Info)
     # int MPI_File_set_view(MPI_File fh, MPI_Offset disp, MPI_Datatype etype,
     #                       MPI_Datatype filetype, const char *datarep, MPI_Info info)
-    @mpichk ccall((:MPI_File_set_view, libmpi), Cint,
-                  (MPI_File, MPI_Offset,  MPI_Datatype, MPI_Datatype, Cstring, MPI_Info),
-                  file, disp, etype, filetype, datarep, info)
+    API.MPI_File_set_view(file, disp, etype, filetype, datarep, info)
     return file
 end
 
@@ -117,9 +106,7 @@ function get_byte_offset(file::FileHandle, offset::Integer)
     r_displ = Ref{MPI_Offset}()
     # int MPI_File_get_byte_offset(MPI_File fh, MPI_Offset offset,
     #              MPI_Offset *disp)
-    @mpichk ccall((:MPI_File_get_byte_offset, libmpi), Cint,
-                  (MPI_File, MPI_Offset,  Ptr{MPI_Offset}),
-                  file, offset, r_displ)
+    API.MPI_File_get_byte_offset(file, offset, r_displ)
     r_displ[]
 end
 
@@ -136,7 +123,7 @@ $(_doc_external("MPI_File_sync"))
 """
 function sync(file::FileHandle)
     # int MPI_File_sync(MPI_File fh)
-    @mpichk ccall((:MPI_File_sync, libmpi), Cint, (MPI_File,), file)
+    API.MPI_File_sync(file)
     return nothing
 end
 
@@ -159,9 +146,7 @@ function read!(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read(MPI_File fh, void *buf,
     #                   int count, MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_read, libmpi), Cint,
-                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read!(file::FileHandle, data) = read!(file, Buffer(data))
@@ -184,9 +169,7 @@ function read_all!(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read_all(MPI_File fh, void *buf,
     #                       int count, MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_read_all, libmpi), Cint,
-                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_all(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_all!(file::FileHandle, data) = read_all!(file, Buffer(data))
@@ -208,9 +191,7 @@ function write(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write(MPI_File fh, const void *buf,
     #                    int count, MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_write, libmpi), Cint,
-                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write(file::FileHandle, data) = write(file, Buffer_send(data))
@@ -233,9 +214,7 @@ function write_all(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_all(MPI_File fh, const void *buf,
     #                    int count, MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_write_all, libmpi), Cint,
-                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_all(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_all(file::FileHandle, data) = write_all(file, Buffer_send(data))
@@ -258,9 +237,7 @@ function read_at!(file::FileHandle, offset::Integer, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read_at(MPI_File fh, MPI_Offset offset, void *buf, int count,
     #                      MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_read_at, libmpi), Cint,
-                  (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, offset, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_at(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_at!(file::FileHandle, offset::Integer, data) = read_at!(file, offset, Buffer(data))
@@ -283,9 +260,7 @@ function read_at_all!(file::FileHandle, offset::Integer, buf::Buffer)
 
     # int MPI_File_read_at_all(MPI_File fh, MPI_Offset offset, void *buf,
     #                          int count, MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_read_at_all, libmpi), Cint,
-                  (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, offset, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_at_all(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_at_all!(file::FileHandle, offset::Integer, data) = read_at_all!(file, offset, Buffer(data))
@@ -306,9 +281,7 @@ function write_at(file::FileHandle, offset::Integer, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_at(MPI_File fh, MPI_Offset offset, const void *buf,
     #                       int count, MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_write_at, libmpi), Cint,
-                  (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, offset, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_at(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_at(file::FileHandle, offset::Integer, data) = write_at(file, offset, Buffer_send(data))
@@ -330,9 +303,7 @@ function write_at_all(file::FileHandle, offset::Integer, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_at_all(MPI_File fh, MPI_Offset offset, const void *buf,
     #                           int count, MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_write_at_all, libmpi), Cint,
-                  (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, offset, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_at_all(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_at_all(file::FileHandle, offset::Integer, data) = write_at_all(file, offset, Buffer_send(data))
@@ -355,9 +326,7 @@ function read_shared!(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read_shared(MPI_File fh, void *buf, int count,
     #              MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_read_shared, libmpi), Cint,
-                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_shared(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_shared!(file::FileHandle, data) = read_shared!(file, Buffer(data))
@@ -378,9 +347,7 @@ function write_shared(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_shared(MPI_File fh, const void *buf, int count,
     #          MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_write_shared, libmpi), Cint,
-                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_shared(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_shared(file::FileHandle, buf) = write_shared(file, Buffer_send(buf))
@@ -404,9 +371,7 @@ function read_ordered!(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read_ordered(MPI_File fh, void *buf, int count,
     #              MPI_Datatype datatype, MPI_Status *status)
-    @mpichk ccall((:MPI_File_read_ordered, libmpi), Cint,
-                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_ordered(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_ordered!(file::FileHandle, data) = read_ordered!(file, Buffer(data))
@@ -429,9 +394,7 @@ function write_ordered(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_ordered(MPI_File fh, const void *buf, int count,
     #              MPI_Datatype datatype, MPI_Status *status)    
-    @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint,
-                  (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{Status}),
-                  file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_ordered(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_ordered(file::FileHandle, buf) = write_ordered(file, Buffer_send(buf))
@@ -465,9 +428,7 @@ $(_doc_external("MPI_File_seek_shared"))
 """
 function seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)
     # int MPI_File_seek_shared(MPI_File fh, MPI_Offset offset, int whence)
-    @mpichk ccall((:MPI_File_seek_shared, libmpi), Cint,
-                  (MPI_File, MPI_Offset, Cint),
-                  file, offset, whence.val)
+    API.MPI_File_seek_shared(file, offset, whence.val)
 end
 
 """
@@ -481,8 +442,7 @@ $(_doc_external("MPI_File_get_position_shared"))
 function get_position_shared(file::FileHandle)
     r = Ref{MPI_Offset}()
     # int MPI_File_get_position_shared(MPI_File fh, MPI_Offset *offset)
-    @mpichk ccall((:MPI_File_get_position_shared, libmpi), Cint,
-                  (MPI_File, Ptr{MPI_Offset}), file, r)
+    API.MPI_File_get_position_shared(file, r)
     return r[]
 end
 
@@ -497,8 +457,7 @@ $(_doc_external("MPI_File_get_atomicity"))
 function get_atomicity(file::FileHandle)
     r = Ref{Cint}()
     # int MPI_File_get_atomicity(MPI_File fh, Int *flag)
-    @mpichk ccall((:MPI_File_get_atomicity, libmpi), Cint,
-                  (MPI_File, Ptr{Cint}), file, r)
+    API.MPI_File_get_atomicity(file, r)
     return r[] == 1
 end
 
@@ -512,8 +471,7 @@ $(_doc_external("MPI_File_get_atomicity"))
 """
 function set_atomicity(file::FileHandle, flag::Bool)
     # int MPI_File_set_atomicity(MPI_File fh, Int flag)
-    @mpichk ccall((:MPI_File_set_atomicity, libmpi), Cint,
-                  (MPI_File, Cint), file, flag)
+    API.MPI_File_set_atomicity(file, flag)
     return nothing
 end
 

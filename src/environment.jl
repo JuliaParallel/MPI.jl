@@ -160,9 +160,7 @@ Base.isless(tl1::ThreadLevel, tl2::ThreadLevel) = tl1.val < tl2.val
 function _init_thread(required::ThreadLevel)
     r_provided = Ref{Cint}()
     # int MPI_Init_thread(int *argc, char ***argv, int required, int *provided)
-    @mpichk ccall((:MPI_Init_thread, libmpi), Cint,
-                    (Ptr{Cint},Ptr{Cvoid}, Cint, Ref{Cint}),
-                    C_NULL, C_NULL, required.val, r_provided)
+    API.MPI_Init_thread(C_NULL, C_NULL, required.val, r_provided)
     return ThreadLevel(r_provided[])
 end
 
@@ -180,8 +178,7 @@ function Query_thread()
     r_provided = Ref{Cint}()
 
     # int MPI_Query_thread(int *provided)
-    @mpichk ccall((:MPI_Query_thread, libmpi), Cint,
-                  (Ref{Cint},), r_provided)
+    API.MPI_Query_thread(r_provided)
     return ThreadLevel(r_provided[])
 end
 
@@ -197,8 +194,7 @@ $(_doc_external("MPI_Is_thread_main"))
 function Is_thread_main()
     r_flag = Ref{Cint}()
     # int MPI_Is_thread_main(int *flag)
-    @mpichk ccall((:MPI_Is_thread_main, libmpi), Cint,
-                  (Ref{Cint},), r_flag)
+    API.MPI_Is_thread_main(r_flag)
     return r_flag[] != 0
 end
 
@@ -218,9 +214,7 @@ Julia exits, if it hasn't already been called.
 $(_doc_external("MPI_Finalize"))
 """
 function Finalize()
-    if !MPI.Finalized()
-        @mpichk ccall((:MPI_Finalize, libmpi), Cint, ())
-    end
+    MPI.Finalized() || API.MPI_Finalize()
     return nothing
 end
 
@@ -235,9 +229,7 @@ or POSIX environment should handle this as a return errorcode from the main prog
 # External links
 $(_doc_external("MPI_Abort"))
 """
-function Abort(comm::Comm, errcode::Integer)
-    @mpichk ccall((:MPI_Abort, libmpi), Cint, (MPI_Comm, Cint), comm, errcode)
-end
+Abort(comm::Comm, errcode::Integer) = API.MPI_Abort(comm, errcode)
 
 """
     Initialized()
@@ -252,7 +244,7 @@ $(_doc_external("MPI_Intialized"))
 """
 function Initialized()
     flag = Ref{Cint}()
-    @mpichk ccall((:MPI_Initialized, libmpi), Cint, (Ptr{Cint},), flag)
+    API.MPI_Initialized(flag)
     flag[] != 0
 end
 
@@ -268,18 +260,13 @@ $(_doc_external("MPI_Finalized"))
 """
 function Finalized()
     flag = Ref{Cint}()
-    @mpichk ccall((:MPI_Finalized, libmpi), Cint, (Ptr{Cint},), flag)
+    API.MPI_Finalized(flag)
     flag[] != 0
 end
 
-function Wtick()
-    @mpicall ccall((:MPI_Wtick, libmpi), Cdouble, ())
-end
+Wtick() = API.MPI_Wtick()
 
-function Wtime()
-    @mpicall ccall((:MPI_Wtime, libmpi), Cdouble, ())
-end
-
+Wtime() = API.MPI_Wtime()
 
 """
     MPI.has_cuda()
@@ -319,7 +306,7 @@ $(_doc_external("MPI_Get_processor_name"))
 function Get_processor_name()
     proc_name = Array{UInt8}(undef, Consts.MPI_MAX_PROCESSOR_NAME)
     name_len = Ref{Cint}(0)
-    @mpicall ccall((:MPI_Get_processor_name, libmpi), Cint, (Ptr{UInt8}, Ptr{Cint}), proc_name, name_len)
+    API.MPI_Get_processor_name(proc_name, name_len)
     @assert name_len[] <= Consts.MPI_MAX_PROCESSOR_NAME
     GC.@preserve proc_name unsafe_string(pointer(proc_name))
 end

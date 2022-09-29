@@ -25,7 +25,7 @@ Group() = Group(GROUP_NULL.val)
 function free(group::Group)
     if group != GROUP_NULL && !Finalized()
         # int MPI_Group_free(MPI_Group *group)
-        @mpichk ccall((:MPI_Group_free, libmpi), Cint, (Ptr{MPI_Group},), group)
+        API.MPI_Group_free(group)
     end
     return nothing
 end
@@ -40,7 +40,7 @@ $(_doc_external("MPI_Group_size"))
 """
 function Group_size(group::Group)
     size = Ref{Cint}()
-    @mpichk ccall((:MPI_Group_size, libmpi), Cint, (MPI_Group, Ptr{Cint}), group, size)
+    API.MPI_Group_size(group, size)
     Int(size[])
 end
 
@@ -56,7 +56,7 @@ $(_doc_external("MPI_Group_rank"))
 """
 function Group_rank(group::Group)
     rank = Ref{Cint}()
-    @mpichk ccall((:MPI_Group_rank, libmpi), Cint, (MPI_Group, Ptr{Cint}), group, rank)
+    API.MPI_Group_rank(group, rank)
     Int(rank[])
 end
 
@@ -88,47 +88,41 @@ Base.:(==)(tl1::Comparison, tl2::Comparison) = tl1.val == tl2.val
 
 function Group_compare(group1::Group, group2::Group)
     result = Ref{Cint}()
-    @mpichk ccall((:MPI_Group_compare, libmpi), Cint,
-        (MPI_Group, MPI_Group, Ptr{Cint}), group1, group2, result)
+    API.MPI_Group_compare(group1, group2, result)
     return Comparison(result[])
 end
 
 function Group_difference(group1::Group, group2::Group)
     newgroup = Group()
-    @mpichk ccall((:MPI_Group_difference, libmpi), Cint,
-        (MPI_Group, MPI_Group, Ptr{MPI_Group}), group1, group2, newgroup)
+    API.MPI_Group_difference(group1, group2, newgroup)
     finalizer(free, newgroup)
     return newgroup
 end
 
 function Group_intersection(group1::Group, group2::Group)
     newgroup = Group()
-    @mpichk ccall((:MPI_Group_intersection, libmpi), Cint,
-        (MPI_Group, MPI_Group, Ptr{MPI_Group}), group1, group2, newgroup)
+    API.MPI_Group_intersection(group1, group2, newgroup)
     finalizer(free, newgroup)
     return newgroup
 end
 
 function Group_union(group1::Group, group2::Group)
     newgroup = Group()
-    @mpichk ccall((:MPI_Group_union, libmpi), Cint,
-        (MPI_Group, MPI_Group, Ptr{MPI_Group}), group1, group2, newgroup)
+    API.MPI_Group_union(group1, group2, newgroup)
     finalizer(free, newgroup)
     return newgroup
 end
 
 function Group_excl(group::Group, ranks::Vector{Cint})
     newgroup = Group()
-    @mpichk ccall((:MPI_Group_excl, libmpi), Cint,
-        (MPI_Group, Cint, Ptr{Cint}, Ptr{MPI_Group}), group, length(ranks), ranks, newgroup)
+    API.MPI_Group_excl(group, length(ranks), ranks, newgroup)
     finalizer(free, newgroup)
     return newgroup
 end
 
 function Group_incl(group::Group, ranks::Vector{Cint})
     newgroup = Group()
-    @mpichk ccall((:MPI_Group_incl, libmpi), Cint,
-        (MPI_Group, Cint, Ptr{Cint}, Ptr{MPI_Group}), group, length(ranks), ranks, newgroup)
+    API.MPI_Group_incl(group, length(ranks), ranks, newgroup)
     finalizer(free, newgroup)
     return newgroup
 end

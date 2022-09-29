@@ -66,7 +66,7 @@ Op(::typeof(⊻), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BXOR
 function free(op::Op)
     if op != OP_NULL && !Finalized()
         # int MPI_Op_free(MPI_Op *op)
-        @mpichk ccall((:MPI_Op_free, libmpi), Cint, (Ptr{MPI_Op},), op)
+        API.MPI_Op_free(op)
     end
     op.fptr = nothing
     return nothing
@@ -99,9 +99,7 @@ function Op(f, T=Any; iscommutative=false)
 
     op = Op(OP_NULL.val, fptr)
     # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
-    @mpichk ccall((:MPI_Op_create, libmpi), Cint,
-                  (Ptr{Cvoid}, Cint, Ptr{MPI_Op}),
-                  fptr, iscommutative, op)
+    API.MPI_Op_create(fptr, iscommutative, op)
 
     finalizer(free, op)
     return op

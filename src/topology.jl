@@ -16,8 +16,7 @@ $(_doc_external("MPI_Dims_create"))
 """
 function Dims_create(nnodes::Integer, dims)
     dims = Cint[dim for dim in dims]
-    @mpichk ccall((:MPI_Dims_create, libmpi), Cint,
-                  (Cint, Cint, Ptr{Cint}), nnodes, length(dims), dims)
+    API.MPI_Dims_create(nnodes, length(dims), dims)
     return dims
 end
 
@@ -51,12 +50,8 @@ function Cart_create(comm::Comm, dims; periodic = map(_->false, dims), reorder=f
     comm_cart = Comm()
     # int MPI_Cart_create(MPI_Comm comm_old, int ndims, const int dims[],
     #                     const int periods[], int reorder, MPI_Comm *comm_cart)
-    @mpichk ccall((:MPI_Cart_create, libmpi), Cint,
-                  (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{MPI_Comm}),
-                  comm, length(dims), dims, periodic, reorder, comm_cart)
-    if comm_cart != COMM_NULL
-        finalizer(free, comm_cart)
-    end
+    API.MPI_Cart_create(comm, length(dims), dims, periodic, reorder, comm_cart)
+    comm_cart != COMM_NULL && finalizer(free, comm_cart)
     comm_cart
 end    
 
@@ -75,9 +70,7 @@ function Cart_rank(comm::Comm, coords)
     end
     rank = Ref{Cint}()
     # int MPI_Cart_rank(MPI_Comm comm, const int coords[], int *rank)
-    @mpichk ccall((:MPI_Cart_rank, libmpi), Cint,
-                  (MPI_Comm, Ptr{Cint}, Ptr{Cint}),
-                  comm, coords, rank)
+    API.MPI_Cart_rank(comm, coords, rank)
     Int(rank[])
 end
 
@@ -100,9 +93,7 @@ function Cart_get(comm::Comm)
     periods = Cint[-1 for i = 1:maxdims]
     coords  = Cint[-1 for i = 1:maxdims]
     # int MPI_Cart_get(MPI_Comm comm, int maxdims, int dims[], int periods[], int coords[])
-    @mpichk ccall((:MPI_Cart_get, libmpi), Cint,
-                  (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-                  comm, maxdims, dims, periods, coords)
+    API.MPI_Cart_get(comm, maxdims, dims, periods, coords)
     return dims, periods, coords
 end
 
@@ -117,9 +108,7 @@ $(_doc_external("MPI_Cartdim_get"))
 function Cartdim_get(comm::Comm)
     dims = Ref{Cint}()
     # int MPI_Cartdim_get(MPI_Comm comm, int *ndims)
-    @mpichk ccall((:MPI_Cartdim_get, libmpi), Cint,
-                  (MPI_Comm, Ptr{Cint}),
-                  comm, dims)
+    API.MPI_Cartdim_get(comm, dims)
     return Int(dims[])
 end
 
@@ -138,9 +127,7 @@ function Cart_coords(comm::Comm, rank::Integer=Comm_rank(comm))
     maxdims = Cartdim_get(comm)
     coords = Vector{Cint}(undef, maxdims)
     # int MPI_Cart_coords(MPI_Comm comm, int rank, int maxdims, int coords[])
-    @mpichk ccall((:MPI_Cart_coords, libmpi), Cint,
-                  (MPI_Comm, Cint, Cint, Ptr{Cint}),
-                  comm, rank, maxdims, coords)
+    API.MPI_Cart_coords(comm, rank, maxdims, coords)
     return Int.(coords)
 end
 
@@ -158,9 +145,7 @@ function Cart_shift(comm::Comm, direction::Integer, disp::Integer)
     rank_dest   = Ref{Cint}()
     # int MPI_Cart_shift(MPI_Comm comm, int direction, int disp,
     #                    int *rank_source, int *rank_dest)
-    @mpichk ccall((:MPI_Cart_shift, libmpi), Cint,
-                  (MPI_Comm, Cint, Cint, Ptr{Cint}, Ptr{Cint}),
-                  comm, direction, disp, rank_source, rank_dest)
+    API.MPI_Cart_shift(comm, direction, disp, rank_source, rank_dest)
     Int(rank_source[]), Int(rank_dest[])
 end
 
@@ -182,12 +167,8 @@ function Cart_sub(comm::Comm, remain_dims)
     end
     comm_sub = Comm()
     # int MPI_Cart_sub(MPI_Comm comm, const int remain_dims[], MPI_Comm *comm_new)
-    @mpichk ccall((:MPI_Cart_sub, libmpi), Cint,
-                  (MPI_Comm, Ptr{Cint}, Ptr{MPI_Comm}),
-                  comm, remain_dims, comm_sub)
-    if comm_sub != COMM_NULL
-        finalizer(free, comm_sub)
-    end
+    API.MPI_Cart_sub(comm, remain_dims, comm_sub)
+    comm_sub != COMM_NULL && finalizer(free, comm_sub)
     comm_sub
 end
 
@@ -230,15 +211,13 @@ $(_doc_external("MPI_Dist_graph_create_adjacent"))
 function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, destination_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
     graph_comm = Comm()
     # int MPI_Dist_graph_create_adjacent(MPI_Comm comm_old,
-    #       int indegree, const int sources[],
-    #       const int sourceweights[],
-    #       int outdegree, const int destinations[],
-    #       const int destweights[],
-    #       MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
-    @mpichk ccall((:MPI_Dist_graph_create_adjacent, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
-        comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights,Info(infokws...),reorder,graph_comm) v"2.2"
-
+    #                                    int indegree, const int sources[], const int sourceweights[],
+    #                                    int outdegree, const int destinations[], const int destweights[],
+    #                                    MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
+    API.MPI_Dist_graph_create_adjacent(comm,
+                                       length(sources), sources, source_weights,
+                                       length(destinations), destinations, destination_weights,
+                                       Info(infokws...), reorder, graph_comm)
     return graph_comm
 end
 
@@ -273,12 +252,10 @@ $(_doc_external("MPI_Dist_graph_create"))
 function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}; weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
     graph_comm = Comm()
     # int MPI_Dist_graph_create(MPI_Comm comm_old, int n, const int sources[],
-    #       const int degrees[], const int destinations[],
-    #       const int weights[],
-    #       MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
-    @mpichk ccall((:MPI_Dist_graph_create, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
-        comm,length(sources),sources,degrees,destinations,weights,Info(infokws...),reorder,graph_comm) v"2.2"
+    #                           const int degrees[], const int destinations[], const int weights[],
+    #                           MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
+    API.MPI_Dist_graph_create(comm, length(sources), sources, degrees, destinations, weights,
+                              Info(infokws...), reorder, graph_comm)
 
     return graph_comm
 end
@@ -308,9 +285,7 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
     outdegree = Ref{Cint}()
     weighted = Ref{Cint}()
     # int MPI_Dist_graph_neighbors_count(MPI_Comm comm, int *indegree, int *outdegree, int *weighted)
-    @mpichk ccall((:MPI_Dist_graph_neighbors_count, libmpi), Cint,
-        (MPI_Comm, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-        graph_comm,indegree,outdegree,weighted) v"2.2"
+    API.MPI_Dist_graph_neighbors_count(graph_comm, indegree, outdegree, weighted)
 
     return (indegree[], outdegree[], weighted[] != 0)
 end
@@ -360,11 +335,11 @@ $(_doc_external("MPI_Dist_graph_neighbors"))
 """
 function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
     # int MPI_Dist_graph_neighbors(MPI_Comm comm,
-    #       int maxindegree, int sources[], int sourceweights[],
-    #       int maxoutdegree, int destinations[], int destweights[])
-    @mpichk ccall((:MPI_Dist_graph_neighbors, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
-        graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights) v"2.2"
+    #                              int maxindegree, int sources[], int sourceweights[],
+    #                              int maxoutdegree, int destinations[], int destweights[])
+    API.MPI_Dist_graph_neighbors(graph_comm,
+                                 length(sources), sources, source_weights, 
+                                 length(destinations), destinations, destination_weights)
 end
 
 """

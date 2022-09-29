@@ -15,7 +15,7 @@ Win() = Win(WIN_NULL.val, nothing)
 function free(win::Win)
     if win != WIN_NULL && !Finalized()
         # int MPI_Win_free(MPI_Win *win)
-        @mpichk ccall((:MPI_Win_free, libmpi), Cint, (Ptr{MPI_Win},), win)
+        API.MPI_Win_free(win)
     end
     win.object = nothing
     return nothing
@@ -34,8 +34,8 @@ const LOCK_SHARED    = LockType(Consts.MPI_LOCK_SHARED[]   )
 add_load_time_hook!(() -> LOCK_EXCLUSIVE.val = Consts.MPI_LOCK_EXCLUSIVE[])
 add_load_time_hook!(() -> LOCK_SHARED.val    = Consts.MPI_LOCK_SHARED[]   )
 LockType(sym::Symbol) =
-    sym == :exclusive ? LOCK_EXCLUSIVE :
-    sym == :shared ? LOCK_SHARED :
+    sym ≡ :exclusive ? LOCK_EXCLUSIVE :
+    sym ≡ :shared ? LOCK_SHARED :
     error("Invalid LockType $sym")
 
 """
@@ -56,9 +56,7 @@ function Win_create(base, size::Integer, disp_unit::Integer, comm::Comm; infokws
     win = Win()
     # int MPI_Win_create(void *base, MPI_Aint size, int disp_unit, MPI_Info info,
     #                    MPI_Comm comm, MPI_Win *win)
-    @mpichk ccall((:MPI_Win_create, libmpi), Cint,
-                  (MPIPtr, Cptrdiff_t, Cint, MPI_Info, MPI_Comm, Ptr{MPI_Win}),
-                  base, size, disp_unit, Info(infokws...), comm, win)
+    API.MPI_Win_create(base, size, disp_unit, Info(infokws...), comm, win)
     win.object = base
     finalizer(free, win)
     return win
@@ -94,9 +92,7 @@ function Win_allocate_shared(::Type{Ptr{T}}, len::Integer, comm::Comm; kwargs...
     out_baseptr = Ref{Ptr{T}}()
     # int MPI_Win_allocate_shared(MPI_Aint size, int disp_unit, MPI_Info info,
     #                             MPI_Comm comm, void *baseptr, MPI_Win *win)
-    @mpichk ccall((:MPI_Win_allocate_shared, libmpi), Cint,
-                  (Cptrdiff_t, Cint, MPI_Info, MPI_Comm, Ref{Ptr{T}}, Ptr{MPI_Win}),
-                  len*sizeof(T), sizeof(T), Info(kwargs...), comm, out_baseptr, win)
+    API.MPI_Win_allocate_shared(len*sizeof(T), sizeof(T), Info(kwargs...), comm, out_baseptr, win)
     finalizer(free, win)
     return win, out_baseptr[]
 end
@@ -128,9 +124,7 @@ function Win_shared_query(::Type{Ptr{T}}, win::Win, owner_rank::Integer) where T
     out_baseptr = Ref{Ptr{T}}()
     # int MPI_Win_shared_query(MPI_Win win, int rank, MPI_Aint *size,
     #                          int *disp_unit, void *baseptr)
-    @mpichk ccall((:MPI_Win_shared_query, libmpi), Cint,
-                  (MPI_Win, Cint, Ref{Cptrdiff_t}, Ref{Cint}, Ref{Ptr{T}}),
-                  win, owner_rank, out_len, out_sizeT, out_baseptr)
+    API.MPI_Win_shared_query(win, owner_rank, out_len, out_sizeT, out_baseptr)
     out_len[], out_sizeT[], out_baseptr[]
 end
 function Win_shared_query(::Type{Array{T}}, win::Win, owner_rank::Integer) where T
@@ -156,9 +150,7 @@ This is a collective call over `comm`.
 function Win_create_dynamic(comm::Comm; kwargs...)
     win = Win()
     # int MPI_Win_create_dynamic(MPI_Info info, MPI_Comm comm, MPI_Win *win)
-    @mpichk ccall((:MPI_Win_create_dynamic, libmpi), Cint,
-                  (MPI_Info, MPI_Comm, Ptr{MPI_Win}),
-                  Info(kwargs...), comm, win)
+    API.MPI_Win_create_dynamic(Info(kwargs...), comm, win)
     finalizer(free, win)
     win.object = Set()
     return win
@@ -166,23 +158,16 @@ end
 
 function Win_attach!(win::Win, base::AbstractArray{T}) where T
     # int MPI_Win_attach(MPI_Win win, void *base, MPI_Aint size)
-    @mpichk ccall((:MPI_Win_attach, libmpi), Cint,
-                  (MPI_Win, MPIPtr, Cptrdiff_t),
-                  win, base, sizeof(base))
+    API.MPI_Win_attach(win, base, sizeof(base))
     push!(win.object, base)
 end
 function Win_detach!(win::Win, base::AbstractArray{T}) where T
     # int MPI_Win_detach(MPI_Win win, const void *base)
-    @mpichk ccall((:MPI_Win_detach, libmpi), Cint,
-                  (MPI_Win, MPIPtr),
-                  win, base)
+    API.MPI_Win_detach(win, base)
     delete!(win.object, base)
 end
 
-function Win_fence(assert::Integer, win::Win)
-    # int MPI_Win_fence(int assert, MPI_Win win)
-    @mpichk ccall((:MPI_Win_fence, libmpi), Cint, (Cint, MPI_Win), assert, win)
-end
+Win_fence(assert::Integer, win::Win) = API.MPI_Win_fence(assert, win)
 
 function Win_fence(win::Win; nostore=false, noput=false, noprecede=false, nosucceed=false)
     assert =
@@ -203,15 +188,9 @@ target rank on the specified window.
 $(_doc_external("MPI_Win_flush"))
 """
 Win_flush(win::Win; rank) = Win_flush(rank, win)
-function Win_flush(rank::Integer, win::Win)
-    # int MPI_Win_flush(int rank, MPI_Win win)
-    @mpichk ccall((:MPI_Win_flush, libmpi), Cint,(Cint, MPI_Win), rank, win)
-end
+Win_flush(rank::Integer, win::Win) = API.MPI_Win_flush(rank, win)
 
-function Win_sync(win::Win)
-    # int MPI_Win_sync(MPI_Win win)
-    @mpichk ccall((:MPI_Win_sync, libmpi), Cint, (MPI_Win,), win)
-end
+Win_sync(win::Win) = API.MPI_Win_sync(win)
 
 """
     Win_lock(win::Win; rank::Integer, type=:exclusive/:shared, nocheck=false)
@@ -241,9 +220,7 @@ function Win_lock(win::Win; rank::Integer, type::Union{Symbol,LockType}, nocheck
 end
 function Win_lock(lock_type::LockType, rank::Integer, assert::Integer, win::Win)
     # int MPI_Win_lock(int lock_type, int rank, int assert, MPI_Win win)
-    @mpichk ccall((:MPI_Win_lock, libmpi), Cint,
-                  (Cint, Cint, Cint, MPI_Win),
-                  lock_type, rank, assert, win)
+    API.MPI_Win_lock(lock_type, rank, assert, win)
 end
 
 """
@@ -255,10 +232,7 @@ Completes an RMA access epoch started by a call to [`Win_lock`](@ref).
 $(_doc_external("MPI_Win_unlock"))
 """
 Win_unlock(win::Win; rank::Integer) = Win_unlock(rank, win)
-function Win_unlock(rank::Integer, win::Win)
-    # int MPI_Win_unlock(int rank, MPI_Win win)
-    @mpichk ccall((:MPI_Win_unlock, libmpi), Cint, (Cint, MPI_Win), rank, win)
-end
+Win_unlock(rank::Integer, win::Win) = API.MPI_Win_unlock(rank, win)
 
 
 # TODO: add some sort of "remote buffer": a way to specify different datatypes/counts
@@ -280,10 +254,8 @@ function Get!(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, wi
     #             MPI_Datatype origin_datatype, int target_rank,
     #             MPI_Aint target_disp, int target_count,
     #             MPI_Datatype target_datatype, MPI_Win win)
-    @mpichk ccall((:MPI_Get, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Win),
-                  origin_buf.data, origin_buf.count, origin_buf.datatype,
-                  target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
+    API.MPI_Get(origin_buf.data, origin_buf.count, origin_buf.datatype,
+                target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
 end
 Get!(origin, target_rank::Integer, target_disp::Integer, win::Win) =
     Get!(Buffer(origin), target_rank, target_disp, win)
@@ -308,10 +280,8 @@ function Put!(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, wi
     #             MPI_Datatype origin_datatype, int target_rank,
     #             MPI_Aint target_disp, int target_count,
     #             MPI_Datatype target_datatype, MPI_Win win)
-    @mpichk ccall((:MPI_Put, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Win),
-                  origin_buf.data, origin_buf.count, origin_buf.datatype,
-                  target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
+    API.MPI_Put(origin_buf.data, origin_buf.count, origin_buf.datatype,
+                target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
 end
 Put!(origin, target_rank::Integer, target_disp::Integer, win::Win) =
     Put!(Buffer_send(origin), target_rank, target_disp, win)
@@ -324,9 +294,7 @@ function Fetch_and_op!(sourceval::Ref{T}, returnval::Ref{T}, target_rank::Intege
     # int MPI_Fetch_and_op(const void *origin_addr, void *result_addr,
     #                      MPI_Datatype datatype, int target_rank, MPI_Aint target_disp,
     #                      MPI_Op op, MPI_Win win)
-    @mpichk ccall((:MPI_Fetch_and_op, libmpi), Cint,
-                  (MPIPtr, MPIPtr, MPI_Datatype, Cint, Cptrdiff_t, MPI_Op, MPI_Win),
-                  sourceval, returnval, Datatype(T), target_rank, target_disp, op, win)
+    API.MPI_Fetch_and_op(sourceval, returnval, Datatype(T), target_rank, target_disp, op, win)
 end
 
 
@@ -350,10 +318,8 @@ function Accumulate!(origin_buf::Buffer, target_rank::Integer, target_disp::Inte
     #                    MPI_Datatype origin_datatype, int target_rank,
     #                    MPI_Aint target_disp, int target_count,
     #                    MPI_Datatype target_datatype, MPI_Op op, MPI_Win win)
-    @mpichk ccall((:MPI_Accumulate, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Op, MPI_Win),
-                  origin_buf.data, origin_buf.count, origin_buf.datatype,
-                  target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
+    API.MPI_Accumulate(origin_buf.data, origin_buf.count, origin_buf.datatype,
+                       target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
 end
 Accumulate!(origin, target_rank::Integer, target_disp::Integer, op::Op, win::Win) =
     Accumulate!(Buffer_send(origin), target_rank, target_disp, op, win)
@@ -380,13 +346,9 @@ function Get_accumulate!(origin_buf::Buffer, result_buf::Buffer, target_rank::In
     #                        int result_count, MPI_Datatype result_datatype,
     #                        int target_rank, MPI_Aint target_disp, int target_count,
     #                        MPI_Datatype target_datatype, MPI_Op op, MPI_Win win)
-    @mpichk ccall((:MPI_Get_accumulate, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype,
-                   MPIPtr, Cint, MPI_Datatype,
-                   Cint, Cptrdiff_t, Cint, MPI_Datatype, MPI_Op, MPI_Win),
-                  origin_buf.data, origin_buf.count, origin_buf.datatype,
-                  result_buf.data, result_buf.count, result_buf.datatype,
-                  target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
+    API.MPI_Get_accumulate(origin_buf.data, origin_buf.count, origin_buf.datatype,
+                           result_buf.data, result_buf.count, result_buf.datatype,
+                           target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
 end
 Get_accumulate!(origin, result, target_rank::Integer, target_disp::Integer, op::Op, win::Win) =
     Get_accumulate!(Buffer_send(origin), Buffer(result), target_rank, target_disp, op, win)
