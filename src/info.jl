@@ -39,7 +39,7 @@ add_load_time_hook!(() -> INFO_NULL.val = Consts.MPI_INFO_NULL[])
 function Info(;init=false)
     info = Info(INFO_NULL.val)
     if init
-        @mpichk ccall((:MPI_Info_create, libmpi), Cint, (Ptr{MPI_Info},), info)
+        API.MPI_Info_create(info)
         finalizer(free, info)
     end
     return info
@@ -48,7 +48,7 @@ end
 function free(info::Info)
     if info != INFO_NULL && !Finalized()
         # int MPI_Info_free(MPI_Info *info)
-        @mpichk ccall((:MPI_Info_free, libmpi), Cint, (Ptr{MPI_Info},), info)
+        API.MPI_Info_free(info)
     end
     return nothing
 end
@@ -57,8 +57,7 @@ function Base.setindex!(info::Info, value::AbstractString, key::Symbol)
     skey = String(key)
     @assert isascii(skey) && isascii(value) &&
         length(skey) <= Consts.MPI_MAX_INFO_KEY && length(value) <= Consts.MPI_MAX_INFO_VAL
-    @mpichk ccall((:MPI_Info_set, libmpi), Cint,
-          (MPI_Info, Cstring, Cstring), info, skey, value)
+    API.MPI_Info_set(info, skey, value)
 end
 
 Base.setindex!(info::Info, value::Any, key::Symbol) = info[key] = infoval(value)
@@ -91,10 +90,7 @@ function Base.getindex(info::Info, key::Symbol)
     valuelen = Ref{Cint}()
     flag = Ref{Cint}()
     # int MPI_Info_get_valuelen(MPI_Info info, const char *key, int *valuelen, int *flag)
-    @mpichk ccall((:MPI_Info_get_valuelen, libmpi), Cint,
-          (MPI_Info, Cstring, Ptr{Cint}, Ptr{Cint}),
-          info, skey, valuelen, flag)
-
+    API.MPI_Info_get_valuelen(info, skey, valuelen, flag)
     if flag[] == 0
         throw(KeyError(key))
     end
@@ -107,17 +103,14 @@ function Base.getindex(info::Info, key::Symbol)
     n = valuelen[]
     buffer = Vector{UInt8}(undef, n+2)
     # int MPI_Info_get(MPI_Info info, const char *key, int valuelen, char *value, int *flag)
-    @mpichk ccall((:MPI_Info_get, libmpi), Cint,
-          (MPI_Info, Cstring, Cint, Ptr{UInt8}, Ptr{Cint}),
-          info, skey, n+1, buffer, flag)
+    API.MPI_Info_get(info, skey, n+1, buffer, flag)
     return String(resize!(buffer,n))
 end
 
 function Base.delete!(info::Info,key::Symbol)
     skey = String(key)
     @assert isascii(skey) && length(skey) <= Consts.MPI_MAX_INFO_KEY
-    @mpichk ccall((:MPI_Info_delete, libmpi), Cint,
-          (MPI_Info, Cstring), info, skey)
+    API.MPI_Info_delete(info, skey)
 end
 
 function Base.length(info::Info)
@@ -125,15 +118,13 @@ function Base.length(info::Info)
         return 0
     end
     nkeys = Ref{Cint}()
-    @mpichk ccall((:MPI_Info_get_nkeys, libmpi), Cint,
-                   (MPI_Info, Ptr{Cint}), info, nkeys)
+    API.MPI_Info_get_nkeys(info, nkeys)
     return Int(nkeys[])
 end
 
 function nthkey(info::Info, n::Integer)
     buffer = Vector{UInt8}(undef, Consts.MPI_MAX_INFO_KEY+1)
-    @mpichk ccall((:MPI_Info_get_nthkey, libmpi), Cint,
-                  (MPI_Info, Cint, Ptr{UInt8}), info, n, buffer)
+    API.MPI_Info_get_nthkey(info, n, buffer)
     i = findfirst(isequal(UInt8(0)), buffer)
     if i !== nothing
         resize!(buffer, i-1)
