@@ -1,8 +1,8 @@
-module MPIgen
+module MPIgenerator
     using Clang.Generators
     using MPICH_jll
 
-    generate_signatures(dir = MPICH_jll.artifact_dir) = begin
+    signatures(dir = MPICH_jll.artifact_dir) = begin
         @info "Generate MPI bindings for MPICH in $dir"
 
         out = joinpath(@__DIR__, "..", "out")

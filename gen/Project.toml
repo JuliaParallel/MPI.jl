@@ -1,4 +1,4 @@
-name = "MPIgen"
+name = "MPIgenerator"
 uuid = "01aa870b-fa19-4f9c-adda-70d3c70d3e08"
 
 [deps]
