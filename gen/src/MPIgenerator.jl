@@ -1,30 +1,38 @@
 module MPIgenerator
     using Clang.Generators
-    using MPICH_jll
+    using MPIPreferences
 
-    signatures(dir = MPICH_jll.artifact_dir) = begin
-        @info "Generate MPI bindings for MPICH located in $dir"
+    if MPIPreferences.binary == "MPICH_jll"
+        import MPICH_jll: artifact_dir
+    elseif MPIPreferences.binary == "OpenMPI_jll"
+        import OpenMPI_jll: artifact_dir
+    else
+        error("Unknown MPI binary: $(MPIPreferences.binary)")
+    end
 
-        # scratch directory for `Clang.jl`
+    signatures() = begin
+        @info "Generate MPI bindings from $(MPIPreferences.binary)"
+
+        # temporary directory for `Clang.jl` - must match path in `generator.toml`
         out = joinpath(@__DIR__, "..", "out")
         mkpath(out)
 
-        include_dir = normpath(dir, "include")
+        options = load_options(joinpath(@__DIR__, "generator.toml"))  # wrapper generator options
 
-        # wrapper generator options
-        options = load_options(joinpath(@__DIR__, "generator.toml"))
+        include_dir = normpath(artifact_dir, "include")
 
-        # add compiler flags, e.g. "-DXXXXXXXXX"
-        args = get_default_args()
-        push!(args, "-I$include_dir", "-include$include_dir/mpi.h")
+        args = vcat(get_default_args(), "-I$include_dir")  # add compiler flags
 
-        headers = joinpath(include_dir, "mpi_proto.h")
+        headers = if MPIPreferences.binary == "MPICH_jll"
+            push!(args, "-include$include_dir/mpi.h")
+            joinpath(include_dir, "mpi_proto.h")
+        elseif MPIPreferences.binary == "OpenMPI_jll"
+            joinpath(include_dir, "mpi.h")
+        end
 
-        # create context
         ctx = create_context(headers, args, options)
 
-        # run generator
-        build!(ctx)
+        build!(ctx)  # run generator
 
         ############################
         # custom MPI post-processing
@@ -39,9 +47,10 @@ module MPIgenerator
             ":MPI_Wtick",
         )
 
-        fn = joinpath(out, "api.jl")
-        lines = String["# WARNING: this file has been auto-generated, please edit $(replace(@__FILE__, r".*MPI.jl" => "MPI.jl")) instead !\n"]
-        for line in readlines(fn)
+        src = joinpath(out, "api.jl")
+        fn = replace(@__FILE__, r".*MPI.jl" => "MPI.jl")
+        lines = String["# WARNING: this file has been auto-generated, please edit $fn instead !\n"]
+        for line in readlines(src)
             if startswith(lstrip(line), "ccall")
                 m = match(r".*(:[\w_]+)", line)
                 repl = if m ≢ nothing && first(m.captures) ∈ mpicall
@@ -49,17 +58,17 @@ module MPIgenerator
                 else
                     "@mpichk ccall"
                 end
-                line = replace(line, "ccall" => repl)
-                line = replace(line, "Ptr{Cvoid}" => "MPIPtr")
+                line = replace(line, "Ptr{Cvoid}" => "MPIPtr", "ccall" => repl)
             end
             push!(lines, line)
         end
-        write(fn, join(lines, "\n"))
+        write(src, join(lines, "\n"))
 
-        # move the generated file to src
-        mv(fn, joinpath(@__DIR__, "..", "..", "src", "auto_generated_api.jl"); force=true)
-
+        dst = normpath(@__DIR__, "..", "..", "src", "auto_generated_api.jl")
+        mv(src, dst; force=true)  # move the generated file to src
         rm(out)  # cleanup
+
+        @info "Auto-generated file $dst written"
 
         nothing
     end
