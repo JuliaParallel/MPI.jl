@@ -65,6 +65,7 @@ Preferences are merged across the Julia load path, such that it is feasible to p
 
    ```toml
    [MPIPreferences]
+   _format = "1.0"
    abi = "OpenMPI"
    binary = "system"
    libmpi = "/software/mpi/lib/libmpi.so"
@@ -78,6 +79,7 @@ Preferences are merged across the Julia load path, such that it is feasible to p
    MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 
    [preferences.MPIPreferences]
+   _format = "1.0"
    abi = "OpenMPI"
    binary = "system"
    libmpi = "/software/mpi/lib/libmpi.so"
@@ -135,7 +137,7 @@ The test suite can also be modified by the following variables:
 
 - `JULIA_MPI_TEST_NPROCS`: How many ranks to use within the tests
 - `JULIA_MPI_TEST_ARRAYTYPE`: Set to `CuArray` or `ROCArray` to test the CUDA-aware interface with
-  [`CUDA.CuArray`](https://github.com/JuliaGPU/CUDA.jl) or the ROCm-aware interface with 
+  [`CUDA.CuArray`](https://github.com/JuliaGPU/CUDA.jl) or the ROCm-aware interface with
   [`AMDGPU.ROCArray`](https://github.com/JuliaGPU/AMDGPU.jl) or buffers.
 - `JULIA_MPI_TEST_BINARY`: Check that the specified MPI binary is used for the tests
 - `JULIA_MPI_TEST_ABI`: Check that the specified MPI ABI is used for the tests

@@ -2,6 +2,10 @@ module MPIPreferences
 
 using Preferences, Libdl
 
+if !(VersionNumber(@load_preference("_format", "1.0")) <= v"1.0")
+    error("The preferences attached to MPIPreferences are incompatible with this version of the package.")
+end
+
 """
     MPIPreferences.binary :: String
 
@@ -19,7 +23,7 @@ const binary = @load_preference("binary", Sys.iswindows() ? "MicrosoftMPI_jll" :
 """
     MPIPreferences.abi :: String
 
-The ABI of the currently selected binary. Supported values are:
+The ABI (application binary interface) of the currently selected binary. Supported values are:
 
 - `"MPICH"`: MPICH-compatible ABI (https://www.mpich.org/abi/)
 - `"OpenMPI"`: Open MPI compatible ABI (Open MPI, IBM Spectrum MPI, Fujitsu MPI)
@@ -62,6 +66,7 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
     binary in ["MicrosoftMPI_jll", "MPICH_jll", "OpenMPI_jll", "MPItrampoline_jll"] ||
         error("Unknown jll: $binary")
     set_preferences!(MPIPreferences,
+        "_format" => "1.0",
         "binary" => binary,
         "libmpi" => nothing,
         "abi" => nothing,
@@ -140,6 +145,7 @@ function use_system_binary(;
         mpiexec = collect(mpiexec)
     end
     set_preferences!(MPIPreferences,
+        "_format" => "1.0",
         "binary" => binary,
         "libmpi" => libmpi,
         "abi" => abi,
