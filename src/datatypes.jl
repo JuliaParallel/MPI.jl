@@ -26,11 +26,10 @@ add_load_time_hook!(() -> DATATYPE_NULL.val = Consts.MPI_DATATYPE_NULL[])
 
 Datatype() = Datatype(DATATYPE_NULL.val)
 
-
 function free(dt::Datatype)
     if dt != DATATYPE_NULL && !Finalized()
         # int MPI_Type_free(MPI_Type *type)
-        @mpichk ccall((:MPI_Type_free, libmpi), Cint, (Ptr{MPI_Datatype},), dt)
+        API.MPI_Type_free(dt)
     end
     return nothing
 end
@@ -38,34 +37,22 @@ end
 # attributes
 function create_keyval(::Type{Datatype})
     ref = Ref(Cint(0))
-    @mpichk ccall((:MPI_Type_create_keyval, libmpi), Cint,
-                  (Ptr{Cvoid},
-                   Ptr{Cvoid},
-                   Ptr{Cint},
-                   Ptr{Cvoid}),
-                  Consts.MPI_TYPE_NULL_COPY_FN[],
-                  Consts.MPI_TYPE_NULL_DELETE_FN[],
-                  ref, C_NULL)
+    API.MPI_Type_create_keyval(Consts.MPI_TYPE_NULL_COPY_FN[], Consts.MPI_TYPE_NULL_DELETE_FN[], ref, C_NULL)
     return ref[]
 end
 function set_attr!(datatype::Datatype, keyval::Cint, attrval::Ptr{Cvoid})
-    @mpichk ccall((:MPI_Type_set_attr, libmpi), Cint,
-                  (MPI_Datatype, Cint, Ptr{Cvoid}), datatype, keyval, attrval)
+    API.MPI_Type_set_attr(datatype, keyval, attrval)
     return nothing
 end
 function get_attr(datatype::Datatype, keyval::Cint)
     flagref = Ref(Cint(0))
     attrref = Ref{Ptr{Cvoid}}(C_NULL)
-    @mpichk ccall((:MPI_Type_get_attr, libmpi), Cint,
-                  (MPI_Datatype, Cint, Ptr{Ptr{Cvoid}}, Ptr{Cint}), datatype, keyval, attrref, flagref)
-    if flagref[] == 0
-        return nothing
-    end
+    API.MPI_Type_get_attr(datatype, keyval, attrref, flagref)
+    flagref[] == 0 && return nothing
     return attrref[]
 end
 function del_attr!(datatype::Datatype, keyval::Cint)
-    @mpichk ccall((:MPI_Type_delete_attr, libmpi), Cint,
-                  (MPI_Datatype, Cint), datatype, keyval)
+    API.MPI_Type_delete_attr(datatype, keyval)
     return nothing
 end
 
@@ -73,9 +60,7 @@ end
 function get_name(datatype::Datatype)
     buffer = Array{UInt8}(undef, Consts.MPI_MAX_OBJECT_NAME)
     lenref = Ref{Cint}()
-    @mpichk ccall((:MPI_Type_get_name, libmpi), Cint,
-                  (MPI_Datatype, Ptr{UInt8}, Ptr{Cint}),
-                  datatype, buffer, lenref)
+    API.MPI_Type_get_name(datatype, buffer, lenref)
     return String(resize!(buffer, lenref[]))
 end
 
@@ -92,9 +77,7 @@ if it doesn't correspond directly.
 function to_type(datatype::Datatype)
     if MPI.Initialized() && !MPI.Finalized()
         ptr = get_attr(datatype, JULIA_TYPE_PTR_ATTR[])
-        if !isnothing(ptr)
-            return unsafe_pointer_to_objref(ptr)
-        end
+        isnothing(ptr) || return unsafe_pointer_to_objref(ptr)
     end
     return nothing
 end
@@ -184,15 +167,11 @@ end
 module Types
 
 import MPI
-import MPI: @mpichk, libmpi, _doc_external,
-    Datatype, MPI_Datatype, MPI_Aint,
-    free
+import MPI: API, _doc_external, Datatype, MPI_Datatype, MPI_Aint, free
 
 function size(dt::Datatype)
     dtsize = Ref{Cint}()
-    @mpichk ccall((:MPI_Type_size, libmpi), Cint,
-                  (MPI_Datatype, Ptr{Cint}),
-                  dt, dtsize)
+    API.MPI_Type_size(dt, dtsize)
     return Int(dtsize[])
 end
 
@@ -210,9 +189,7 @@ function extent(dt::Datatype)
     extent = Ref{MPI_Aint}()
     # int MPI_Type_get_extent(MPI_Datatype datatype, MPI_Aint *lb,
     #          MPI_Aint *extent)
-    @mpichk ccall((:MPI_Type_get_extent, libmpi), Cint,
-                  (MPI_Datatype, Ptr{MPI_Aint}, Ptr{MPI_Aint}),
-                  dt, lb, extent)
+    API.MPI_Type_get_extent(dt, lb, extent)
     return lb[], extent[]
 end
 
@@ -232,9 +209,7 @@ function create_contiguous(count::Integer, oldtype::Datatype)
 end
 
 function create_contiguous!(newtype::Datatype, count::Integer, oldtype::Datatype)
-    @mpichk ccall((:MPI_Type_contiguous, libmpi), Cint,
-                  (Cint, MPI_Datatype, Ptr{MPI_Datatype}),
-                  count, oldtype, newtype)
+    API.MPI_Type_contiguous(count, oldtype, newtype)
     return newtype
 end
 
@@ -278,9 +253,7 @@ end
 function create_vector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
     # int MPI_Type_vector(int count, int blocklength, int stride,
     #          MPI_Datatype oldtype, MPI_Datatype *newtype)
-    @mpichk ccall((:MPI_Type_vector, libmpi), Cint,
-                  (Cint, Cint, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
-                  count, blocklength, stride, oldtype, newtype)
+    API.MPI_Type_vector(count, blocklength, stride, oldtype, newtype)
     return newtype
 end
 
@@ -311,12 +284,18 @@ function create_subarray!(newtype::Datatype, sizes, subsizes, offset, oldtype::D
     sizes = sizes isa Vector{Cint} ? sizes : Cint[s for s in sizes]
     subsizes = subsizes isa Vector{Cint} ? subsizes : Cint[s for s in subsizes]
     offset = offset isa Vector{Cint} ? offset : Cint[s for s in offset]
-
-    @mpichk ccall((:MPI_Type_create_subarray, libmpi), Cint,
-                  (Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
-                  N, sizes, subsizes, offset,
-                  rowmajor ? MPI.Consts.MPI_ORDER_C[] : MPI.Consts.MPI_ORDER_FORTRAN[],
-                  oldtype, newtype)
+    # int MPI_Type_create_subarray(int ndims,
+    #                              const int array_of_sizes[],
+    #                              const int array_of_subsizes[],
+    #                              const int array_of_starts[],
+    #                              int order,
+    #                              MPI_Datatype oldtype,
+    #                              MPI_Datatype *newtype)
+    API.MPI_Type_create_subarray(
+        N, sizes, subsizes, offset,
+        rowmajor ? MPI.Consts.MPI_ORDER_C[] : MPI.Consts.MPI_ORDER_FORTRAN[],
+        oldtype, newtype
+    )
     return newtype
 end
 
@@ -345,9 +324,7 @@ function create_struct!(newtype::Datatype, blocklengths, displacements, types)
     #                            MPI_Datatype *newtype)
     GC.@preserve types begin
         mpi_types = [t.val for t in types]
-        @mpichk ccall((:MPI_Type_create_struct, libmpi), Cint,
-                      (Cint, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}),
-                      N, blocklengths, displacements, mpi_types, newtype)
+        API.MPI_Type_create_struct(N, blocklengths, displacements, mpi_types, newtype)
     end
     return newtype
 end
@@ -376,17 +353,13 @@ end
 function create_resized!(newtype::Datatype, oldtype::Datatype, lb::Integer, extent::Integer)
     # int MPI_Type_create_resized(MPI_Datatype oldtype, MPI_Aint lb,
     #              MPI_Aint extent, MPI_Datatype *newtype)
-    @mpichk ccall((:MPI_Type_create_resized, libmpi), Cint,
-                  (MPI_Datatype, Cptrdiff_t, Cptrdiff_t, Ptr{MPI_Datatype}),
-                  oldtype, lb, extent, newtype)
+    API.MPI_Type_create_resized(oldtype, lb, extent, newtype)
     return newtype
 end
 
 function duplicate!(newtype::Datatype, oldtype::Datatype)
     # int MPI_Type_dup(MPI_Datatype oldtype, MPI_Datatype * newtype)
-    @mpichk ccall((:MPI_Type_dup, libmpi), Cint,
-                  (MPI_Datatype, Ptr{MPI_Datatype}),
-                  oldtype, newtype)
+    API.MPI_Type_dup(oldtype, newtype)
     return newtype
 end
 """
@@ -410,15 +383,12 @@ $(_doc_external("MPI_Type_commit"))
 """
 function commit!(newtype::Datatype)
     # int MPI_Type_commit(MPI_Datatype *datatype)
-    @mpichk ccall((:MPI_Type_commit, libmpi), Cint,
-                  (Ptr{MPI_Datatype},), newtype)
+    API.MPI_Type_commit(newtype)
     return newtype
 end
 
 function create!(newtype::Datatype, ::Type{T}) where {T}
-    if !isbitstype(T)
-        throw(ArgumentError("Type must be isbitstype"))
-    end
+    isbitstype(T) || throw(ArgumentError("Type must be isbitstype"))
     blocklengths = Cint[]
     displacements = MPI_Aint[]
     types = Datatype[]
@@ -466,6 +436,6 @@ end # module
 
 function Get_address(location)
     addr = Ref{Cptrdiff_t}(0)
-    @mpichk ccall((:MPI_Get_address, libmpi), Cint, (Ptr{Cvoid}, Ref{MPI_Aint}), location, addr)
+    API.MPI_Get_address(location, addr)
     return addr[]
 end
