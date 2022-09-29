@@ -27,7 +27,7 @@ module MPIgenerator
 
         rm(joinpath(out, "common.jl"))  # remove un-needed file
 
-        # these methods return a significative value instead of an errorcode: use @mpicall instead
+        # these methods must be called with `@mpicall` instead of `@mpichk`
         mpicall = (
             ":MPI_Get_library_version",
             ":MPI_Get_processor_name",
