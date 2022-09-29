@@ -65,10 +65,8 @@ module MPIgenerator
                 sym = first(m.captures) |> Symbol
                 repl = sym ∈ mpicall ? "@mpicall ccall" : "@mpichk ccall"
                 line = replace(line, "Ptr{Cvoid}" => "MPIPtr", "ccall" => repl)
-                if sym ∈ keys(versioned)
-                    if (ver = get(versioned, sym, nothing)) ≢ nothing
-                        line *= " $(repr(ver))"
-                    end
+                if (ver = get(versioned, sym, nothing)) ≢ nothing
+                    line *= " $(repr(ver))"
                 end
             end
             push!(lines, line)
