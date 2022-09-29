@@ -44,7 +44,7 @@ module MPIgenerator
         for line in readlines(fn)
             if startswith(lstrip(line), "ccall")
                 m = match(r".*(:[\w_]+)", line)
-                repl = if m !== nothing && first(m.captures) ∈ mpicall
+                repl = if m ≢ nothing && first(m.captures) ∈ mpicall
                     "@mpicall ccall"
                 else
                     "@mpichk ccall"

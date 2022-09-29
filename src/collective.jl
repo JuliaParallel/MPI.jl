@@ -242,10 +242,8 @@ function Gather!(sendbuf::Buffer, recvbuf::UBuffer, root::Integer, comm::Comm)
     # int MPI_Gather(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                void* recvbuf, int recvcount, MPI_Datatype recvtype, int root,
     #                MPI_Comm comm)
-    @mpichk ccall((:MPI_Gather, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
+    API.MPI_Gather(sendbuf.data, sendbuf.count, sendbuf.datatype,
+                   recvbuf.data, recvbuf.count, recvbuf.datatype, root, comm)
     return recvbuf.data
 end
 Gather!(sendbuf, recvbuf::UBuffer, root::Integer, comm::Comm) =
@@ -323,10 +321,8 @@ function Gatherv!(sendbuf::Buffer, recvbuf::VBuffer, root::Integer, comm::Comm)
     # int MPI_Gatherv(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                 void* recvbuf, const int recvcounts[], const int displs[],
     #                 MPI_Datatype recvtype, int root, MPI_Comm comm)
-    @mpichk ccall((:MPI_Gatherv, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype,
-                  recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, root, comm)
+    API.MPI_Gatherv(sendbuf.data, sendbuf.count, sendbuf.datatype,
+                    recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype, root, comm)
     return recvbuf.data
 end
 Gatherv!(sendbuf, recvbuf::VBuffer, root::Integer, comm::Comm) =
@@ -368,10 +364,8 @@ function Allgather!(sendbuf::Buffer, recvbuf::UBuffer, comm::Comm)
     # int MPI_Allgather(const void* sendbuf, int sendcount,
     #                   MPI_Datatype sendtype, void* recvbuf, int recvcount,
     #                   MPI_Datatype recvtype, MPI_Comm comm)
-    @mpichk ccall((:MPI_Allgather, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, comm)
+    API.MPI_Allgather(sendbuf.data, sendbuf.count, sendbuf.datatype,
+                      recvbuf.data, recvbuf.count, recvbuf.datatype, comm)
     return recvbuf.data
 end
 Allgather!(sendbuf, recvbuf::UBuffer, comm::Comm) =
@@ -435,11 +429,9 @@ function Allgatherv!(sendbuf::Buffer, recvbuf::VBuffer, comm::Comm)
     # int MPI_Allgatherv(const void* sendbuf, int sendcount,
     #                    MPI_Datatype sendtype, void* recvbuf, const int recvcounts[],
     #                    const int displs[], MPI_Datatype recvtype, MPI_Comm comm)
-    @mpichk ccall((:MPI_Allgatherv, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype,
-                  recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
-                  comm)
+    API.MPI_Allgatherv(sendbuf.data, sendbuf.count, sendbuf.datatype,
+                       recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
+                       comm)
     return recvbuf.data
 end
 function Allgatherv!(sendbuf, recvbuf::VBuffer, comm::Comm)
@@ -485,11 +477,9 @@ function Alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, comm::Comm)
     # int MPI_Alltoall(const void* sendbuf, int sendcount, MPI_Datatype sendtype,
     #                  void* recvbuf, int recvcount, MPI_Datatype recvtype,
     #                  MPI_Comm comm)
-    @mpichk ccall((:MPI_Alltoall, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype,
-                  comm)
+    API.MPI_Alltoall(sendbuf.data, sendbuf.count, sendbuf.datatype,
+                     recvbuf.data, recvbuf.count, recvbuf.datatype,
+                     comm)
     return recvbuf.data
 end
 Alltoall!(sendbuf::InPlace, recvbuf::UBuffer, comm::Comm) =
@@ -543,13 +533,9 @@ function Alltoallv!(sendbuf::VBuffer, recvbuf::VBuffer, comm::Comm)
     #                   const int sdispls[], MPI_Datatype sendtype, void* recvbuf,
     #                   const int recvcounts[], const int rdispls[],
     #                   MPI_Datatype recvtype, MPI_Comm comm)
-    @mpichk ccall((:MPI_Alltoallv, libmpi), Cint,
-                  (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
-                   MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype,
-                   MPI_Comm),
-                  sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
-                  recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
-                  comm)
+    API.MPI_Alltoallv(sendbuf.data, sendbuf.counts, sendbuf.displs, sendbuf.datatype,
+                      recvbuf.data, recvbuf.counts, recvbuf.displs, recvbuf.datatype,
+                      comm)
 
     return recvbuf.data
 end
@@ -587,9 +573,7 @@ Reduce!(sendbuf, recvbuf, op, comm::Comm; root::Integer=Cint(0)) =
 function Reduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm)
     # int MPI_Reduce(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
-    @mpichk ccall((:MPI_Reduce, libmpi), Cint,
-                  (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm),
-                  rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, root, comm)
+    API.MPI_Reduce(rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, root, comm)
     return rbuf.recvdata
 end
 
@@ -670,9 +654,7 @@ $(_doc_external("MPI_Allreduce"))
 function Allreduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
     # int MPI_Allreduce(const void* sendbuf, void* recvbuf, int count,
     #                   MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
-    @mpichk ccall((:MPI_Allreduce, libmpi), Cint,
-                  (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
-                  rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
+    API.MPI_Allreduce(rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
 end
 function Allreduce!(rbuf::RBuffer, op, comm::Comm)
@@ -731,9 +713,7 @@ $(_doc_external("MPI_Scan"))
 function Scan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
     # int MPI_Scan(const void* sendbuf, void* recvbuf, int count,
     #              MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
-    @mpichk ccall((:MPI_Scan, libmpi), Cint,
-                  (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
-                  rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
+    API.MPI_Scan(rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
 end
 function Scan!(rbuf::RBuffer, op, comm::Comm)
@@ -794,9 +774,7 @@ $(_doc_external("MPI_Exscan"))
 function Exscan!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm)
     # int MPI_Exscan(const void* sendbuf, void* recvbuf, int count,
     #                MPI_Datatype datatype, MPI_Op op, MPI_Comm comm)
-    @mpichk ccall((:MPI_Exscan, libmpi), Cint,
-          (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm),
-          rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
+    API.MPI_Exscan(rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm)
     rbuf.recvdata
 end
 function Exscan!(rbuf::RBuffer, op, comm::Comm)
@@ -849,7 +827,7 @@ function Neighbor_alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, graph_comm::Comm
                 (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm),
                 sendbuf.data, sendbuf.count, sendbuf.datatype,
                 recvbuf.data, recvbuf.count, recvbuf.datatype,
-                graph_comm) v"3.0"
+                graph_comm) v"3.0"  # FIXME: map this to API.XXX calls ?
     return recvbuf.data
 end
 
