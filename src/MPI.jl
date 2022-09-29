@@ -58,23 +58,6 @@ end
 include("consts/consts.jl")
 using .Consts
 
-module API
-    using ..Consts
-    import ..libmpi
-
-    for name in filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true))
-        @eval $name = Consts.$name  # signatures need types
-    end
-
-    struct MPIError <: Exception
-        code::Cint
-    end
-    macro mpichk(expr)
-        :((errcode = $(esc(expr))) == 0 || throw(MPIError(errcode)))
-    end
-    include("../gen/out/api.jl")
-end
-
 # These functions are run after reading the values of the constants above)
 const _mpi_load_time_hooks = Any[]
 const _finished_loading = Ref(false)
@@ -92,9 +75,20 @@ function run_load_time_hooks()
     nothing
 end
 
-
 include("implementations.jl")
 include("error.jl")
+
+module API
+    using ..Consts
+    import ..libmpi, ..libmpi_handle, ..use_stdcall, ..@mpicall, ..@mpichk, ..MPIError
+
+    for name in filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true))
+        @eval $name = Consts.$name  # signatures need types
+    end
+
+    include("../gen/out/api.jl")
+end
+
 include("info.jl")
 include("group.jl")
 include("comm.jl")
