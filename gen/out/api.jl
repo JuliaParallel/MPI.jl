@@ -867,15 +867,15 @@ function MPI_Aint_diff(addr1, addr2)
 end
 
 function MPI_Get_library_version(version, resultlen)
-    @mpichk ccall((:MPI_Get_library_version, libmpi), Cint, (Ptr{Cchar}, Ptr{Cint}), version, resultlen)
+    @mpicall ccall((:MPI_Get_library_version, libmpi), Cint, (Ptr{Cchar}, Ptr{Cint}), version, resultlen)
 end
 
 function MPI_Get_processor_name(name, resultlen)
-    @mpichk ccall((:MPI_Get_processor_name, libmpi), Cint, (Ptr{Cchar}, Ptr{Cint}), name, resultlen)
+    @mpicall ccall((:MPI_Get_processor_name, libmpi), Cint, (Ptr{Cchar}, Ptr{Cint}), name, resultlen)
 end
 
 function MPI_Get_version(version, subversion)
-    @mpichk ccall((:MPI_Get_version, libmpi), Cint, (Ptr{Cint}, Ptr{Cint}), version, subversion)
+    @mpicall ccall((:MPI_Get_version, libmpi), Cint, (Ptr{Cint}, Ptr{Cint}), version, subversion)
 end
 
 function MPI_Op_commutative(op, commute)
@@ -1291,11 +1291,11 @@ function MPI_Unpublish_name(service_name, info, port_name)
 end
 
 function MPI_Wtick()
-    @mpichk ccall((:MPI_Wtick, libmpi), Cdouble, ())
+    @mpicall ccall((:MPI_Wtick, libmpi), Cdouble, ())
 end
 
 function MPI_Wtime()
-    @mpichk ccall((:MPI_Wtime, libmpi), Cdouble, ())
+    @mpicall ccall((:MPI_Wtime, libmpi), Cdouble, ())
 end
 
 function MPI_Cart_coords(comm, rank, maxdims, coords)

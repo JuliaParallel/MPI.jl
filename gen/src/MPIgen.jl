@@ -27,11 +27,26 @@ module MPIgen
 
         rm(joinpath(out, "common.jl"))  # remove un-needed file
 
+        # these methods return a significative value instead of an errorcode: use @mpicall instead
+        mpicall = (
+            ":MPI_Get_library_version",
+            ":MPI_Get_processor_name",
+            ":MPI_Get_version",
+            ":MPI_Wtime",
+            ":MPI_Wtick",
+        )
+
         fn = joinpath(out, "api.jl")
         lines = String[]
         for line in readlines(fn)
             if startswith(lstrip(line), "ccall")
-                line = replace(line, "ccall" => "@mpichk ccall")
+                m = match(r".*(:[\w_]+)", line)
+                repl = if m !== nothing && first(m.captures) ∈ mpicall
+                    "@mpicall ccall"
+                else
+                    "@mpichk ccall"
+                end
+                line = replace(line, "ccall" => repl)
             end
             push!(lines, line)
         end
