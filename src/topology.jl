@@ -211,15 +211,13 @@ $(_doc_external("MPI_Dist_graph_create_adjacent"))
 function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, destination_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
     graph_comm = Comm()
     # int MPI_Dist_graph_create_adjacent(MPI_Comm comm_old,
-    #       int indegree, const int sources[],
-    #       const int sourceweights[],
-    #       int outdegree, const int destinations[],
-    #       const int destweights[],
-    #       MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
-    @mpichk ccall((:MPI_Dist_graph_create_adjacent, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
-        comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights,Info(infokws...),reorder,graph_comm) v"2.2"
-
+    #                                    int indegree, const int sources[], const int sourceweights[],
+    #                                    int outdegree, const int destinations[], const int destweights[],
+    #                                    MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
+    API.MPI_Dist_graph_create_adjacent(comm,
+                                       length(sources), sources, source_weights,
+                                       length(destinations), destinations, destination_weights,
+                                       Info(infokws...), reorder, graph_comm)
     return graph_comm
 end
 
@@ -254,12 +252,10 @@ $(_doc_external("MPI_Dist_graph_create"))
 function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}; weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
     graph_comm = Comm()
     # int MPI_Dist_graph_create(MPI_Comm comm_old, int n, const int sources[],
-    #       const int degrees[], const int destinations[],
-    #       const int weights[],
-    #       MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
-    @mpichk ccall((:MPI_Dist_graph_create, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}),
-        comm,length(sources),sources,degrees,destinations,weights,Info(infokws...),reorder,graph_comm) v"2.2"
+    #                           const int degrees[], const int destinations[], const int weights[],
+    #                           MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
+    API.MPI_Dist_graph_create(comm, length(sources), sources, degrees, destinations, weights,
+                              Info(infokws...), reorder, graph_comm)
 
     return graph_comm
 end
@@ -289,9 +285,7 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
     outdegree = Ref{Cint}()
     weighted = Ref{Cint}()
     # int MPI_Dist_graph_neighbors_count(MPI_Comm comm, int *indegree, int *outdegree, int *weighted)
-    @mpichk ccall((:MPI_Dist_graph_neighbors_count, libmpi), Cint,
-        (MPI_Comm, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-        graph_comm,indegree,outdegree,weighted) v"2.2"
+    API.MPI_Dist_graph_neighbors_count(graph_comm, indegree, outdegree, weighted)
 
     return (indegree[], outdegree[], weighted[] != 0)
 end
@@ -341,11 +335,11 @@ $(_doc_external("MPI_Dist_graph_neighbors"))
 """
 function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
     # int MPI_Dist_graph_neighbors(MPI_Comm comm,
-    #       int maxindegree, int sources[], int sourceweights[],
-    #       int maxoutdegree, int destinations[], int destweights[])
-    @mpichk ccall((:MPI_Dist_graph_neighbors, libmpi), Cint,
-        (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}),
-        graph_comm,length(sources),sources,source_weights,length(destinations),destinations,destination_weights) v"2.2"
+    #                              int maxindegree, int sources[], int sourceweights[],
+    #                              int maxoutdegree, int destinations[], int destweights[])
+    API.MPI_Dist_graph_neighbors(graph_comm,
+                                 length(sources), sources, source_weights, 
+                                 length(destinations), destinations, destination_weights)
 end
 
 """

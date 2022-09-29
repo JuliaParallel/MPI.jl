@@ -49,13 +49,13 @@ module MPIgenerator
 
         versioned = Dict(
             :MPI_Dist_graph_create_adjacent => v"2.2",
-            :MPI_Dist_graph_create => v"2.2",
             :MPI_Dist_graph_neighbors_count => v"2.2",
             :MPI_Dist_graph_neighbors => v"2.2",
-            :MPI_Neighbor_alltoall => v"3.0",
+            :MPI_Dist_graph_create => v"2.2",
+            :MPI_Neighbor_allgatherv => v"3.0",
             :MPI_Neighbor_alltoallv => v"3.0",
             :MPI_Neighbor_allgather => v"3.0",
-            :MPI_Neighbor_allgatherv => v"3.0",
+            :MPI_Neighbor_alltoall => v"3.0",
         )
 
         src, fn = joinpath(out, "api.jl"), replace(@__FILE__, r".*MPI.jl" => "MPI.jl")
