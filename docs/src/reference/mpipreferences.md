@@ -28,7 +28,7 @@ MPIPreferences.identify_abi
 MPIPreferences utilizes the following keys to store information in the Preferences key-value store.
 
 - `_format`: the version number of the schema. Currently only `"1.0"` is supported.
-- `binary`: the choice of binary. This shoudl be one of the strings listed in [`MPIPreferences.binary`](@ref).
+- `binary`: the choice of binary. This should be one of the strings listed in [`MPIPreferences.binary`](@ref).
 
 If `binary == "system"`, then the following keys are also required (otherwise they have no effect):
 - `libmpi`: the filename or path of the MPI dynamic library.
