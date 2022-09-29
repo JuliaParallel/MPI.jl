@@ -68,9 +68,7 @@ end
 function run_load_time_hooks()
     @assert !_finished_loading[]
     _finished_loading[] = true
-    for hook in _mpi_load_time_hooks
-        hook()
-    end
+    foreach(hook -> hook(), _mpi_load_time_hooks)
     empty!(_mpi_load_time_hooks)
     nothing
 end
@@ -79,8 +77,8 @@ include("implementations.jl")
 include("error.jl")
 
 module API
-    using ..Consts
     import ..libmpi, ..libmpi_handle, ..use_stdcall, ..@mpicall, ..@mpichk, ..MPIError
+    using ..Consts
 
     for name in filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true))
         @eval $name = Consts.$name  # signatures need types

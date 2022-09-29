@@ -112,7 +112,7 @@ Recv!(recvbuf, comm::Comm, status=nothing; source=Consts.MPI_ANY_SOURCE[], tag=C
 function Recv!(recvbuf::Buffer, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing})
     # int MPI_Recv(void* buf, int count, MPI_Datatype datatype, int source,
     #              int tag, MPI_Comm comm, MPI_Status *status)
-    AI.MPI_Recv(recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, Consts.MPI_STATUS_IGNORE[]))
+    API.MPI_Recv(recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, Consts.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Recv!(recvbuf, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing}) =
@@ -202,9 +202,7 @@ function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm)
     req = Request()
     # int MPI_Irecv(void* buf, int count, MPI_Datatype datatype, int source,
     #               int tag, MPI_Comm comm, MPI_Request *request)
-    @mpichk ccall((:MPI_Irecv, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}),
-                  buf.data, buf.count, buf.datatype, source, tag, comm, req)
+    API.MPI_Irecv(buf.data, buf.count, buf.datatype, source, tag, comm, req)
     req.buffer = buf
     finalizer(free, req)
     return req
@@ -215,9 +213,7 @@ Irecv!(data, source::Integer, tag::Integer, comm::Comm) =
 
 function irecv(src::Integer, tag::Integer, comm::Comm)
     (flag, stat) = Iprobe(src, tag, comm)
-    if !flag
-        return (false, nothing, nothing)
-    end
+    flag || return (false, nothing, nothing)
     count = Get_count(stat, UInt8)
     buf = Array{UInt8}(undef, count)
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
@@ -250,13 +246,9 @@ function Sendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
     # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,   int sendtag,
     #                        void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
     #                    MPI_Comm comm, MPI_Status *status)
-    @mpichk ccall((:MPI_Sendrecv, libmpi), Cint,
-                  (MPIPtr, Cint, MPI_Datatype, Cint, Cint,
-                   MPIPtr, Cint, MPI_Datatype, Cint, Cint,
-                   MPI_Comm, Ptr{Status}),
-                  sendbuf.data, sendbuf.count, sendbuf.datatype, dest, sendtag,
-                  recvbuf.data, recvbuf.count, recvbuf.datatype, source, recvtag,
-                  comm, something(status, Consts.MPI_STATUS_IGNORE[]))
+    API.MPI_Sendrecv(sendbuf.data, sendbuf.count, sendbuf.datatype, dest, sendtag,
+                     recvbuf.data, recvbuf.count, recvbuf.datatype, source, recvtag,
+                     comm, something(status, Consts.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing}) =

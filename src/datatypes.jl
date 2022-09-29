@@ -162,8 +162,6 @@ function Base.show(io::IO, datatype::Datatype)
     end
 end
 
-
-
 module Types
 
 import MPI
@@ -174,7 +172,6 @@ function size(dt::Datatype)
     API.MPI_Type_size(dt, dtsize)
     return Int(dtsize[])
 end
-
 
 """
     lb, extent = MPI.Types.extent(dt::MPI.Datatype)
@@ -291,11 +288,9 @@ function create_subarray!(newtype::Datatype, sizes, subsizes, offset, oldtype::D
     #                              int order,
     #                              MPI_Datatype oldtype,
     #                              MPI_Datatype *newtype)
-    API.MPI_Type_create_subarray(
-        N, sizes, subsizes, offset,
-        rowmajor ? MPI.Consts.MPI_ORDER_C[] : MPI.Consts.MPI_ORDER_FORTRAN[],
-        oldtype, newtype
-    )
+    API.MPI_Type_create_subarray(N, sizes, subsizes, offset,
+                                 rowmajor ? MPI.Consts.MPI_ORDER_C[] : MPI.Consts.MPI_ORDER_FORTRAN[],
+                                 oldtype, newtype)
     return newtype
 end
 
@@ -430,9 +425,7 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
     create_struct!(newtype, blocklengths, displacements, types)
 end
 
-
 end # module
-
 
 function Get_address(location)
     addr = Ref{Cptrdiff_t}(0)

@@ -105,10 +105,8 @@ $(_doc_external("MPI_Iprobe"))
 function Iprobe(src::Integer, tag::Integer, comm::Comm)
     flag = Ref{Cint}()
     stat_ref = Ref(STATUS_ZERO)
-    MPI.MPI_Iprobe(src, tag, comm, flag, stat_ref)
-    if flag[] == 0
-        return false, nothing
-    end
+    API.MPI_Iprobe(src, tag, comm, flag, stat_ref)
+    flag[] == 0 && return false, nothing
     true, stat_ref[]
 end
 
@@ -128,7 +126,6 @@ function Get_count(stat::Status, datatype::Datatype)
     Int(count[])
 end
 Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, Datatype(T))
-
 
 
 """
@@ -214,18 +211,12 @@ function Base.push!(reqs::RequestSet, req::Request)
     push!(reqs.requests, req)
 end
 
-
 function update!(reqs::RequestSet, i::Integer)
     req = reqs[i]
     req.val = reqs.vals[i]
     isnull(req) && (req.buffer = nothing)
 end
-function update!(reqs::RequestSet)
-    n = length(reqs)
-    for i = 1:n
-        update!(reqs, i)
-    end
-end
+update!(reqs::RequestSet) = foreach(i -> update!(reqs, i), 1:length(reqs))
 
 
 """
@@ -311,9 +302,7 @@ function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     #                 MPI_Status *status)
     API.MPI_Waitany(n, reqs.vals, ref_idx, something(status, Consts.MPI_STATUS_IGNORE[]))
     idx = ref_idx[]
-    if idx == Consts.MPI_UNDEFINED[]
-        return nothing
-    end
+    idx == Consts.MPI_UNDEFINED[] && return nothing
     i = Int(idx) + 1
     update!(reqs, i)
     return i
@@ -352,10 +341,7 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     API.MPI_Testany(n, reqs.vals, ref_idx, rflag, something(status, Consts.MPI_STATUS_IGNORE[]))
     idx = ref_idx[]
     flag = rflag[] != 0
-
-    if idx == Consts.MPI_UNDEFINED[]
-        return flag, nothing
-    end
+    idx == Consts.MPI_UNDEFINED[] && return flag, nothing
     i = Int(idx) + 1
     update!(reqs, i)
     return flag, i
@@ -393,9 +379,7 @@ function Waitsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     API.MPI_Waitsome(n, reqs.vals, ref_nout, idxs, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     nout = Int(ref_nout[])
     # This can happen if there were no valid requests
-    if nout == Consts.MPI_UNDEFINED[]
-        return nothing
-    end
+    nout == Consts.MPI_UNDEFINED[] && return nothing
     update!(reqs)
     return [Int(idxs[i]) + 1 for i = 1:nout]
 end
@@ -433,9 +417,7 @@ function Testsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     API.MPI_Testsome(n, reqs.vals, ref_nout, idxs, something(statuses, Consts.MPI_STATUSES_IGNORE[]))
     nout = Int(ref_nout[])
     # This can happen if there were no valid requests
-    if nout == Consts.MPI_UNDEFINED[]
-        return nothing
-    end
+    nout == Consts.MPI_UNDEFINED[] && return nothing
     update!(reqs)
     return [Int(idxs[i]) + 1 for i = 1:nout]
 end
