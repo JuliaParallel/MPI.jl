@@ -7,5 +7,5 @@ MPICH_jll = "7cb0a576-ebde-5e09-9194-50597f1243b4"
 MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 
 [compat]
-Clang = "0.16"
-MPIPreferences = "0.1"
+Clang = "0.16.2"
+MPIPreferences = "0.1.3"
