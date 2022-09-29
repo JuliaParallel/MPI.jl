@@ -16,8 +16,7 @@ $(_doc_external("MPI_Dims_create"))
 """
 function Dims_create(nnodes::Integer, dims)
     dims = Cint[dim for dim in dims]
-    @mpichk ccall((:MPI_Dims_create, libmpi), Cint,
-                  (Cint, Cint, Ptr{Cint}), nnodes, length(dims), dims)
+    API.MPI_Dims_create(nnodes, length(dims), dims)
     return dims
 end
 
@@ -51,12 +50,8 @@ function Cart_create(comm::Comm, dims; periodic = map(_->false, dims), reorder=f
     comm_cart = Comm()
     # int MPI_Cart_create(MPI_Comm comm_old, int ndims, const int dims[],
     #                     const int periods[], int reorder, MPI_Comm *comm_cart)
-    @mpichk ccall((:MPI_Cart_create, libmpi), Cint,
-                  (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{MPI_Comm}),
-                  comm, length(dims), dims, periodic, reorder, comm_cart)
-    if comm_cart != COMM_NULL
-        finalizer(free, comm_cart)
-    end
+    API.MPI_Cart_create(comm, length(dims), dims, periodic, reorder, comm_cart)
+    comm_cart != COMM_NULL && finalizer(free, comm_cart)
     comm_cart
 end    
 
@@ -75,9 +70,7 @@ function Cart_rank(comm::Comm, coords)
     end
     rank = Ref{Cint}()
     # int MPI_Cart_rank(MPI_Comm comm, const int coords[], int *rank)
-    @mpichk ccall((:MPI_Cart_rank, libmpi), Cint,
-                  (MPI_Comm, Ptr{Cint}, Ptr{Cint}),
-                  comm, coords, rank)
+    API.MPI_Cart_rank(comm, coords, rank)
     Int(rank[])
 end
 
@@ -100,9 +93,7 @@ function Cart_get(comm::Comm)
     periods = Cint[-1 for i = 1:maxdims]
     coords  = Cint[-1 for i = 1:maxdims]
     # int MPI_Cart_get(MPI_Comm comm, int maxdims, int dims[], int periods[], int coords[])
-    @mpichk ccall((:MPI_Cart_get, libmpi), Cint,
-                  (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}),
-                  comm, maxdims, dims, periods, coords)
+    API.MPI_Cart_get(comm, maxdims, dims, periods, coords)
     return dims, periods, coords
 end
 
@@ -117,9 +108,7 @@ $(_doc_external("MPI_Cartdim_get"))
 function Cartdim_get(comm::Comm)
     dims = Ref{Cint}()
     # int MPI_Cartdim_get(MPI_Comm comm, int *ndims)
-    @mpichk ccall((:MPI_Cartdim_get, libmpi), Cint,
-                  (MPI_Comm, Ptr{Cint}),
-                  comm, dims)
+    API.MPI_Cartdim_get(comm, dims)
     return Int(dims[])
 end
 
@@ -138,9 +127,7 @@ function Cart_coords(comm::Comm, rank::Integer=Comm_rank(comm))
     maxdims = Cartdim_get(comm)
     coords = Vector{Cint}(undef, maxdims)
     # int MPI_Cart_coords(MPI_Comm comm, int rank, int maxdims, int coords[])
-    @mpichk ccall((:MPI_Cart_coords, libmpi), Cint,
-                  (MPI_Comm, Cint, Cint, Ptr{Cint}),
-                  comm, rank, maxdims, coords)
+    API.MPI_Cart_coords(comm, rank, maxdims, coords)
     return Int.(coords)
 end
 
@@ -158,9 +145,7 @@ function Cart_shift(comm::Comm, direction::Integer, disp::Integer)
     rank_dest   = Ref{Cint}()
     # int MPI_Cart_shift(MPI_Comm comm, int direction, int disp,
     #                    int *rank_source, int *rank_dest)
-    @mpichk ccall((:MPI_Cart_shift, libmpi), Cint,
-                  (MPI_Comm, Cint, Cint, Ptr{Cint}, Ptr{Cint}),
-                  comm, direction, disp, rank_source, rank_dest)
+    API.MPI_Cart_shift(comm, direction, disp, rank_source, rank_dest)
     Int(rank_source[]), Int(rank_dest[])
 end
 
@@ -182,12 +167,8 @@ function Cart_sub(comm::Comm, remain_dims)
     end
     comm_sub = Comm()
     # int MPI_Cart_sub(MPI_Comm comm, const int remain_dims[], MPI_Comm *comm_new)
-    @mpichk ccall((:MPI_Cart_sub, libmpi), Cint,
-                  (MPI_Comm, Ptr{Cint}, Ptr{MPI_Comm}),
-                  comm, remain_dims, comm_sub)
-    if comm_sub != COMM_NULL
-        finalizer(free, comm_sub)
-    end
+    API.MPI_Cart_sub(comm, remain_dims, comm_sub)
+    comm_sub != COMM_NULL && finalizer(free, comm_sub)
     comm_sub
 end
 
