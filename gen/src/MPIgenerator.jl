@@ -61,9 +61,8 @@ module MPIgenerator
         src, fn = joinpath(out, "api.jl"), replace(@__FILE__, r".*MPI.jl" => "MPI.jl")
         lines = String["# WARNING: this signature file for $(MPIPreferences.binary) has been auto-generated, please edit $fn instead !\n"]
         for line in readlines(src)
-            if startswith(lstrip(line), "ccall")
-                m = match(r".*:([\w_]+)", line)
-                sym = m ≡ nothing ? nothing : first(m.captures) |> Symbol
+            if (m = match(r"^ccall.*:([\w_]+)", lstrip(line))) ≢ nothing
+                sym = first(m.captures) |> Symbol
                 repl = sym ∈ mpicall ? "@mpicall ccall" : "@mpichk ccall"
                 line = replace(line, "Ptr{Cvoid}" => "MPIPtr", "ccall" => repl)
                 if sym ∈ keys(versioned)
