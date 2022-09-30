@@ -17,15 +17,6 @@ function deserialize(x)
     Serialization.deserialize(s)
 end
 
-primitive type SentinelPtr Sys.WORD_SIZE
-end
-
-primitive type MPIPtr Sys.WORD_SIZE
-end
-@assert sizeof(MPIPtr) == sizeof(Ptr{Cvoid})
-Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
-Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
-
 
 function _doc_external(fname)
 """
@@ -33,30 +24,24 @@ function _doc_external(fname)
 """
 end
 
+"""
+    MPIError
 
-import MPIPreferences
-
-if MPIPreferences.binary == "MPICH_jll"
-    import MPICH_jll: libmpi, libmpi_handle, mpiexec
-    const libmpiconstants = nothing
-elseif MPIPreferences.binary == "OpenMPI_jll"
-    import OpenMPI_jll: libmpi, libmpi_handle, mpiexec
-    const libmpiconstants = nothing
-elseif MPIPreferences.binary == "MicrosoftMPI_jll"
-    import MicrosoftMPI_jll: libmpi, libmpi_handle, mpiexec
-    const libmpiconstants = nothing
-elseif MPIPreferences.binary == "MPItrampoline_jll"
-    import MPItrampoline_jll: MPItrampoline_jll, libmpi, libmpi_handle, mpiexec
-    const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
-elseif MPIPreferences.binary == "system"
-    import MPIPreferences.System: libmpi, libmpi_handle, mpiexec
-    const libmpiconstants = nothing
-else
-    error("Unknown MPI binary: $(MPIPreferences.binary)")
+Error thrown when an MPI function returns an error code. The `code` field contains the MPI error code.
+"""
+struct MPIError <: Exception
+    code::Cint
+end
+function Base.show(io::IO, err::MPIError)
+    print(io, "MPIError(", err.code, "): ", error_string(err))
 end
 
-include("consts/consts.jl")
-using .Consts
+
+
+
+include("api/api.jl")
+using .API
+const Consts = API
 
 # These functions are run after reading the values of the constants above)
 const _mpi_load_time_hooks = Any[]
@@ -73,21 +58,9 @@ function run_load_time_hooks()
     nothing
 end
 
+using MPIPreferences
 include("implementations.jl")
 include("error.jl")
-
-module API
-    import ..libmpi, ..libmpi_handle, ..MPIPtr
-    import ..use_stdcall, ..MPIError, ..@mpicall, ..@mpichk
-    using ..Consts
-
-    for name in filter(n -> startswith(string(n), "MPI_"), names(Consts; all = true))
-        @eval $name = Consts.$name  # signatures need types
-    end
-
-    include("auto_generated_api.jl")
-end
-
 include("info.jl")
 include("group.jl")
 include("comm.jl")
@@ -157,7 +130,7 @@ function __init__()
     end
 
     if MPIPreferences.binary == "MPItrampoline_jll" && !haskey(ENV, "MPITRAMPOLINE_MPIEXEC")
-        ENV["MPITRAMPOLINE_MPIEXEC"] = MPItrampoline_jll.mpich_mpiexec_path
+        ENV["MPITRAMPOLINE_MPIEXEC"] = API.MPItrampoline_jll.mpich_mpiexec_path
     end
 
     run_load_time_hooks()
