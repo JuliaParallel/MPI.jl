@@ -30,12 +30,13 @@ if haskey(ENV,"JULIA_MPI_TEST_ABI")
     @test ENV["JULIA_MPI_TEST_ABI"] == MPIPreferences.abi
 end
 
+#=
 if Sys.isunix()
     # This test doesn't need to be run with mpiexec.  `mpiexecjl` is currently
     # available only on Unix systems
     include("mpiexecjl.jl")
 end
-
+=#
 testdir = @__DIR__
 istest(f) = endswith(f, ".jl") && startswith(f, "test_")
 testfiles = sort(filter(istest, readdir(testdir)))
