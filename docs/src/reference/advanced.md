@@ -14,6 +14,7 @@ MPI.to_type
 MPI.Types.extent
 MPI.Types.create_contiguous
 MPI.Types.create_vector
+MPI.Types.create_hvector
 MPI.Types.create_subarray
 MPI.Types.create_struct
 MPI.Types.create_resized

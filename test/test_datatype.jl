@@ -157,23 +157,32 @@ end
     # create_vector
     RowType = MPI.Types.create_vector(8, 1, 8, MPI.DOUBLE)
     @test typeof(RowType) == MPI.Datatype
+    @test MPI.Types.size(RowType) == 8MPI.Types.size(MPI.DOUBLE)
+
+    # create_hvector
+    DType = MPI.Types.create_hvector(8, 1, 8, MPI.DOUBLE)
+    @test typeof(DType) == MPI.Datatype
+    @test MPI.Types.size(DType) == 8MPI.Types.size(MPI.DOUBLE)
 
     # create_subarray
     SubMatrixType = MPI.Types.create_subarray((8, 8), (4, 4), (0, 0), MPI.INT64_T)
     @test typeof(SubMatrixType) == MPI.Datatype
+    @test MPI.Types.size(SubMatrixType) == 4^2 * MPI.Types.size(MPI.INT64_T)
 
     # create_struct + _resized
     oldtypes = MPI.Datatype.([Float32, Char, Float64])
     len = [4, 1, 1]
     disp = Vector{Int}(undef, 3)
     disp[1] = 0
-    disp[2] = disp[1] + 4 * sizeof(Float32)
+    disp[2] = disp[1] + 4sizeof(Float32)
     disp[3] = disp[2] + sizeof(Char)
 
     tmp = MPI.Types.create_struct(len, disp, oldtypes)
     @test typeof(tmp) == MPI.Datatype
+    @test MPI.Types.size(tmp) == sum(len .* MPI.Types.size.(oldtypes))
     ParticleMPI = MPI.Types.create_resized(tmp, 0, sizeof(Particle))
     @test typeof(ParticleMPI) == MPI.Datatype
+    @test MPI.Types.size(ParticleMPI) == sum(len .* MPI.Types.size.(oldtypes))
 end
 
 
