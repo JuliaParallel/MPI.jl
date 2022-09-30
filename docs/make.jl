@@ -71,6 +71,7 @@ makedocs(
             "reference/topology.md",
             "reference/io.md",
             "reference/advanced.md",
+            "reference/api.md",
         ],
         "refindex.md",
     ],
