@@ -209,6 +209,7 @@
         julia --color=yes --project=. -e '
             import Pkg
             Pkg.develop(; path = joinpath(pwd(), "lib", "MPIPreferences"))
+            Pkg.add(name="AMDGPU", rev="master")
             '
         julia --color=yes --project=test -e '
             using Pkg
