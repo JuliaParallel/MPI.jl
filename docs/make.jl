@@ -73,8 +73,7 @@ makedocs(
             "reference/advanced.md",
         ],
         "refindex.md",
-    ],
-    strict = true,
+    ]
 )
 
 deploydocs(
