@@ -205,22 +205,15 @@
         export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
         export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
 
-        echo "--- Setup Julia packages"
-        julia --color=yes --project=. -e '
-            import Pkg
-            Pkg.develop(; path = joinpath(pwd(), "lib", "MPIPreferences"))
-            Pkg.add(name="AMDGPU", rev="master")
-            '
+        echo "--- Setup Julia test environment"
         julia --color=yes --project=test -e '
             using Pkg
+            Pkg.develop(path=".")
             Pkg.develop(path="lib/MPIPreferences")
             using MPIPreferences
             MPIPreferences.use_system_binary(export_prefs=true)
-            rm("test/Manifest.toml")
+            Pkg.add(name="AMDGPU", rev="master")
             '
 
         echo "+++ Run tests"
-        julia --color=yes --project=. -e '
-           import Pkg
-           Pkg.test("MPI")
-           '
+        julia --color=yes --project=test test/runtests.jl
