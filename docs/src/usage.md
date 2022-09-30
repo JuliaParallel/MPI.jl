@@ -2,6 +2,12 @@
 
 MPI is based on a [single program, multiple data (SPMD)](https://en.wikipedia.org/wiki/SPMD) model, where multiple processes are launched running independent programs, which then communicate as necessary via messages.
 
+As the main entry point for users, `MPI.jl` provides a high-level interface which loosely follows the MPI C API and is described in details in the following sections.
+The syntax should look familiar if you know MPI already, but some arguments may not be needed (e.g. the type or the number of elements of arrays, which are inferred automatically), others may be placed slightly differently, and others may be optional keyword arguments (e.g. for the index of the root process, or the source and destination of point-to-point communication functions).
+
+In addition to the high-level interface, `MPI.jl` provides a [low-level API](@ref Low-level-API) which closely matches the MPI C API and from which it has been automatically generated.
+This is not intended for general usage, but it can be employed if a high-level wrapper is not yet available.
+
 ## Basic example
 
 A script should include `using MPI` and [`MPI.Init()`](@ref) statements before calling any MPI operations, for example
