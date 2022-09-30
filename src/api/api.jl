@@ -130,7 +130,7 @@ macro mpichk(expr, min_version=nothing)
 end
 
 
-include("auto_generated_api.jl")
+include("generated_api.jl")
 
 # since this is called by invokelatest, it isn't automatically precompiled
 precompile(init_consts, ())

@@ -80,7 +80,7 @@ module MPIgenerator
         end
         write(src, join(lines, "\n"))
 
-        dst = normpath(@__DIR__, "..", "..", "src", "auto_generated_api.jl")
+        dst = normpath(@__DIR__, "..", "..", "src", "api", "generated_api.jl")
         mv(src, dst; force=true)  # move the generated file to src
         rm(out)  # cleanup
 
