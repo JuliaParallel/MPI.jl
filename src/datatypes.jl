@@ -249,7 +249,7 @@ function create_vector(count::Integer, blocklength::Integer, stride::Integer, ol
 end
 function create_vector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
     # int MPI_Type_vector(int count, int blocklength, int stride,
-    #          MPI_Datatype oldtype, MPI_Datatype *newtype)
+    #                     MPI_Datatype oldtype, MPI_Datatype *newtype)
     API.MPI_Type_vector(count, blocklength, stride, oldtype, newtype)
     return newtype
 end
@@ -278,10 +278,8 @@ function create_hvector(count::Integer, blocklength::Integer, stride::Integer, o
 end
 function create_hvector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
     # int MPI_Type_create_hvector(int count, int blocklength, MPI_Aint stride,
-    #          MPI_Datatype oldtype, MPI_Datatype *newtype)
-    @mpichk ccall((:MPI_Type_create_hvector, libmpi), Cint,
-                  (Cint, Cint, Cint, MPI_Datatype, Ptr{MPI_Datatype}),
-                  count, blocklength, MPI_Aint(stride), oldtype, newtype)
+    #                             MPI_Datatype oldtype, MPI_Datatype *newtype)
+    API.MPI_Type_create_hvector(count, blocklength, MPI_Aint(stride), oldtype, newtype)
     return newtype
 end
 
