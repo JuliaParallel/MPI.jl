@@ -45,5 +45,5 @@ MPI.set_errorhandler!
 ## Miscellaneous
 
 ```@docs
-MPI.Consts.@const_ref
+MPI.API.@const_ref
 ```
