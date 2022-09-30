@@ -63,6 +63,7 @@ makedocs(
             "reference/mpipreferences.md",
             "reference/library.md",
             "reference/environment.md",
+            "reference/misc.md",
             "reference/comm.md",
             "reference/buffers.md",
             "reference/pointtopoint.md",

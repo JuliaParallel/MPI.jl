@@ -18,7 +18,6 @@ MPI.ThreadLevel
 ```@docs
 MPI.Abort
 MPI.Init
-MPI.Get_processor_name
 MPI.Query_thread
 MPI.Is_thread_main
 MPI.Initialized

@@ -2,8 +2,6 @@ include("common.jl")
 
 MPI.Init()
 
-@test MPI.Get_processor_name() == gethostname()
-
 comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
