@@ -18,13 +18,13 @@ module MPIgenerator
         mkpath(out)
 
         options = load_options(joinpath(@__DIR__, "generator.toml"))  # wrapper generator options
-
-        doc_url = if MPIPreferences.binary == "MPICH_jll"
-            fname -> "- `$fname` man page `https://www.mpich.org/static/docs/latest/www3/$fname.html`"
-        else
-            fname -> "- `$fname` man page `https://www.open-mpi.org/doc/current/man3/$fname.3.php`"
-        end
-        options["general"]["callback_documentation"] = node -> String[doc_url(node.id)]
+        options["general"]["callback_documentation"] = node -> String[
+            """
+            `$(node.id)` man page:
+            - [OpenMPI](https://www.open-mpi.org/doc/current/man3/$(node.id).3.php)
+            - [MPICH](https://www.mpich.org/static/docs/latest/www3/$(node.id).html)
+            """
+        ]
 
         include_dir = normpath(artifact_dir, "include")
 
