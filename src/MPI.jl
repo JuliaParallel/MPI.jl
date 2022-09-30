@@ -113,7 +113,7 @@ function __init__()
 
     # Needs to be called after `dlopen`. Use `invokelatest` so that `cglobal`
     # calls don't trigger early `dlopen`-ing of the library.
-    Base.invokelatest(Consts.init_consts)
+    Base.invokelatest(API.init_consts)
 
     # disable UCX memory cache, since it doesn't work correctly
     # https://github.com/openucx/ucx/issues/5061

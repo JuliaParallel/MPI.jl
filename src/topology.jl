@@ -53,7 +53,7 @@ function Cart_create(comm::Comm, dims; periodic = map(_->false, dims), reorder=f
     API.MPI_Cart_create(comm, length(dims), dims, periodic, reorder, comm_cart)
     comm_cart != COMM_NULL && finalizer(free, comm_cart)
     comm_cart
-end    
+end
 
 """
     rank = Cart_rank(comm::Comm, coords)
@@ -78,9 +78,9 @@ end
 """
     dims, periods, coords = Cart_get(comm::Comm)
 
-Obtain information on the Cartesian topology of dimension `N` underlying the 
+Obtain information on the Cartesian topology of dimension `N` underlying the
 communicator `comm`. This is specified by two `Cint` arrays of `N` elements
-for the number of processes and periodicity properties along each Cartesian dimension. 
+for the number of processes and periodicity properties along each Cartesian dimension.
 A third `Cint` array is returned, containing the Cartesian coordinates of the calling process.
 
 # External links
@@ -172,14 +172,14 @@ function Cart_sub(comm::Comm, remain_dims)
     comm_sub
 end
 
-struct Unweighted 
+struct Unweighted
 end
-Base.cconvert(::Type{Ptr{Cint}}, ::Unweighted) = Consts.MPI_UNWEIGHTED[] 
+Base.cconvert(::Type{Ptr{Cint}}, ::Unweighted) = API.MPI_UNWEIGHTED[]
 const UNWEIGHTED = Unweighted()
 
 struct WeightsEmpty
 end
-Base.cconvert(::Type{Ptr{Cint}}, ::WeightsEmpty) = Consts.MPI_WEIGHTS_EMPTY[] 
+Base.cconvert(::Type{Ptr{Cint}}, ::WeightsEmpty) = API.MPI_WEIGHTS_EMPTY[]
 const WEIGHTS_EMPTY = WeightsEmpty()
 
 """
@@ -230,7 +230,7 @@ Create a new communicator from a given directed graph topology, described by inc
 - `comm::Comm`: The communicator on which the distributed graph topology should be induced.
 - `sources::Vector{Cint}`: An array with the ranks for which this call will specify outgoing edges.
 - `degrees::Vector{Cint}`: An array with the number of outgoing edges for each entry in the sources array.
-- `destinations::Vector{Cint}`: An array containing with lenght of the sum of the entries in the degrees array 
+- `destinations::Vector{Cint}`: An array containing with lenght of the sum of the entries in the degrees array
                                 describing the ranks towards the edges point.
 - `weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=MPI.UNWEIGHTED`: The edge weights of the specified edges.
 - `reorder::Bool=false`: If set true, then the MPI implementation can reorder the source and destination indices.
@@ -310,7 +310,7 @@ Return the neighbors and edge weights of the calling process in a distributed gr
                         associated to the edges of the outgoing edges of the calling process point. The
                         length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
 
-# Example 
+# Example
 Let us assume the following graph `0 <-3-> 1 -4-> 2`, then the process with rank 1 will require to
 preallocate a sources vector of length 1 and a destination vector of length 2. The call will fill
 the vectors as follows:
@@ -327,8 +327,8 @@ julia> destination_weights
 [3,4]
 ```
 
-Note that the edge between ranks 0 and 1 can have a different weight depending on wether it is the 
-incoming edge "`(0,1)"` or the outgoing one "`(1,0)"`. 
+Note that the edge between ranks 0 and 1 can have a different weight depending on wether it is the
+incoming edge "`(0,1)"` or the outgoing one "`(1,0)"`.
 
 # External links
 $(_doc_external("MPI_Dist_graph_neighbors"))
@@ -338,7 +338,7 @@ function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_w
     #                              int maxindegree, int sources[], int sourceweights[],
     #                              int maxoutdegree, int destinations[], int destweights[])
     API.MPI_Dist_graph_neighbors(graph_comm,
-                                 length(sources), sources, source_weights, 
+                                 length(sources), sources, source_weights,
                                  length(destinations), destinations, destination_weights)
 end
 
@@ -349,14 +349,14 @@ Return the neighbors of the calling process in a distributed graph topology with
 
 # Arguments
 - `graph_comm::Comm`: The communicator of the distributed graph topology.
-- `sources::Vector{Cint}`: A preallocated vector, which will be filled with the ranks of the 
+- `sources::Vector{Cint}`: A preallocated vector, which will be filled with the ranks of the
                         processes whose edges pointing towards the calling process. The
                         length is exactly the indegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
 - `destinations::Vector{Cint}`: A preallocated vector, which will be filled with the ranks
                         of the processes towards which the edges of the calling process point. The
                         length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
 
-# Example 
+# Example
 Let us assume the following graph `0 <--> 1 --> 2`, then the process with rank 1 will require to
 preallocate a sources vector of length 1 and a destination vector of length 2. The call will fill
 the vectors as follows:

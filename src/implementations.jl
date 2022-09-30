@@ -13,7 +13,7 @@ function Get_library_version()
     buf = Array{UInt8}(undef, 8192)
     buflen = Ref{Cint}()
 
-    @mpicall ccall((:MPI_Get_library_version, libmpi), Cint, (Ptr{UInt8}, Ref{Cint}), buf, buflen)
+    API.MPI_Get_library_version(buf, buflen)
     @assert buflen[] < 8192
     resize!(buf, buflen[])
     return String(buf)
@@ -66,8 +66,7 @@ MPI_LIBRARY_VERSION
 function Get_version()
     major = Ref{Cint}()
     minor = Ref{Cint}()
-    @mpicall ccall((:MPI_Get_version, libmpi), Cint,
-                   (Ptr{Cint}, Ptr{Cint}), major, minor)
+    API.MPI_Get_version(major, minor)
     VersionNumber(major[], minor[])
 end
 

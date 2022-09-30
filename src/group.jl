@@ -11,10 +11,10 @@ Base.cconvert(::Type{MPI_Group}, group::Group) = group
 Base.unsafe_convert(::Type{MPI_Group}, group::Group) = group.val
 Base.unsafe_convert(::Type{Ptr{MPI_Group}}, group::Group) = convert(Ptr{MPI_Group}, pointer_from_objref(group))
 
-const GROUP_NULL = Group(Consts.MPI_GROUP_NULL[])
-const GROUP_EMPTY = Group(Consts.MPI_GROUP_EMPTY[])
-add_load_time_hook!(() -> GROUP_NULL.val = Consts.MPI_GROUP_NULL[])
-add_load_time_hook!(() -> GROUP_EMPTY.val = Consts.MPI_GROUP_EMPTY[])
+const GROUP_NULL = Group(API.MPI_GROUP_NULL[])
+const GROUP_EMPTY = Group(API.MPI_GROUP_EMPTY[])
+add_load_time_hook!(() -> GROUP_NULL.val = API.MPI_GROUP_NULL[])
+add_load_time_hook!(() -> GROUP_EMPTY.val = API.MPI_GROUP_EMPTY[])
 
 Group() = Group(GROUP_NULL.val)
 
@@ -76,14 +76,14 @@ An enum denoting the result of [`Comm_compare`](@ref):
 mutable struct Comparison
     val::Cint
 end
-const IDENT     = Comparison(Consts.MPI_IDENT[])
-const CONGRUENT = Comparison(Consts.MPI_CONGRUENT[])
-const SIMILAR   = Comparison(Consts.MPI_SIMILAR[])
-const UNEQUAL   = Comparison(Consts.MPI_UNEQUAL[])
-add_load_time_hook!(() -> IDENT.val     = Consts.MPI_IDENT[]    )
-add_load_time_hook!(() -> CONGRUENT.val = Consts.MPI_CONGRUENT[])
-add_load_time_hook!(() -> SIMILAR.val   = Consts.MPI_SIMILAR[]  )
-add_load_time_hook!(() -> UNEQUAL.val   = Consts.MPI_UNEQUAL[]  )
+const IDENT     = Comparison(API.MPI_IDENT[])
+const CONGRUENT = Comparison(API.MPI_CONGRUENT[])
+const SIMILAR   = Comparison(API.MPI_SIMILAR[])
+const UNEQUAL   = Comparison(API.MPI_UNEQUAL[])
+add_load_time_hook!(() -> IDENT.val     = API.MPI_IDENT[]    )
+add_load_time_hook!(() -> CONGRUENT.val = API.MPI_CONGRUENT[])
+add_load_time_hook!(() -> SIMILAR.val   = API.MPI_SIMILAR[]  )
+add_load_time_hook!(() -> UNEQUAL.val   = API.MPI_UNEQUAL[]  )
 Base.:(==)(tl1::Comparison, tl2::Comparison) = tl1.val == tl2.val
 
 function Group_compare(group1::Group, group2::Group)

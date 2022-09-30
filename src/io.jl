@@ -6,8 +6,8 @@ Base.cconvert(::Type{MPI_File}, file::FileHandle) = file
 Base.unsafe_convert(::Type{MPI_File}, file::FileHandle) = file.val
 Base.unsafe_convert(::Type{Ptr{MPI_File}}, file::FileHandle) = convert(Ptr{MPI_File}, pointer_from_objref(file))
 
-const FILE_NULL = FileHandle(Consts.MPI_FILE_NULL[])
-add_load_time_hook!(() -> FILE_NULL.val = Consts.MPI_FILE_NULL[])
+const FILE_NULL = FileHandle(API.MPI_FILE_NULL[])
+add_load_time_hook!(() -> FILE_NULL.val = API.MPI_FILE_NULL[])
 
 FileHandle() = FileHandle(FILE_NULL.val)
 
@@ -48,15 +48,15 @@ function open(comm::Comm, filename::AbstractString;
               infokws...)
     flags = Base.open_flags(read=read, write=write, create=create, truncate=nothing, append=append)
     amode = if flags.read
-        flags.write ? MPI.Consts.MPI_MODE_RDWR[] : MPI.Consts.MPI_MODE_RDONLY[]
+        flags.write ? MPI.API.MPI_MODE_RDWR[] : MPI.API.MPI_MODE_RDONLY[]
     else
-        flags.write ? MPI.Consts.MPI_MODE_WRONLY[] : zero(Cint)
+        flags.write ? MPI.API.MPI_MODE_WRONLY[] : zero(Cint)
     end
-    flags.write && (amode |= flags.create ? MPI.Consts.MPI_MODE_CREATE[] : MPI.Consts.MPI_MODE_EXCL[])
-    flags.append && (amode |= MPI.Consts.MPI_MODE_APPEND[])
-    sequential && (amode |= MPI.Consts.MPI_MODE_SEQUENTIAL[])
-    uniqueopen && (amode |= MPI.Consts.MPI_MODE_UNIQUE_OPEN[])
-    deleteonclose && (amode |= MPI.Consts.MPI_MODE_DELETE_ON_CLOSE[])
+    flags.write && (amode |= flags.create ? MPI.API.MPI_MODE_CREATE[] : MPI.API.MPI_MODE_EXCL[])
+    flags.append && (amode |= MPI.API.MPI_MODE_APPEND[])
+    sequential && (amode |= MPI.API.MPI_MODE_SEQUENTIAL[])
+    uniqueopen && (amode |= MPI.API.MPI_MODE_UNIQUE_OPEN[])
+    deleteonclose && (amode |= MPI.API.MPI_MODE_DELETE_ON_CLOSE[])
     open(comm, filename, amode, Info(infokws...))
 end
 
@@ -393,7 +393,7 @@ $(_doc_external("MPI_File_write_ordered"))
 function write_ordered(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_ordered(MPI_File fh, const void *buf, int count,
-    #              MPI_Datatype datatype, MPI_Status *status)    
+    #              MPI_Datatype datatype, MPI_Status *status)
     API.MPI_File_write_ordered(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
@@ -403,12 +403,12 @@ write_ordered(file::FileHandle, buf) = write_ordered(file, Buffer_send(buf))
 mutable struct Seek
     val::Cint
 end
-const SEEK_SET = Seek(MPI.Consts.MPI_SEEK_SET[])
-const SEEK_CUR = Seek(MPI.Consts.MPI_SEEK_CUR[])
-const SEEK_END = Seek(MPI.Consts.MPI_SEEK_END[])
-MPI.add_load_time_hook!(() -> SEEK_SET.val = MPI.Consts.MPI_SEEK_SET[])
-MPI.add_load_time_hook!(() -> SEEK_CUR.val = MPI.Consts.MPI_SEEK_CUR[])
-MPI.add_load_time_hook!(() -> SEEK_END.val = MPI.Consts.MPI_SEEK_END[])
+const SEEK_SET = Seek(MPI.API.MPI_SEEK_SET[])
+const SEEK_CUR = Seek(MPI.API.MPI_SEEK_CUR[])
+const SEEK_END = Seek(MPI.API.MPI_SEEK_END[])
+MPI.add_load_time_hook!(() -> SEEK_SET.val = MPI.API.MPI_SEEK_SET[])
+MPI.add_load_time_hook!(() -> SEEK_CUR.val = MPI.API.MPI_SEEK_CUR[])
+MPI.add_load_time_hook!(() -> SEEK_END.val = MPI.API.MPI_SEEK_END[])
 
 """
     MPI.File.seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)

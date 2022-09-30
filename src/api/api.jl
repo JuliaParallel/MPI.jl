@@ -73,7 +73,7 @@ Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
 
 
 # Initialize the ref constants from the library.
-# This is not `Consts.__init__`, as it should be called _after_
+# This is not `API.__init__`, as it should be called _after_
 # `dlopen` to ensure the library is opened correctly.
 @eval function init_consts()
     $(Expr(:block, initexprs...))

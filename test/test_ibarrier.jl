@@ -2,7 +2,7 @@ using Test
 using MPI
 
 function check_for_query(comm)
-    is_message, status = MPI.Iprobe(MPI.Consts.MPI_ANY_SOURCE[], MPI.Consts.MPI_ANY_TAG[], comm)
+    is_message, status = MPI.Iprobe(MPI.API.MPI_ANY_SOURCE[], MPI.API.MPI_ANY_TAG[], comm)
     if is_message
         recv_id = status.source
         tag_ind = status.tag
@@ -17,10 +17,10 @@ comm = MPI.COMM_WORLD
 myrank = MPI.Comm_rank(comm)
 mysize = MPI.Comm_size(comm)
 
-# First rank will send, one-at-a-time, the rank + 4 to each other rank. 
+# First rank will send, one-at-a-time, the rank + 4 to each other rank.
 #     They will then sum these and test if the sum is correct. Each rank > 0
 #     will be waiting at the Ibarrier for messages from 0 in order to test
-#     that the Ibarrier is working properly. 
+#     that the Ibarrier is working properly.
 # They then communicate back to 0 when they have received all messages to
 #     to allow it to reach the barrier.
 #
@@ -37,11 +37,11 @@ if myrank == 0
     rmsg   = MPI.Recv!(dummy, comm; source=ii, tag=ii)
   end
 end
-    
+
 
 
 all_done = false
-localsum = 0 
+localsum = 0
 msg_num = 0
 
 barrier_req = MPI.Ibarrier(comm)
@@ -54,7 +54,7 @@ while !all_done
   global msg_num
   global myrank
   is_request, recv_id, tag_ind = check_for_query(comm)
-  if is_request 
+  if is_request
     dummy    = [0]
     rmsg     = MPI.Recv!(dummy, comm; source=recv_id, tag=tag_ind)
     msg_num += 1
@@ -64,7 +64,7 @@ while !all_done
     end
   end # is_request
   all_done = MPI.Test(barrier_req)
-end # !all_done 
+end # !all_done
 
 if myrank > 0
   @test localsum == 10 * (myrank + 4)

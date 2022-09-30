@@ -12,8 +12,8 @@ Base.unsafe_convert(::Type{MPI_Comm}, comm::Comm) = comm.val
 Base.unsafe_convert(::Type{Ptr{MPI_Comm}}, comm::Comm) = convert(Ptr{MPI_Comm}, pointer_from_objref(comm))
 
 
-const COMM_NULL = Comm(Consts.MPI_COMM_NULL[])
-add_load_time_hook!(() -> COMM_NULL.val = Consts.MPI_COMM_NULL[])
+const COMM_NULL = Comm(API.MPI_COMM_NULL[])
+add_load_time_hook!(() -> COMM_NULL.val = API.MPI_COMM_NULL[])
 
 """
     MPI.COMM_WORLD
@@ -21,16 +21,16 @@ add_load_time_hook!(() -> COMM_NULL.val = Consts.MPI_COMM_NULL[])
 A communicator containing all processes with which the local rank can communicate at
 initialization. In a typical "static-process" model, this will be all processes.
 """
-const COMM_WORLD = Comm(Consts.MPI_COMM_WORLD[])
-add_load_time_hook!(() -> COMM_WORLD.val = Consts.MPI_COMM_WORLD[])
+const COMM_WORLD = Comm(API.MPI_COMM_WORLD[])
+add_load_time_hook!(() -> COMM_WORLD.val = API.MPI_COMM_WORLD[])
 
 """
     MPI.COMM_SELF
 
 A communicator containing only the local process.
 """
-const COMM_SELF = Comm(Consts.MPI_COMM_SELF[])
-add_load_time_hook!(() -> COMM_SELF.val = Consts.MPI_COMM_SELF[])
+const COMM_SELF = Comm(API.MPI_COMM_SELF[])
+add_load_time_hook!(() -> COMM_SELF.val = API.MPI_COMM_SELF[])
 
 Comm() = Comm(COMM_NULL.val)
 
@@ -173,7 +173,7 @@ $(_doc_external("MPI_Comm_split"))
 """
 function Comm_split(comm::Comm, color::Union{Integer, Nothing}, key::Integer)
     if isnothing(color)
-        color = Consts.MPI_UNDEFINED[]
+        color = API.MPI_UNDEFINED[]
     end
     newcomm = Comm()
     API.MPI_Comm_split(comm, color, key, newcomm)
@@ -185,7 +185,7 @@ mutable struct SplitType
     val::Cint
 end
 const COMM_TYPE_SHARED = SplitType(-1)
-add_load_time_hook!(() -> COMM_TYPE_SHARED.val     = Consts.MPI_COMM_TYPE_SHARED[])
+add_load_time_hook!(() -> COMM_TYPE_SHARED.val     = API.MPI_COMM_TYPE_SHARED[])
 
 
 """
@@ -205,7 +205,7 @@ $(_doc_external("MPI_Comm_split_type"))
 """
 function Comm_split_type(comm::Comm, split_type, key::Integer; kwargs...)
     if isnothing(split_type)
-        split_type = Consts.MPI_UNDEFINED[]
+        split_type = API.MPI_UNDEFINED[]
     elseif split_type isa SplitType
         split_type = split_type.val
     end
@@ -276,7 +276,7 @@ The total number of available slots, or `nothing` if it is not defined. This is 
 This is typically dependent on the MPI implementation: for MPICH-based implementations, this is specified by the `-usize` argument. OpenMPI defines a default value based on the number of processes available.
 """
 function universe_size()
-    ptr = unsafe_get_attr(COMM_WORLD, Consts.MPI_UNIVERSE_SIZE[])
+    ptr = unsafe_get_attr(COMM_WORLD, API.MPI_UNIVERSE_SIZE[])
     isnothing(ptr) && return nothing
     return Int(unsafe_load(Ptr{Cint}(ptr)))
 end
@@ -287,7 +287,7 @@ end
 The maximum value tag value for point-to-point operations.
 """
 function tag_ub()
-    ptr = something(unsafe_get_attr(COMM_WORLD, Consts.MPI_TAG_UB[]))
+    ptr = something(unsafe_get_attr(COMM_WORLD, API.MPI_TAG_UB[]))
     return Int(unsafe_load(Ptr{Cint}(ptr)))
 end
 

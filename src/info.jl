@@ -33,8 +33,8 @@ Base.cconvert(::Type{MPI_Info}, info::Info) = info
 Base.unsafe_convert(::Type{MPI_Info}, info::Info) = info.val
 Base.unsafe_convert(::Type{Ptr{MPI_Info}}, info::Info) = convert(Ptr{MPI_Info}, pointer_from_objref(info))
 
-const INFO_NULL = Info(Consts.MPI_INFO_NULL[])
-add_load_time_hook!(() -> INFO_NULL.val = Consts.MPI_INFO_NULL[])
+const INFO_NULL = Info(API.MPI_INFO_NULL[])
+add_load_time_hook!(() -> INFO_NULL.val = API.MPI_INFO_NULL[])
 
 function Info(;init=false)
     info = Info(INFO_NULL.val)
@@ -56,7 +56,7 @@ end
 function Base.setindex!(info::Info, value::AbstractString, key::Symbol)
     skey = String(key)
     @assert isascii(skey) && isascii(value) &&
-        length(skey) <= Consts.MPI_MAX_INFO_KEY && length(value) <= Consts.MPI_MAX_INFO_VAL
+        length(skey) <= API.MPI_MAX_INFO_KEY && length(value) <= API.MPI_MAX_INFO_VAL
     API.MPI_Info_set(info, skey, value)
 end
 
@@ -86,7 +86,7 @@ end
 
 function Base.getindex(info::Info, key::Symbol)
     skey = String(key)
-    @assert isascii(skey) && length(skey) <= Consts.MPI_MAX_INFO_KEY
+    @assert isascii(skey) && length(skey) <= API.MPI_MAX_INFO_KEY
     valuelen = Ref{Cint}()
     flag = Ref{Cint}()
     # int MPI_Info_get_valuelen(MPI_Info info, const char *key, int *valuelen, int *flag)
@@ -109,7 +109,7 @@ end
 
 function Base.delete!(info::Info,key::Symbol)
     skey = String(key)
-    @assert isascii(skey) && length(skey) <= Consts.MPI_MAX_INFO_KEY
+    @assert isascii(skey) && length(skey) <= API.MPI_MAX_INFO_KEY
     API.MPI_Info_delete(info, skey)
 end
 
@@ -123,7 +123,7 @@ function Base.length(info::Info)
 end
 
 function nthkey(info::Info, n::Integer)
-    buffer = Vector{UInt8}(undef, Consts.MPI_MAX_INFO_KEY+1)
+    buffer = Vector{UInt8}(undef, API.MPI_MAX_INFO_KEY+1)
     API.MPI_Info_get_nthkey(info, n, buffer)
     i = findfirst(isequal(UInt8(0)), buffer)
     if i !== nothing
