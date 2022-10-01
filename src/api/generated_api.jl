@@ -1,15 +1,6 @@
 # WARNING: this signature file for MPICH_jll has been auto-generated, please edit MPI.jl/gen/src/MPIgenerator.jl instead !
 
 """
-    MPIR_Dup_fn(oldcomm, keyval, extra_state, attribute_val_in, attribute_val_out, flag)
-
-- man page: [OpenMPI](https://www.open-mpi.org/doc/current/man3/MPIR_Dup_fn.3.php), [MPICH](https://www.mpich.org/static/docs/latest/www3/MPIR_Dup_fn.html)
-"""
-function MPIR_Dup_fn(oldcomm, keyval, extra_state, attribute_val_in, attribute_val_out, flag)
-    @mpichk ccall((:MPIR_Dup_fn, libmpi), Cint, (MPI_Comm, Cint, MPIPtr, MPIPtr, MPIPtr, Ptr{Cint}), oldcomm, keyval, extra_state, attribute_val_in, attribute_val_out, flag)
-end
-
-"""
     MPI_Wait(request, status)
 
 - man page: [OpenMPI](https://www.open-mpi.org/doc/current/man3/MPI_Wait.3.php), [MPICH](https://www.mpich.org/static/docs/latest/www3/MPI_Wait.html)
