@@ -18,7 +18,7 @@ module MPIgenerator
         mkpath(out)
 
         options = load_options(joinpath(@__DIR__, "generator.toml"))  # wrapper generator options
-        options["general"]["callback_documentation"] = node -> [string('$', "(_doc_external(", node.id, "))")]
+        options["general"]["callback_documentation"] = node -> [string('$', "(_doc_external(:", node.id, "))")]
 
         include_dir = normpath(artifact_dir, "include")
 
@@ -70,7 +70,7 @@ module MPIgenerator
                     line *= " $(repr(ver))"
                 end
             end
-            push!(lines, line)
+            push!(lines, replace(line, raw"\$" => '$'))
         end
         write(src, join(lines, "\n"))
 
