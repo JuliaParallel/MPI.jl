@@ -19,11 +19,7 @@ module MPIgenerator
 
         options = load_options(joinpath(@__DIR__, "generator.toml"))  # wrapper generator options
         options["general"]["callback_documentation"] = node -> String[
-            """
-            `$(node.id)` man page:
-            - [OpenMPI](https://www.open-mpi.org/doc/current/man3/$(node.id).3.php)
-            - [MPICH](https://www.mpich.org/static/docs/latest/www3/$(node.id).html)
-            """
+            "- man page: [OpenMPI](https://www.open-mpi.org/doc/current/man3/$(node.id).3.php), [MPICH](https://www.mpich.org/static/docs/latest/www3/$(node.id).html)"
         ]
 
         include_dir = normpath(artifact_dir, "include")
