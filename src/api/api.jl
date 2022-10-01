@@ -27,7 +27,7 @@ else
     error("Unknown MPI binary: $(MPIPreferences.binary)")
 end
 
-import ..MPIError
+import ..MPIError, .._doc_external
 const initexprs = Any[]
 
 """
