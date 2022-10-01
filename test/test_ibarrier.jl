@@ -2,7 +2,7 @@ using Test
 using MPI
 
 function check_for_query(comm)
-    is_message, status = MPI.Iprobe(MPI.API.MPI_ANY_SOURCE[], MPI.API.MPI_ANY_TAG[], comm)
+    is_message, status = MPI.Iprobe(MPI.ANY_SOURCE, MPI.ANY_TAG, comm)
     if is_message
         recv_id = status.source
         tag_ind = status.tag

@@ -14,7 +14,7 @@ disp = 1
 
 for i in 0:2
     neighbors = MPI.Cart_shift(comm_cart, i, disp)
-    @test all(rank ->  0 <= rank < nnodes || rank == MPI.API.MPI_PROC_NULL[], neighbors)
+    @test all(rank ->  0 <= rank < nnodes || rank == MPI.PROC_NULL, neighbors)
 end
 
 comm_cart = nothing

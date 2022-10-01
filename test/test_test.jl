@@ -28,9 +28,9 @@ inds = MPI.Waitsome(reqs)
 for ind in inds
     (onedone,stat) = MPI.Test(reqs[ind], MPI.Status)
     @test onedone
-    @test MPI.Get_tag(stat) == MPI.API.MPI_ANY_TAG[]
-    @test MPI.Get_source(stat) == MPI.API.MPI_ANY_SOURCE[]
-    @test MPI.Get_error(stat) == MPI.API.MPI_SUCCESS[]
+    @test MPI.Get_tag(stat) == MPI.ANY_TAG
+    @test MPI.Get_source(stat) == MPI.ANY_SOURCE
+    @test MPI.Get_error(stat) == MPI.SUCCESS
     @test MPI.Get_count(stat, Float64) == 0
 end
 
@@ -38,9 +38,9 @@ done, ind = MPI.Testany(reqs)
 if done && !isnothing(ind)
     (onedone,stat) = MPI.Test(reqs[ind], MPI.Status)
     @test onedone
-    @test MPI.Get_tag(stat) == MPI.API.MPI_ANY_TAG[]
-    @test MPI.Get_source(stat) == MPI.API.MPI_ANY_SOURCE[]
-    @test MPI.Get_error(stat) == MPI.API.MPI_SUCCESS[]
+    @test MPI.Get_tag(stat) == MPI.ANY_TAG
+    @test MPI.Get_source(stat) == MPI.ANY_SOURCE
+    @test MPI.Get_error(stat) == MPI.SUCCESS
     @test MPI.Get_count(stat, Float64) == 0
 end
 

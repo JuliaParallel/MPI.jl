@@ -1,5 +1,41 @@
 import Base: eltype
 
+
+const SUCCESS = Cint(0)
+
+@static if VERSION >= v"1.8"
+    PROC_NULL::Cint = typemin(Cint)
+    ANY_SOURCE::Cint = typemin(Cint)
+    ANY_TAG::Cint = typemin(Cint)
+end
+add_load_time_hook!() do
+    global PROC_NULL = API.MPI_PROC_NULL[]
+    global ANY_SOURCE = API.MPI_ANY_SOURCE[]
+    global ANY_TAG = API.MPI_ANY_TAG[]
+end
+
+"""
+    MPI.PROC_NULL
+
+A dummy value that can be used instead of a rank wherever a source or a
+destination argument is required in a call. A send
+"""
+PROC_NULL
+
+"""
+    MPI.ANY_SOURCE
+
+A wild card value for receive or probe operations that matches any source rank.
+"""
+ANY_SOURCE
+
+"""
+    MPI.ANY_TAG
+
+A wild card value for receive or probe operations that matches any tag.
+"""
+ANY_TAG
+
 """
     MPI.Status
 

@@ -22,6 +22,14 @@ MPI.Status.error::Cint
 MPI.Get_count
 ```
 
+### Constants
+
+```@docs
+MPI.PROC_NULL
+MPI.ANY_SOURCE
+MPI.ANY_TAG
+```
+
 ## Blocking communication
 
 ```@docs

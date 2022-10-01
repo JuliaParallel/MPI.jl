@@ -129,5 +129,11 @@ MPI.Sendrecv!(a, b,  comm_cart;
 
 @test MPI.Waitall(MPI.Request[], MPI.Status) == MPI.Status[]
 
+# PROC_NULL
+X = collect(1:10)
+MPI.Send(X, MPI.COMM_WORLD; tag=1, dest=MPI.PROC_NULL)
+MPI.Recv!(X, MPI.COMM_WORLD; tag=1, source=MPI.PROC_NULL)
+@test X == collect(1:10)
+
 MPI.Finalize()
 # @test MPI.Finalized()

@@ -88,9 +88,9 @@ end
 
 """
     data = Recv!(recvbuf, comm::Comm;
-            source::Integer=MPI_ANY_SOURCE, tag::Integer=MPI_ANY_TAG)
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
     data, status = Recv!(recvbuf, comm::Comm, MPI.Status;
-            source::Integer=MPI_ANY_SOURCE, tag::Integer=MPI_ANY_TAG)
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
 Completes a blocking receive into the buffer `recvbuf` from MPI rank `source` of communicator
 `comm` using with the message tag `tag`.
@@ -125,9 +125,9 @@ end
 
 """
     data = Recv(::Type{T}, comm::Comm;
-            source::Integer=MPI_ANY_SOURCE, tag::Integer=MPI_ANY_TAG)
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
     data, status = Recv(::Type{T}, comm::Comm, MPI.Status;
-            source::Integer=MPI_ANY_SOURCE, tag::Integer=MPI_ANY_TAG)
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
 Completes a blocking receive of a single `isbits` object of type `T` from MPI rank `source` of
 communicator `comm` using with the message tag `tag`.
@@ -156,9 +156,9 @@ end
 
 """
     obj = recv(comm::Comm;
-            source::Integer=MPI_ANY_SOURCE, tag::Integer=MPI_ANY_TAG)
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
     obj, status = recv(comm::Comm, MPI.Status;
-            source::Integer=MPI_ANY_SOURCE, tag::Integer=MPI_ANY_TAG)
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
 Completes a blocking receive of a serialized object from MPI rank `source` of communicator
 `comm` using with the message tag `tag`.
@@ -184,7 +184,7 @@ end
 
 """
     req = Irecv!(recvbuf, comm::Comm;
-            source::Integer=MPI_ANY_SOURCE, tag::Integer=MPI_ANY_TAG)
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
 Starts a nonblocking receive into the buffer `data` from MPI rank `source` of communicator
 `comm` using with the message tag `tag`.
@@ -222,9 +222,9 @@ end
 
 """
     data = Sendrecv!(sendbuf, recvbuf, comm;
-            dest::Integer, sendtag::Integer=0, source::Integer=MPI_ANY_SOURCE, recvtag::Integer=MPI_ANY_TAG)
+            dest::Integer, sendtag::Integer=0, source::Integer=MPI.ANY_SOURCE, recvtag::Integer=MPI.ANY_TAG)
     data, status = Sendrecv!(sendbuf, recvbuf, comm, MPI.Status;
-            dest::Integer, sendtag::Integer=0, source::Integer=MPI_ANY_SOURCE, recvtag::Integer=MPI_ANY_TAG)
+            dest::Integer, sendtag::Integer=0, source::Integer=MPI.ANY_SOURCE, recvtag::Integer=MPI.ANY_TAG)
 
 Complete a blocking send-receive operation over the MPI communicator `comm`. Send `sendbuf`
 to the MPI rank `dest` using message tag `sendtag`, and receive from MPI rank `source` into the
