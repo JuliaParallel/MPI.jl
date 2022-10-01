@@ -15,7 +15,7 @@ a single source of truth that can be used for JLL packages (Julia packages provi
 that link against MPI. It can be installed by
 
 ```sh
-julia -e 'using Pkg; Pkg.add("MPIPreferences")'
+julia --project -e 'using Pkg; Pkg.add("MPIPreferences")'
 ```
 
 ## Using a system-provided MPI backend
@@ -94,7 +94,7 @@ Preferences are merged across the Julia load path, such that it is feasible to p
    behavior of the Julia load path, e.g. `JULIA_LOAD_PATH=":/software/mpi/julia"`.
    If using environment modules, this can be achieved with
    ```
-   append-path  -d {} JULIA_LOAD_PATH :/software/mpi/julia
+   append-path -d {} JULIA_LOAD_PATH :/software/mpi/julia
    ```
    in the corresponding module file (preferably the module file for the MPI installation or for Julia).
 
