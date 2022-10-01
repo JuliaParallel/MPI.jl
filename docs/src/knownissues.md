@@ -103,10 +103,9 @@ Make sure to:
     export JULIA_CUDA_USE_BINARYBUILDER=false
     ```
 - Add CUDA, MPIPreferences, and MPI packages in Julia. Switch to using the system binary
-    ```
-    julia -e 'using Pkg; pkg"add CUDA, MPIPreferences, MPI"'
-    julia -e 'using MPIPreferences; MPIPreferences.use_system_binary()'
-    ```
+  ```
+  julia --project -e 'using Pkg; Pkg.add(["CUDA", "MPIPreferences", "MPI"]); using MPIPreferences; MPIPreferences.use_system_binary()'
+  ```
 - Then in Julia, upon loading MPI and CUDA modules, you can check
   - CUDA version: `CUDA.versioninfo()`
   - If MPI has CUDA: `MPI.has_cuda()`
@@ -120,10 +119,10 @@ After that, it may be preferred to run the Julia MPI script (as suggested [here]
 
 Make sure to:
 - Have MPI and ROCm on path (or module loaded) that were used to build the ROCm-aware MPI
-- Add AMDGPU and MPI packages in Julia: 
-    ```
-    julia -e 'using Pkg; pkg"add AMDGPU"; pkg"add MPI"; using MPI; MPI.use_system_binary()'
-    ```
+- Add AMDGPU, MPIPreferences, and MPI packages in Julia:
+  ```
+  julia --project -e 'using Pkg; Pkg.add(["AMDGPU", "MPIPreferences", "MPI"]); using MPIPreferences; MPIPreferences.use_system_binary()'
+  ```
 - Then in Julia, upon loading MPI and CUDA modules, you can check
   - AMDGPU version: `AMDGPU.versioninfo()`
   - If you are using correct MPI implementation: `MPI.identify_implementation()`
