@@ -8,14 +8,6 @@ MPI.RequestSet
 MPI.Status
 ```
 
-### Fields
-
-```
-MPI.Status.source::Cint
-MPI.Status.tag::Cint
-MPI.Status.error::Cint
-```
-
 ### Accessors
 
 ```@docs
