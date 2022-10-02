@@ -231,7 +231,7 @@ jobs:
 
     env:
       JULIA_MPI_TEST_BINARY: system
-      JULIA_MPI_TEST_ABi: MPICH
+      JULIA_MPI_TEST_ABI: MPICH
 
     steps:
     - name: Checkout
@@ -289,6 +289,74 @@ jobs:
     - name: "Run tests"
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+        julia --color=yes --project -e 'using Pkg; Pkg.test()'
+
+
+  test-oneapi-linux:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        julia_version:
+          - "1"
+
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_ABI: MPICH
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Cache oneAPI MPI
+      id: cache-oneapi-mpi
+      uses: actions/cache@v3
+      with:
+        path: l_mpi_oneapi_p_2021.7.0.8711_offline.sh
+        key: ${{ runner.os }}-oneapi-mpi-2021.7.0.08711
+
+    - name: Download oneAPI MPI
+      if: steps.cache-oneapi-mpi.outputs.cache-hit != 'true'
+      run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/18926/l_mpi_oneapi_p_2021.7.0.8711_offline.sh
+
+    - name: Install oneAPI MPI
+      run: |
+        chmod +x l_mpi_oneapi_p_2021.7.0.8711_offline.sh
+        ./l_mpi_oneapi_p_2021.7.0.8711_offline.sh \
+            -a \
+            --silent \
+            --eula accept \
+            --ignore-errors \
+            --install-dir ${HOME}/oneapi \
+
+    - uses: julia-actions/setup-julia@v1
+      with:
+        version: ${{ matrix.julia_version }}
+
+    - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: add MPIPreferences, use system
+      run: |
+        source ${HOME}/oneapi/setvars.sh
+        julia --color=yes --project=test -e '
+          using Pkg
+          Pkg.develop(path="lib/MPIPreferences")
+          using MPIPreferences
+          MPIPreferences.use_system_binary(export_prefs=true)
+          rm("test/Manifest.toml")'
+
+    # we can't use the usual actions here as we need to ensure the environment variables are set
+    - name: "Run tests"
+      run: |
+        source ${HOME}/oneapi/setvars.sh
         julia --color=yes --project -e 'using Pkg; Pkg.test()'
 
 

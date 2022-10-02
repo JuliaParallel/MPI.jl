@@ -197,8 +197,11 @@ function identify_implementation_version_abi(version_string::AbstractString)
     elseif startswith(version_string, "Intel")
         impl = "IntelMPI"
 
-        # "Intel(R) MPI Library 2019 Update 4 for Linux* OS"
-        if (m = match(r"^Intel\(R\) MPI Library (\d+)(?: Update (\d+))?", version_string)) !== nothing
+        # Old IntelMPI:
+        #   "Intel(R) MPI Library 2019 Update 4 for Linux* OS"
+        # New oneAPI MPI:
+        #   "Intel(R) MPI Library 2021.6 for Linux* OS\n"
+        if (m = match(r"^Intel\(R\) MPI Library (\d+)(?:(?: Update |\.)?(\d+))?", version_string)) !== nothing
             if m.captures[2] === nothing
                 version = VersionNumber(m.captures[1])
             else
