@@ -2,6 +2,9 @@ name: Invalidations
 
 on:
   pull_request:
+    paths:
+      - 'src/**'
+      - 'lib/**'
 
 concurrency:
   # Skip intermediate builds: always.
