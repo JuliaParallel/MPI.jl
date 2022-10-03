@@ -215,11 +215,11 @@ end
 
 """
     RequestSet(requests::Vector{Request})
+    RequestSet() # create an empty RequestSet
 
 A wrapper for an array of `Request`s that can be used to reduce intermediate memory
 allocations in [`Waitall`](@ref), [`Testall`](@ref), [`Waitany`](@ref), [`Testany`](@ref),
 [`Waitsome`](@ref) or [`Testsome`](@ref).
-
 """
 struct RequestSet <: AbstractVector{Request}
     requests::Vector{Request}
@@ -234,6 +234,7 @@ function RequestSet(requests::Vector{Request})
     end
     return RequestSet(requests, vals)
 end
+RequestSet() = RequestSet(Request[])
 
 Base.length(reqs::RequestSet) = length(reqs.requests)
 Base.getindex(reqs::RequestSet, i::Integer) = reqs.requests[i]
@@ -263,6 +264,9 @@ Block until all active requests in the array `reqs` are complete.
 
 The optional `statuses` or `Status` argument can be used to obtain the return `Status` of
 each request.
+
+# See also
+- [`RequestSet`](@ref) can be used to minimize allocations
 
 # External links
 $(_doc_external("MPI_Waitall"))
@@ -296,6 +300,9 @@ returned.
 The optional `statuses` or `Status` argument can be used to obtain the return `Status` of
 each request.
 
+# See also
+- [`RequestSet`](@ref) can be used to minimize allocations
+
 # External links
 $(_doc_external("MPI_Testall"))
 """
@@ -327,6 +334,9 @@ complete, one is chosen arbitrarily. The request is deallocated and the (1-based
 If there are no active requests, then `i = nothing`.
 
 The optional `status` argument can be used to obtain the return `Status` of the request.
+
+# See also
+- [`RequestSet`](@ref) can be used to minimize allocations
 
 # External links
 $(_doc_external("MPI_Waitany"))
@@ -365,6 +375,9 @@ If there are no active requests, `flag = true` and `idx = nothing`.
 
 The optional `status` argument can be used to obtain the return `Status` of the request.
 
+# See also
+- [`RequestSet`](@ref) can be used to minimize allocations
+
 # External links
 $(_doc_external("MPI_Testany"))
 """
@@ -399,6 +412,9 @@ If there are no active requests, then `inds = nothing`.
 
 The optional `statuses` argument can be used to obtain the return `Status` of each
 completed request.
+
+# See also
+- [`RequestSet`](@ref) can be used to minimize allocations
 
 # External links
 $(_doc_external("MPI_Waitsome"))
@@ -437,6 +453,9 @@ If there are no active requests, then the function returns `nothing`.
 
 The optional `statuses` argument can be used to obtain the return `Status` of each
 completed request.
+
+# See also
+- [`RequestSet`](@ref) can be used to minimize allocations
 
 # External links
 $(_doc_external("MPI_Testsome"))

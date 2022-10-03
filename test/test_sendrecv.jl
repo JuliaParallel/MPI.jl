@@ -18,10 +18,13 @@ recv_mesg_expected = ArrayType{Float64}(undef,N)
 fill!(send_mesg, Float64(rank))
 fill!(recv_mesg_expected, Float64(src))
 
+MPI.Waitall(MPI.RequestSet())
+
 rreq = MPI.Irecv!(recv_mesg, comm; source=src,  tag=src+32)
 sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=rank+32)
+reqs = MPI.RequestSet([sreq, rreq])
 
-stats = MPI.Waitall([sreq, rreq], MPI.Status)
+stats = MPI.Waitall(reqs, MPI.Status)
 @test rreq isa MPI.Request
 @test sreq isa MPI.Request
 @test MPI.Get_source(stats[2]) == src
@@ -29,7 +32,7 @@ stats = MPI.Waitall([sreq, rreq], MPI.Status)
 @test MPI.Get_count(stats[2], Float64) == N
 @test recv_mesg == recv_mesg_expected
 
-@test MPI.Testall([sreq, rreq])
+@test MPI.Testall(reqs)
 
 
 if size > 1
