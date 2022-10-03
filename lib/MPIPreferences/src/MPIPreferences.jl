@@ -50,7 +50,7 @@ end
 end
 
 """
-    MPIPreferences.use_jll_binary(binary; export_prefs=false, force=true)
+    MPIPreferences.use_jll_binary([binary]; export_prefs=false, force=true)
 
 Switches the underlying MPI implementation to one provided by JLL packages.
 Available options are:
