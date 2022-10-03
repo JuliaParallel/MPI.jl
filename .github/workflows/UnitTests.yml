@@ -152,14 +152,11 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - name: add MPIPreferences, use system
-      shell: julia --color=yes --project=test {0}
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
       run: |
-        using Pkg
-        Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
-        MPIPreferences.use_system_binary(export_prefs=true)
-        rm("test/Manifest.toml")
+        MPIPreferences.use_system_binary()
 
     - uses: julia-actions/julia-runtest@latest
       env:
@@ -207,14 +204,11 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - name: add MPIPreferences, use system
-      shell: julia --color=yes --project=test {0}
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
       run: |
-        using Pkg
-        Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
-        MPIPreferences.use_system_binary(export_prefs=true)
-        rm("test/Manifest.toml")
+        MPIPreferences.use_system_binary()
 
     - uses: julia-actions/julia-runtest@latest
 
@@ -279,11 +273,8 @@ jobs:
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
         julia --color=yes --project=test -e '
-          using Pkg
-          Pkg.develop(path="lib/MPIPreferences")
           using MPIPreferences
-          MPIPreferences.use_system_binary(export_prefs=true)
-          rm("test/Manifest.toml")'
+          MPIPreferences.use_system_binary()'
 
     # we can't use the usual actions here as we need to ensure the environment variables are set
     - name: "Run tests"
@@ -346,12 +337,9 @@ jobs:
     - name: add MPIPreferences, use system
       run: |
         source ${HOME}/oneapi/setvars.sh
-        julia --color=yes --project=test -e '
-          using Pkg
-          Pkg.develop(path="lib/MPIPreferences")
+        julia --color=yes --project=. -e '
           using MPIPreferences
-          MPIPreferences.use_system_binary(export_prefs=true)
-          rm("test/Manifest.toml")'
+          MPIPreferences.use_system_binary()'
 
     # we can't use the usual actions here as we need to ensure the environment variables are set
     - name: "Run tests"
