@@ -18,6 +18,11 @@ that link against MPI. It can be installed by
 julia -e 'using Pkg; Pkg.add("MPIPreferences")'
 ```
 
+!!! note
+    The way how MPI.jl is configured has changed with MPI.jl v0.20.
+    See [Migration from MPI.jl v0.19 or earlier](@ref) for more information on
+    how to migrate your configuration from earlier MPI.jl versions.
+
 ## Using a system-provided MPI backend
 
 ### Requirements
@@ -35,7 +40,7 @@ standard or later. The following MPI implementations should work out-of-the-box 
 - [Fujitsu MPI](https://www.fujitsu.com/global/about/resources/publications/technicalreview/2020-03/article07.html#cap-03)
 - [HPE MPT/HMPT](https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&docId=a00105727en_us)
 
-### Configuration
+### [Configuration](@id configure_system_binary)
 
 Run `MPIPreferences.use_system_binary()`. This will attempt to locate and to identify any available MPI implementation, and create a file called `LocalPreferences.toml` adjacent to the current `Project.toml`.
 
@@ -56,7 +61,7 @@ If the implementation is changed, you will need to call this function again. See
     To fix this update your version of Julia, or add `MPIPreferences` as a direct dependency to your project.
 
 
-### Notes to HPC cluster adminstators
+### Notes to HPC cluster administrators
 
 Preferences are merged across the Julia load path, such that it is feasible to provide a module file that appends a path to
 `JULIA_LOAD_PATH` variable that contains system-wide preferences. The steps are as follows:
@@ -100,7 +105,7 @@ Preferences are merged across the Julia load path, such that it is feasible to p
    that will take precedent by modifying the local `Project.toml` or by providing a
    `LocalPreferences.toml` file.
 
-## Using an alternative JLL-provided MPI library
+## [Using an alternative JLL-provided MPI library](@id configure_jll_binary)
 
 The following MPI implementations are provided as JLL packages and automatically obtained when installing MPI.jl:
 
@@ -113,6 +118,8 @@ Call [`MPIPreferences.use_jll_binary`](@ref), for example
 ```sh
 julia --project -e 'using MPIPreferences; MPIPreferences.use_jll_binary("MPItrampoline_jll")'
 ```
+If you omit the JLL binary name, the default is selected for the respective
+operating system.
 
 ## Configuration of the MPI.jl testsuite
 
@@ -140,14 +147,61 @@ The test suite can also be modified by the following variables:
 - `JULIA_MPI_TEST_ABI`: Check that the specified MPI ABI is used for the tests
 
 
-## Migration from MPI.jl version 0.19 or earlier
+## Migration from MPI.jl v0.19 or earlier
 
-Prior to MPI.jl version 0.20, environment variables were used to configure which MPI
-library to use. These have now been removed and no longer have any effect:
+For MPI.jl v0.20, environment variables were used to configure which MPI
+library to use. These have been removed and no longer have any effect. The
+following subsections explain how to the same effects can be achieved with v0.20
+or later.
 
-- `JULIA_MPI_BINARY`
-- `JULIA_MPIEXEC`
-- `JULIA_MPIEXEC_ARGS`
-- `JULIA_MPI_INCLUDE_PATH`
-- `JULIA_MPI_CFLAGS`
-- `JULIA_MPICC`
+!!! note
+    Please refer to [Notes to HPC cluster administrators](@ref) if you want to
+    migrate your MPI.jl preferences on a cluster with a centrally managed MPI.jl
+    configuration.
+
+### `JULIA_MPI_BINARY`
+Use [`MPIPreferences.use_system_binary`](@ref) to use a system-provided MPI
+binary as described [here](@ref configure_system_binary). To switch back or
+select a different JLL-provided MPI binary, use
+[`MPIPreferences.use_jll_binary`](@ref) as described [here](@ref configure_jll_binary).
+
+### `JULIA_MPI_PATH`
+Removed without replacement.
+
+### `JULIA_MPI_LIBRARY`
+Use [`MPIPreferences.use_system_binary`](@ref) with keyword argument
+`library_names` to specify possible, non-standard library names. Alternatively,
+you can also specify the full path to the library.
+
+### `JULIA_MPI_ABI`
+Use [`MPIPreferences.use_system_binary`](@ref) with keyword argument
+`abi` to specify which ABI to use. See [`MPIPreferences.abi`](@ref) for possible
+values.
+
+### `JULIA_MPIEXEC`
+Use [`MPIPreferences.use_system_binary`](@ref) with keyword argument
+`mpiexec` to specify the MPI launcher executable.
+
+### `JULIA_MPIEXEC_ARGS`
+Use [`MPIPreferences.use_system_binary`](@ref) with keyword argument `mpiexec`,
+and pass a
+[`Cmd`](https://docs.julialang.org/en/v1/manual/running-external-programs/#Cmd-Objects)
+object to set the MPI launcher executable and to include specific command
+line options.
+
+### `JULIA_MPI_INCLUDE_PATH`
+Removed without replacement. Automatic generation of a constants file for
+unknown MPI ABIs is not supported anymore. See also
+[#574](https://github.com/JuliaParallel/MPI.jl/issues/574).
+
+### `JULIA_MPI_CFLAGS`
+Removed without replacement. Automatic generation of a constants file for
+unknown MPI ABIs is not supported anymore. See also
+[#574](https://github.com/JuliaParallel/MPI.jl/issues/574).
+
+### `JULIA_MPICC`
+Removed without replacement. Automatic generation of a constants file for
+unknown MPI ABIs is not supported anymore. See also
+[#574](https://github.com/JuliaParallel/MPI.jl/issues/574).
+
+
