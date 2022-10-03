@@ -271,10 +271,10 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - name: add MPIPreferences, use system
+    - name: use system MPI
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --color=yes --project=test -e '
+        julia --color=yes --project=. -e '
           using MPIPreferences
           MPIPreferences.use_system_binary()'
 
@@ -336,7 +336,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - name: add MPIPreferences, use system
+    - name: use system MPI
       run: |
         source ${HOME}/oneapi/setvars.sh
         julia --color=yes --project=. -e '
