@@ -1,8 +1,9 @@
-name: MPI.jl Unit Tests
+name: Unit Tests
 
 on:
   pull_request:
     paths:
+      - '.github/workflows/UnitTests.yml'
       - 'bin/**'
       - 'deps/**'
       - 'src/**'
@@ -13,6 +14,7 @@ on:
       - master
       - release-*
     paths:
+      - '.github/workflows/UnitTests.yml'
       - 'bin/**'
       - 'deps/**'
       - 'src/**'
