@@ -134,20 +134,20 @@ f = x -&gt; x.+100
 data = collect(1:10)
 job_queue(data,f)</code></pre><pre><code class="nohighlight hljs">&gt; mpiexecjl -n 4 julia examples/05-job_schedule.jl
 Root: Sent number 1 to Worker 1
+Worker 1: Received number 1 from root
 Root: Sent number 2 to Worker 2
 Root: Sent number 3 to Worker 3
-Worker 1: Received number 1 from root
-Worker 3: Received number 3 from root
 Root: Received number 101 from Worker 1
 Root: Sent number 4 to Worker 1
+Worker 2: Received number 2 from root
 Worker 1: Received number 4 from root
+Worker 3: Received number 3 from root
 Root: Received number 104 from Worker 1
 Root: Sent number 5 to Worker 1
 Worker 1: Received number 5 from root
+Root: Received number 102 from Worker 2
+Root: Sent number 6 to Worker 2
 Root: Received number 105 from Worker 1
-Root: Sent number 6 to Worker 1
-Worker 1: Received number 6 from root
-Root: Received number 106 from Worker 1
 Root: Sent number 7 to Worker 1
 Worker 1: Received number 7 from root
 Root: Received number 107 from Worker 1
@@ -160,13 +160,13 @@ Root: Received number 109 from Worker 1
 Root: Sent number 10 to Worker 1
 Worker 1: Received number 10 from root
 Root: Received number 110 from Worker 1
-Worker 2: Received number 2 from root
-Root: Received number 102 from Worker 2
+Worker 2: Received number 6 from root
+Root: Received number 106 from Worker 2
 Root: Received number 103 from Worker 3
 Root: Finish Worker 1
-Worker 1: Finish
 Root: Finish Worker 2
-Root: Finish Worker 3
 Worker 2: Finish
-Root: New data = [101, 104, 105, 106, 107, 108, 109, 110, 102, 103]
-Worker 3: Finish</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../04-sendrecv/">« Send/receive</a><a class="docs-footer-nextpage" href="../06-scatterv/">Scatterv and Gatherv »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Monday 3 October 2022 19:37">Monday 3 October 2022</span>. Using Julia version 1.8.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Root: Finish Worker 3
+Worker 1: Finish
+Root: New data = [101, 104, 102, 105, 107, 108, 109, 110, 106, 103]
+Worker 3: Finish</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../04-sendrecv/">« Send/receive</a><a class="docs-footer-nextpage" href="../06-scatterv/">Scatterv and Gatherv »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Monday 3 October 2022 20:56">Monday 3 October 2022</span>. Using Julia version 1.8.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
