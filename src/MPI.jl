@@ -3,6 +3,7 @@ module MPI
 using Libdl, Serialization
 using Requires
 using DocStringExtensions
+using FunctionWrappers: FunctionWrapper
 
 export mpiexec, UBuffer, VBuffer
 
