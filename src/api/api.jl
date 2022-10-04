@@ -44,7 +44,7 @@ name[] = expr
 at module initialization time.
 """
 macro const_ref(name, T, expr)
-    push!(initexprs, :($name[] = $expr))
+    push!(initexprs, :($name[] = $T <: Integer ? $expr % $T : $expr))
     :(const $(esc(name)) = Ref{$T}())
 end
 
