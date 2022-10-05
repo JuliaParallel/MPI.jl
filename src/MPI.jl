@@ -3,6 +3,7 @@ module MPI
 using Libdl, Serialization
 using Requires
 using DocStringExtensions
+import MPIPreferences
 
 export mpiexec, UBuffer, VBuffer
 
@@ -58,7 +59,6 @@ function run_load_time_hooks()
     nothing
 end
 
-using MPIPreferences
 include("implementations.jl")
 include("error.jl")
 include("info.jl")
@@ -81,12 +81,13 @@ include("misc.jl")
 include("deprecated.jl")
 
 function __init__()
+    MPIPreferences.check_unchanged()
 
     # an empty string was used to indicate "default"
     # https://github.com/JuliaParallel/MPI.jl/blob/v0.19.2/deps/build.jl#L142
     mpi_env_binary = get(ENV, "JULIA_MPI_BINARY", "")
     if mpi_env_binary != "" && mpi_env_binary != MPIPreferences.binary
-        @info """
+        @warn """
         The JULIA_MPI_BINARY environment variable is no longer used to configure the MPI binary.
         Please use the MPIPreferences.jl package instead:
 
