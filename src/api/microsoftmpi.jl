@@ -28,16 +28,16 @@ struct MPI_Status
 end
 
 # Opaque handles:
-const MPI_Comm = UInt32
-const MPI_Datatype = UInt32
-const MPI_Errhandler = UInt32
-const MPI_File = UInt
-const MPI_Group = UInt32
-const MPI_Info = UInt32
-const MPI_Message = UInt32
-const MPI_Op = UInt32
-const MPI_Request = UInt32
-const MPI_Win = UInt32
+const MPI_Comm = Cint
+const MPI_Datatype = Cint
+const MPI_Errhandler = Cint
+const MPI_File = Ptr{Cvoid}
+const MPI_Group = Cint
+const MPI_Info = Cint
+const MPI_Message = Cint
+const MPI_Op = Cint
+const MPI_Request = Cint
+const MPI_Win = Cint
 
 # Function pointers:
 const MPI_Comm_copy_attr_function = Ptr{Cvoid}
