@@ -82,9 +82,6 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         force=force
     )
 
-    PREFS_CHANGED[] = true
-    @info "MPIPreferences changed" binary
-
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
         Due to a bug in Julia (until 1.6.5 and 1.7.1), setting preferences in transitive dependencies
@@ -93,10 +90,16 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         """
     end
 
-    if DEPS_LOADED[]
-        error("You will need to restart Julia for the changes to take effect")
-    end
+    if binary == MPIPreferences.binary
+        @info "MPIPreferences unchanged" binary
+    else
+        PREFS_CHANGED[] = true
+        @info "MPIPreferences changed" binary
 
+        if DEPS_LOADED[]
+            error("You will need to restart Julia for the changes to take effect")
+        end
+    end
     return nothing
 end
 
@@ -169,8 +172,6 @@ function use_system_binary(;
         force=force
     )
 
-    PREFS_CHANGED[] = true
-    @info "MPIPreferences changed" binary libmpi abi mpiexec
 
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
@@ -180,10 +181,16 @@ function use_system_binary(;
         """
     end
 
-    if DEPS_LOADED[]
-        error("You will need to restart Julia for the changes to take effect")
-    end
+    if binary == MPIPreferences.binary && abi == MPIPreferences.abi && libmpi == System.libmpi && mpiexec == System.mpiexec_path
+        @info "MPIPreferences unchanged" binary libmpi abi mpiexec
+    else
+        PREFS_CHANGED[] = true
+        @info "MPIPreferences changed" binary libmpi abi mpiexec
 
+        if DEPS_LOADED[]
+            error("You will need to restart Julia for the changes to take effect")
+        end
+    end
     return nothing
 end
 
@@ -351,7 +358,7 @@ function identify_abi(libmpi)
     # 2) try to identify the MPI implementation
     impl, version, abi = identify_implementation_version_abi(version_string)
 
-    @info "MPI implementation" libmpi version_string impl version abi
+    @info "MPI implementation identified" libmpi version_string impl version abi
 
     return abi
 end
