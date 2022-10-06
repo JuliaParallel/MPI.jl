@@ -178,10 +178,10 @@
 
     - wait
 
-    - label: "Tests -- Julia latest"
+    - label: "Tests -- Julia 1.7"
       plugins:
         - JuliaCI/julia#v1:
-            version: "1"
+            version: "1.7" # failing on 1.8
             persist_depot_dirs: packages,artifacts,compiled
       agents:
         queue: "juliagpu"
