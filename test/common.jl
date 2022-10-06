@@ -12,7 +12,7 @@ elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
         # TODO: AMDGPU synchronization story is complicated. HSA does not provide a consistent notion of global queues. We need a mechanism for all GPUArrays.jl provided kernels to be synchronized.
         queue = AMDGPU.default_queue()
         barrier = AMDGPU.barrier_and!(queue, AMDGPU.active_kernels(queue))
-        AMDGPU.HIP.hipDeviceSynchronize() # Sync all HIP kernels e.g. BLAS. N.B. this is blocking Julia progress
+        # AMDGPU.HIP.hipDeviceSynchronize() # Sync all HIP kernels e.g. BLAS. N.B. this is blocking Julia progress
         wait(barrier)
     end
 else

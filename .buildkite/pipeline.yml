@@ -188,6 +188,8 @@
         rocm: "*" # todo fix ROCM version
       if: build.message !~ /\[skip tests\]/
       timeout_in_minutes: 60
+      soft_fail:
+        - exit_status: 1
       env:
         JULIA_MPI_TEST_ARRAYTYPE: ROCArray
         JULIA_MPI_TEST_NPROCS: 2
