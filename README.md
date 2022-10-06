@@ -11,6 +11,14 @@ This provides [Julia](http://julialang.org/) interface to the Message Passing In
 
 Please see the [documentation](https://juliaparallel.github.io/MPI.jl/stable/) for instructions on [configuration](https://juliaparallel.github.io/MPI.jl/stable/configuration/) and [usage](https://juliaparallel.github.io/MPI.jl/stable/usage/).
 
+**Breaking changes with v0.20:** The way how MPI.jl is configured to use
+different MPI implementations has changed from v0.19 to v0.20 in a
+*non-backward-compatible* manner.
+Specifically, most `JULIA_MPI_XXX` variables do not have an effect anymore.
+Please refer to the
+[docs](https://juliaparallel.org/MPI.jl/stable/configuration/#Migration-from-MPI.jl-v0.19-or-earlier)
+for information on how to migrate your existing configuration.
+
 # Help and discussion
 
 For help and discussion, we suggest asking on the following venues:
