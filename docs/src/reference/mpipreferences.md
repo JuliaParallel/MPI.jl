@@ -20,6 +20,7 @@ MPIPreferences.use_jll_binary
 ## Utils
 
 ```@docs
+MPIPreferences.check_unchanged
 MPIPreferences.identify_abi
 ```
 

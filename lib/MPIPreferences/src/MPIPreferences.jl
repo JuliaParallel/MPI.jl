@@ -1,10 +1,15 @@
 module MPIPreferences
 
+export use_jll_binary, use_system_binary
+
 using Preferences, Libdl
 
 if !(VersionNumber(@load_preference("_format", "1.0")) <= v"1.0")
     error("The preferences attached to MPIPreferences are incompatible with this version of the package.")
 end
+
+const PREFS_CHANGED = Ref(false)
+const DEPS_LOADED = Ref(false)
 
 """
     MPIPreferences.binary :: String
@@ -50,17 +55,19 @@ end
 end
 
 """
-    MPIPreferences.use_jll_binary([binary]; export_prefs=false, force=true)
+    use_jll_binary([binary]; export_prefs=false, force=true)
 
-Switches the underlying MPI implementation to one provided by JLL packages.
+Switches the underlying MPI implementation to one provided by JLL packages. A
+restart of Julia is required for the changes to take effect.
+
 Available options are:
 - `"MicrosoftMPI_jll"` (Only option and default on Winddows)
 - `"MPICH_jll"` (Default on all other platform)
 - `"OpenMPI_jll"`
 - `"MPItrampoline_jll"`
 
-The `export_prefs` option determines whether the preferences being set should be stored
-within `LocalPreferences.toml` or `Project.toml`.
+The `export_prefs` option determines whether the preferences being set should be
+stored within `LocalPreferences.toml` or `Project.toml`.
 """
 function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll"; export_prefs=false, force=true)
     binary in ["MicrosoftMPI_jll", "MPICH_jll", "OpenMPI_jll", "MPItrampoline_jll"] ||
@@ -75,8 +82,6 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         force=force
     )
 
-    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary
-
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
         Due to a bug in Julia (until 1.6.5 and 1.7.1), setting preferences in transitive dependencies
@@ -85,19 +90,30 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         """
     end
 
+    if binary == MPIPreferences.binary
+        @info "MPIPreferences unchanged" binary
+    else
+        PREFS_CHANGED[] = true
+        @info "MPIPreferences changed" binary
+
+        if DEPS_LOADED[]
+            error("You will need to restart Julia for the changes to take effect")
+        end
+    end
     return nothing
 end
 
 
 """
-    MPIPreferences.use_system_binary(;
+    use_system_binary(;
         library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec = "mpiexec",
         abi = nothing,
         export_prefs = false,
         force = true)
 
-Switches the underlying MPI implementation to a system provided one.
+Switches the underlying MPI implementation to a system provided one. A restart
+of Julia is required for the changes to take effect.
 
 Options:
 
@@ -113,9 +129,11 @@ Options:
   to include specific command line options.
 
 - `abi`: the ABI of the MPI library. By default this is determined automatically
-  using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported values.
+  using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported
+  values.
 
-- `export_prefs`: if `true`, the preferences into the `Project.toml` instead of `LocalPreferences.toml`.
+- `export_prefs`: if `true`, the preferences into the `Project.toml` instead of
+  `LocalPreferences.toml`.
 
 - `force`: if `true`, the preferences are set even if they are already set.
 """
@@ -154,7 +172,6 @@ function use_system_binary(;
         force=force
     )
 
-    @warn "The underlying MPI implementation has changed. You will need to restart Julia for this change to take effect" binary libmpi abi mpiexec
 
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
@@ -164,6 +181,33 @@ function use_system_binary(;
         """
     end
 
+    if binary == MPIPreferences.binary && abi == MPIPreferences.abi && libmpi == System.libmpi && mpiexec == System.mpiexec_path
+        @info "MPIPreferences unchanged" binary libmpi abi mpiexec
+    else
+        PREFS_CHANGED[] = true
+        @info "MPIPreferences changed" binary libmpi abi mpiexec
+
+        if DEPS_LOADED[]
+            error("You will need to restart Julia for the changes to take effect")
+        end
+    end
+    return nothing
+end
+
+"""
+    MPIPreferences.check_unchanged()
+
+Throws an error if the preferences have been modified in the current Julia
+session, or if they are modified after this function is called.
+
+This is should be called from the `__init__()` function of any package which
+relies on the values of MPIPreferences.
+"""
+function check_unchanged()
+    if PREFS_CHANGED[]
+        error("MPIPreferences have changed, you will need to restart Julia for the changes to take effect")
+    end
+    DEPS_LOADED[] = true
     return nothing
 end
 
@@ -315,7 +359,7 @@ function identify_abi(libmpi)
     # 2) try to identify the MPI implementation
     impl, version, abi = identify_implementation_version_abi(version_string)
 
-    @info "MPI implementation" libmpi version_string impl version abi
+    @info "MPI implementation identified" libmpi version_string impl version abi
 
     return abi
 end
