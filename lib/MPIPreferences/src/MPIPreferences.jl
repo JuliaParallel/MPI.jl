@@ -197,10 +197,10 @@ end
 """
     MPIPreferences.check_unchanged()
 
-This will throw an error if the MPIPreferences have been modified in the current
-Julia session, or if they are modified after this function is called.
+Throws an error if the preferences have been modified in the current Julia
+session, or if they are modified after this function is called.
 
-This is typically called from the `__init__()` function of any package which
+This is should be called from the `__init__()` function of any package which
 relies on the values of MPIPreferences.
 """
 function check_unchanged()
@@ -208,6 +208,7 @@ function check_unchanged()
         error("MPIPreferences have changed, you will need to restart Julia for the changes to take effect")
     end
     DEPS_LOADED[] = true
+    return nothing
 end
 
 function identify_implementation_version_abi(version_string::AbstractString)
