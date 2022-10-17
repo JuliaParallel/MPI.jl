@@ -89,9 +89,9 @@ checked by other means.
 
 See also [`Cancel!`](@ref).
 """
-mutable struct Request
+mutable struct Request{T}
     val::MPI_Request
-    buffer
+    buffer::T
 end
 Base.:(==)(a::Request, b::Request) = a.val == b.val
 Base.cconvert(::Type{MPI_Request}, request::Request) = request
@@ -101,7 +101,7 @@ Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MP
 const REQUEST_NULL = Request(API.MPI_REQUEST_NULL[], nothing)
 add_load_time_hook!(() -> REQUEST_NULL.val = API.MPI_REQUEST_NULL[])
 
-Request() = Request(REQUEST_NULL.val, nothing)
+@inline Request(data::T) where {T} = Request{T}(REQUEST_NULL.val, data)
 isnull(req::Request) = req == REQUEST_NULL
 
 function free(req::Request)
@@ -109,7 +109,7 @@ function free(req::Request)
         # int MPI_Request_free(MPI_Request *req)
         API.MPI_Request_free(req)
     end
-    req.buffer = nothing
+    # req.buffer = nothing
     return nothing
 end
 
@@ -179,7 +179,7 @@ function Wait(req::Request, status::Union{Ref{Status}, Nothing}=nothing)
     # int MPI_Wait(MPI_Request *request, MPI_Status *status)
     API.MPI_Wait(req, something(status, API.MPI_STATUS_IGNORE[]))
     # only clear the buffer for non-persistent requests
-    isnull(req) && (req.buffer = nothing)
+    # isnull(req) && (req.buffer = nothing)
     return nothing
 end
 function Wait(req::Request, ::Type{Status})

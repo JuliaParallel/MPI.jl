@@ -60,11 +60,10 @@ Isend(data, comm::Comm; dest::Integer, tag::Integer=0) =
     Isend(data, dest, tag, comm)
 
 function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
-    req = Request()
+    req = Request(buf.data)
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     API.MPI_Isend(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
-    req.buffer = buf
     finalizer(free, req)
     return req
 end
