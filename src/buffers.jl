@@ -170,7 +170,7 @@ Buffer(::Nothing) = Buffer(nothing, 0, DATATYPE_NULL)
 Construct a [`Buffer`](@ref) object for a send operation from `data`, allowing cases where
 `isbits(data)`.
 """
-Buffer_send(data) = isbits(data) ? Buffer(Ref(data)) : Buffer(data)
+Buffer_send(data) = Base.isbitstype(typeof(data)) ? Buffer(Ref(data)) : Buffer(data) # isbits doesn't constant fold
 Buffer_send(str::String) = Buffer(str, sizeof(str), MPI.CHAR)
 Buffer_send(::InPlace) = Buffer(InPlace())
 Buffer_send(::Nothing) = Buffer(nothing)
