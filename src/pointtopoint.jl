@@ -56,10 +56,10 @@ Returns the [`Request`](@ref) object for the nonblocking send.
 # External links
 $(_doc_external("MPI_Isend"))
 """
-Isend(data, comm::Comm; dest::Integer, tag::Integer=0) =
+@inline Isend(data, comm::Comm; dest::Integer, tag::Integer=0) =
     Isend(data, dest, tag, comm)
 
-function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
+@inline function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
     req = Request(buf.data)
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
@@ -67,7 +67,7 @@ function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
     finalizer(free, req)
     return req
 end
-Isend(data, dest::Integer, tag::Integer, comm::Comm) =
+@inline Isend(data, dest::Integer, tag::Integer, comm::Comm) =
     Isend(Buffer_send(data), dest, tag, comm)
 
 """
