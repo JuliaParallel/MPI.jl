@@ -255,3 +255,78 @@ function Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::In
     data = Sendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, status)
     return data, status[]
 end
+
+# persistent requests
+"""
+    Send_init(buf, comm; dest, tag=0)::MPI.Request
+
+Allocate a persistent send request, returning a [`Request`](@ref) object. Use
+[`Start`](@ref) or [`Startall`](@ref) to start the communication operation, and
+`free` to deallocate the request.
+
+# External links
+$(_doc_external("MPI_Send_init"))
+"""
+Send_init(buf, comm::Comm; dest::Integer, tag::Integer=0) =
+    Send_init(buf, dest, tag, comm)
+function Send_init(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
+    req = Request()
+    API.MPI_Send_init(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
+    req.buffer = buf
+    finalizer(free, req)
+    return req
+end
+Send_init(buf, dest::Integer, tag::Integer, comm::Comm) =
+    Send_init(Buffer(buf), dest, tag, comm)
+
+"""
+    Recv_init(buf, comm; source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)::MPI.Request
+
+Allocate a persistent receive request, returning a [`Request`](@ref) object. Use
+[`Start`](@ref) or [`Startall`](@ref) to start the communication operation, and
+`free` to deallocate the request.
+
+# External links
+$(_doc_external("MPI_Recv_init"))
+"""
+Recv_init(buf, comm::Comm; source=API.MPI_ANY_SOURCE[], tag=API.MPI_ANY_TAG[]) =
+    Recv_init(buf, source, tag, comm)
+function Recv_init(buf::Buffer, source::Integer, tag::Integer, comm::Comm)
+    req = Request()
+    API.MPI_Recv_init(buf.data, buf.count, buf.datatype, source, tag, comm, req)
+    req.buffer = buf
+    finalizer(free, req)
+    return req
+end
+Recv_init(buf, source::Integer, tag::Integer, comm::Comm) =
+    Recv_init(Buffer(buf), source, tag, comm)
+
+"""
+    Start(request::Request)
+
+Start a persistent communication request created by [`Send_init`](@ref) or
+[`Recv_init`](@ref). Call [`Wait`](@ref) to complete the request.
+
+# External links
+$(_doc_external("MPI_Start"))
+"""
+function Start(req::Request)
+    API.MPI_Start(req)
+    return nothing
+end
+
+"""
+    Startall(reqs::AbstractVector{Request})
+
+Start a set of persistent communication requests created by [`Send_init`](@ref)
+or [`Recv_init`](@ref). Call [`Waitall`](@ref) to complete the requests.
+
+# External links
+$(_doc_external("MPI_Startall"))
+"""
+Startall(reqs::AbstractVector{Request}) = Startall(RequestSet(reqs))
+function Startall(reqs::RequestSet)
+    API.MPI_Startall(length(reqs), reqs.vals)
+    update!(reqs)
+    return nothing
+end

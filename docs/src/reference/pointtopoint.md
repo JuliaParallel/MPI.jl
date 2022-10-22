@@ -63,3 +63,12 @@ MPI.Cancel!
 MPI.Iprobe
 MPI.Probe
 ```
+
+### Persistent requests
+
+```@docs
+MPI.Send_init
+MPI.Recv_init
+MPI.Start
+MPI.Startall
+```
