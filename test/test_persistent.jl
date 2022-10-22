@@ -12,6 +12,7 @@ recv_mesg = ArrayType{Float64}(undef,N)
 recv_mesg_expected = ArrayType{Float64}(undef,N)
 
 fill!(send_mesg, rank)
+synchronize()
 
 sendreq =  MPI.Send_init(send_mesg, comm; tag=7, dest=mod(rank + 1, size))
 recvreq = MPI.Recv_init(recv_mesg, comm; tag=7, source=mod(rank - 1, size))
@@ -34,9 +35,11 @@ for i = 1:3
     @test MPI.Test(sendreq)
     @test MPI.Test(recvreq)
 
-    fill!(recv_mesg_expected, mod(rank-i, size))
-    @test recv_mesg == recv_mesg_expected
     copyto!(send_mesg, recv_mesg)
+
+    fill!(recv_mesg_expected, mod(rank-i, size))
+    synchronize()
+    @test recv_mesg == recv_mesg_expected
 end
 
 reqs = MPI.RequestSet([sendreq,recvreq])
@@ -47,7 +50,9 @@ for i = 4:6
     MPI.Waitall(reqs)
     @test MPI.Testall(reqs)
 
-    fill!(recv_mesg_expected, mod(rank-i, size))
-    @test recv_mesg == recv_mesg_expected
     copyto!(send_mesg, recv_mesg)
+
+    fill!(recv_mesg_expected, mod(rank-i, size))
+    synchronize()
+    @test recv_mesg == recv_mesg_expected
 end
