@@ -74,6 +74,18 @@ Get_source(status::Status) = Int(status.source)
 Get_tag(status::Status) = Int(status.tag)
 Get_error(status::Status) = Int(status.error)
 
+abstract type AbstractRequest end
+
+function free(req::AbstractRequest)
+    if !isnull(req) && !MPI.Finalized()
+        # int MPI_Request_free(MPI_Request *req)
+        API.MPI_Request_free(req)
+    end
+    setbuffer!(req, nothing)
+    return nothing
+end
+
+
 """
     MPI.Request
 
@@ -89,11 +101,19 @@ checked by other means.
 
 See also [`Cancel!`](@ref).
 """
-mutable struct Request
+mutable struct Request <: AbstractRequest
     val::MPI_Request
     buffer
 end
-Base.:(==)(a::Request, b::Request) = a.val == b.val
+function Request()
+    req = Request(API.MPI_REQUEST_NULL[], nothing)
+    return finalizer(free, req)
+end
+
+
+isnull(req::Request) = req.val == API.MPI_REQUEST_NULL[]
+setbuffer!(req::Request, val) = req.buffer = val
+
 Base.cconvert(::Type{MPI_Request}, request::Request) = request
 Base.unsafe_convert(::Type{MPI_Request}, request::Request) = request.val
 Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
@@ -101,16 +121,60 @@ Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MP
 const REQUEST_NULL = Request(API.MPI_REQUEST_NULL[], nothing)
 add_load_time_hook!(() -> REQUEST_NULL.val = API.MPI_REQUEST_NULL[])
 
-Request() = Request(REQUEST_NULL.val, nothing)
-isnull(req::Request) = req == REQUEST_NULL
 
-function free(req::Request)
-    if req != REQUEST_NULL && !MPI.Finalized()
-        # int MPI_Request_free(MPI_Request *req)
-        API.MPI_Request_free(req)
+# abstract element type to work around lack of cyclic type definitions
+# https://github.com/JuliaLang/julia/issues/269
+struct MultiRequest <: AbstractVector{AbstractRequest}
+    vals::Vector{MPI_Request}
+    buffers::Vector{Any}
+end
+struct MultiRequestItem <: AbstractRequest
+    multireq::MultiRequest
+    idx::Int
+end
+
+Base.eltype(::Type{MultiRequest}) = MultiRequestItem
+MultiRequest() = MultiRequest(MPI_Request[], Any[])
+Base.length(mreq::MultiRequest) = length(mreq.vals)
+Base.size(mreq::MultiRequest) = (length(mreq),)
+function Base.getindex(mreq::MultiRequest,i::Integer)
+    checkbounds(mreq.vals,i)
+    MultiRequestItem(mreq, i)
+end
+
+function free(mreq::MultiRequest)
+    for req in mreq
+        free(req)
     end
-    req.buffer = nothing
     return nothing
+end
+
+Base.cconvert(::Type{MPI_Request}, req::MultiRequestItem) = req
+Base.unsafe_convert(::Type{MPI_Request}, req::MultiRequestItem) = req.multireq.vals[req.idx]
+Base.unsafe_convert(::Type{Ptr{MPI_Request}}, req::MultiRequestItem) =
+    convert(Ptr{MPI_Request}, pointer(req.multireq.vals, req.idx))
+
+isnull(req::MultiRequestItem) = req.multireq.vals[req.idx] == API.MPI_REQUEST_NULL[]
+function setbuffer!(req::MultiRequestItem, value)
+    req.multireq.buffers[req.idx] = value
+end
+
+
+function Base.resize!(mreq::MultiRequest, n::Integer)
+    m = length(mreq)
+    # free any requests being removed
+    for i = n+1:m
+        free(mreq[i])
+    end
+    resize!(mreq.vals, n)
+    resize!(mreq.buffers, n)
+    for i = m+1:n
+        # initialize
+        req = mreq[i]
+        req.val = API.MPI_REQUEST_NULL[]
+        req.buffer = nothing
+    end
+    return mreq
 end
 
 
@@ -194,8 +258,8 @@ Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, Datatype(T))
 
 
 """
-    Wait(req::Request)
-    status = Wait(req::Request, Status)
+    Wait(req::AbstractRequest)
+    status = Wait(req::AbstractRequest, Status)
 
 Block until the request `req` is complete and deallocated.
 
@@ -204,22 +268,24 @@ The `Status` argument returns the [`Status`](@ref) of the completed request.
 # External links
 $(_doc_external("MPI_Wait"))
 """
-function Wait(req::Request, status::Union{Ref{Status}, Nothing}=nothing)
+function Wait(req::AbstractRequest, status::Union{Ref{Status}, Nothing}=nothing)
     # int MPI_Wait(MPI_Request *request, MPI_Status *status)
     API.MPI_Wait(req, something(status, API.MPI_STATUS_IGNORE[]))
     # only clear the buffer for non-persistent requests
-    isnull(req) && (req.buffer = nothing)
+    if isnull(req)
+        setbuffer!(req, nothing)
+    end
     return nothing
 end
-function Wait(req::Request, ::Type{Status})
+function Wait(req::AbstractRequest, ::Type{Status})
     status = Ref(STATUS_ZERO)
     Wait(req, status)
     return status[]
 end
 
 """
-    flag = Test(req::Request)
-    flag, status = Test(req::Request, Status)
+    flag = Test(req::AbstractRequest)
+    flag, status = Test(req::AbstractRequest, Status)
 
 Check if the request `req` is complete. If so, the request is deallocated and `flag = true` is returned. Otherwise `flag = false`.
 
@@ -228,14 +294,16 @@ The `Status` argument additionally returns the [`Status`](@ref) of the completed
 # External links
 $(_doc_external("MPI_Test"))
 """
-function Test(req::Request, status::Union{Ref{Status}, Nothing}=nothing)
+function Test(req::AbstractRequest, status::Union{Ref{Status}, Nothing}=nothing)
     flag = Ref{Cint}()
     # int MPI_Test(MPI_Request *request, int *flag, MPI_Status *status)
     API.MPI_Test(req, flag, something(status, API.MPI_STATUS_IGNORE[]))
-    isnull(req) && (req.buffer = nothing)
+    if isnull(req)
+        setbuffer!(req, nothing)
+    end
     return flag[] != 0
 end
-function Test(req::Request, ::Type{Status})
+function Test(req::AbstractRequest, ::Type{Status})
     status = Ref(STATUS_ZERO)
     flag = Test(req, status)
     return flag, status[]
@@ -525,7 +593,7 @@ request is not deallocated, and can still be queried using the test or wait func
 # External links
 $(_doc_external("MPI_Cancel"))
 """
-function Cancel!(req::Request)
+function Cancel!(req::AbstractRequest)
     # int MPI_Cancel(MPI_Request *request)
     API.MPI_Cancel(req)
     nothing
