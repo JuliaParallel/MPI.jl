@@ -129,21 +129,28 @@ for (mpiname, T) in [
 end
 _defined_datatype_methods = nothing
 
+# Cache the created datatypes. The datatype constructor is often
+# called for the same type, e.g. when the Buffer object is implicitly
+# constructed in MPI.Get. Without the cache, each Get would commit the
+# same datatype over and over again.
+const created_datatypes = Dict{Type, Datatype}()
 
 function Datatype(::Type{T}) where {T}
-    datatype = Datatype()
-    # lazily initialize so that it can be safely precompiled
-    function init()
-        Types.create!(datatype, T)
-        Types.commit!(datatype)
-        set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
+    global created_datatypes
+    get!(created_datatypes, T) do
+        datatype = Datatype()
+        # lazily initialize so that it can be safely precompiled
+        function init()
+            Types.create!(datatype, T)
+            Types.commit!(datatype)
+            set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
+        end
+        # Initialized() ? init() : add_init_hook!(init)
+        @assert Initialized()
+        init()
+        datatype
     end
-    # Initialized() ? init() : add_init_hook!(init)
-    @assert Initialized()
-    init()
-    return datatype
 end
-
 
 function Base.show(io::IO, datatype::Datatype)
     show(io, Datatype)
