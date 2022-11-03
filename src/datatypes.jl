@@ -133,7 +133,7 @@ _defined_datatype_methods = nothing
 # called for the same type, e.g. when the Buffer object is implicitly
 # constructed in MPI.Get. Without the cache, each Get would commit the
 # same datatype over and over again.
-const created_datatypes = Dict{Type, Datatype}()
+const created_datatypes = IdDict{Type, Datatype}()
 
 function Datatype(::Type{T}) where {T}
     global created_datatypes
