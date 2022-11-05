@@ -235,3 +235,12 @@ import Base: @deprecate
            dims .= Dims_create(nnodes, dims), false)
 @deprecate(Cart_coords!(comm::Comm, rank::Integer, coords::MPIBuffertype{Cint}),
            coords .= Cart_coords(comm, rank), false)
+
+@deprecate(irecv(src::Integer, tag::Integer, comm::Comm), begin
+    (flag, stat) = Iprobe(src, tag, comm)
+    flag || return (false, nothing, nothing)
+    count = Get_count(stat, UInt8)
+    buf = Array{UInt8}(undef, count)
+    stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
+    (true, MPI.deserialize(buf), stat)
+end, false)
