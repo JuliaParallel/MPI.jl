@@ -115,35 +115,64 @@ end
 
 
 """
-    status = Probe(src::Integer, tag::Integer, comm::Comm)
+    Probe(comm::Comm;
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
+    status = Probe(comm::Comm, MPI.Status;
+        source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
-Blocks until there is a message that can be received matching `src`, `tag` and
-`comm`. Returns the corresponding [`Status`](@ref) object.
+Blocks until there is a message that can be received matching `source`, `tag` and
+`comm`. Optionally returns the corresponding [`Status`](@ref) object.
 
 # External links
 $(_doc_external("MPI_Probe"))
 """
-function Probe(src::Integer, tag::Integer, comm::Comm)
-    stat_ref = Ref(STATUS_ZERO)
-    API.MPI_Probe(src, tag, comm, stat_ref)
-    stat_ref[]
+Probe(comm::Comm, status=nothing; source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
+    Probe(source, tag, comm, status)
+function Probe(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
+    API.MPI_Probe(source, tag, comm, something(status, API.MPI_STATUS_IGNORE[]))
+    return nothing
+end
+function Probe(source::Integer, tag::Integer, comm::Comm, ::Type{Status})
+    status = Ref(STATUS_ZERO)
+    API.MPI_Probe(source, tag, comm, status)
+    return status[]
 end
 
-"""
-    ismessage, (status|nothing) = Iprobe(src::Integer, tag::Integer, comm::Comm)
+# kept for compatibility
+Probe(source::Integer, tag::Integer, comm::Comm) =
+    Probe(source, tag::Integer, comm::Comm, Status)
 
-Checks if there is a message that can be received matching `src`, `tag` and `comm`. If so,
-returns a tuple `true` and a [`Status`](@ref) object, otherwise returns a tuple `false, nothing`.
+"""
+    ismsg = Iprobe(comm::Comm;
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
+    ismsg, status = Iprobe(comm::Comm, MPI.Status;
+            source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
+
+Checks if there is a message that can be received matching `source`, `tag` and
+`comm`. If so, returns `ismsg = true`. The `Status` argument additionally
+returns the [`Status`](@ref) of the completed request.
+
 
 # External links
 $(_doc_external("MPI_Iprobe"))
 """
-function Iprobe(src::Integer, tag::Integer, comm::Comm)
+Iprobe(comm::Comm, status=nothing; source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
+    Iprobe(source, tag, comm, status)
+function Iprobe(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
     flag = Ref{Cint}()
-    stat_ref = Ref(STATUS_ZERO)
-    API.MPI_Iprobe(src, tag, comm, flag, stat_ref)
-    flag[] == 0 && return false, nothing
-    true, stat_ref[]
+    API.MPI_Iprobe(source, tag, comm, flag, something(status, API.MPI_STATUS_IGNORE[]))
+    return flag[] != 0
+end
+function Iprobe(source::Integer, tag::Integer, comm::Comm, ::Type{Status})
+    status = Ref(STATUS_ZERO)
+    ismsg = Iprobe(source, tag, comm, status)
+    return ismsg, status[]
+end
+
+# kept for compatibility
+function Iprobe(source::Integer, tag::Integer, comm::Comm)
+    ismsg, status = Iprobe(source, tag, comm, Status)
+    return ismsg, (ismsg ? status : nothing)
 end
 
 """
@@ -170,7 +199,7 @@ Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, Datatype(T))
 
 Block until the request `req` is complete and deallocated.
 
-The `Status` argument returns the `Status` of the completed request.
+The `Status` argument returns the [`Status`](@ref) of the completed request.
 
 # External links
 $(_doc_external("MPI_Wait"))
@@ -194,7 +223,7 @@ end
 
 Check if the request `req` is complete. If so, the request is deallocated and `flag = true` is returned. Otherwise `flag = false`.
 
-The `Status` argument additionally returns the `Status` of the completed request.
+The `Status` argument additionally returns the [`Status`](@ref) of the completed request.
 
 # External links
 $(_doc_external("MPI_Test"))
@@ -262,8 +291,8 @@ update!(reqs::RequestSet) = foreach(i -> update!(reqs, i), 1:length(reqs))
 
 Block until all active requests in the array `reqs` are complete.
 
-The optional `statuses` or `Status` argument can be used to obtain the return `Status` of
-each request.
+The optional `statuses` or `Status` argument can be used to obtain the return
+[`Status`](@ref) of each request.
 
 # See also
 - [`RequestSet`](@ref) can be used to minimize allocations
@@ -293,12 +322,12 @@ Waitall(reqs::AbstractVector{Request}, args...) = Waitall(RequestSet(reqs), args
     flag = Testall(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
     flag, statuses = Testall(reqs::AbstractVector{Request}, Status)
 
-Check if all active requests in the array `reqs` are complete. If so, the requests are
-deallocated and `true` is returned. Otherwise no requests are modified, and `false` is
-returned.
+Check if all active requests in the array `reqs` are complete. If so, the
+requests are deallocated and `true` is returned. Otherwise no requests are
+modified, and `false` is returned.
 
-The optional `statuses` or `Status` argument can be used to obtain the return `Status` of
-each request.
+The optional `statuses` or `Status` argument can be used to obtain the return
+[`Status`](@ref) of each request.
 
 # See also
 - [`RequestSet`](@ref) can be used to minimize allocations
@@ -327,13 +356,14 @@ Testall(reqs::Vector{Request}, args...) = Testall(RequestSet(reqs), args...)
     i = Waitany(reqs::AbstractVector{Request}[, status::Ref{Status}])
     i, status = Waitany(reqs::AbstractVector{Request}, Status)
 
-Blocks until one of the requests in the array `reqs` is complete: if more than one is
-complete, one is chosen arbitrarily. The request is deallocated and the (1-based) index
-`i` of the completed request is returned.
+Blocks until one of the requests in the array `reqs` is complete: if more than
+one is complete, one is chosen arbitrarily. The request is deallocated and the
+(1-based) index `i` of the completed request is returned.
 
 If there are no active requests, then `i = nothing`.
 
-The optional `status` argument can be used to obtain the return `Status` of the request.
+The optional `status` argument can be used to obtain the return [`Status`](@ref)
+of the request.
 
 # See also
 - [`RequestSet`](@ref) can be used to minimize allocations
@@ -373,7 +403,7 @@ If there are no completed requests, then `flag = false` and `idx = nothing` is r
 
 If there are no active requests, `flag = true` and `idx = nothing`.
 
-The optional `status` argument can be used to obtain the return `Status` of the request.
+The optional `status` argument can be used to obtain the return [`Status`](@ref) of the request.
 
 # See also
 - [`RequestSet`](@ref) can be used to minimize allocations
@@ -405,13 +435,14 @@ Testany(reqs::Vector{Request}, args...) = Testany(RequestSet(reqs), args...)
 """
     inds = Waitsome(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
 
-Block until at least one of the active requests in the array `reqs` is complete. The
-completed requests are deallocated, and an array `inds` of their indices in `reqs` is returned.
+Block until at least one of the active requests in the array `reqs` is complete.
+The completed requests are deallocated, and an array `inds` of their indices in
+`reqs` is returned.
 
 If there are no active requests, then `inds = nothing`.
 
-The optional `statuses` argument can be used to obtain the return `Status` of each
-completed request.
+The optional `statuses` argument can be used to obtain the return
+[`Status`](@ref) of each completed request.
 
 # See also
 - [`RequestSet`](@ref) can be used to minimize allocations
@@ -446,13 +477,13 @@ Waitsome(reqs::Vector{Request}, args...) = Waitsome(RequestSet(reqs), args...)
 """
     inds = Testsome(reqs::AbstractVector{Request}[, statuses::Vector{Status}])
 
-Similar to [`Waitsome`](@ref) except that if no operations have completed it will return
-an empty array.
+Similar to [`Waitsome`](@ref) except that if no operations have completed it
+will return an empty array.
 
 If there are no active requests, then the function returns `nothing`.
 
-The optional `statuses` argument can be used to obtain the return `Status` of each
-completed request.
+The optional `statuses` argument can be used to obtain the return
+[`Status`](@ref) of each completed request.
 
 # See also
 - [`RequestSet`](@ref) can be used to minimize allocations

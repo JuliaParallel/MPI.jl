@@ -15,12 +15,12 @@ recv_mesg = Array{Float64}(undef, N)
 
 fill!(send_mesg, Float64(rank))
 
-rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
+rreq = MPI.Irecv!(recv_mesg, comm; source=src, tag=src+32)
 
 print("$rank: Sending   $rank -> $dst = $send_mesg\n")
-sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
+sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=rank+32)
 
-stats = MPI.Waitall!([rreq, sreq])
+stats = MPI.Waitall([rreq, sreq])
 
 print("$rank: Received $src -> $rank = $recv_mesg\n")
 
