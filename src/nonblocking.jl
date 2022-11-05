@@ -110,7 +110,6 @@ function Request()
     return finalizer(free, req)
 end
 
-
 isnull(req::Request) = req.val == API.MPI_REQUEST_NULL[]
 setbuffer!(req::Request, val) = req.buffer = val
 
@@ -118,31 +117,57 @@ Base.cconvert(::Type{MPI_Request}, request::Request) = request
 Base.unsafe_convert(::Type{MPI_Request}, request::Request) = request.val
 Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
 
+
 const REQUEST_NULL = Request(API.MPI_REQUEST_NULL[], nothing)
 add_load_time_hook!(() -> REQUEST_NULL.val = API.MPI_REQUEST_NULL[])
+
+struct UntrackedRequest <: AbstractRequest
+    val::MPI_Request
+end
+
+function UntrackedRequest()
+    req = UntrackedRequest(API.MPI_REQUEST_NULL[])
+    return finalizer(free, req)
+end
+isnull(req::UntrackedRequest) = req.val == API.MPI_REQUEST_NULL[]
+setbuffer!(req::UntrackedRequest, val) = nothing
+
+Base.cconvert(::Type{MPI_Request}, request::UntrackedRequest) = request
+Base.unsafe_convert(::Type{MPI_Request}, request::UntrackedRequest) = request.val
+Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::UntrackedRequest) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
 
 
 # abstract element type to work around lack of cyclic type definitions
 # https://github.com/JuliaLang/julia/issues/269
-struct MultiRequest <: AbstractVector{AbstractRequest}
+abstract type AbstractMultiRequest <: AbstractVector{AbstractRequest}
+end
+
+struct MultiRequest <: AbstractMultiRequest
     vals::Vector{MPI_Request}
     buffers::Vector{Any}
 end
-struct MultiRequestItem <: AbstractRequest
-    multireq::MultiRequest
+MultiRequest() = MultiRequest(MPI_Request[], Any[])
+
+struct UntrackedMultiRequest <: AbstractMultiRequest
+    vals::Vector{MPI_Request}
+end
+UntrackedMultiRequest() = UntrackedMultiRequest(MPI_Request[])
+
+
+struct MultiRequestItem{MR <: AbstractMultiRequest} <: AbstractRequest
+    multireq::MR
     idx::Int
 end
 
-Base.eltype(::Type{MultiRequest}) = MultiRequestItem
-MultiRequest() = MultiRequest(MPI_Request[], Any[])
-Base.length(mreq::MultiRequest) = length(mreq.vals)
-Base.size(mreq::MultiRequest) = (length(mreq),)
-function Base.getindex(mreq::MultiRequest,i::Integer)
+Base.eltype(::Type{MR}) where {MR<:AbstractMultiRequest} = MultiRequestItem{MR}
+Base.length(mreq::AbstractMultiRequest) = length(mreq.vals)
+Base.size(mreq::AbstractMultiRequest) = (length(mreq),)
+function Base.getindex(mreq::AbstractMultiRequest,i::Integer)
     checkbounds(mreq.vals,i)
     MultiRequestItem(mreq, i)
 end
 
-function free(mreq::MultiRequest)
+function free(mreq::AbstractMultiRequest)
     for req in mreq
         free(req)
     end
@@ -155,9 +180,10 @@ Base.unsafe_convert(::Type{Ptr{MPI_Request}}, req::MultiRequestItem) =
     convert(Ptr{MPI_Request}, pointer(req.multireq.vals, req.idx))
 
 isnull(req::MultiRequestItem) = req.multireq.vals[req.idx] == API.MPI_REQUEST_NULL[]
-function setbuffer!(req::MultiRequestItem, value)
-    req.multireq.buffers[req.idx] = value
-end
+setbuffer!(req::MultiRequestItem{MultiRequest}, val) =
+    req.multireq.buffers[req.idx] = val
+setbuffer!(req::MultiRequestItem{UntrackedMultiRequest}, val) =
+    nothing
 
 
 function Base.resize!(mreq::MultiRequest, n::Integer)
@@ -173,6 +199,20 @@ function Base.resize!(mreq::MultiRequest, n::Integer)
         req = mreq[i]
         req.val = API.MPI_REQUEST_NULL[]
         req.buffer = nothing
+    end
+    return mreq
+end
+function Base.resize!(mreq::UntrackedMultiRequest, n::Integer)
+    m = length(mreq)
+    # free any requests being removed
+    for i = n+1:m
+        free(mreq[i])
+    end
+    resize!(mreq.vals, n)
+    for i = m+1:n
+        # initialize
+        req = mreq[i]
+        req.val = API.MPI_REQUEST_NULL[]
     end
     return mreq
 end
