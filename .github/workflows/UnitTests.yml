@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   test-default:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         os:
@@ -68,7 +68,7 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
 
   test-openmpi-jll:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         os:
@@ -118,7 +118,7 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
 
   test-system-brew:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         mpi:
@@ -167,7 +167,7 @@ jobs:
 
 
   test-system-apt:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         mpi:
@@ -215,7 +215,7 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
 
   test-intel-linux:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         julia_version:
@@ -286,7 +286,7 @@ jobs:
 
 
   test-oneapi-linux:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         julia_version:
@@ -351,7 +351,7 @@ jobs:
 
 
   test-system-msmpi:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         julia_version:
@@ -400,7 +400,7 @@ jobs:
 
 
   test-mpitrampoline-jll:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         os:
@@ -454,7 +454,7 @@ jobs:
 
 
   test-mpitrampoline-system-apt:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         mpi:
@@ -526,7 +526,7 @@ jobs:
 
 
   test-mpitrampoline-intel-linux:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         julia_version:
