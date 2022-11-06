@@ -98,12 +98,16 @@ function Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true
 
         if finalize_atexit
             atexit() do
-                # MPI_Finalize is a collective and can act like a barrier (this may be implementation
-                # specific). If we are terminating due to a Julia exception, we shouldn't call
-                # MPI_Finalize. We thus peek at the current exception, and only if that field is
-                # nothing do we terminate.
-                if !Finalized() && ccall(:jl_current_exception, Any, ()) === nothing
-                    Finalize()
+                # MPI_Finalize is a collective and can act like a barrier (this
+                # may be implementation specific). If we are terminating due to
+                # a Julia exception, we should call MPI_Abort instead (which
+                # will attempt to abort other processes).
+                if !Finalized()
+                    if ccall(:jl_current_exception, Any, ()) === nothing
+                        Finalize()
+                    else
+                        Abort(MPI.COMM_WORLD, 1)
+                    end
                 end
             end
         end
