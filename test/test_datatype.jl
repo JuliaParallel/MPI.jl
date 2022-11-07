@@ -31,6 +31,7 @@ struct Boundary
     b::UInt8
 end
 @testset "Compound type" begin
+    @test MPI.Datatype(Boundary) === MPI.Datatype(Boundary)
     sz = sizeof(Boundary)
     al = Base.datatype_alignment(Boundary)
     @test MPI.Types.extent(MPI.Datatype(Boundary)) == (0, cld(sz,al)*al)
@@ -59,6 +60,8 @@ struct Boundary2
     c::Nothing
 end
 @testset "nested types" begin
+    @test MPI.Datatype(Boundary2) === MPI.Datatype(Boundary2)
+
     sz = sizeof(Boundary2)
     al = Base.datatype_alignment(Boundary2)
     @test MPI.Types.extent(MPI.Datatype(Boundary2)) == (0, cld(sz,al)*al)
