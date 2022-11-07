@@ -20,14 +20,14 @@ recv_check = zeros(Int, nsends)
 
 for i = 1:nsends
     idx = MPI.Waitany(send_reqs)
-    @test send_reqs[idx] == MPI.REQUEST_NULL
+    @test MPI.isnull(send_reqs[idx])
     send_check[idx] += 1
 end
 @test send_check == ones(Int, nsends)
 
 for i = 1:nsends
     idx = MPI.Waitany(recv_reqs)
-    @test recv_reqs[idx] == MPI.REQUEST_NULL
+    @test MPI.isnull(recv_reqs[idx])
     recv_check[idx] += 1
 end
 @test recv_check == ones(Int, nsends)
