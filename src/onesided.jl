@@ -130,7 +130,13 @@ end
 function Win_shared_query(::Type{Array{T}}, win::Win, owner_rank::Integer) where T
     len, sizeT, ptr = Win_shared_query(Ptr{T}, win, owner_rank)
     sizeT == sizeof(T) || error("type sizes don't match")
-    return unsafe_wrap(Array, ptr, div(len, sizeT))
+    # the ptr can be invalid for empty arrays but unsafe_wrap always
+    # check the alignment of ptr, even for lenght 0
+    if len > 0
+        return unsafe_wrap(Array, ptr, div(len, sizeT))
+    else
+        return Array{T}(undef, 0)
+    end
 end
 Win_shared_query(::Type{Array{T}}, dims, win::Win, owner_rank::Integer) where T =
     reshape(Win_shared_query(Array{T}, win, owner_rank), dims)
