@@ -100,7 +100,7 @@ function Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true
             # MPI_Finalize is a collective and can act like a barrier (this may
             # be implementation specific). If we are terminating due to a Julia
             # exception, we shouldn't call MPI_Finalize.
-            if VERSION >= v"1.9-"
+            @static if VERSION >= v"1.9-"
                 # In Julia 1.9 we can access the exitcode from the atexit hook
                 atexit() do exitcode
                     if exitcode == 0 && !Finalized()
