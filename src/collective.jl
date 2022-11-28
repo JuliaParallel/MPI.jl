@@ -56,20 +56,22 @@ function Bcast!(buf::Buffer, root::Integer, comm::Comm)
     API.MPI_Bcast(buf.data, buf.count, buf.datatype, root, comm)
     return buf.data
 end
-function Bcast!(arr::Union{Ref,AbstractArray}, root::Integer, comm::Comm)
-    Bcast!(Buffer(arr), root, comm)
+function Bcast!(data, root::Integer, comm::Comm)
+    Bcast!(Buffer(data), root, comm)
 end
 
 """
-    Bcast!(obj::T, root::Integer, comm::Comm) where T
+    Bcast(obj::T, root::Integer, comm::Comm) where T
 
-Broadcast the `obj` from `root` to all processes in `comm`.
+Broadcast the `obj` from `root` to all processes in `comm`. Returns the object.
 """
-function Bcast!(obj::T, root::Integer, comm::Comm) where T
+function Bcast(obj::T, root::Integer, comm::Comm) where T
     buf = Ref{T}(obj)
     Bcast!(buf, root, comm)
     return buf[]
 end
+Bcast(arr::AbstractArray, root::Integer, comm::Comm) = Bcast!(copy(arr), root, comm)
+Bcast(r::Ref, root::Integer, comm::Comm) = Ref(Bcast(r[], root, comm))
 
 """
     bcast(obj, comm::Comm; root::Integer=0)
