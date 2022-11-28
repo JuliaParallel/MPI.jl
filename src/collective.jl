@@ -61,13 +61,17 @@ function Bcast!(data, root::Integer, comm::Comm)
 end
 
 """
-    Bcast(obj::T, root::Integer, comm::Comm) where T
+    Bcast(obj, root::Integer, comm::Comm)
 
 Broadcast the `obj` from `root` to all processes in `comm`. Returns the object.
+Currently `obj` must be `isbits`, i.e. `isbitstype(typeof(obj)) == true`.
 """
-Bcast(obj, root::Integer, comm::Comm) = Bcast!(Ref(obj), root, comm)[]
-Bcast(arr::AbstractArray, root::Integer, comm::Comm) = Bcast!(copy(arr), root, comm)
-Bcast(r::Ref, root::Integer, comm::Comm) = Ref(Bcast(r[], root, comm))
+function Bcast(obj::T, root::Integer, comm::Comm) where T
+    if !isbitstype(T)
+        throw(ArgumentError("Bcast currently only supports `isbitstype`s."))
+    end
+    Bcast!(Ref(obj), root, comm)[]
+end
 
 """
     bcast(obj, comm::Comm; root::Integer=0)

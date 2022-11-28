@@ -44,20 +44,10 @@ res = MPI.Bcast(B, root, comm)
 @test typeof(res) == typeof(A)
 @test res == A
 
-# Bcast: vector
+# Bcast: array
 A = rand(3)
 B = MPI.Comm_rank(comm) == root ? A : zeros(3)
-res = MPI.Bcast(B, root, comm)
-@test typeof(res) == typeof(A)
-@test res == A
-
-# Bcast: Ref
-A = Ref(1.23)
-B = MPI.Comm_rank(comm) == root ? A : Ref(0.0)
-res = MPI.Bcast(B, root, comm)
-@test typeof(res) == typeof(A)
-@test res[] == A[]
-
+@test_throws ArgumentError MPI.Bcast(B, root, comm)
 
 g = x -> x^2 + 2x - 1
 if MPI.Comm_rank(comm) == root
