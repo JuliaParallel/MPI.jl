@@ -26,6 +26,29 @@ MPI.Bcast!(B, comm; root=root)
 @test B == A
 
 
+# Bcast: number
+A = 1.23
+B = MPI.Comm_rank(comm) == root ? 1.23 : 0.0
+res = MPI.Bcast(B, root, comm)
+@test typeof(res) == typeof(A)
+@test res == A
+
+# Bcast: scalar struct
+struct XY
+    x::Float64
+    y::Float32
+end
+A = XY(1.23, 4.56f0)
+B = MPI.Comm_rank(comm) == root ? A : XY(0.0, 0.0f0)
+res = MPI.Bcast(B, root, comm)
+@test typeof(res) == typeof(A)
+@test res == A
+
+# Bcast: array
+A = rand(3)
+B = MPI.Comm_rank(comm) == root ? A : zeros(3)
+@test_throws ArgumentError MPI.Bcast(B, root, comm)
+
 g = x -> x^2 + 2x - 1
 if MPI.Comm_rank(comm) == root
     f = g
