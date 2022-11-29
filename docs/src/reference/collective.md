@@ -11,6 +11,7 @@ MPI.Ibarrier
 
 ```@docs
 MPI.Bcast!
+MPI.Bcast
 MPI.bcast
 ```
 
