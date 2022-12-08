@@ -5,8 +5,8 @@ using MPI
     mktempdir() do dir
         # Install MPI locally, so that we can test the `--project` flag to
         # `mpiexecjl`
-        Pkg.activate(dir)
-        Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")))
+        Pkg.activate(dir; io=devnull)
+        Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")); io=devnull)
         # Test installation
         @test_logs (:info, r"Installing") (:info, r"Done") MPI.install_mpiexecjl(; destdir = dir)
         # Test a run of mpiexec
