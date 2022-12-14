@@ -36,9 +36,32 @@ This can be worked around be either:
 
 ## Open MPI
 
-### Segmentation fault
+### Segmentation fault when loading the library
 
-When attempting to use a system-provided Open MPI implementation, you may encounter a segmentation fault. This can be fixed by setting the environment variable `ZES_ENABLE_SYSMAN=1`. See [Open MPI issue #10142](https://github.com/open-mpi/ompi/issues/10142).
+When attempting to use a system-provided Open MPI implementation, you may encounter a segmentation fault upon loading the library, or whenever the value of an environment variable is requested.
+This can be fixed by setting the environment variable `ZES_ENABLE_SYSMAN=1`.
+See [Open MPI issue #10142](https://github.com/open-mpi/ompi/issues/10142) for more details.
+
+### Segmentation fault in HCOLL
+
+If Open MPI was built with support for HCOLL, you may encounter a segmentation fault in certain operations involving custom datatypes.
+The stacktrace may look something like
+
+```
+hcoll_create_mpi_type at /opt/mellanox/hcoll/lib/libhcoll.so.1 (unknown line)
+ompi_dtype_2_hcoll_dtype at /lustre/software/openmpi/llvm14/4.1.4/lib/openmpi/mca_coll_hcoll.so (unknown line)
+mca_coll_hcoll_allgather at /lustre/software/openmpi/llvm14/4.1.4/lib/openmpi/mca_coll_hcoll.so (unknown line)
+MPI_Allgather at /lustre/software/openmpi/llvm14/4.1.4/lib/libmpi.so (unknown line)
+```
+
+This is due to a bug in HCOLL, see [Open MPI issue #11201](https://github.com/open-mpi/ompi/issues/11201) for more details.
+You can disable HCOLL by exporting the environment variable
+
+```sh
+export OMPI_MCA_coll_hcoll_enable="0"
+```
+
+before starting the MPI process.
 
 ## UCX
 
@@ -129,8 +152,11 @@ Make sure to:
 
 After that, [this script](https://gist.github.com/luraess/c228ec08629737888a18c6a1e397643c) can be used to verify if ROCm-aware MPI is functional (modified after the CUDA-aware version from [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/11)). It may be preferred to run the Julia ROCm-aware MPI script launching it from a shell script (as suggested [here](https://discourse.julialang.org/t/cuda-aware-mpi-works-on-system-but-not-for-julia/75060/4)).
 
-## Microsoft MPI
+## Custom reduction operators
 
-### Custom operators on 32-bit Windows
+It is not possible to use custom reduction operators [with 32-bit Microsoft MPI](https://github.com/JuliaParallel/MPI.jl/issues/246) on Windows and on [ARM CPUs](https://github.com/JuliaParallel/MPI.jl/issues/404) with any operating system.
+These issues are due to due how custom operators are currently implemented in MPI.jl, that is by using [closure cfunctions](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/index.html#Closure-cfunctions).
+However they have two limitations:
 
-It is not possible to use [custom operators with 32-bit Microsoft MPI](https://github.com/JuliaParallel/MPI.jl/issues/246), as it uses the `stdcall` calling convention, which is not supported by [Julia's C-compatible function pointers](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/index.html#Creating-C-Compatible-Julia-Function-Pointers-1).
+* [Julia's C-compatible function pointers](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/index.html#Creating-C-Compatible-Julia-Function-Pointers-1) cannot be used where the `stdcall` calling convention is expected, which is the case for 32-bit Microsoft MPI,
+* closure cfunctions in Julia are based on LLVM trampolines, which are not supported on ARM architecture.
