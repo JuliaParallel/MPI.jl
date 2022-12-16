@@ -99,7 +99,7 @@ function Op(f, T=Any; iscommutative=false)
 
     op = Op(OP_NULL.val, fptr)
     # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
-    API.MPI_Op_create(fptr[], iscommutative, op)
+    API.MPI_Op_create(fptr, iscommutative, op)
 
     finalizer(free, op)
     return op
