@@ -62,6 +62,9 @@ else
     error("Unknown MPI ABI $(MPIPreferences.abi)")
 end
 
+const MPI_User_function_c = MPI_User_function
+const MPI_Datarep_conversion_function_c = MPI_Datarep_conversion_function
+
 primitive type SentinelPtr Sys.WORD_SIZE
 end
 
