@@ -6,7 +6,7 @@ comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-for T in Base.uniontypes(MPI.MPIDatatype)
+for T in MPIUnionTypes
 
     # Allocating version
     a = ArrayType(fill(T(rank), size))

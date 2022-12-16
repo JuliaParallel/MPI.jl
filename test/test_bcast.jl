@@ -7,7 +7,7 @@ comm = MPI.COMM_WORLD
 root = 0
 matsize = (17,17)
 
-for T in Base.uniontypes(MPI.MPIDatatype)
+for T in MPIUnionTypes
     # This test depends on the stability of the rng and we have observed with
     # CUDA.jl that it is not gurantueed that the same number of rand calls will
     # occur on each rank. (This is a hypothesis). To be sure we shall seed the rng

@@ -8,7 +8,7 @@ rank = MPI.Comm_rank(comm)
 sz   = MPI.Comm_size(comm)
 isroot = MPI.Comm_rank(comm) == root
 
-for T in Base.uniontypes(MPI.MPIDatatype)
+for T in MPIUnionTypes
 
     # Allocating
     A = ArrayType{T}(fill(T(rank+1), 4))

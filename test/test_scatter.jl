@@ -8,7 +8,7 @@ rank = MPI.Comm_rank(comm)
 root = 0
 isroot = rank == root
 
-for T in Base.uniontypes(MPI.MPIDatatype)
+for T in MPIUnionTypes
 
     A = isroot ? ArrayType{T}(1:size) : ArrayType{T}(undef, 1)
 

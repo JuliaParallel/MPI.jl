@@ -9,7 +9,7 @@ rank = MPI.Comm_rank(comm)
 counts = Cint[mod(i,2) + 1 for i in 0:(size-1)]
 check = collect(Iterators.flatten([fill(r, counts[r+1]) for r = 0:size-1]))
 
-for T in Base.uniontypes(MPI.MPIDatatype)
+for T in MPIUnionTypes
     A = ArrayType{T}(fill(T(rank), counts[rank+1]))
     synchronize()
 
