@@ -8,7 +8,7 @@ rank = MPI.Comm_rank(comm)
 prodrank = prod(1:rank+1)
 
 # Not possible to PROD a Char (and neither Int8 with OpenMPI)
-for T in setdiff(MPIUnionTypes, [Char, Int8, UInt8])
+for T in setdiff(MPITestTypes, [Char, Int8, UInt8])
     A = ArrayType{T}(fill(T(rank+1), 4))
     B = similar(A)
     MPI.Scan!(A, B, *, comm)

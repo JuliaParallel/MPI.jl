@@ -11,7 +11,7 @@ isroot = rank == root
 counts = Cint[mod(i,2) + 1 for i in 0:(size-1)]
 check = collect(Iterators.flatten([fill(r, counts[r+1]) for r = 0:size-1]))
 
-for T in MPIUnionTypes
+for T in MPITestTypes
     A = ArrayType(fill(T(rank), mod(rank,2) + 1))
     synchronize()
 

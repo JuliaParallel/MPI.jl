@@ -6,7 +6,7 @@ comm = MPI.COMM_WORLD
 size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
-for T in MPIUnionTypes
+for T in MPITestTypes
     # test vector input
     A = ArrayType{T}([rank + 1])
     synchronize()
