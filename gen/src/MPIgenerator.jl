@@ -11,19 +11,6 @@ module MPIgenerator
         error("Unknown MPI binary: $(MPIPreferences.binary)")
     end
 
-    @eval Generators _get_func_arg(cursor::CLFunctionDecl, options, dag) = begin
-        arg_names, args = invoke(_get_func_arg, NTuple{3,Any}, cursor, options, dag)
-
-        re = r"^type_(.*)_fn"
-        for (i, (name, arg)) in enumerate(zip(arg_names, args))
-            match(re, string(name)) ≡ nothing && continue
-            arg != :(Ptr{Cvoid}) && continue
-            args[i] = :($(Symbol(replace(string(name), re => s"MPI_Type_\1_function"))))
-        end
-
-        arg_names, args
-    end
-
     signatures() = begin
         @info "Generate MPI bindings from $(MPIPreferences.binary)"
 
