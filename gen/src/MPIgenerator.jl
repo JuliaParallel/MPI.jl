@@ -1,6 +1,8 @@
 module MPIgenerator
+    __precompile__(false)
     using Clang.Generators
     using MPIPreferences
+    using Clang
 
     if MPIPreferences.binary == "MPICH_jll"
         import MPICH_jll: artifact_dir
@@ -8,6 +10,56 @@ module MPIgenerator
         import OpenMPI_jll: artifact_dir
     else
         error("Unknown MPI binary: $(MPIPreferences.binary)")
+    end
+
+    @eval Clang.Generators translate(jlty::JuliaCpointer, options=Dict()) = begin
+        # @show jlty getPointeeType(jlty.ref) getNamedType(getPointeeType(jlty.ref)) propertynames(jlty)
+        is_jl_funcptr(jlty) && return translate(JuliaPtrCvoid(), options)
+        jlptree = tojulia(getPointeeType(jlty.ref))
+        if get(options, "always_NUL_terminated_string", false)
+            is_jl_char(jlptree) && return :Cstring
+            is_jl_wchar(jlptree) && return :Cwstring
+        end
+        return Expr(:curly, :Ptr, translate(jlptree, options))
+    end
+
+    rewrite!(dag::ExprDAG) = begin
+        replace!(get_nodes(dag)) do node
+            # signature = name(node.cursor)
+            # @show signature node.cursor 
+
+            for a in get_function_args(node.cursor)
+                startswith(name(a), "type_") || continue
+                # @show a, typeof(a)
+                if (ct = Clang.getCursorType(a)) isa CLPointer
+                    # @show translate(tojulia(ct))
+                    # if Clang.Generators.is_jl_funcptr(tojulia(ct))
+                    if (pt = Clang.getPointeeType(ct)) isa CLTypedef
+                        dumpobj(a)
+                        repl = "MPI_" * replace(name(a), "type_" => "Type_")
+                        @show repl
+                        # FIXME: how do we replace node function arguments ?
+                        # translate(tojulia(ct)) should replace "Ptr{Cvoid}" => repl
+
+                        # the following approach doesn't work since some information is lost during julia code generation
+                        #=
+                        replace!(get_exprs(node)) do ex
+                            out = Expr(ex.head)
+                            for a in ex.args
+                                push!(out.args, a)
+                            end
+                            @show out
+                            out
+                        end
+                        =#
+                    end
+                    # end
+                end
+            end
+            # dump(node)
+
+            node
+        end
     end
 
     signatures() = begin
@@ -33,7 +85,9 @@ module MPIgenerator
 
         ctx = create_context(headers, args, options)
 
-        build!(ctx)  # run generator
+        build!(ctx, BUILDSTAGE_NO_PRINTING)
+        rewrite!(ctx.dag)
+        build!(ctx, BUILDSTAGE_PRINTING_ONLY)
 
         ############################
         # custom MPI post-processing
