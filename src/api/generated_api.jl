@@ -204,7 +204,7 @@ end
 $(_doc_external(:MPI_Type_create_keyval))
 """
 function MPI_Type_create_keyval(type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
-    @mpichk ccall((:MPI_Type_create_keyval, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
+    @mpichk ccall((:MPI_Type_create_keyval, libmpi), Cint, (MPI_Type_copy_attr_function, MPI_Type_delete_attr_function, Ptr{Cint}, MPIPtr), type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
 end
 
 """
@@ -5118,7 +5118,7 @@ end
 $(_doc_external(:PMPI_Type_create_keyval))
 """
 function PMPI_Type_create_keyval(type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
-    @mpichk ccall((:PMPI_Type_create_keyval, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
+    @mpichk ccall((:PMPI_Type_create_keyval, libmpi), Cint, (MPI_Type_copy_attr_function, MPI_Type_delete_attr_function, Ptr{Cint}, MPIPtr), type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
 end
 
 """
@@ -9960,7 +9960,7 @@ end
 $(_doc_external(:QMPI_Type_create_keyval))
 """
 function QMPI_Type_create_keyval(context, tool_id, type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
-    @mpichk ccall((:QMPI_Type_create_keyval, libmpi), Cint, (QMPI_Context, Cint, MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), context, tool_id, type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
+    @mpichk ccall((:QMPI_Type_create_keyval, libmpi), Cint, (QMPI_Context, Cint, MPI_Type_copy_attr_function, MPI_Type_delete_attr_function, Ptr{Cint}, MPIPtr), context, tool_id, type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
 end
 
 """
