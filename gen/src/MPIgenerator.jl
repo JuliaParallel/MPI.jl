@@ -59,13 +59,14 @@ module MPIgenerator
             :MPI_Neighbor_alltoall => v"3.0",
         )
 
-        src, fn = joinpath(out, "api.jl"), replace(@__FILE__, r".*MPI.jl" => "MPI.jl")
-        lines = String["# WARNING: this signature file for $(MPIPreferences.binary) has been auto-generated, please edit $fn instead !\n"]
+        dst = normpath(@__DIR__, "..", "..", "src", "api", "generated_api.jl")
+        src, fn = joinpath(out, "api.jl"), relpath(@__FILE__, dirname(dst))
+        lines = String["# WARNING: this signature file for $(MPIPreferences.binary) has been auto-generated, please edit $(fn) instead!\n"]
         for line in readlines(src)
-            if (m = match(r"^ccall.*:([\w_]+)", lstrip(line))) ≢ nothing
+            if (m = match(r"^@ccall.*:([\w_]+)", lstrip(line))) ≢ nothing
                 sym = first(m.captures) |> Symbol
-                repl = sym ∈ mpicall ? "@mpicall ccall" : "@mpichk ccall"
-                line = replace(line, "Ptr{Cvoid}" => "MPIPtr", "ccall" => repl)
+                repl = sym ∈ mpicall ? "@mpicall @ccall" : "@mpichk @ccall"
+                line = replace(line, "Ptr{Cvoid}" => "MPIPtr", "@ccall" => repl)
                 if (ver = get(versioned, sym, nothing)) ≢ nothing
                     line *= " $(repr(ver))"
                 end
@@ -74,7 +75,6 @@ module MPIgenerator
         end
         write(src, join(lines, "\n"))
 
-        dst = normpath(@__DIR__, "..", "..", "src", "api", "generated_api.jl")
         mv(src, dst; force=true)  # move the generated file to src
         rm(out)  # cleanup
 
