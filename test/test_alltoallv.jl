@@ -12,7 +12,7 @@ recv_counts = fill(Cint(rank+1), size)
 send_vals = collect(Iterators.flatten([1:i for i = 1:size]))
 recv_vals = collect(Iterators.flatten([1:rank+1 for i = 1:size]))
 
-for T in Base.uniontypes(MPI.MPIDatatype)
+for T in MPITestTypes
 
     A = ArrayType{T}(send_vals)
     synchronize()

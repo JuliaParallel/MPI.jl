@@ -96,7 +96,7 @@ end
 $(_doc_external(:MPI_Comm_create_keyval))
 """
 function MPI_Comm_create_keyval(comm_copy_attr_fn, comm_delete_attr_fn, comm_keyval, extra_state)
-    @mpichk ccall((:MPI_Comm_create_keyval, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), comm_copy_attr_fn, comm_delete_attr_fn, comm_keyval, extra_state)
+    @mpichk ccall((:MPI_Comm_create_keyval, libmpi), Cint, (MPI_Comm_copy_attr_function, MPI_Comm_delete_attr_function, Ptr{Cint}, MPIPtr), comm_copy_attr_fn, comm_delete_attr_fn, comm_keyval, extra_state)
 end
 
 """
@@ -141,7 +141,7 @@ end
 $(_doc_external(:MPI_Keyval_create))
 """
 function MPI_Keyval_create(copy_fn, delete_fn, keyval, extra_state)
-    @mpichk ccall((:MPI_Keyval_create, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), copy_fn, delete_fn, keyval, extra_state)
+    @mpichk ccall((:MPI_Keyval_create, libmpi), Cint, (MPI_Copy_function, MPI_Delete_function, Ptr{Cint}, MPIPtr), copy_fn, delete_fn, keyval, extra_state)
 end
 
 """
@@ -159,7 +159,7 @@ end
 $(_doc_external(:MPI_Type_create_keyval))
 """
 function MPI_Type_create_keyval(type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
-    @mpichk ccall((:MPI_Type_create_keyval, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
+    @mpichk ccall((:MPI_Type_create_keyval, libmpi), Cint, (MPI_Type_copy_attr_function, MPI_Type_delete_attr_function, Ptr{Cint}, MPIPtr), type_copy_attr_fn, type_delete_attr_fn, type_keyval, extra_state)
 end
 
 """
@@ -204,7 +204,7 @@ end
 $(_doc_external(:MPI_Win_create_keyval))
 """
 function MPI_Win_create_keyval(win_copy_attr_fn, win_delete_attr_fn, win_keyval, extra_state)
-    @mpichk ccall((:MPI_Win_create_keyval, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPIPtr), win_copy_attr_fn, win_delete_attr_fn, win_keyval, extra_state)
+    @mpichk ccall((:MPI_Win_create_keyval, libmpi), Cint, (MPI_Win_copy_attr_function, MPI_Win_delete_attr_function, Ptr{Cint}, MPIPtr), win_copy_attr_fn, win_delete_attr_fn, win_keyval, extra_state)
 end
 
 """
@@ -1491,7 +1491,7 @@ end
 $(_doc_external(:MPI_Comm_create_errhandler))
 """
 function MPI_Comm_create_errhandler(comm_errhandler_fn, errhandler)
-    @mpichk ccall((:MPI_Comm_create_errhandler, libmpi), Cint, (MPIPtr, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
+    @mpichk ccall((:MPI_Comm_create_errhandler, libmpi), Cint, (MPI_Comm_errhandler_function, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
 end
 
 """
@@ -1554,7 +1554,7 @@ end
 $(_doc_external(:MPI_File_create_errhandler))
 """
 function MPI_File_create_errhandler(file_errhandler_fn, errhandler)
-    @mpichk ccall((:MPI_File_create_errhandler, libmpi), Cint, (MPIPtr, Ptr{MPI_Errhandler}), file_errhandler_fn, errhandler)
+    @mpichk ccall((:MPI_File_create_errhandler, libmpi), Cint, (MPI_File_errhandler_function, Ptr{MPI_Errhandler}), file_errhandler_fn, errhandler)
 end
 
 """
@@ -1590,7 +1590,7 @@ end
 $(_doc_external(:MPI_Win_create_errhandler))
 """
 function MPI_Win_create_errhandler(win_errhandler_fn, errhandler)
-    @mpichk ccall((:MPI_Win_create_errhandler, libmpi), Cint, (MPIPtr, Ptr{MPI_Errhandler}), win_errhandler_fn, errhandler)
+    @mpichk ccall((:MPI_Win_create_errhandler, libmpi), Cint, (MPI_Win_errhandler_function, Ptr{MPI_Errhandler}), win_errhandler_fn, errhandler)
 end
 
 """
@@ -1617,7 +1617,7 @@ end
 $(_doc_external(:MPI_Errhandler_create))
 """
 function MPI_Errhandler_create(comm_errhandler_fn, errhandler)
-    @mpichk ccall((:MPI_Errhandler_create, libmpi), Cint, (MPIPtr, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
+    @mpichk ccall((:MPI_Errhandler_create, libmpi), Cint, (MPI_Comm_errhandler_function, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
 end
 
 """
@@ -1986,7 +1986,7 @@ end
 $(_doc_external(:MPI_Op_create))
 """
 function MPI_Op_create(user_fn, commute, op)
-    @mpichk ccall((:MPI_Op_create, libmpi), Cint, (MPIPtr, Cint, Ptr{MPI_Op}), user_fn, commute, op)
+    @mpichk ccall((:MPI_Op_create, libmpi), Cint, (MPI_User_function, Cint, Ptr{MPI_Op}), user_fn, commute, op)
 end
 
 """
@@ -2319,7 +2319,7 @@ end
 $(_doc_external(:MPI_Grequest_start))
 """
 function MPI_Grequest_start(query_fn, free_fn, cancel_fn, extra_state, request)
-    @mpichk ccall((:MPI_Grequest_start, libmpi), Cint, (MPIPtr, MPIPtr, MPIPtr, MPIPtr, Ptr{MPI_Request}), query_fn, free_fn, cancel_fn, extra_state, request)
+    @mpichk ccall((:MPI_Grequest_start, libmpi), Cint, (MPI_Grequest_query_function, MPI_Grequest_free_function, MPI_Grequest_cancel_function, MPIPtr, Ptr{MPI_Request}), query_fn, free_fn, cancel_fn, extra_state, request)
 end
 
 """
@@ -3894,7 +3894,7 @@ end
 $(_doc_external(:MPI_Op_create_c))
 """
 function MPI_Op_create_c(user_fn, commute, op)
-    @mpichk ccall((:MPI_Op_create_c, libmpi), Cint, (MPIPtr, Cint, Ptr{MPI_Op}), user_fn, commute, op)
+    @mpichk ccall((:MPI_Op_create_c, libmpi), Cint, (MPI_User_function_c, Cint, Ptr{MPI_Op}), user_fn, commute, op)
 end
 
 """
@@ -4650,7 +4650,7 @@ end
 $(_doc_external(:MPI_Register_datarep))
 """
 function MPI_Register_datarep(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
-    @mpichk ccall((:MPI_Register_datarep, libmpi), Cint, (Ptr{Cchar}, MPIPtr, MPIPtr, MPIPtr, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
+    @mpichk ccall((:MPI_Register_datarep, libmpi), Cint, (Ptr{Cchar}, MPI_Datarep_conversion_function, MPI_Datarep_conversion_function, MPI_Datarep_extent_function, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
 end
 
 """
@@ -4983,7 +4983,7 @@ end
 $(_doc_external(:MPI_Register_datarep_c))
 """
 function MPI_Register_datarep_c(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
-    @mpichk ccall((:MPI_Register_datarep_c, libmpi), Cint, (Ptr{Cchar}, MPIPtr, MPIPtr, MPIPtr, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
+    @mpichk ccall((:MPI_Register_datarep_c, libmpi), Cint, (Ptr{Cchar}, MPI_Datarep_conversion_function_c, MPI_Datarep_conversion_function_c, MPI_Datarep_extent_function, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
 end
 
 """
