@@ -1,5 +1,4 @@
 module MPIgenerator
-    __precompile__(false)
     using Clang.Generators
     using MPIPreferences
 
