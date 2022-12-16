@@ -2,9 +2,10 @@ const MPIInteger = Union{Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt6
 const MPIFloatingPoint = Union{Float32, Float64}
 const MPIComplex = Union{ComplexF32, ComplexF64}
 
-const MPIDatatype = Union{Int8, UInt8, Int16, UInt16,
+const MPIDatatype = Union{Char,
+                          Int8, UInt8, Int16, UInt16,
                           Int32, UInt32, Int64, UInt64,
-                            Float32, Float64, ComplexF32, ComplexF64}
+                          Float32, Float64, ComplexF32, ComplexF64}
 MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 
 MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
