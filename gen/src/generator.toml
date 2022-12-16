@@ -2,4 +2,4 @@
 library_name = "libmpi"
 output_common_file_path = "./out/common.jl"
 output_api_file_path = "./out/api.jl"
-output_ignorelist = ["^[PQ]MPI[XR]?_", "^MPI[XR]_", "^MPI_T_", "^MPI_Session_", "^MPI_Status_[\\w_]*f08", "^MPI_Group_from_session_pset"]
+output_ignorelist = ["^[PQ]MPI[XR]?_.*", "^MPI[XR]_.*", "^MPI_T_.*", "^MPI_Session_.*", "^MPI_Status_[\\w_]*f08.*", "^MPI_Group_from_session_pset.*"]

@@ -2,7 +2,6 @@ module MPIgenerator
     __precompile__(false)
     using Clang.Generators
     using MPIPreferences
-    using Clang
 
     if MPIPreferences.binary == "MPICH_jll"
         import MPICH_jll: artifact_dir
@@ -12,7 +11,7 @@ module MPIgenerator
         error("Unknown MPI binary: $(MPIPreferences.binary)")
     end
 
-    @eval Clang.Generators _get_func_arg(cursor::CLFunctionDecl, options, dag) = begin
+    @eval Generators _get_func_arg(cursor::CLFunctionDecl, options, dag) = begin
         arg_names, args = invoke(_get_func_arg, NTuple{3,Any}, cursor, options, dag)
 
         re = r"^type_(.*)_fn"
