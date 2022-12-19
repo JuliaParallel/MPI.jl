@@ -42,26 +42,26 @@ const MPI_Op = UInt
 const MPI_Request = UInt
 const MPI_Win = UInt
 
-# Function pointers:
-const MPI_Comm_copy_attr_function = Ptr{Cvoid}
-const MPI_Comm_delete_attr_function = Ptr{Cvoid}
-const MPI_Comm_errhandler_function = Ptr{Cvoid}
+# Function prototypes:
+const MPI_Comm_copy_attr_function = Cvoid
+const MPI_Comm_delete_attr_function = Cvoid
+const MPI_Comm_errhandler_function = Cvoid
 const MPI_Comm_errhandler_fn = MPI_Comm_errhandler_function
 const MPI_Copy_function = MPI_Comm_copy_attr_function
-const MPI_Datarep_conversion_function = Ptr{Cvoid}
-const MPI_Datarep_extent_function = Ptr{Cvoid}
-const MPI_Delete_function = Ptr{Cvoid}
-const MPI_File_errhandler_function = Ptr{Cvoid}
-const MPI_File_errhandler_fn = Ptr{Cvoid}
-const MPI_Grequest_cancel_function = Ptr{Cvoid}
-const MPI_Grequest_free_function = Ptr{Cvoid}
-const MPI_Grequest_query_function = Ptr{Cvoid}
-const MPI_Type_copy_attr_function = Ptr{Cvoid}
-const MPI_Type_delete_attr_function = Ptr{Cvoid}
-const MPI_User_function = Ptr{Cvoid}
-const MPI_Win_copy_attr_function = Ptr{Cvoid}
-const MPI_Win_delete_attr_function = Ptr{Cvoid}
-const MPI_Win_errhandler_function = Ptr{Cvoid}
+const MPI_Datarep_conversion_function = Cvoid
+const MPI_Datarep_extent_function = Cvoid
+const MPI_Delete_function = Cvoid
+const MPI_File_errhandler_function = Cvoid
+const MPI_File_errhandler_fn = Cvoid
+const MPI_Grequest_cancel_function = Cvoid
+const MPI_Grequest_free_function = Cvoid
+const MPI_Grequest_query_function = Cvoid
+const MPI_Type_copy_attr_function = Cvoid
+const MPI_Type_delete_attr_function = Cvoid
+const MPI_User_function = Cvoid
+const MPI_Win_copy_attr_function = Cvoid
+const MPI_Win_delete_attr_function = Cvoid
+const MPI_Win_errhandler_function = Cvoid
 const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 
 
@@ -210,11 +210,11 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_COMM_SELF MPI_Comm unsafe_load(cglobal((:MPICONSTANTS_COMM_SELF , libmpiconstants), MPI_Comm))
 @const_ref MPI_COMM_WORLD MPI_Comm unsafe_load(cglobal((:MPICONSTANTS_COMM_WORLD, libmpiconstants), MPI_Comm))
 
-@const_ref MPI_COMM_DUP_FN MPI_Comm_copy_attr_function unsafe_load(cglobal((:MPICONSTANTS_COMM_DUP_FN, libmpiconstants), MPI_Comm_copy_attr_function))
-@const_ref MPI_COMM_NULL_COPY_FN MPI_Comm_copy_attr_function unsafe_load(cglobal((:MPICONSTANTS_COMM_NULL_COPY_FN, libmpiconstants), MPI_Comm_copy_attr_function))
-@const_ref MPI_COMM_NULL_DELETE_FN MPI_Comm_delete_attr_function unsafe_load(cglobal((:MPICONSTANTS_COMM_NULL_DELETE_FN, libmpiconstants), MPI_Comm_delete_attr_function))
+@const_ref MPI_COMM_DUP_FN Ptr{MPI_Comm_copy_attr_function} unsafe_load(cglobal((:MPICONSTANTS_COMM_DUP_FN, libmpiconstants), Ptr{MPI_Comm_copy_attr_function}))
+@const_ref MPI_COMM_NULL_COPY_FN Ptr{MPI_Comm_copy_attr_function} unsafe_load(cglobal((:MPICONSTANTS_COMM_NULL_COPY_FN, libmpiconstants), Ptr{MPI_Comm_copy_attr_function}))
+@const_ref MPI_COMM_NULL_DELETE_FN Ptr{MPI_Comm_delete_attr_function} unsafe_load(cglobal((:MPICONSTANTS_COMM_NULL_DELETE_FN, libmpiconstants), Ptr{MPI_Comm_delete_attr_function}))
 
-@const_ref MPI_NULL_COPY_FN MPI_Copy_function unsafe_load(cglobal((:MPICONSTANTS_NULL_COPY_FN, libmpiconstants), MPI_Copy_function))
+@const_ref MPI_NULL_COPY_FN Ptr{MPI_Copy_function} unsafe_load(cglobal((:MPICONSTANTS_NULL_COPY_FN, libmpiconstants), Ptr{MPI_Copy_function}))
 
 @const_ref MPI_2DOUBLE_PRECISION MPI_Datatype unsafe_load(cglobal((:MPICONSTANTS_2DOUBLE_PRECISION, libmpiconstants), MPI_Datatype))
 @const_ref MPI_2INT MPI_Datatype unsafe_load(cglobal((:MPICONSTANTS_2INT, libmpiconstants), MPI_Datatype))
@@ -282,7 +282,7 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_UNSIGNED_SHORT MPI_Datatype unsafe_load(cglobal((:MPICONSTANTS_UNSIGNED_SHORT, libmpiconstants), MPI_Datatype))
 @const_ref MPI_WCHAR MPI_Datatype unsafe_load(cglobal((:MPICONSTANTS_WCHAR, libmpiconstants), MPI_Datatype))
 
-@const_ref MPI_NULL_DELETE_FN MPI_Delete_function unsafe_load(cglobal((:MPICONSTANTS_NULL_DELETE_FN, libmpiconstants), MPI_Delete_function))
+@const_ref MPI_NULL_DELETE_FN Ptr{MPI_Delete_function} unsafe_load(cglobal((:MPICONSTANTS_NULL_DELETE_FN, libmpiconstants), Ptr{MPI_Delete_function}))
 
 @const_ref MPI_ERRHANDLER_NULL MPI_Errhandler unsafe_load(cglobal((:MPICONSTANTS_ERRHANDLER_NULL, libmpiconstants), MPI_Errhandler))
 @const_ref MPI_ERRORS_ARE_FATAL MPI_Errhandler unsafe_load(cglobal((:MPICONSTANTS_ERRORS_ARE_FATAL, libmpiconstants), MPI_Errhandler))
@@ -322,13 +322,13 @@ const MPI_Win_errhandler_fn = MPI_Win_errhandler_function
 @const_ref MPI_STATUS_IGNORE Ptr{MPI_Status} unsafe_load(cglobal((:MPICONSTANTS_STATUS_IGNORE, libmpiconstants), Ptr{MPI_Status}))
 @const_ref MPI_STATUSES_IGNORE Ptr{MPI_Status} unsafe_load(cglobal((:MPICONSTANTS_STATUSES_IGNORE, libmpiconstants), Ptr{MPI_Status}))
 
-@const_ref MPI_TYPE_DUP_FN MPI_Type_copy_attr_function unsafe_load(cglobal((:MPICONSTANTS_TYPE_DUP_FN, libmpiconstants), MPI_Type_copy_attr_function))
-@const_ref MPI_TYPE_NULL_COPY_FN MPI_Type_copy_attr_function unsafe_load(cglobal((:MPICONSTANTS_TYPE_NULL_COPY_FN, libmpiconstants), MPI_Type_copy_attr_function))
-@const_ref MPI_TYPE_NULL_DELETE_FN MPI_Type_delete_attr_function unsafe_load(cglobal((:MPICONSTANTS_TYPE_NULL_DELETE_FN, libmpiconstants), MPI_Type_delete_attr_function))
+@const_ref MPI_TYPE_DUP_FN Ptr{MPI_Type_copy_attr_function} unsafe_load(cglobal((:MPICONSTANTS_TYPE_DUP_FN, libmpiconstants), Ptr{MPI_Type_copy_attr_function}))
+@const_ref MPI_TYPE_NULL_COPY_FN Ptr{MPI_Type_copy_attr_function} unsafe_load(cglobal((:MPICONSTANTS_TYPE_NULL_COPY_FN, libmpiconstants), Ptr{MPI_Type_copy_attr_function}))
+@const_ref MPI_TYPE_NULL_DELETE_FN Ptr{MPI_Type_delete_attr_function} unsafe_load(cglobal((:MPICONSTANTS_TYPE_NULL_DELETE_FN, libmpiconstants), Ptr{MPI_Type_delete_attr_function}))
 
 @const_ref MPI_WIN_NULL MPI_Win unsafe_load(cglobal((:MPICONSTANTS_WIN_NULL, libmpiconstants), MPI_Win))
 
-@const_ref MPI_WIN_DUP_FN MPI_Win_copy_attr_function unsafe_load(cglobal((:MPICONSTANTS_WIN_DUP_FN, libmpiconstants), MPI_Win_copy_attr_function))
-@const_ref MPI_WIN_NULL_COPY_FN MPI_Win_copy_attr_function unsafe_load(cglobal((:MPICONSTANTS_WIN_NULL_COPY_FN, libmpiconstants), MPI_Win_copy_attr_function))
+@const_ref MPI_WIN_DUP_FN Ptr{MPI_Win_copy_attr_function} unsafe_load(cglobal((:MPICONSTANTS_WIN_DUP_FN, libmpiconstants), Ptr{MPI_Win_copy_attr_function}))
+@const_ref MPI_WIN_NULL_COPY_FN Ptr{MPI_Win_copy_attr_function} unsafe_load(cglobal((:MPICONSTANTS_WIN_NULL_COPY_FN, libmpiconstants), Ptr{MPI_Win_copy_attr_function}))
 
-@const_ref MPI_WIN_NULL_DELETE_FN MPI_Win_delete_attr_function unsafe_load(cglobal((:MPICONSTANTS_WIN_NULL_DELETE_FN, libmpiconstants), MPI_Win_delete_attr_function))
+@const_ref MPI_WIN_NULL_DELETE_FN Ptr{MPI_Win_delete_attr_function} unsafe_load(cglobal((:MPICONSTANTS_WIN_NULL_DELETE_FN, libmpiconstants), Ptr{MPI_Win_delete_attr_function}))
