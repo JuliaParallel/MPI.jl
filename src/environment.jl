@@ -44,13 +44,22 @@ end
 const mpi_init_hooks = Any[]
 add_init_hook!(f) = push!(mpi_init_hooks, f)
 function run_init_hooks()
-    for f in mpi_init_hooks
+    while !isempty(mpi_init_hooks)
+        f = popfirst!(mpi_init_hooks) # FIFO
         f()
     end
-    empty!(mpi_init_hooks)
     return nothing
 end
 
+const mpi_finalize_hooks = Any[]
+add_finalize_hook!(f) = push!(mpi_finalize_hooks, f)
+function run_finalize_hooks()
+    while !isempty(mpi_finalize_hooks)
+        f = pop!(mpi_finalize_hooks) # LIFO
+        f()
+    end
+    return nothing
+end
 
 """
     Init(;threadlevel=:serialized, finalize_atexit=true, errors_return=true)
@@ -225,7 +234,10 @@ Julia exits, if it hasn't already been called.
 $(_doc_external("MPI_Finalize"))
 """
 function Finalize()
-    MPI.Finalized() || API.MPI_Finalize()
+    if !MPI.Finalized()
+        run_finalize_hooks()
+        API.MPI_Finalize()
+    end
     return nothing
 end
 
