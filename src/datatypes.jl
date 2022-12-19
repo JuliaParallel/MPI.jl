@@ -66,7 +66,9 @@ end
 
 # datatype attribute to store Julia type
 const JULIA_TYPE_PTR_ATTR = Ref(Cint(0))
-add_init_hook!(() -> JULIA_TYPE_PTR_ATTR[] = create_keyval(Datatype))
+add_init_hook!() do
+    JULIA_TYPE_PTR_ATTR[] = create_keyval(Datatype)
+end
 
 """
     to_type(datatype::Datatype)
@@ -134,6 +136,11 @@ _defined_datatype_methods = nothing
 # constructed in MPI.Get. Without the cache, each Get would commit the
 # same datatype over and over again.
 const created_datatypes = IdDict{Type, Datatype}()
+add_finalize_hook!() do
+    for datatype in values(created_datatypes)
+        free(datatype)
+    end
+end
 
 function Datatype(::Type{T}) where {T}
     global created_datatypes
