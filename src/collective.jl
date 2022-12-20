@@ -17,7 +17,7 @@ function Barrier(comm::Comm)
 end
 
 """
-    Ibarrier(comm::Comm)
+    Ibarrier(comm::Comm[, req::AbstractRequest = Request())
 
 Blocks until `comm` is synchronized.
 
@@ -28,8 +28,7 @@ If `comm` is an intercommunicator, then it blocks until all members of the other
 # External links
 $(_doc_external("MPI_Ibarrier"))
 """
-function Ibarrier(comm::Comm)
-    req = Request()
+function Ibarrier(comm::Comm, req::AbstractRequest = Request())
     # int MPI_Ibarrier(MPI_Comm comm, MPI_Req req)
     API.MPI_Ibarrier(comm, req)
     return req

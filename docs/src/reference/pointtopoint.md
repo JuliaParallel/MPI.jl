@@ -3,7 +3,11 @@
 ## Types
 
 ```@docs
+MPI.AbstractRequest
 MPI.Request
+MPI.NoRefRequest
+MPI.MultiRequest
+MPI.NoRefMultiRequest
 MPI.RequestSet
 MPI.Status
 ```

@@ -74,7 +74,43 @@ Get_source(status::Status) = Int(status.source)
 Get_tag(status::Status) = Int(status.tag)
 Get_error(status::Status) = Int(status.error)
 
+"""
+    MPI.AbstractRequest
+
+An abstract type for Julia objects wrapping MPI Requests objects, which
+represent non-blocking MPI communication operations. The following
+implementations provided in MPI.jl
+
+- [`Request`](@ref): this is the default request type.
+- [`NoRefRequst`](@ref): similar to `Request`, but does not maintain a reference
+  to the underlying communication buffer.
+- `MultiRequestItem`: created by calling `getindex` on a [`MultiRequest`](@ref)
+  / [`NoRefMultiRequest`](@ref) object, which efficiently stores a collection of
+  requests.
+
+# Interface
+
+Subtypes `R <: AbstractRequest` should define the methods for the following
+functions:
+
+- [`isnull(req::R)`](@ref)
+- setbuffer!(req::R, val)`: keep a reference to the communication buffer `val`.
+  If `val == nothing`, then clear the reference.
+- C conversion functions to `MPI_Request` and `Ptr{MPI_Request}`:
+  - `Base.cconvert(::Type{MPI_Request}, req::R)` /
+    `Base.unsafe_convert(::Type{MPI_Request}, req::R)`
+  - `Base.cconvert(::Type{Ptr{MPI_Request}}, req::R)` /
+    `Base.unsafe_convert(::Type{Ptr{MPI_Request}}, req::R)``
+"""
 abstract type AbstractRequest end
+
+
+"""
+    isnull(req::AbstractRequest)
+
+Is `req` is a null request.
+"""
+function isnull end
 
 function free(req::AbstractRequest)
     if !isnull(req) && !MPI.Finalized()
@@ -87,9 +123,9 @@ end
 
 
 """
-    MPI.Request
+    MPI.Request()
 
-An MPI Request object, representing a non-blocking communication. This also contains a
+The default MPI Request object, representing a non-blocking communication. This also contains a
 reference to the buffer used in the communication to ensure it isn't garbage-collected
 during communication.
 
@@ -121,20 +157,29 @@ Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MP
 const REQUEST_NULL = Request(API.MPI_REQUEST_NULL[], nothing)
 add_load_time_hook!(() -> REQUEST_NULL.val = API.MPI_REQUEST_NULL[])
 
-struct UntrackedRequest <: AbstractRequest
+"""
+    MPI.NoRefRequest()
+
+Similar to [`MPI.Request`](@ref), but does not maintain a reference to the
+underlying communication buffer: a reference should be maintained separately by
+the user so that is not collected by the garbage collector.
+
+This can help reduce memory allocations.
+"""
+mutable struct NoRefRequest <: AbstractRequest
     val::MPI_Request
 end
 
-function UntrackedRequest()
-    req = UntrackedRequest(API.MPI_REQUEST_NULL[])
+function NoRefRequest()
+    req = NoRefRequest(API.MPI_REQUEST_NULL[])
     return finalizer(free, req)
 end
-isnull(req::UntrackedRequest) = req.val == API.MPI_REQUEST_NULL[]
-setbuffer!(req::UntrackedRequest, val) = nothing
+isnull(req::NoRefRequest) = req.val == API.MPI_REQUEST_NULL[]
+setbuffer!(req::NoRefRequest, val) = nothing
 
-Base.cconvert(::Type{MPI_Request}, request::UntrackedRequest) = request
-Base.unsafe_convert(::Type{MPI_Request}, request::UntrackedRequest) = request.val
-Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::UntrackedRequest) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
+Base.cconvert(::Type{MPI_Request}, request::NoRefRequest) = request
+Base.unsafe_convert(::Type{MPI_Request}, request::NoRefRequest) = request.val
+Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::NoRefRequest) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
 
 
 # abstract element type to work around lack of cyclic type definitions
@@ -142,17 +187,57 @@ Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::UntrackedRequest) = conve
 abstract type AbstractMultiRequest <: AbstractVector{AbstractRequest}
 end
 
+
+"""
+    MPI.MultiRequest(n::Integer=0)
+
+A collection of MPI Requests. This is useful when operating on multiple MPI
+requests at the same time. `MultiRequest` objects can be passed directly to
+[`MPI.Waitall`](@ref), [`MPI.Testall`](@ref), etc.
+
+`getindex(req::MultiRequest, i::Integer)` will return a `MultiRequestItem` which
+adheres to the [`AbstractRequest`] interface.
+
+# Usage
+```julia
+reqs = MPI.MultiRequest(n)
+for i = 1:n
+    MPI.Isend(buf, comm, reqs[i]; rank=dest[i])
+end
+MPI.Waitall(reqs)
+```
+"""
 struct MultiRequest <: AbstractMultiRequest
     vals::Vector{MPI_Request}
     buffers::Vector{Any}
 end
-MultiRequest() = MultiRequest(MPI_Request[], Any[])
+MultiRequest(n::Integer=0) =
+    MultiRequest(MPI_Request[API.MPI_REQUEST_NULL[] for _ = 1:n], Any[nothing for _ = 1:n])
 
-struct UntrackedMultiRequest <: AbstractMultiRequest
+function update!(reqs::MultiRequest, i::Integer)
+    if isnull(reqs[i])
+        setbuffer!(reqs[i], nothing)
+    end
+    return nothing
+end
+function update!(reqs::MultiRequest)
+    foreach(i -> update!(reqs, i), 1:length(reqs))
+    return nothing
+end
+
+
+"""
+    MPI.NoRefMultiRequest(n::Integer=0)
+
+A collection of MPI Requests,
+"""
+struct NoRefMultiRequest <: AbstractMultiRequest
     vals::Vector{MPI_Request}
 end
-UntrackedMultiRequest() = UntrackedMultiRequest(MPI_Request[])
-
+NoRefMultiRequest(n::Integer=0) =
+    NoRefMultiRequest(MPI_Request[API.MPI_REQUEST_NULL[] for _ = 1:n])
+update!(reqs::NoRefMultiRequest, i::Integer) = nothing
+update!(reqs::NoRefMultiRequest) = nothing
 
 struct MultiRequestItem{MR <: AbstractMultiRequest} <: AbstractRequest
     multireq::MR
@@ -182,7 +267,7 @@ Base.unsafe_convert(::Type{Ptr{MPI_Request}}, req::MultiRequestItem) =
 isnull(req::MultiRequestItem) = req.multireq.vals[req.idx] == API.MPI_REQUEST_NULL[]
 setbuffer!(req::MultiRequestItem{MultiRequest}, val) =
     req.multireq.buffers[req.idx] = val
-setbuffer!(req::MultiRequestItem{UntrackedMultiRequest}, val) =
+setbuffer!(req::MultiRequestItem{NoRefMultiRequest}, val) =
     nothing
 
 
@@ -202,7 +287,7 @@ function Base.resize!(mreq::MultiRequest, n::Integer)
     end
     return mreq
 end
-function Base.resize!(mreq::UntrackedMultiRequest, n::Integer)
+function Base.resize!(mreq::NoRefMultiRequest, n::Integer)
     m = length(mreq)
     # free any requests being removed
     for i = n+1:m
@@ -357,6 +442,8 @@ end
 A wrapper for an array of `Request`s that can be used to reduce intermediate memory
 allocations in [`Waitall`](@ref), [`Testall`](@ref), [`Waitany`](@ref), [`Testany`](@ref),
 [`Waitsome`](@ref) or [`Testsome`](@ref).
+
+Consider using a [`MultiRequest`](@ref) or [`NoRefMultiRequest`](@ref) instead.
 """
 struct RequestSet <: AbstractVector{Request}
     requests::Vector{Request}
@@ -408,7 +495,7 @@ The optional `statuses` or `Status` argument can be used to obtain the return
 # External links
 $(_doc_external("MPI_Waitall"))
 """
-function Waitall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothing}=nothing)
+function Waitall(reqs::Union{AbstractMultiRequest, RequestSet}, statuses::Union{AbstractVector{Status},Nothing}=nothing)
     n = length(reqs)
     n == 0 && return nothing
     @assert isnothing(statuses) || length(statuses) >= n
@@ -418,7 +505,7 @@ function Waitall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothin
     update!(reqs)
     return nothing
 end
-function Waitall(reqs::RequestSet, ::Type{Status})
+function Waitall(reqs::Union{AbstractMultiRequest, RequestSet}, ::Type{Status})
     statuses = Array{Status}(undef, length(reqs))
     Waitall(reqs, statuses)
     return statuses
@@ -443,7 +530,7 @@ The optional `statuses` or `Status` argument can be used to obtain the return
 # External links
 $(_doc_external("MPI_Testall"))
 """
-function Testall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothing}=nothing)
+function Testall(reqs::Union{AbstractMultiRequest, RequestSet}, statuses::Union{AbstractVector{Status},Nothing}=nothing)
     n = length(reqs)
     flag = Ref{Cint}()
     @assert isnothing(statuses) || length(statuses) >= n
@@ -453,7 +540,7 @@ function Testall(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothin
     update!(reqs)
     return flag[] != 0
 end
-function Testall(reqs::RequestSet, ::Type{Status})
+function Testall(reqs::Union{AbstractMultiRequest, RequestSet}, ::Type{Status})
     statuses = Array{Status}(undef, length(reqs))
     flag = Testall(reqs, statuses)
     return flag, statuses
@@ -479,7 +566,7 @@ of the request.
 # External links
 $(_doc_external("MPI_Waitany"))
 """
-function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
+function Waitany(reqs::Union{AbstractMultiRequest, RequestSet}, status::Union{Ref{Status}, Nothing}=nothing)
     ref_idx = Ref{Cint}()
     n = length(reqs)
     # int MPI_Waitany(int count, MPI_Request array_of_requests[], int *index,
@@ -491,7 +578,7 @@ function Waitany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     update!(reqs, i)
     return i
 end
-function Waitany(reqs::RequestSet, ::Type{Status})
+function Waitany(reqs::Union{AbstractMultiRequest, RequestSet}, ::Type{Status})
     status = Ref(STATUS_ZERO)
     i = Waitany(reqs, status)
     return i, status[]
@@ -519,7 +606,7 @@ The optional `status` argument can be used to obtain the return [`Status`](@ref)
 # External links
 $(_doc_external("MPI_Testany"))
 """
-function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
+function Testany(reqs::Union{AbstractMultiRequest, RequestSet}, status::Union{Ref{Status}, Nothing}=nothing)
     ref_idx = Ref{Cint}()
     rflag = Ref{Cint}()
     n = length(reqs)
@@ -533,7 +620,7 @@ function Testany(reqs::RequestSet, status::Union{Ref{Status}, Nothing}=nothing)
     update!(reqs, i)
     return flag, i
 end
-function Testany(reqs::RequestSet, ::Type{Status})
+function Testany(reqs::Union{AbstractMultiRequest, RequestSet}, ::Type{Status})
     status = Ref(STATUS_ZERO)
     flag, i = Testany(reqs, status)
     return flag, i, status[]
@@ -558,7 +645,7 @@ The optional `statuses` argument can be used to obtain the return
 # External links
 $(_doc_external("MPI_Waitsome"))
 """
-function Waitsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothing}=nothing)
+function Waitsome(reqs::Union{AbstractMultiRequest, RequestSet}, statuses::Union{AbstractVector{Status},Nothing}=nothing)
     ref_nout = Ref{Cint}()
     n = length(reqs)
     idxs = Vector{Cint}(undef, n)
@@ -574,7 +661,7 @@ function Waitsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     update!(reqs)
     return [Int(idxs[i]) + 1 for i = 1:nout]
 end
-function Waitsome(reqs::RequestSet, ::Type{Status})
+function Waitsome(reqs::Union{AbstractMultiRequest, RequestSet}, ::Type{Status})
     statuses = Array{Status}(undef, length(reqs))
     inds = Waitsome(reqs, statuses)
     resize!(statuses, isnothing(inds) ? 0 : length(inds))
@@ -599,7 +686,7 @@ The optional `statuses` argument can be used to obtain the return
 # External links
 $(_doc_external("MPI_Testsome"))
 """
-function Testsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothing}=nothing)
+function Testsome(reqs::Union{AbstractMultiRequest, RequestSet}, statuses::Union{AbstractVector{Status},Nothing}=nothing)
     ref_nout = Ref{Cint}()
     n = length(reqs)
     idxs = Vector{Cint}(undef, n)
@@ -615,7 +702,7 @@ function Testsome(reqs::RequestSet, statuses::Union{AbstractVector{Status},Nothi
     update!(reqs)
     return [Int(idxs[i]) + 1 for i = 1:nout]
 end
-function Testsome(reqs::RequestSet, ::Type{Status})
+function Testsome(reqs::Union{AbstractMultiRequest, RequestSet}, ::Type{Status})
     statuses = Array{Status}(undef, length(reqs))
     inds = Testsome(reqs, statuses)
     resize!(statuses, isnothing(inds) ? 0 : length(inds))

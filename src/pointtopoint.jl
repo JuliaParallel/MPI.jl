@@ -44,14 +44,14 @@ function send(obj, dest::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Isend(data, comm::Comm; dest::Integer, tag::Integer=0)
+    Isend(data, comm::Comm[, req::AbstractRequest = Request()]; dest::Integer, tag::Integer=0)
 
 Starts a nonblocking send of `data` to MPI rank `dest` of communicator `comm` using with
 the message tag `tag`.
 
 `data` can be a [`Buffer`](@ref), or any object for which [`Buffer_send`](@ref) is defined.
 
-Returns the [`Request`](@ref) object for the nonblocking send.
+Returns the [`AbstractRequest`](@ref) object for the nonblocking send.
 
 # External links
 $(_doc_external("MPI_Isend"))
@@ -70,18 +70,18 @@ Isend(data, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Reques
     Isend(Buffer_send(data), dest, tag, comm, req)
 
 """
-    isend(obj, comm::Comm; dest::Integer, tag::Integer=0)
+    isend(obj, comm::Comm[, req::AbstractRequest = Request()]; dest::Integer, tag::Integer=0)
 
 Starts a nonblocking send of using a serialized version of `obj` to MPI rank
 `dest` of communicator `comm` using with the message tag `tag`.
 
 Returns the commication `Request` for the nonblocking send.
 """
-isend(data, comm::Comm; dest::Integer, tag::Integer=0) =
-    isend(data, dest, tag, comm)
-function isend(obj, dest::Integer, tag::Integer, comm::Comm)
+isend(data, comm::Comm, req::AbstractRequest = Request(); dest::Integer, tag::Integer=0) =
+    isend(data, dest, tag, comm, req)
+function isend(obj, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest = Request())
     buf = MPI.serialize(obj)
-    Isend(buf, dest, tag, comm)
+    Isend(buf, dest, tag, comm, req)
 end
 
 """
@@ -181,7 +181,7 @@ end
 
 
 """
-    req = Irecv!(recvbuf, comm::Comm;
+    req = Irecv!(recvbuf, comm::Comm[, req::AbstractRequest = Request()];
             source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
 Starts a nonblocking receive into the buffer `data` from MPI rank `source` of communicator
@@ -189,7 +189,7 @@ Starts a nonblocking receive into the buffer `data` from MPI rank `source` of co
 
 `data` can be a [`Buffer`](@ref), or any object for which `Buffer(data)` is defined.
 
-Returns the [`Request`](@ref) object for the nonblocking receive.
+Returns the [`AbstractRequest`](@ref) object for the nonblocking receive.
 
 # External links
 $(_doc_external("MPI_Irecv"))
@@ -245,9 +245,10 @@ end
 
 # persistent requests
 """
-    Send_init(buf, comm; dest, tag=0)::MPI.Request
+    Send_init(buf, comm[, req::AbstractRequest = Request()];
+        dest, tag=0)
 
-Allocate a persistent send request, returning a [`Request`](@ref) object. Use
+Allocate a persistent send request, returning a [`AbstractRequest`](@ref) object. Use
 [`Start`](@ref) or [`Startall`](@ref) to start the communication operation, and
 `free` to deallocate the request.
 
@@ -265,9 +266,10 @@ Send_init(buf, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Req
     Send_init(Buffer(buf), dest, tag, comm, req)
 
 """
-    Recv_init(buf, comm; source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)::MPI.Request
+    Recv_init(buf, comm[, req::AbstractRequest = Request()];
+        source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
 
-Allocate a persistent receive request, returning a [`Request`](@ref) object. Use
+Allocate a persistent receive request, returning a [`AbstractRequest`](@ref) object. Use
 [`Start`](@ref) or [`Startall`](@ref) to start the communication operation, and
 `free` to deallocate the request.
 
@@ -285,7 +287,7 @@ Recv_init(buf, source::Integer, tag::Integer, comm::Comm, req::AbstractRequest=R
     Recv_init(Buffer(buf), source, tag, comm, req)
 
 """
-    Start(request::Request)
+    Start(request::AbstractRequest)
 
 Start a persistent communication request created by [`Send_init`](@ref) or
 [`Recv_init`](@ref). Call [`Wait`](@ref) to complete the request.
@@ -293,7 +295,7 @@ Start a persistent communication request created by [`Send_init`](@ref) or
 # External links
 $(_doc_external("MPI_Start"))
 """
-function Start(req::Request)
+function Start(req::AbstractRequest)
     API.MPI_Start(req)
     return nothing
 end
