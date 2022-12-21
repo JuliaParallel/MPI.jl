@@ -93,7 +93,7 @@ implementations provided in MPI.jl
 Subtypes `R <: AbstractRequest` should define the methods for the following
 functions:
 
-- [`isnull(req::R)`](@ref)
+- `isnull(req::R)`: see [`isnull`](@ref)
 - setbuffer!(req::R, val)`: keep a reference to the communication buffer `val`.
   If `val == nothing`, then clear the reference.
 - C conversion functions to `MPI_Request` and `Ptr{MPI_Request}`:

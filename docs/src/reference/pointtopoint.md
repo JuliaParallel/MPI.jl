@@ -63,6 +63,7 @@ MPI.Waitsome
 ### Probe/Cancel
 
 ```@docs
+MPI.isnull
 MPI.Cancel!
 MPI.Iprobe
 MPI.Probe
