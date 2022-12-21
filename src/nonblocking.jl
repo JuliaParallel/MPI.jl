@@ -82,7 +82,7 @@ represent non-blocking MPI communication operations. The following
 implementations provided in MPI.jl
 
 - [`Request`](@ref): this is the default request type.
-- [`NoRefRequst`](@ref): similar to `Request`, but does not maintain a reference
+- [`NoRefRequest`](@ref): similar to `Request`, but does not maintain a reference
   to the underlying communication buffer.
 - `MultiRequestItem`: created by calling `getindex` on a [`MultiRequest`](@ref)
   / [`NoRefMultiRequest`](@ref) object, which efficiently stores a collection of
