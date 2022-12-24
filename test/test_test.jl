@@ -66,18 +66,19 @@ inds = MPI.Waitsome(reqs)
 MPI.Waitall(reqs)
 @test MPI.Testall(reqs)
 
-reqs = MPI.NoRefMultiRequest(2)
-MPI.Irecv!(recv_mesg, comm, reqs[1]; source=src, tag=src+32)
-@test !MPI.Testall(reqs)
+reqs = MPI.UnsafeMultiRequest(2)
+GC.@preserve send_mesg recv_mesg begin
+    MPI.Irecv!(recv_mesg, comm, reqs[1]; source=src, tag=src+32)
+    @test !MPI.Testall(reqs)
 
-MPI.Barrier(comm)
-MPI.Isend(send_mesg, comm, reqs[2]; dest=dst, tag=rank+32, )
+    MPI.Barrier(comm)
+    MPI.Isend(send_mesg, comm, reqs[2]; dest=dst, tag=rank+32, )
+    inds = MPI.Waitsome(reqs)
+    @test !isempty(inds)
 
-inds = MPI.Waitsome(reqs)
-@test !isempty(inds)
-
-MPI.Waitall(reqs)
-@test MPI.Testall(reqs)
+    MPI.Waitall(reqs)
+    @test MPI.Testall(reqs)
+end
 
 MPI.Finalize()
 @test MPI.Finalized()

@@ -82,25 +82,40 @@ represent non-blocking MPI communication operations. The following
 implementations provided in MPI.jl
 
 - [`Request`](@ref): this is the default request type.
-- [`NoRefRequest`](@ref): similar to `Request`, but does not maintain a reference
-  to the underlying communication buffer.
+- [`UnsafeRequest`](@ref): similar to `Request`, but does not maintain a
+  reference to the underlying communication buffer.
 - `MultiRequestItem`: created by calling `getindex` on a [`MultiRequest`](@ref)
-  / [`NoRefMultiRequest`](@ref) object, which efficiently stores a collection of
-  requests.
+  / [`UnsafeMultiRequest`](@ref) object, which efficiently stores a collection
+  of requests.
 
-# Interface
+# How request objects are used
+
+A request object can be passed to non-blocking communication operations, such as
+[`MPI.Isend`](@ref) and [`MPI.Irecv!`](@ref). If no object is provided, then an
+[`MPI.Request`](@ref) is used.
+
+The status of a Request can be checked by the [`Wait`](@ref) and [`Test`](@ref)
+functions or their mœultiple-request variants, which will deallocate the request
+once it is determined to be complete.
+
+Alternatively, it will be deallocated by calling `MPI.free` or at finalization,
+meaning that it is safe to ignore the request objects if the status of the
+communication can be checked by other means.
+
+In certain cases, the operation can also be cancelled by [`Cancel!`](@ref).
+
+# Implementing new request types
 
 Subtypes `R <: AbstractRequest` should define the methods for the following
 functions:
 
-- `isnull(req::R)`: see [`isnull`](@ref)
-- setbuffer!(req::R, val)`: keep a reference to the communication buffer `val`.
-  If `val == nothing`, then clear the reference.
 - C conversion functions to `MPI_Request` and `Ptr{MPI_Request}`:
   - `Base.cconvert(::Type{MPI_Request}, req::R)` /
     `Base.unsafe_convert(::Type{MPI_Request}, req::R)`
   - `Base.cconvert(::Type{Ptr{MPI_Request}}, req::R)` /
     `Base.unsafe_convert(::Type{Ptr{MPI_Request}}, req::R)``
+- setbuffer!(req::R, val)`: keep a reference to the communication buffer `val`.
+  If `val == nothing`, then clear the reference.
 """
 abstract type AbstractRequest end
 
@@ -110,7 +125,11 @@ abstract type AbstractRequest end
 
 Is `req` is a null request.
 """
-function isnull end
+function isnull(req::AbstractRequest)
+    creq = Base.cconvert(MPI_Request, req)
+    GC.@preserve creq Base.unsafe_convert(MPI_Request, creq) == API.MPI_REQUEST_NULL[]
+end
+
 
 function free(req::AbstractRequest)
     if !isnull(req) && !MPI.Finalized()
@@ -129,13 +148,7 @@ The default MPI Request object, representing a non-blocking communication. This 
 reference to the buffer used in the communication to ensure it isn't garbage-collected
 during communication.
 
-The status of a Request can be checked by the [`Wait`](@ref) and [`Test`](@ref) functions
-or their multiple-request variants, which will deallocate the request once it is
-determined to be complete. Alternatively, it will be deallocated at finalization, meaning
-that it is safe to ignore the request objects if the status of the communication can be
-checked by other means.
-
-See also [`Cancel!`](@ref).
+See [`AbstractRequest`](@ref) for more information.
 """
 mutable struct Request <: AbstractRequest
     val::MPI_Request
@@ -146,7 +159,6 @@ function Request()
     return finalizer(free, req)
 end
 
-isnull(req::Request) = req.val == API.MPI_REQUEST_NULL[]
 setbuffer!(req::Request, val) = req.buffer = val
 
 Base.cconvert(::Type{MPI_Request}, request::Request) = request
@@ -158,28 +170,40 @@ const REQUEST_NULL = Request(API.MPI_REQUEST_NULL[], nothing)
 add_load_time_hook!(() -> REQUEST_NULL.val = API.MPI_REQUEST_NULL[])
 
 """
-    MPI.NoRefRequest()
+    MPI.UnsafeRequest()
 
 Similar to [`MPI.Request`](@ref), but does not maintain a reference to the
-underlying communication buffer: a reference should be maintained separately by
-the user so that is not collected by the garbage collector.
+underlying communication buffer. This may have improve performance by reducing
+memory allocations.
 
-This can help reduce memory allocations.
+!!! warning 
+    
+    The user should ensure that another reference to the communication buffer is
+    maintained so that it is not cleaned up by the garbage collector
+    before the communication operation is complete. 
+
+    For example
+    ```julia
+    buf = MPI.Buffer(zeros(10))
+    GC.@preserve buf begin
+        req = MPI.Isend(buf, comm, UnsafeRequest(); rank=1)
+        # ...
+        MPI.Wait(req)
+    end
 """
-mutable struct NoRefRequest <: AbstractRequest
+mutable struct UnsafeRequest <: AbstractRequest
     val::MPI_Request
 end
 
-function NoRefRequest()
-    req = NoRefRequest(API.MPI_REQUEST_NULL[])
+function UnsafeRequest()
+    req = UnsafeRequest(API.MPI_REQUEST_NULL[])
     return finalizer(free, req)
 end
-isnull(req::NoRefRequest) = req.val == API.MPI_REQUEST_NULL[]
-setbuffer!(req::NoRefRequest, val) = nothing
+setbuffer!(req::UnsafeRequest, val) = nothing
 
-Base.cconvert(::Type{MPI_Request}, request::NoRefRequest) = request
-Base.unsafe_convert(::Type{MPI_Request}, request::NoRefRequest) = request.val
-Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::NoRefRequest) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
+Base.cconvert(::Type{MPI_Request}, request::UnsafeRequest) = request
+Base.unsafe_convert(::Type{MPI_Request}, request::UnsafeRequest) = request.val
+Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::UnsafeRequest) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
 
 
 # abstract element type to work around lack of cyclic type definitions
@@ -195,7 +219,7 @@ A collection of MPI Requests. This is useful when operating on multiple MPI
 requests at the same time. `MultiRequest` objects can be passed directly to
 [`MPI.Waitall`](@ref), [`MPI.Testall`](@ref), etc.
 
-`getindex(req::MultiRequest, i::Integer)` will return a `MultiRequestItem` which
+`req[i]` will return a `MultiRequestItem` which
 adheres to the [`AbstractRequest`] interface.
 
 # Usage
@@ -227,17 +251,19 @@ end
 
 
 """
-    MPI.NoRefMultiRequest(n::Integer=0)
+    MPI.UnsafeMultiRequest(n::Integer=0)
 
-A collection of MPI Requests,
+Similar to [`MPI.MultiRequest`](@ref), except that it does not maintain
+references to the underlying communication buffers. The same caveats apply as
+[`MPI.UnsafeRequest`](@ref).
 """
-struct NoRefMultiRequest <: AbstractMultiRequest
+struct UnsafeMultiRequest <: AbstractMultiRequest
     vals::Vector{MPI_Request}
 end
-NoRefMultiRequest(n::Integer=0) =
-    NoRefMultiRequest(MPI_Request[API.MPI_REQUEST_NULL[] for _ = 1:n])
-update!(reqs::NoRefMultiRequest, i::Integer) = nothing
-update!(reqs::NoRefMultiRequest) = nothing
+UnsafeMultiRequest(n::Integer=0) =
+    UnsafeMultiRequest(MPI_Request[API.MPI_REQUEST_NULL[] for _ = 1:n])
+update!(reqs::UnsafeMultiRequest, i::Integer) = nothing
+update!(reqs::UnsafeMultiRequest) = nothing
 
 struct MultiRequestItem{MR <: AbstractMultiRequest} <: AbstractRequest
     multireq::MR
@@ -247,8 +273,8 @@ end
 Base.eltype(::Type{MR}) where {MR<:AbstractMultiRequest} = MultiRequestItem{MR}
 Base.length(mreq::AbstractMultiRequest) = length(mreq.vals)
 Base.size(mreq::AbstractMultiRequest) = (length(mreq),)
-function Base.getindex(mreq::AbstractMultiRequest,i::Integer)
-    checkbounds(mreq.vals,i)
+Base.@propagate_inbounds function Base.getindex(mreq::AbstractMultiRequest,i::Integer)
+    @boundscheck checkbounds(mreq.vals,i)
     MultiRequestItem(mreq, i)
 end
 
@@ -260,14 +286,13 @@ function free(mreq::AbstractMultiRequest)
 end
 
 Base.cconvert(::Type{MPI_Request}, req::MultiRequestItem) = req
-Base.unsafe_convert(::Type{MPI_Request}, req::MultiRequestItem) = req.multireq.vals[req.idx]
+Base.unsafe_convert(::Type{MPI_Request}, req::MultiRequestItem) = @inbounds req.multireq.vals[req.idx]
 Base.unsafe_convert(::Type{Ptr{MPI_Request}}, req::MultiRequestItem) =
     convert(Ptr{MPI_Request}, pointer(req.multireq.vals, req.idx))
 
-isnull(req::MultiRequestItem) = req.multireq.vals[req.idx] == API.MPI_REQUEST_NULL[]
 setbuffer!(req::MultiRequestItem{MultiRequest}, val) =
-    req.multireq.buffers[req.idx] = val
-setbuffer!(req::MultiRequestItem{NoRefMultiRequest}, val) =
+    @inbounds req.multireq.buffers[req.idx] = val
+setbuffer!(req::MultiRequestItem{UnsafeMultiRequest}, val) =
     nothing
 
 
@@ -287,7 +312,7 @@ function Base.resize!(mreq::MultiRequest, n::Integer)
     end
     return mreq
 end
-function Base.resize!(mreq::NoRefMultiRequest, n::Integer)
+function Base.resize!(mreq::UnsafeMultiRequest, n::Integer)
     m = length(mreq)
     # free any requests being removed
     for i = n+1:m
@@ -443,7 +468,7 @@ A wrapper for an array of `Request`s that can be used to reduce intermediate mem
 allocations in [`Waitall`](@ref), [`Testall`](@ref), [`Waitany`](@ref), [`Testany`](@ref),
 [`Waitsome`](@ref) or [`Testsome`](@ref).
 
-Consider using a [`MultiRequest`](@ref) or [`NoRefMultiRequest`](@ref) instead.
+Consider using a [`MultiRequest`](@ref) or [`UnsafeMultiRequest`](@ref) instead.
 """
 struct RequestSet <: AbstractVector{Request}
     requests::Vector{Request}

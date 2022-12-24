@@ -60,6 +60,7 @@ Isend(data, comm::Comm, req::AbstractRequest=Request(); dest::Integer, tag::Inte
     Isend(data, dest, tag, comm, req)
 
 function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
+    @assert isnull(req)
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     API.MPI_Isend(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
@@ -197,6 +198,7 @@ $(_doc_external("MPI_Irecv"))
 Irecv!(recvbuf, comm::Comm, req::AbstractRequest=Request(); source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
     Irecv!(recvbuf, source, tag, comm, req)
 function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
+    @assert isnull(req)
     # int MPI_Irecv(void* buf, int count, MPI_Datatype datatype, int source,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     API.MPI_Irecv(buf.data, buf.count, buf.datatype, source, tag, comm, req)
@@ -258,6 +260,7 @@ $(_doc_external("MPI_Send_init"))
 Send_init(buf, comm::Comm, req::AbstractRequest=Request(); dest::Integer, tag::Integer=0) =
     Send_init(buf, dest, tag, comm, req)
 function Send_init(buf::Buffer, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
+    @assert isnull(req)
     API.MPI_Send_init(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
     setbuffer!(req, buf)
     return req
@@ -279,6 +282,7 @@ $(_doc_external("MPI_Recv_init"))
 Recv_init(buf, comm::Comm, req::AbstractRequest=Request(); source=API.MPI_ANY_SOURCE[], tag=API.MPI_ANY_TAG[]) =
     Recv_init(buf, source, tag, comm, req)
 function Recv_init(buf::Buffer, source::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
+    @assert isnull(req)
     API.MPI_Recv_init(buf.data, buf.count, buf.datatype, source, tag, comm, req)
     setbuffer!(req, buf)
     return req

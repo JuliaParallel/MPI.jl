@@ -5,9 +5,9 @@
 ```@docs
 MPI.AbstractRequest
 MPI.Request
-MPI.NoRefRequest
+MPI.UnsafeRequest
 MPI.MultiRequest
-MPI.NoRefMultiRequest
+MPI.UnsafeMultiRequest
 MPI.RequestSet
 MPI.Status
 ```
