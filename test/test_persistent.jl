@@ -20,10 +20,13 @@ recvreq = MPI.Recv_init(recv_mesg, comm; tag=7, source=mod(rank - 1, size))
 @test MPI.Test(sendreq)
 @test MPI.Test(recvreq)
 
+@test Base.sprint(show, sendreq) == Base.sprint(show, recvreq) == "MPI.Request: inactive request"
+
 for i = 1:3
     MPI.Start(recvreq)
 
     @test !MPI.Test(recvreq)
+    @test Base.sprint(show, recvreq) == "MPI.Request: incomplete request"
 
     MPI.Barrier(comm)
 
@@ -33,6 +36,7 @@ for i = 1:3
 
     @test MPI.Test(sendreq)
     @test MPI.Test(recvreq)
+    @test Base.sprint(show, sendreq) == Base.sprint(show, recvreq) == "MPI.Request: inactive request"
 
     copyto!(send_mesg, recv_mesg)
 

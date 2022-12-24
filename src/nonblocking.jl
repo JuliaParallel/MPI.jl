@@ -119,7 +119,6 @@ functions:
 """
 abstract type AbstractRequest end
 
-
 """
     isnull(req::AbstractRequest)
 
@@ -130,6 +129,31 @@ function isnull(req::AbstractRequest)
     GC.@preserve creq Base.unsafe_convert(MPI_Request, creq) == API.MPI_REQUEST_NULL[]
 end
 
+function Base.show(io::IO, req::AbstractRequest)
+    if get(io, :typeinfo, Any) != typeof(req)
+        print(io, typeof(req), ": ")
+    end
+    if isnull(req)
+        print(io, "null request")
+    else
+        ref_flag = Ref(Cint(0))
+        ref_status = Ref(STATUS_ZERO)
+        API.MPI_Request_get_status(req, ref_flag, ref_status)
+        if ref_flag[] != 0
+            status = ref_status[]
+            if status.source == API.MPI_ANY_SOURCE[] && status.tag == API.MPI_ANY_TAG[] && status.error == API.MPI_SUCCESS[]
+                print(io, "inactive request")
+            else
+                print(io, "completed request, source = ", status.source, ", tag = ", status.tag)
+                if status.error != API.MPI_SUCCESS[]
+                    print(io, ", error = ", status.error)
+                end
+            end
+        else
+            print(io, "incomplete request")
+        end
+    end
+end
 
 function free(req::AbstractRequest)
     if !isnull(req) && !MPI.Finalized()
