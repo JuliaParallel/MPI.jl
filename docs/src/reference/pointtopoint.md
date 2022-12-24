@@ -3,7 +3,11 @@
 ## Types
 
 ```@docs
+MPI.AbstractRequest
 MPI.Request
+MPI.UnsafeRequest
+MPI.MultiRequest
+MPI.UnsafeMultiRequest
 MPI.RequestSet
 MPI.Status
 ```
@@ -59,6 +63,7 @@ MPI.Waitsome
 ### Probe/Cancel
 
 ```@docs
+MPI.isnull
 MPI.Cancel!
 MPI.Iprobe
 MPI.Probe

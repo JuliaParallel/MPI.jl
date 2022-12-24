@@ -44,46 +44,45 @@ function send(obj, dest::Integer, tag::Integer, comm::Comm)
 end
 
 """
-    Isend(data, comm::Comm; dest::Integer, tag::Integer=0)
+    Isend(data, comm::Comm[, req::AbstractRequest = Request()]; dest::Integer, tag::Integer=0)
 
 Starts a nonblocking send of `data` to MPI rank `dest` of communicator `comm` using with
 the message tag `tag`.
 
 `data` can be a [`Buffer`](@ref), or any object for which [`Buffer_send`](@ref) is defined.
 
-Returns the [`Request`](@ref) object for the nonblocking send.
+Returns the [`AbstractRequest`](@ref) object for the nonblocking send.
 
 # External links
 $(_doc_external("MPI_Isend"))
 """
-Isend(data, comm::Comm; dest::Integer, tag::Integer=0) =
-    Isend(data, dest, tag, comm)
+Isend(data, comm::Comm, req::AbstractRequest=Request(); dest::Integer, tag::Integer=0) =
+    Isend(data, dest, tag, comm, req)
 
-function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
-    req = Request()
+function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
+    @assert isnull(req)
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     API.MPI_Isend(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
-    req.buffer = buf
-    finalizer(free, req)
+    setbuffer!(req, buf)
     return req
 end
-Isend(data, dest::Integer, tag::Integer, comm::Comm) =
-    Isend(Buffer_send(data), dest, tag, comm)
+Isend(data, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request()) =
+    Isend(Buffer_send(data), dest, tag, comm, req)
 
 """
-    isend(obj, comm::Comm; dest::Integer, tag::Integer=0)
+    isend(obj, comm::Comm[, req::AbstractRequest = Request()]; dest::Integer, tag::Integer=0)
 
 Starts a nonblocking send of using a serialized version of `obj` to MPI rank
 `dest` of communicator `comm` using with the message tag `tag`.
 
 Returns the commication `Request` for the nonblocking send.
 """
-isend(data, comm::Comm; dest::Integer, tag::Integer=0) =
-    isend(data, dest, tag, comm)
-function isend(obj, dest::Integer, tag::Integer, comm::Comm)
+isend(data, comm::Comm, req::AbstractRequest = Request(); dest::Integer, tag::Integer=0) =
+    isend(data, dest, tag, comm, req)
+function isend(obj, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest = Request())
     buf = MPI.serialize(obj)
-    Isend(buf, dest, tag, comm)
+    Isend(buf, dest, tag, comm, req)
 end
 
 """
@@ -183,7 +182,7 @@ end
 
 
 """
-    req = Irecv!(recvbuf, comm::Comm;
+    req = Irecv!(recvbuf, comm::Comm[, req::AbstractRequest = Request()];
             source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
 Starts a nonblocking receive into the buffer `data` from MPI rank `source` of communicator
@@ -191,24 +190,23 @@ Starts a nonblocking receive into the buffer `data` from MPI rank `source` of co
 
 `data` can be a [`Buffer`](@ref), or any object for which `Buffer(data)` is defined.
 
-Returns the [`Request`](@ref) object for the nonblocking receive.
+Returns the [`AbstractRequest`](@ref) object for the nonblocking receive.
 
 # External links
 $(_doc_external("MPI_Irecv"))
 """
-Irecv!(recvbuf, comm::Comm; source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
-    Irecv!(recvbuf, source, tag, comm)
-function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm)
-    req = Request()
+Irecv!(recvbuf, comm::Comm, req::AbstractRequest=Request(); source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
+    Irecv!(recvbuf, source, tag, comm, req)
+function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
+    @assert isnull(req)
     # int MPI_Irecv(void* buf, int count, MPI_Datatype datatype, int source,
     #               int tag, MPI_Comm comm, MPI_Request *request)
     API.MPI_Irecv(buf.data, buf.count, buf.datatype, source, tag, comm, req)
-    req.buffer = buf
-    finalizer(free, req)
+    setbuffer!(req, buf)
     return req
 end
-Irecv!(data, source::Integer, tag::Integer, comm::Comm) =
-    Irecv!(Buffer(data), source, tag, comm)
+Irecv!(data, source::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request()) =
+    Irecv!(Buffer(data), source, tag, comm, req)
 
 
 """
@@ -249,51 +247,51 @@ end
 
 # persistent requests
 """
-    Send_init(buf, comm; dest, tag=0)::MPI.Request
+    Send_init(buf, comm::MPI.Comm[, req::AbstractRequest = Request()];
+        dest, tag=0)
 
-Allocate a persistent send request, returning a [`Request`](@ref) object. Use
+Allocate a persistent send request, returning a [`AbstractRequest`](@ref) object. Use
 [`Start`](@ref) or [`Startall`](@ref) to start the communication operation, and
 `free` to deallocate the request.
 
 # External links
 $(_doc_external("MPI_Send_init"))
 """
-Send_init(buf, comm::Comm; dest::Integer, tag::Integer=0) =
-    Send_init(buf, dest, tag, comm)
-function Send_init(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
-    req = Request()
+Send_init(buf, comm::Comm, req::AbstractRequest=Request(); dest::Integer, tag::Integer=0) =
+    Send_init(buf, dest, tag, comm, req)
+function Send_init(buf::Buffer, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
+    @assert isnull(req)
     API.MPI_Send_init(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
-    req.buffer = buf
-    finalizer(free, req)
+    setbuffer!(req, buf)
     return req
 end
-Send_init(buf, dest::Integer, tag::Integer, comm::Comm) =
-    Send_init(Buffer(buf), dest, tag, comm)
+Send_init(buf, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request()) =
+    Send_init(Buffer(buf), dest, tag, comm, req)
 
 """
-    Recv_init(buf, comm; source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)::MPI.Request
+    Recv_init(buf, comm::MPI.Comm[, req::AbstractRequest = Request()];
+        source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
 
-Allocate a persistent receive request, returning a [`Request`](@ref) object. Use
+Allocate a persistent receive request, returning a [`AbstractRequest`](@ref) object. Use
 [`Start`](@ref) or [`Startall`](@ref) to start the communication operation, and
 `free` to deallocate the request.
 
 # External links
 $(_doc_external("MPI_Recv_init"))
 """
-Recv_init(buf, comm::Comm; source=API.MPI_ANY_SOURCE[], tag=API.MPI_ANY_TAG[]) =
-    Recv_init(buf, source, tag, comm)
-function Recv_init(buf::Buffer, source::Integer, tag::Integer, comm::Comm)
-    req = Request()
+Recv_init(buf, comm::Comm, req::AbstractRequest=Request(); source=API.MPI_ANY_SOURCE[], tag=API.MPI_ANY_TAG[]) =
+    Recv_init(buf, source, tag, comm, req)
+function Recv_init(buf::Buffer, source::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
+    @assert isnull(req)
     API.MPI_Recv_init(buf.data, buf.count, buf.datatype, source, tag, comm, req)
-    req.buffer = buf
-    finalizer(free, req)
+    setbuffer!(req, buf)
     return req
 end
-Recv_init(buf, source::Integer, tag::Integer, comm::Comm) =
-    Recv_init(Buffer(buf), source, tag, comm)
+Recv_init(buf, source::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request()) =
+    Recv_init(Buffer(buf), source, tag, comm, req)
 
 """
-    Start(request::Request)
+    Start(request::AbstractRequest)
 
 Start a persistent communication request created by [`Send_init`](@ref) or
 [`Recv_init`](@ref). Call [`Wait`](@ref) to complete the request.
@@ -301,7 +299,7 @@ Start a persistent communication request created by [`Send_init`](@ref) or
 # External links
 $(_doc_external("MPI_Start"))
 """
-function Start(req::Request)
+function Start(req::AbstractRequest)
     API.MPI_Start(req)
     return nothing
 end
@@ -316,7 +314,7 @@ or [`Recv_init`](@ref). Call [`Waitall`](@ref) to complete the requests.
 $(_doc_external("MPI_Startall"))
 """
 Startall(reqs::AbstractVector{Request}) = Startall(RequestSet(reqs))
-function Startall(reqs::RequestSet)
+function Startall(reqs::Union{AbstractMultiRequest, RequestSet})
     API.MPI_Startall(length(reqs), reqs.vals)
     update!(reqs)
     return nothing
