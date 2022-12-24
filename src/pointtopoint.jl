@@ -247,7 +247,7 @@ end
 
 # persistent requests
 """
-    Send_init(buf, comm[, req::AbstractRequest = Request()];
+    Send_init(buf, comm::MPI.Comm[, req::AbstractRequest = Request()];
         dest, tag=0)
 
 Allocate a persistent send request, returning a [`AbstractRequest`](@ref) object. Use
@@ -269,7 +269,7 @@ Send_init(buf, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Req
     Send_init(Buffer(buf), dest, tag, comm, req)
 
 """
-    Recv_init(buf, comm[, req::AbstractRequest = Request()];
+    Recv_init(buf, comm::MPI.Comm[, req::AbstractRequest = Request()];
         source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG)
 
 Allocate a persistent receive request, returning a [`AbstractRequest`](@ref) object. Use
