@@ -314,7 +314,7 @@ or [`Recv_init`](@ref). Call [`Waitall`](@ref) to complete the requests.
 $(_doc_external("MPI_Startall"))
 """
 Startall(reqs::AbstractVector{Request}) = Startall(RequestSet(reqs))
-function Startall(reqs::RequestSet)
+function Startall(reqs::Union{AbstractMultiRequest, RequestSet})
     API.MPI_Startall(length(reqs), reqs.vals)
     update!(reqs)
     return nothing
