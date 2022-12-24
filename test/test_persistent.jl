@@ -64,8 +64,8 @@ MPI.free(recvreq)
 
 
 reqs = MPI.MultiRequest(2)
-MPI.Send_init(reqs[1], send_mesg, comm; tag=8, dest=mod(rank + 1, size))
-MPI.Recv_init(reqs[2], recv_mesg, comm; tag=8, source=mod(rank - 1, size))
+MPI.Send_init(send_mesg, comm, reqs[1]; tag=8, dest=mod(rank + 1, size))
+MPI.Recv_init(recv_mesg, comm, reqs[2]; tag=8, source=mod(rank - 1, size))
 @test MPI.Testall(reqs)
 
 for i = 7:9
