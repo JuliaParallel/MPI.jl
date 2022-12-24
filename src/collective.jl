@@ -29,6 +29,7 @@ If `comm` is an intercommunicator, then it blocks until all members of the other
 $(_doc_external("MPI_Ibarrier"))
 """
 function Ibarrier(comm::Comm, req::AbstractRequest = Request())
+    @assert isnull(req)
     # int MPI_Ibarrier(MPI_Comm comm, MPI_Req req)
     API.MPI_Ibarrier(comm, req)
     return req
