@@ -318,9 +318,8 @@ if the length can be determined from `sendbuf`. On non-root processes it is igno
 can be `nothing`.
 
 # See also
-- [`Gatherv!`](@ref) for the allocating operation
-- [`Gather!`](@ref)
-- [`Allgatherv!`](@ref) to send the result to all processes
+- [`Gather!`](@ref) if the number of elements is the same between processes.
+- [`Allgatherv!`](@ref) to send the result to all processes.
 
 # External links
 $(_doc_external("MPI_Gatherv"))
