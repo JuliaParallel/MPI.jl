@@ -321,7 +321,13 @@ function Startall(reqs::Union{AbstractMultiRequest, RequestSet})
 end
 
 
+"""
+    MPI.Message
 
+An MPI message handle object, used by matched receive operations. These are
+returned by [`MPI.Mprobe`](@ref) and [`MPI.Improbe`](@ref) operations, and must
+be received by either [`MPI.Mrecv!`](@ref) or [`MPI.Imrecv!`](@ref).
+"""
 mutable struct Message
     val::MPI_Message
 end
@@ -332,7 +338,26 @@ Base.unsafe_convert(::Type{Ptr{MPI_Message}}, msg::Message) = convert(Ptr{MPI_Me
 Message() = Message(API.MPI_MESSAGE_NULL[])
 isnull(msg::Message) = msg.val == API.MPI_MESSAGE_NULL[]
 
+"""
+    ismsg, msg = MPI.Improbe(comm::MPI.Comm;
+        source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
+    ismsg, msg, status = MPI.Improbe(comm::MPI.Comm, MPI.Status;
+        source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
+Matching non-blocking probe. Similar to [`MPI.Iprobe`](@ref), except that it
+also returns `msg`, an [`MPI.Message`](@ref) object. 
+
+Checks if there is a message that can be received matching `source`, `tag` and
+`comm`. If so, returns `ismsg = true`, and a [`Message`](@ref) objec `msg`,
+which must be received by either [`MPI.Mrecv!`](@ref) or [`MPI.Imrecv!`](@ref).
+Otherwise `msg` is set to be a null `Message`.
+    
+The `Status` argument additionally returns the [`Status`](@ref) of the completed
+request.
+
+# External links
+$(_doc_external("MPI_Improbe"))
+"""
 Improbe(comm::Comm, status=nothing; source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
     Improbe(source, tag, comm, status)
 function Improbe(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
@@ -347,6 +372,25 @@ function Improbe(source::Integer, tag::Integer, comm::Comm, ::Type{Status})
     return ismsg, msg, status[]
 end
 
+"""
+    msg = MPI.Mprobe(comm::MPI.Comm;
+        source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
+    msg, status = MPI.Mprobe(comm::MPI.Comm, MPI.Status;
+        source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
+
+Matching blocking probe. Similar to [`MPI.Probe`](@ref), except that it also
+returns `msg`, an [`MPI.Message`](@ref) object. 
+
+Blocks until a message that can be received matching `source`, `tag` and `comm`,
+returning a [`Message`](@ref) objec `msg`, which must be received by either
+[`MPI.Mrecv!`](@ref) or [`MPI.Imrecv!`](@ref).
+    
+The `Status` argument additionally returns the [`Status`](@ref) of the completed
+request.
+
+# External links
+$(_doc_external("MPI_Mprobe"))
+"""
 Mprobe(comm::Comm, status=nothing; source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
     Mprobe(source, tag, comm, status)
 function Mprobe(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
@@ -360,6 +404,21 @@ function Mprobe(source::Integer, tag::Integer, comm::Comm, ::Type{Status})
     return msg, status[]
 end
 
+"""
+    data = MPI.Mrecv!(recvbuf, msg::MPI.Message)
+    data, status = MPI.Mrecv!(recvbuf, msg::MPI.Message, MPI.Status)
+
+Completes a blocking receive matched by a matching probe operation into the
+buffer `recvbuf`, and the [`Message`](@ref) `msg`.
+
+`recvbuf` can be a [`Buffer`](@ref), or any object for which `Buffer(recvbuf)`
+is defined.
+
+Optionally returns the [`Status`](@ref) object of the receive.
+
+# External links
+$(_doc_external("MPI_Mrecv"))
+"""
 function Mrecv!(recvbuf::Buffer, msg::Message, status::Union{Ref{Status},Nothing}=nothing)
     API.MPI_Mrecv(recvbuf.data, recvbuf.count, recvbuf.datatype, msg, something(status, API.MPI_STATUS_IGNORE[]))
     return recvbuf.data
@@ -372,6 +431,19 @@ function Mrecv!(recvbuf,msg::Message, ::Type{Status})
     return data, status[]
 end
 
+"""
+    req = MPI.Imrecv!(recvbuf, msg::MPI.Message[, req::AbstractRequest=Request()])
+
+Starts a nonblocking receive matched by a matching probe operation into the
+buffer `recvbuf`, and the [`Message`](@ref) `msg`.
+
+`recvbuf` can be a [`Buffer`](@ref), or any object for which `Buffer(recvbuf)` is defined.
+
+Returns `req`, an [`AbstractRequest`](@ref) object for the nonblocking receive.
+
+# External links
+$(_doc_external("MPI_Imrecv"))
+"""
 function Imrecv!(buf::Buffer, msg::Message, req::AbstractRequest=Request())
     @assert isnull(req)
     API.MPI_Imrecv(buf.data, buf.count, buf.datatype, msg, req)
