@@ -648,9 +648,9 @@ jobs:
     - name: Install Spack
       uses: vsoch/spack-package-action/install@main
 
-
-    - name: Install Mvapich via Spack
+    - name: Install MVAPICH via Spack
       run: |
+        echo /opt/spack/bin >> $GITHUB_PATH
         spack install mvapich2
 
     - uses: julia-actions/setup-julia@latest
