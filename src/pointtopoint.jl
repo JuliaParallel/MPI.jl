@@ -167,10 +167,10 @@ Returns the deserialized object and optionally the [`Status`](@ref) of the recei
 recv(comm::Comm, status=nothing; source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
     recv(source, tag, comm, status)
 function recv(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
-    stat = Probe(comm, Status; source=source, tag=tag)
+    msg, stat = Mprobe(comm, Status; source=source, tag=tag)
     count = Get_count(stat, UInt8)
     buf = Array{UInt8}(undef, count)
-    stat = Recv!(buf, comm, status; source=Get_source(stat), tag=Get_tag(stat))
+    Mrecv!(buf, msg, status)
     return MPI.deserialize(buf)
 end
 function recv(source::Integer, tag::Integer, comm::Comm, ::Type{Status})
@@ -380,4 +380,3 @@ function Imrecv!(buf::Buffer, msg::Message, req::AbstractRequest=Request())
 end
 Imrecv!(data, msg::Message, req::AbstractRequest=Request()) =
     Imrecv!(Buffer(data), msg, req)
-
