@@ -331,8 +331,6 @@ be received by either [`MPI.Mrecv!`](@ref) or [`MPI.Imrecv!`](@ref).
 mutable struct Message
     val::MPI_Message
 end
-Base.cconvert(::Type{MPI_Message}, msg::Message) = msg
-Base.unsafe_convert(::Type{MPI_Message}, msg::Message) = msg.val
 Base.unsafe_convert(::Type{Ptr{MPI_Message}}, msg::Message) = convert(Ptr{MPI_Message}, pointer_from_objref(msg))
 
 Message() = Message(API.MPI_MESSAGE_NULL[])
