@@ -626,3 +626,48 @@ jobs:
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
         julia --color=yes --project -e 'using Pkg; Pkg.test()'
+
+  test-spack-mvapich:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        julia_version:
+          - "1"
+
+      fail-fast: false
+
+    runs-on: ubuntu-20.04
+
+    env:
+      JULIA_MPI_TEST_BINARY: system
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.2.0
+
+    - name: Install Spack
+      uses: vsoch/spack-package-action/install@main
+
+
+    - name: Install Mvapich via Spack
+      run: |
+        spack install mvapich2
+
+    - uses: julia-actions/setup-julia@latest
+      with:
+        version: ${{ matrix.julia_version }}
+
+    - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using MPIPreferences
+        MPIPreferences.use_system_binary()
+
+    - uses: julia-actions/julia-runtest@latest
