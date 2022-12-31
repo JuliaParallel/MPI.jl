@@ -12,7 +12,7 @@ each process a unique *rank* (see [`MPI.Comm_rank`](@ref)) taking an integer val
 MPI.Comm
 ```
 
-If you need to pass a Julia `MPI.Comm` object to an external C/C++ library ([via `ccall`](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/)) that expects an `MPI_Comm` argument, you should declare the corresponding `ccall` argument as a `Ptr{MPI.MPI_Comm}` and the correct conversion will be performed.
+If you need to pass a Julia `MPI.Comm` object to an external C/C++ library ([via `ccall`](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/)) that expects an `MPI_Comm` argument, you should declare the corresponding `ccall` argument as a `MPI.MPI_Comm` and the correct conversion will be performed.
 
 ## Constants
 
