@@ -319,3 +319,65 @@ function Startall(reqs::Union{AbstractMultiRequest, RequestSet})
     update!(reqs)
     return nothing
 end
+
+
+
+mutable struct Message
+    val::MPI_Message
+end
+Base.cconvert(::Type{MPI_Message}, msg::Message) = msg
+Base.unsafe_convert(::Type{MPI_Message}, msg::Message) = msg.val
+Base.unsafe_convert(::Type{Ptr{MPI_Message}}, msg::Message) = convert(Ptr{MPI_Message}, pointer_from_objref(msg))
+
+Message() = Message(API.MPI_MESSAGE_NULL[])
+isnull(msg::Message) = msg.val == API.MPI_MESSAGE_NULL[]
+
+
+Improbe(comm::Comm, status=nothing; source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
+    Improbe(source, tag, comm, status)
+function Improbe(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
+    flag = Ref{Cint}()
+    msg = Message()
+    API.MPI_Improbe(source, tag, comm, flag, msg, something(status, API.MPI_STATUS_IGNORE[]))
+    return flag[] != 0, msg
+end
+function Improbe(source::Integer, tag::Integer, comm::Comm, ::Type{Status})
+    status = Ref(STATUS_ZERO)
+    ismsg, msg = Improbe(source, tag, comm, status)
+    return ismsg, msg, status[]
+end
+
+Mprobe(comm::Comm, status=nothing; source::Integer=API.MPI_ANY_SOURCE[], tag::Integer=API.MPI_ANY_TAG[]) =
+    Mprobe(source, tag, comm, status)
+function Mprobe(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
+    msg = Message()
+    API.MPI_Mprobe(source, tag, comm, msg, something(status, API.MPI_STATUS_IGNORE[]))
+    return msg
+end
+function Mprobe(source::Integer, tag::Integer, comm::Comm, ::Type{Status})
+    status = Ref(STATUS_ZERO)
+    msg = Mprobe(source, tag, comm, status)
+    return msg, status[]
+end
+
+function Mrecv!(recvbuf::Buffer, msg::Message, status::Union{Ref{Status},Nothing}=nothing)
+    API.MPI_Mrecv(recvbuf.data, recvbuf.count, recvbuf.datatype, msg, something(status, API.MPI_STATUS_IGNORE[]))
+    return recvbuf.data
+end
+Mrecv!(recvbuf, msg::Message, status::Union{Ref{Status},Nothing}=nothing) =
+    Mrecv!(Buffer(recvbuf), msg, status)
+function Mrecv!(recvbuf,msg::Message, ::Type{Status})
+    status = Ref(STATUS_ZERO)
+    data = Mrecv!(recvbuf, msg, status)
+    return data, status[]
+end
+
+function Imrecv!(buf::Buffer, msg::Message, req::AbstractRequest=Request())
+    @assert isnull(req)
+    API.MPI_Imrecv(buf.data, buf.count, buf.datatype, msg, req)
+    setbuffer!(req, buf)
+    return req
+end
+Imrecv!(data, msg::Message, req::AbstractRequest=Request()) =
+    Imrecv!(Buffer(data), msg, req)
+
