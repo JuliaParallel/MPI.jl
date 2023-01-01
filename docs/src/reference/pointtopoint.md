@@ -69,11 +69,21 @@ MPI.Iprobe
 MPI.Probe
 ```
 
-### Persistent requests
+## Persistent requests
 
 ```@docs
 MPI.Send_init
 MPI.Recv_init
 MPI.Start
 MPI.Startall
+```
+
+## Matching probes and receives
+
+```@docs
+MPI.Message
+MPI.Mprobe
+MPI.Improbe
+MPI.Mrecv!
+MPI.Imrecv!
 ```
