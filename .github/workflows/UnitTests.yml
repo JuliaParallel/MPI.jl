@@ -650,7 +650,7 @@ jobs:
 
     - name: Install MVAPICH via Spack
       run: |
-        . spack/share/spack/setup-env.sh
+        . /opt/spack/share/spack/setup-env.sh
         spack install mvapich2
 
     - uses: julia-actions/setup-julia@latest
