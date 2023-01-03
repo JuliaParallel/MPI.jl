@@ -68,7 +68,7 @@ jobs:
     - name: Set PATH and LD_LIBRARY_PATH
       run: |
         echo "PATH=$(realpath .ci/mvapich/.spack-env/view/bin):${PATH}" >> $GITHUB_ENV
-        echo "LD_LIBRARY_PATH=$(realpath .ci/mvapich/.spack-env/view/lin):${LD_LIBRARY_PATH}" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=$(realpath .ci/mvapich/.spack-env/view/lib):${LD_LIBRARY_PATH}" >> $GITHUB_ENV
 
     - uses: julia-actions/setup-julia@latest
       with:
@@ -80,6 +80,7 @@ jobs:
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
+        Pkg.precompile()
 
     - name: use system MPI
       shell: julia --color=yes --project=. {0}
