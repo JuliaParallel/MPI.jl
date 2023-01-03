@@ -41,6 +41,7 @@ jobs:
 
     env:
       JULIA_MPI_TEST_BINARY: system
+      MV2_SMP_USE_CMA: 0
 
     steps:
     - name: Checkout
