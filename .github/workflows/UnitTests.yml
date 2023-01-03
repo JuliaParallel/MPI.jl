@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   test-spack-mvapich:
-    timeout-minutes: 20
+    timeout-minutes: 60
     strategy:
       matrix:
         julia_version:
@@ -37,7 +37,7 @@ jobs:
 
       fail-fast: false
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     env:
       JULIA_MPI_TEST_BINARY: system
@@ -46,13 +46,22 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Install Spack
-      uses: vsoch/spack-package-action/install@main
+    - name: Install MVAPICH dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install rdma-core libibverbs-dev
 
     - name: Install MVAPICH via Spack
+      uses: vsoch/spack-package-action/envpackage@main
+      with:
+        spack_yaml: .ci/mvapich/spack.yaml
+        token: ${{ secrets.GITHUB_TOKEN }}
+        deploy: true
+
+    - name: Set PATH and LD_LIBRARY_PATH
       run: |
-        . /opt/spack/share/spack/setup-env.sh
-        spack install mvapich2
+        echo "PATH=$(realpath .ci/mvapich/.view/bin):${PATH}" >> $GITHUB_ENV
+        echo LD_LIBRARY_PATH=$(realpath .ci/mvapich/.view/lin):${LD_LIBRARY_PATH}" >> $GITHUB_ENV
 
     - uses: julia-actions/setup-julia@latest
       with:
