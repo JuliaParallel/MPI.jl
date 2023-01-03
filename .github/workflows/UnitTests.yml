@@ -626,3 +626,67 @@ jobs:
       run: |
         source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
         julia --color=yes --project -e 'using Pkg; Pkg.test()'
+
+  test-spack-mvapich:
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        julia_version:
+          - "1"
+
+      fail-fast: false
+
+    runs-on: ubuntu-22.04
+
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_EXCLUDE: test_spawn.jl
+      MV2_SMP_USE_CMA: 0
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Cache MVAPICH
+      uses: actions/cache@v3
+      with:
+        path: |
+          .ci/mvapich/opt
+          .ci/mvapich/.spack-env
+        key: ${{ runner.os }}-mvapich-2.3.7
+
+    - name: Install MVAPICH dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libibverbs-dev libpciaccess-dev libxml2-dev pkgconf rdma-core zlib1g-dev
+
+    - name: Install MVAPICH via Spack
+      uses: vsoch/spack-package-action/envpackage@main
+      with:
+        spack_yaml: .ci/mvapich/spack.yaml
+        deploy: false
+
+    - name: Set PATH and LD_LIBRARY_PATH
+      run: |
+        echo "PATH=$(realpath .ci/mvapich/.spack-env/view/bin):${PATH}" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=$(realpath .ci/mvapich/.spack-env/view/lib):${LD_LIBRARY_PATH}" >> $GITHUB_ENV
+
+    - uses: julia-actions/setup-julia@latest
+      with:
+        version: ${{ matrix.julia_version }}
+
+    - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        Pkg.precompile()
+
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using MPIPreferences
+        MPIPreferences.use_system_binary()
+
+    - uses: julia-actions/julia-runtest@latest
