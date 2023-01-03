@@ -36,8 +36,10 @@ if Sys.isunix()
     include("mpiexecjl.jl")
 end
 
+excludefiles = split(get(ENV,"JULIA_MPI_TEST_EXCLUDE",""),',')
+
 testdir = @__DIR__
-istest(f) = endswith(f, ".jl") && startswith(f, "test_")
+istest(f) = endswith(f, ".jl") && startswith(f, "test_") && !in(f, excludefiles)
 testfiles = sort(filter(istest, readdir(testdir)))
 
 @testset "$f" for f in testfiles
