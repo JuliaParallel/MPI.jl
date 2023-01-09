@@ -41,85 +41,49 @@ end
 source = Cint[rank]
 graph_comm = MPI.Dist_graph_create(comm, source, degree, dest)
 
+# Query number of ranks that point to this rank, and number of ranks this rank point to
+indegree, outdegree, _ = MPI.Dist_graph_neighbors_count(graph_comm)
+
+# Query which ranks that point to this rank, and which ranks this rank point to
+inranks = Vector{Cint}(undef, indegree)
+outranks = Vector{Cint}(undef, outdegree)
+MPI.Dist_graph_neighbors!(graph_comm, inranks, outranks)
+
 #
 # Now send the rank across the edges.
 #
 # Version 1: use allgather primitive
 #
 
-send = [rank]
-if rank == 0
-    recv = [-1, -1, -1]
-elseif rank == 1
-    recv = [-1, -1, -1]
-elseif rank == 2
-    recv = [-1]
-elseif rank == 3
-    recv = [-1, -1]
-end
+send = Cint[rank]
+recv = Vector{Cint}(undef, indegree)
 
 MPI.Neighbor_allgather!(send, recv, graph_comm);
 
-println("rank = $(rank): $(recv)")
+print("rank = $(rank): $(recv)\n")
 
 #
 # Version 2: use alltoall primitive
 #
 
-if rank == 0
-    send   = [rank, rank]
-    recv   = [-1, -1, -1]
-elseif rank == 1
-    send = [rank]
-    recv   = [-1, -1, -1]
-elseif rank == 2
-    send = [rank, rank, rank]
-    recv   = [-1]
-elseif rank == 3
-    send = [rank, rank, rank]
-    recv   = [-1, -1]
-end
+send = fill(Cint(rank), outdegree)
+recv = Vector{Cint}(undef, indegree)
 
 MPI.Neighbor_alltoall!(UBuffer(send,1), UBuffer(recv,1), graph_comm);
 
-println("rank = $(rank): $(recv)")
+print("rank = $(rank): $(recv)\n")
 
 #
-# Now send the rank exactly rank times across the edges.
-#
+# Now send the this rank "destination rank"+1 times across the edges.
 # Rank i receives i+1 values from each adjacent process
-if rank == 0
-    send       = [rank, rank,
-                  rank, rank, rank, rank]
-    send_count = [2, 4]
+#
 
-    recv   = [-1, -1, -1]
-    recv_count = [1, 1, 1]
-elseif rank == 1
-    send       = [rank]
-    send_count = [1]
-
-    recv       = [-1, -1, -1, -1, -1, -1]
-    recv_count = [2, 2, 2]
-elseif rank == 2
-    send       = [rank, rank, rank, rank,
-                  rank,
-                  rank,rank]
-    send_count = [4, 1, 2]
-
-    recv       = [-1, -1, -1]
-    recv_count = [3]
-elseif rank == 3
-    send       = [rank, 
-                  rank, rank,rank,
-                  rank, rank]
-    send_count = [1, 3, 2]
-
-    recv       = [-1, -1, -1, -1, -1, -1, -1, -1]
-    recv_count = [4, 4]
-end
+send_count = outranks .+ Cint(1)
+send = fill(Cint(rank), sum(send_count))
+recv_count = fill(Cint(rank + 1), length(inranks))
+recv = Vector{Cint}(undef, sum(recv_count))
 
 MPI.Neighbor_alltoallv!(VBuffer(send,send_count), VBuffer(recv,recv_count), graph_comm);
-println("rank = $(rank): $(recv)")
+print("rank = $(rank): $(recv)\n")
 
 MPI.Finalize()
