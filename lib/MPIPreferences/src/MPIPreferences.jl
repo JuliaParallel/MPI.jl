@@ -70,8 +70,12 @@ The `export_prefs` option determines whether the preferences being set should be
 stored within `LocalPreferences.toml` or `Project.toml`.
 """
 function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll"; export_prefs=false, force=true)
-    binary in ["MicrosoftMPI_jll", "MPICH_jll", "OpenMPI_jll", "MPItrampoline_jll"] ||
-        error("Unknown jll: $binary")
+    known_binaries = ("MicrosoftMPI_jll", "MPICH_jll", "OpenMPI_jll", "MPItrampoline_jll")
+    binary in known_binaries ||
+        error("""
+              Unknown jll: $binary.
+              Accepted options are:
+                  $(join(known_binaries, ", "))""")
     set_preferences!(MPIPreferences,
         "_format" => "1.0",
         "binary" => binary,
