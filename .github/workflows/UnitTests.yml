@@ -52,7 +52,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.2.0
+      uses: actions/checkout@v3
 
     - uses: julia-actions/setup-julia@latest
       with:
@@ -93,7 +93,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.2.0
+      uses: actions/checkout@v3
 
     - uses: julia-actions/setup-julia@latest
       with:
@@ -137,7 +137,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.2.0
+      uses: actions/checkout@v3
 
     - name: Install MPI via homebrew
       run: brew install $MPI
@@ -187,7 +187,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.2.0
+      uses: actions/checkout@v3
 
     - name: Install MPI via apt
       run: |
@@ -232,11 +232,11 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.2.0
+      uses: actions/checkout@v3
 
     - name: Cache Intel MPI
       id: cache-intelmpi
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: l_mpi_2019.9.304.tgz
         key: ${{ runner.os }}-intelmpi-2019.9.304
@@ -364,7 +364,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.2.0
+      uses: actions/checkout@v3
 
     - name: Download Microsoft MPI
       run: (new-object net.webclient).DownloadFile("https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe", "msmpisetup.exe")
@@ -428,7 +428,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.2.0
+      uses: actions/checkout@v3
 
     - uses: julia-actions/setup-julia@latest
       with:
@@ -482,7 +482,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.2.0
+      uses: actions/checkout@v3
 
     - name: Install MPI via apt
       run: |
@@ -549,11 +549,11 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.2.0
+      uses: actions/checkout@v3
 
     - name: Cache Intel MPI
       id: cache-intelmpi
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: l_mpi_2019.9.304.tgz
         key: ${{ runner.os }}-intelmpi-2019.9.304
@@ -600,7 +600,7 @@ jobs:
 
     # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
     - name: Cache artifacts
-      uses: actions/cache@v1
+      uses: actions/cache@v3
       env:
         cache-name: cache-artifacts
       with:
