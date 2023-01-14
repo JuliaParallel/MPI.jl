@@ -27,9 +27,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  JULIA_DEBUG: loading
-
 jobs:
   test-default:
     timeout-minutes: 20
