@@ -7,13 +7,17 @@ using MPI
         # `mpiexecjl`
         Pkg.activate(dir; io=devnull)
         Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")); io=devnull)
+        # Precompile in advance to avoid race conditions when running multiple Julia
+        # processes in parallel.
+        Pkg.precompile(; io=devnull)
         # Test installation
         @test_logs (:info, r"Installing") (:info, r"Done") MPI.install_mpiexecjl(; destdir = dir)
         # Test a run of mpiexec
         nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS", "")
         nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
         mpiexecjl = joinpath(dir, "mpiexecjl")
-        julia = joinpath(Sys.BINDIR, Base.julia_exename())
+        # `Base.julia_cmd()` ensures keeping consistent flags when running subprocesses.
+        julia = Base.julia_cmd()
         example = joinpath(@__DIR__, "..", "docs", "examples", "01-hello.jl")
         env = ["JULIA_BINDIR" => Sys.BINDIR]
         p = withenv(env...) do
