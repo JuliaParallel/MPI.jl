@@ -32,7 +32,7 @@ env:
 
 jobs:
   test-default:
-    timeout-minutes: 30
+    timeout-minutes: 20
     strategy:
       matrix:
         os:
