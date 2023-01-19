@@ -377,3 +377,29 @@ function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinat
     destination_weights = Array{Cint}(undef,0)
     Dist_graph_neighbors!(graph_comm, sources::Vector{Cint}, source_weights, destinations::Vector{Cint}, destination_weights)
 end
+
+"""
+    Dist_graph_neighbors(graph_comm::Comm)
+
+Return `(sources, source_weights, destinations, destination_weights)` of the graph
+communicator `graph_comm`. For unweighted graphs `source_weights` and `destination_weights`
+are `nothing`.
+
+This function is a wrapper around [`MPI.Dist_graph_neighbors_count`](@ref) and
+[`MPI.Dist_graph_neighbors!`](@ref) that automatically handles the allocation of the result
+vectors.
+"""
+function Dist_graph_neighbors(graph_comm::Comm)
+    indegree, outdegree, weighted = Dist_graph_neighbors_count(graph_comm)
+    sources = Vector{Cint}(undef, indegree)
+    destinations = Vector{Cint}(undef, outdegree)
+    if weighted
+        source_weights = Vector{Cint}(undef, indegree)
+        destination_weights = Vector{Cint}(undef, outdegree)
+        Dist_graph_neighbors!(graph_comm, sources, source_weights, destinations, destination_weights)
+        return sources, source_weights, destinations, destination_weights
+    else
+        Dist_graph_neighbors!(graph_comm, sources, destinations)
+        return sources, nothing, destinations, nothing
+    end
+end

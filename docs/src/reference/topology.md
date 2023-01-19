@@ -13,4 +13,5 @@ MPI.Dist_graph_create
 MPI.Dist_graph_create_adjacent
 MPI.Dist_graph_neighbors_count
 MPI.Dist_graph_neighbors!
+MPI.Dist_graph_neighbors
 ```
