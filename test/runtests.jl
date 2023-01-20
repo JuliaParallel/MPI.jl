@@ -44,7 +44,7 @@ testfiles = sort(filter(istest, readdir(testdir)))
 
 @testset "$f" for f in testfiles
     mpiexec() do mpirun
-        cmd(n=nprocs) = `$mpirun -n $n $(Base.julia_cmd()) $(joinpath(testdir, f))`
+        cmd(n=nprocs) = `$mpirun -n $n $(Base.julia_cmd()) --startup-file=no $(joinpath(testdir, f))`
         if f == "test_spawn.jl"
             # Some command as the others, but always use a single process
             run(cmd(1))
