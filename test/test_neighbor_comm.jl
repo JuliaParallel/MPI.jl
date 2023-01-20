@@ -30,7 +30,7 @@ let
     src2, srcw2, dst2, dstw2 = MPI.Dist_graph_neighbors(graph_comm)
     @test src == src2 == Cint[prev_rank]
     @test dst == dst2 == Cint[next_rank]
-    @test srcw2 === dstw2 === nothing
+    @test srcw2 === dstw2 === MPI.UNWEIGHTED
 end
 
 # Weighted graph

@@ -291,7 +291,10 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
 end
 
 """
-    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
+    Dist_graph_neighbors!(graph_comm::MPI.Comm,
+       sources::Vector{Cint}, source_weights::Union{Vector{Cint}, Unweighted},
+       destinations::Vector{Cint}, destination_weights::Union{Vector{Cint}, Unweighted},
+    )
 
 Return the neighbors and edge weights of the calling process in a distributed graph topology.
 
@@ -333,13 +336,21 @@ incoming edge "`(0,1)"` or the outgoing one "`(1,0)"`.
 # External links
 $(_doc_external("MPI_Dist_graph_neighbors"))
 """
-function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
+function Dist_graph_neighbors!(graph_comm::Comm,
+    sources::Vector{Cint}, source_weights::Union{Vector{Cint}, Unweighted},
+    destinations::Vector{Cint}, destination_weights::Union{Vector{Cint}, Unweighted},
+    )
+    @assert source_weights isa Unweighted || length(sources) == length(source_weights)
+    @assert destination_weights isa Unweighted || length(destinations) == length(destination_weights)
+
     # int MPI_Dist_graph_neighbors(MPI_Comm comm,
     #                              int maxindegree, int sources[], int sourceweights[],
     #                              int maxoutdegree, int destinations[], int destweights[])
     API.MPI_Dist_graph_neighbors(graph_comm,
                                  length(sources), sources, source_weights,
-                                 length(destinations), destinations, destination_weights)
+                                 length(destinations), destinations, destination_weights,
+    )
+    return sources, source_weights, destinations, destination_weights
 end
 
 """
@@ -372,18 +383,16 @@ julia> destinations
 # External links
 $(_doc_external("MPI_Dist_graph_neighbors"))
 """
-function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
-    source_weights = Array{Cint}(undef,0)
-    destination_weights = Array{Cint}(undef,0)
-    Dist_graph_neighbors!(graph_comm, sources::Vector{Cint}, source_weights, destinations::Vector{Cint}, destination_weights)
-end
+Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}) =
+    Dist_graph_neighbors!(graph_comm, sources::Vector{Cint}, UNWEIGHTED, destinations::Vector{Cint},  UNWEIGHTED)
+
 
 """
-    Dist_graph_neighbors(graph_comm::Comm)
+    sources, source_weights, destinations, destination_weights = Dist_graph_neighbors(graph_comm::Comm)
 
 Return `(sources, source_weights, destinations, destination_weights)` of the graph
 communicator `graph_comm`. For unweighted graphs `source_weights` and `destination_weights`
-are `nothing`.
+are `MPI.UNWEIGHTED`.
 
 This function is a wrapper around [`MPI.Dist_graph_neighbors_count`](@ref) and
 [`MPI.Dist_graph_neighbors!`](@ref) that automatically handles the allocation of the result
@@ -396,10 +405,9 @@ function Dist_graph_neighbors(graph_comm::Comm)
     if weighted
         source_weights = Vector{Cint}(undef, indegree)
         destination_weights = Vector{Cint}(undef, outdegree)
-        Dist_graph_neighbors!(graph_comm, sources, source_weights, destinations, destination_weights)
-        return sources, source_weights, destinations, destination_weights
     else
-        Dist_graph_neighbors!(graph_comm, sources, destinations)
-        return sources, nothing, destinations, nothing
+        source_weights = UNWEIGHTED
+        destination_weights = UNWEIGHTED
     end
+    return Dist_graph_neighbors!(graph_comm, sources, source_weights, destinations, destination_weights)
 end
