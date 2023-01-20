@@ -175,6 +175,14 @@ end
 struct Unweighted
 end
 Base.cconvert(::Type{Ptr{Cint}}, ::Unweighted) = API.MPI_UNWEIGHTED[]
+"""
+    MPI.UNWEIGHTED :: MPI.Unweighted
+
+This is used to indicate that a graph topology is unweighted. It can be supplied
+as an argument to [`Dist_graph_create_adjacent`](@ref),
+[`Dist_graph_create`](@ref), and [`Dist_graph_neighbors!`](@ref); or obtained as
+the return value from [`Dist_graph_neighbors`](@ref).
+"""
 const UNWEIGHTED = Unweighted()
 
 struct WeightsEmpty
@@ -183,7 +191,10 @@ Base.cconvert(::Type{Ptr{Cint}}, ::WeightsEmpty) = API.MPI_WEIGHTS_EMPTY[]
 const WEIGHTS_EMPTY = WeightsEmpty()
 
 """
-    graph_comm = Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}; source_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, destination_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
+    graph_comm = Dist_graph_create_adjacent(comm::Comm,
+        sources::Vector{Cint}, destinations::Vector{Cint};
+        source_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, destination_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED,
+        reorder=false, infokws...)
 
 Create a new communicator from a given directed graph topology, described by local incoming and outgoing edges on an existing communicator.
 
@@ -191,8 +202,8 @@ Create a new communicator from a given directed graph topology, described by loc
 - `comm::Comm`: The communicator on which the distributed graph topology should be induced.
 - `sources::Vector{Cint}`: The local, incoming edges on the rank of the calling process.
 - `destinations::Vector{Cint}`: The local, outgoing edges on the rank of the calling process.
-- `source_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=MPI.UNWEIGHTED`: The edge weights of the local, incoming edges.
-- `destinations_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=MPI.UNWEIGHTED`: The edge weights of the local, outgoing edges.
+- `source_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}`: The edge weights of the local, incoming edges. The default is [`MPI.UNWEIGHTED`](@ref).
+- `destinations_weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}`: The edge weights of the local, outgoing edges. The default is [`MPI.UNWEIGHTED`](@ref).
 - `reorder::Bool=false`: If set true, then the MPI implementation can reorder the source and destination indices.
 
 # Example
@@ -232,7 +243,7 @@ Create a new communicator from a given directed graph topology, described by inc
 - `degrees::Vector{Cint}`: An array with the number of outgoing edges for each entry in the sources array.
 - `destinations::Vector{Cint}`: An array containing with lenght of the sum of the entries in the degrees array
                                 describing the ranks towards the edges point.
-- `weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=MPI.UNWEIGHTED`: The edge weights of the specified edges.
+- `weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}`: The edge weights of the specified edges. The default is [`MPI.UNWEIGHTED`](@ref).
 - `reorder::Bool=false`: If set true, then the MPI implementation can reorder the source and destination indices.
 
 # Example
@@ -291,32 +302,49 @@ function Dist_graph_neighbors_count(graph_comm::Comm)
 end
 
 """
-    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
+    Dist_graph_neighbors!(graph_comm::MPI.Comm,
+       sources::Vector{Cint}, source_weights::Union{Vector{Cint}, Unweighted},
+       destinations::Vector{Cint}, destination_weights::Union{Vector{Cint}, Unweighted},
+    )
+    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
 
-Return the neighbors and edge weights of the calling process in a distributed graph topology.
+Query the neighbors and edge weights (optional) of the calling process in a
+distributed graph topology.
 
 # Arguments
 - `graph_comm::Comm`: The communicator of the distributed graph topology.
-- `sources::Vector{Cint}`: A preallocated vector, which will be filled with the ranks
-                        of the processes whose edges pointing towards the calling process. The
-                        length is exactly the indegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
-- `source_weights::Vector{Cint}`: A preallocated vector, which will be filled with the weights
-                        associated to the edges pointing towards the calling process. The
-                        length is exactly the indegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
-- `destinations::Vector{Cint}`: A preallocated vector, which will be filled with the ranks
-                        of the processes towards which the edges of the calling process point. The
-                        length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
-- `destination_weights::Vector{Cint}`: A preallocated vector, which will be filled with the weights
-                        associated to the edges of the outgoing edges of the calling process point. The
-                        length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
+- `sources`: A preallocated `Vector{Cint}`, which will be filled with the ranks
+            of the processes whose edges pointing towards the calling process.
+            The length is exactly the indegree returned by
+            [`MPI.Dist_graph_neighbors_count`](@ref).
+- `source_weights`: A preallocated `Vector{Cint}`, which will be filled with the
+            weights associated to the edges pointing towards the calling
+            process. The length is exactly the indegree returned by
+            [`MPI.Dist_graph_neighbors_count`](@ref). Alternatively,
+            [`MPI.UNWEIGHTED`](@ref) can be used if weight information is not required.
+- `destinations`: A preallocated `Vector{Cint}``, which will be filled with the
+            ranks of the processes towards which the edges of the calling
+            process point. The length is exactly the outdegree returned by
+            [`MPI.Dist_graph_neighbors_count`](@ref).
+- `destination_weights`: A preallocated `Vector{Cint}`, which will be filled
+            with the weights associated to the edges of the outgoing edges of
+            the calling process point. The length is exactly the outdegree
+            returned by [`MPI.Dist_graph_neighbors_count`](@ref). Alternatively,
+            [`MPI.UNWEIGHTED`](@ref) can be used if weight information is not required.
 
 # Example
-Let us assume the following graph `0 <-3-> 1 -4-> 2`, then the process with rank 1 will require to
-preallocate a sources vector of length 1 and a destination vector of length 2. The call will fill
-the vectors as follows:
+Let us assume the following graph:
+```
+            rank 0 <-----> rank 1 ------> rank 2
+weights:              3             4
+```
+then then the process with rank 1 will need to preallocate `sources` and
+`source_weights` as vectors of length 1, and a `destinations` and `destination_weights` as vectors of length 2.
+
+The call will fill the vectors as follows:
 
 ```julia-repl
-julia> Dist_graph_neighbors!(graph_comm, sources, source_weights, destinations, destination_weights);
+julia> MPI.Dist_graph_neighbors!(graph_comm, sources, source_weights, destinations, destination_weights);
 julia> sources
 [0]
 julia> source_weights
@@ -327,63 +355,41 @@ julia> destination_weights
 [3,4]
 ```
 
-Note that the edge between ranks 0 and 1 can have a different weight depending on wether it is the
-incoming edge "`(0,1)"` or the outgoing one "`(1,0)"`.
+Note that the edge between ranks 0 and 1 can have a different weight depending
+on whether it is the incoming edge `0 --> 1` or the outgoing one `0 <-- 1`.
+
+# See also
+- [`Dist_graph_neighbors`](@ref)
 
 # External links
 $(_doc_external("MPI_Dist_graph_neighbors"))
 """
-function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, source_weights::Vector{Cint}, destinations::Vector{Cint}, destination_weights::Vector{Cint})
+function Dist_graph_neighbors!(graph_comm::Comm,
+    sources::Vector{Cint}, source_weights::Union{Vector{Cint}, Unweighted},
+    destinations::Vector{Cint}, destination_weights::Union{Vector{Cint}, Unweighted},
+    )
+    @assert source_weights isa Unweighted || length(sources) == length(source_weights)
+    @assert destination_weights isa Unweighted || length(destinations) == length(destination_weights)
+
     # int MPI_Dist_graph_neighbors(MPI_Comm comm,
     #                              int maxindegree, int sources[], int sourceweights[],
     #                              int maxoutdegree, int destinations[], int destweights[])
     API.MPI_Dist_graph_neighbors(graph_comm,
                                  length(sources), sources, source_weights,
-                                 length(destinations), destinations, destination_weights)
+                                 length(destinations), destinations, destination_weights,
+    )
+    return sources, source_weights, destinations, destination_weights
 end
+Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint}) =
+    Dist_graph_neighbors!(graph_comm, sources::Vector{Cint}, UNWEIGHTED, destinations::Vector{Cint},  UNWEIGHTED)
+
 
 """
-    Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
-
-Return the neighbors of the calling process in a distributed graph topology without edge weights.
-
-# Arguments
-- `graph_comm::Comm`: The communicator of the distributed graph topology.
-- `sources::Vector{Cint}`: A preallocated vector, which will be filled with the ranks of the
-                        processes whose edges pointing towards the calling process. The
-                        length is exactly the indegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
-- `destinations::Vector{Cint}`: A preallocated vector, which will be filled with the ranks
-                        of the processes towards which the edges of the calling process point. The
-                        length is exactly the outdegree returned by [`MPI.Dist_graph_neighbors_count`](@ref).
-
-# Example
-Let us assume the following graph `0 <--> 1 --> 2`, then the process with rank 1 will require to
-preallocate a sources vector of length 1 and a destination vector of length 2. The call will fill
-the vectors as follows:
-
-```julia-repl
-julia> Dist_graph_neighbors!(graph_comm, sources, destinations);
-julia> sources
-[0]
-julia> destinations
-[0,2]
-```
-
-# External links
-$(_doc_external("MPI_Dist_graph_neighbors"))
-"""
-function Dist_graph_neighbors!(graph_comm::Comm, sources::Vector{Cint}, destinations::Vector{Cint})
-    source_weights = Array{Cint}(undef,0)
-    destination_weights = Array{Cint}(undef,0)
-    Dist_graph_neighbors!(graph_comm, sources::Vector{Cint}, source_weights, destinations::Vector{Cint}, destination_weights)
-end
-
-"""
-    Dist_graph_neighbors(graph_comm::Comm)
+    sources, source_weights, destinations, destination_weights = Dist_graph_neighbors(graph_comm::MPI.Comm)
 
 Return `(sources, source_weights, destinations, destination_weights)` of the graph
 communicator `graph_comm`. For unweighted graphs `source_weights` and `destination_weights`
-are `nothing`.
+are returned as [`MPI.UNWEIGHTED`](@ref).
 
 This function is a wrapper around [`MPI.Dist_graph_neighbors_count`](@ref) and
 [`MPI.Dist_graph_neighbors!`](@ref) that automatically handles the allocation of the result
@@ -396,10 +402,9 @@ function Dist_graph_neighbors(graph_comm::Comm)
     if weighted
         source_weights = Vector{Cint}(undef, indegree)
         destination_weights = Vector{Cint}(undef, outdegree)
-        Dist_graph_neighbors!(graph_comm, sources, source_weights, destinations, destination_weights)
-        return sources, source_weights, destinations, destination_weights
     else
-        Dist_graph_neighbors!(graph_comm, sources, destinations)
-        return sources, nothing, destinations, nothing
+        source_weights = UNWEIGHTED
+        destination_weights = UNWEIGHTED
     end
+    return Dist_graph_neighbors!(graph_comm, sources, source_weights, destinations, destination_weights)
 end
