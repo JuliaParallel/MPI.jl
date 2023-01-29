@@ -27,7 +27,7 @@ External libraries may maintain allocate their own MPI handles (e.g.  create or 
 
 There are two typical solutions to this problem:
 
-1. Gate the clean up functions behind an [`MPI.Finalized](@ref) call, e.g.
+1. Gate the clean up functions behind an [`MPI.Finalized`](@ref) call, e.g.
 
    ```julia
    finalizer(obj) do obj

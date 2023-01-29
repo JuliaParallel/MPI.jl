@@ -24,7 +24,7 @@ MPI.Initialized
 MPI.Finalize
 MPI.Finalized
 MPI.add_init_hook!
-MPI.add_finalizer_hook!
+MPI.add_finalize_hook!
 ```
 
 ## Errors
