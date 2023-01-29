@@ -57,6 +57,7 @@ makedocs(
         "index.md",
         "configuration.md",
         "usage.md",
+        "external.md",
         "knownissues.md",
         "Examples" => EXAMPLES,
         "Reference" => [

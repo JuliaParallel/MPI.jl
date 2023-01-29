@@ -42,6 +42,13 @@ end
 
 
 const mpi_init_hooks = Any[]
+
+"""
+    MPI.add_init_hook!(f)
+
+Register a function `f` that will be called as `f()` when `MPI.Init` is
+called. These are invoked in a first-in, first-out (FIFO) order.
+"""
 add_init_hook!(f) = push!(mpi_init_hooks, f)
 function run_init_hooks()
     while !isempty(mpi_init_hooks)
@@ -52,6 +59,13 @@ function run_init_hooks()
 end
 
 const mpi_finalize_hooks = Any[]
+
+"""
+    MPI.add_finalize_hook!(f)
+
+Register a function `f` that will be called as `f()` when `MPI.Finalizer` is
+called. These are invoked in a last-in, first-out (LIFO) order.
+"""
 add_finalize_hook!(f) = push!(mpi_finalize_hooks, f)
 function run_finalize_hooks()
     while !isempty(mpi_finalize_hooks)
