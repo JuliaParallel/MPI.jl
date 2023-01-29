@@ -4,7 +4,7 @@ Other libraries and packages may also make use of MPI. There are several concern
 
 ## Binary requirements
 
-You will need to ensure that the binaries are built correctly. In particular, if you are using [using a system-provided MPI backend](@ref), you will also need to use the system provided binary for the package in question.
+You will need to ensure that the binaries are built correctly. In particular, if you are using [using a system-provided MPI backend](@ref using_system_mpi), you will also need to use the system provided binary for the package in question.
 
 ## Passing handles via `ccall`
 
@@ -12,8 +12,8 @@ When passing MPI.jl handle objects ([`MPI.Comm`](@ref), [`MPI.Info`](@ref), etc)
 
 For example the C function signatures
 ```C
-int cfunc1(MPI_Comm comm)
-int cfunc2(MPI_Comm * comm)
+int cfunc1(MPI_Comm comm);
+int cfunc2(MPI_Comm * comm);
 ```
 would be called as
 ```julia
