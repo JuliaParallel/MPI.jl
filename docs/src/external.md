@@ -45,3 +45,18 @@ There are two typical solutions to this problem:
    end
    MPI.add_finalize_hook!(() -> finalize(obj))
    ```
+   A variant of this is to keep track of all such objects, for example, using a [`WeakKeyDict`](https://docs.julialang.org/en/v1/base/collections/#Base.WeakKeyDict), and use a hook to clean them all:
+   ```julia
+   const REFS = WeakKeyDict{ObjType, Nothing}()
+   MPI.add_finalize_hook!() do
+       for obj in keys(REFS)
+           finalize(obj)
+       end
+   end
+
+   # for each object `obj`
+   finalizer(obj) do obj
+       # call clean up funciton
+   end
+   REFS[obj] = nothing
+   ```
