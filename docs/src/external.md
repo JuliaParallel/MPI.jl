@@ -32,7 +32,7 @@ There are two typical solutions to this problem:
    ```julia
    finalizer(obj) do obj
        if !MPI.Finalized
-           # call clean up funciton
+           # call clean up function
        end
    end
    ```
@@ -41,7 +41,7 @@ There are two typical solutions to this problem:
 
    ```julia
    finalizer(obj) do obj
-       # call clean up funciton
+       # call clean up function
    end
    MPI.add_finalize_hook!(() -> finalize(obj))
    ```
@@ -56,7 +56,7 @@ There are two typical solutions to this problem:
 
    # for each object `obj`
    finalizer(obj) do obj
-       # call clean up funciton
+       # call clean up function
    end
    REFS[obj] = nothing
    ```
