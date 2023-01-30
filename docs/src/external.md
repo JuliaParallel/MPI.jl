@@ -4,9 +4,9 @@ Other libraries and packages may also make use of MPI. There are several concern
 
 ## Binary requirements
 
-You will need to ensure that the binaries are built correctly. In particular, if you are using [using a system-provided MPI backend](@ref using_system_mpi), you will also need to use the system provided binary for the package in question.
+You need to ensure that external libraries are built correctly. In particular, if you are [using a system-provided MPI backend](@ref using_system_mpi) in Julia, you also need to use the *same* system-provided binary for all packages and external libraries you use.
 
-## Passing handles via `ccall`
+## Passing MPI handles via `ccall`
 
 When passing MPI.jl handle objects ([`MPI.Comm`](@ref), [`MPI.Info`](@ref), etc) to C/C++ functions [via `ccall`](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/), you should pass the object directly as an argument, and specify the argument type as either the underlying handle type (`MPI.API.MPI_Comm`, `MPI.API.MPI_Info`, etc.), or a pointer (`Ptr{MPI.API.MPI_Comm}`, `Ptr{MPI.API.MPI_Info}`, etc.). This will internally handle the unwrapping, but ensure that a reference is kept to avoid premature garbage collection.
 
@@ -23,7 +23,7 @@ ccall((:cfunc2, lib), Cint, (Ptr{MPI.API.MPI_Comm},), comm)
 
 ## Object finalizers and `MPI.Finalize`
 
-External libraries may maintain allocate their own MPI handles (e.g.  create or duplicate MPI communictors), which need to be cleaned up. If these are attached to [object finalizers](https://docs.julialang.org/en/v1/base/base/#Base.finalizer), they may not be guaranteed to be called before `MPI.Finalize`, which can result in an error upon program exit. (By default, MPI.jl will install an [`atexit`](https://docs.julialang.org/en/v1/base/base/#Base.atexit) hook that calls `MPI.Finalize` if it hasn't already been invoked.)
+External libraries may allocate their own MPI handles (e.g., create or duplicate MPI communictors), which need to be cleaned up before MPI is finalized. If these are attached to [object finalizers](https://docs.julialang.org/en/v1/base/base/#Base.finalizer), they may not be guaranteed to be called before `MPI.Finalize`, which can result in an error upon program exit. (By default, MPI.jl will install an [`atexit`](https://docs.julialang.org/en/v1/base/base/#Base.atexit) hook that calls `MPI.Finalize` if it hasn't already been invoked.)
 
 There are two typical solutions to this problem:
 
