@@ -8,7 +8,7 @@ You need to ensure that external libraries are built correctly. In particular, i
 
 ## Passing MPI handles via `ccall`
 
-When passing MPI.jl handle objects ([`MPI.Comm`](@ref), [`MPI.Info`](@ref), etc) to C/C++ functions [via `ccall`](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/), you should pass the object directly as an argument, and specify the argument type as either the underlying handle type (`MPI.API.MPI_Comm`, `MPI.API.MPI_Info`, etc.), or a pointer (`Ptr{MPI.API.MPI_Comm}`, `Ptr{MPI.API.MPI_Info}`, etc.). This will internally handle the unwrapping, but ensure that a reference is kept to avoid premature garbage collection.
+When passing MPI.jl handle objects ([`MPI.Comm`](@ref), [`MPI.Info`](@ref), etc) to C/C++ functions [via `ccall`](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/), you should pass the object directly as an argument, and specify the argument type as either the underlying handle type (`MPI.MPI_Comm`, `MPI.API.MPI_Info`, etc.), or a pointer (`Ptr{MPI.MPI_Comm}`, `Ptr{MPI.MPI_Info}`, etc.). This will internally handle the unwrapping, but ensure that a reference is kept to avoid premature garbage collection.
 
 For example the C function signatures
 ```C
@@ -17,8 +17,8 @@ int cfunc2(MPI_Comm * comm);
 ```
 would be called as
 ```julia
-ccall((:cfunc1, lib), Cint, (MPI.API.MPI_Comm,), comm)
-ccall((:cfunc2, lib), Cint, (Ptr{MPI.API.MPI_Comm},), comm)
+ccall((:cfunc1, lib), Cint, (MPI.MPI_Comm,), comm)
+ccall((:cfunc2, lib), Cint, (Ptr{MPI.MPI_Comm},), comm)
 ```
 
 ## Object finalizers and `MPI.Finalize`
