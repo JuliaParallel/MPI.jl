@@ -23,7 +23,7 @@ julia --project -e 'using Pkg; Pkg.add("MPIPreferences")'
     See [Migration from MPI.jl v0.19 or earlier](@ref) for more information on
     how to migrate your configuration from earlier MPI.jl versions.
 
-## Using a system-provided MPI backend
+## [Using a system-provided MPI backend](@id using_system_mpi)
 
 ### Requirements
 
@@ -206,5 +206,3 @@ unknown MPI ABIs is not supported anymore. See also
 Removed without replacement. Automatic generation of a constants file for
 unknown MPI ABIs is not supported anymore. See also
 [#574](https://github.com/JuliaParallel/MPI.jl/issues/574).
-
-

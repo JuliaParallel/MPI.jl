@@ -23,6 +23,8 @@ MPI.Is_thread_main
 MPI.Initialized
 MPI.Finalize
 MPI.Finalized
+MPI.add_init_hook!
+MPI.add_finalize_hook!
 ```
 
 ## Errors
