@@ -140,7 +140,7 @@ function __init__()
     run_load_time_hooks()
 
     @static if !isdefined(Base, :get_extension)
-        @require AMDGPU="21141c5a-9bdb-4563-92ae-f87d6854732e" include("../ext/ROCMExt.jl")
+        @require AMDGPU="21141c5a-9bdb-4563-92ae-f87d6854732e" include("../ext/AMDGPUExt.jl")
         @require CUDA="052768ef-5323-5732-b1bb-66c8b64840ba" include("../ext/CUDAExt.jl")
     end
 end
