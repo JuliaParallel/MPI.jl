@@ -1,7 +1,7 @@
 module CUDAExt
 
 import MPI 
-isdefined(Base, :get_extenstion) ? (import CUDA) : (import ..CUDA)
+isdefined(Base, :get_extension) ? (import CUDA) : (import ..CUDA)
 import MPI: MPIPtr, Buffer, Datatype
 
 function Base.cconvert(::Type{MPIPtr}, buf::CUDA.CuArray{T}) where T

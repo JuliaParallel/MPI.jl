@@ -1,7 +1,7 @@
 module AMDGPUExt
 
 import MPI
-isdefined(Base, :get_extenstion) ? (import AMDGPU) : (import ..AMDGPU)
+isdefined(Base, :get_extension) ? (import AMDGPU) : (import ..AMDGPU)
 import MPI: MPIPtr, Buffer, Datatype
 
 
