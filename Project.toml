@@ -26,7 +26,7 @@ CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 
 [extensions]
 AMDGPUExt = "AMDGPU"
-CUDAExt = "CUDAExt"
+CUDAExt = "CUDA"
 
 [compat]
 AMDGPU = "0.3, 0.4"
