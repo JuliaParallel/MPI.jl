@@ -1,7 +1,6 @@
 module MPI
 
 using Libdl, Serialization
-using Requires
 using DocStringExtensions
 import MPIPreferences
 
@@ -80,6 +79,10 @@ include("misc.jl")
 
 include("deprecated.jl")
 
+if !isdefined(Base, :get_extension)
+    using Requires
+end
+
 function __init__()
     MPIPreferences.check_unchanged()
 
@@ -136,8 +139,10 @@ function __init__()
 
     run_load_time_hooks()
 
-    @require AMDGPU="21141c5a-9bdb-4563-92ae-f87d6854732e" include("rocm.jl")
-    @require CUDA="052768ef-5323-5732-b1bb-66c8b64840ba" include("cuda.jl")
+    @static if !isdefined(Base, :get_extension)
+        @require AMDGPU="21141c5a-9bdb-4563-92ae-f87d6854732e" include("../ext/AMDGPUExt.jl")
+        @require CUDA="052768ef-5323-5732-b1bb-66c8b64840ba" include("../ext/CUDAExt.jl")
+    end
 end
 
 end

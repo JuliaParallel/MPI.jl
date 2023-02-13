@@ -16,7 +16,21 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 
+[extras]
+AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+
+[weakdeps]
+AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+
+[extensions]
+AMDGPUExt = "AMDGPU"
+CUDAExt = "CUDA"
+
 [compat]
+AMDGPU = "0.3, 0.4"
+CUDA = "3, 4"
 DocStringExtensions = "0.8, 0.9"
 MPIPreferences = "0.1.6"
 Requires = "~0.5, 1.0"
