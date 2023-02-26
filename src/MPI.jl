@@ -104,7 +104,7 @@ function __init__()
 
     @static if Sys.isunix()
         # dlopen GTL library (if needed) before dlopen'ing the MPI library:
-        #
+        # https://github.com/JuliaParallel/MPI.jl/pull/716
         if ! isnothing(libgtl)
             Libdl.dlopen(libgtl, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
         end
