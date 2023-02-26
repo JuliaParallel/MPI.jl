@@ -81,7 +81,8 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         "binary" => binary,
         "libmpi" => nothing,
         "abi" => nothing,
-        "mpiexec" => nothing;
+        "mpiexec" => nothing,
+        "libgtl" => nothing;
         export_prefs=export_prefs,
         force=force
     )
@@ -114,6 +115,7 @@ end
         mpiexec = "mpiexec",
         abi = nothing,
         export_prefs = false,
+        gtl_names=nothing,
         force = true)
 
 Switches the underlying MPI implementation to a system provided one. A restart
@@ -136,6 +138,9 @@ Options:
   using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported
   values.
 
+- `gtl_names`: can be either `nothing` or a list of GPU Transport Layer (GTL)
+  names. On Cray systems, this is usually `["libmpi_gtl_cuda", "libmpi_gtl_hsa"]`.
+
 - `export_prefs`: if `true`, the preferences into the `Project.toml` instead of
   `LocalPreferences.toml`.
 
@@ -145,8 +150,9 @@ function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec="mpiexec",
         abi=nothing,
+        gtl_names=nothing,
         export_prefs=false,
-        force=true,
+        force=true
     )
     binary = "system"
     # Set `ZES_ENABLE_SYSMAN` to work around https://github.com/open-mpi/ompi/issues/10142
@@ -166,12 +172,24 @@ function use_system_binary(;
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
     end
+    libgtl = isnothing(gtl_names) ? nothing : find_library(gtl_names)
+    if libgtl == ""
+        error("""
+            GTL library could not be found with the following name(s):
+                $(gtl_names)
+            If you want to use differnt name(s) for the GTL library, use
+                MPIPreferences.use_system_binary(; gtl_names=[...])
+            If you don't want to enable GTL, use
+                MPIPreferences.use_system_binary(; gtl_names=nothing)
+            """)
+    end
     set_preferences!(MPIPreferences,
         "_format" => "1.0",
         "binary" => binary,
         "libmpi" => libmpi,
         "abi" => abi,
         "mpiexec" => mpiexec,
+        "libgtl" => libgtl;
         export_prefs=export_prefs,
         force=force
     )
@@ -186,7 +204,7 @@ function use_system_binary(;
     end
 
     if binary == MPIPreferences.binary && abi == MPIPreferences.abi && libmpi == System.libmpi && mpiexec == System.mpiexec_path
-        @info "MPIPreferences unchanged" binary libmpi abi mpiexec
+        @info "MPIPreferences unchanged" binary libmpi abi mpiexec libgtl
     else
         PREFS_CHANGED[] = true
         @info "MPIPreferences changed" binary libmpi abi mpiexec

@@ -103,6 +103,11 @@ function __init__()
     end
 
     @static if Sys.isunix()
+        # dlopen GTL library (if needed) before dlopen'ing the MPI library:
+        #
+        if ! isnothing(libgtl)
+            Libdl.dlopen(libgtl, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+        end
         # dlopen the MPI library before any ccall:
         # - RTLD_GLOBAL is required for Open MPI
         #   https://www.open-mpi.org/community/lists/users/2010/04/12803.php
