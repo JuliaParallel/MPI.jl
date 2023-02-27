@@ -103,6 +103,10 @@ function __init__()
     end
 
     @static if Sys.isunix()
+        # Cray MPICH apparently requires you to manually load a separate GPU Transport Layer (GTL) if you want GPU-aware MPI.
+        if MPIPreferences.binary == "system" && MPIPreferences.abi == "MPICH" && get(ENV, "MPICH_GPU_SUPPORT_ENABLED", "0") == "1"
+            Libdl.dlopen_e(dirname(libmpi), "libmpi_gtl_cuda"), Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+        end            
         # dlopen the MPI library before any ccall:
         # - RTLD_GLOBAL is required for Open MPI
         #   https://www.open-mpi.org/community/lists/users/2010/04/12803.php
