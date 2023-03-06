@@ -61,6 +61,9 @@ Op(::typeof(*), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFlo
 Op(::typeof(&), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BAND
 Op(::typeof(|), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BOR
 Op(::typeof(⊻), ::Type{T}; iscommutative=true) where {T<:MPIInteger} = BXOR
+Op(::typeof(&), ::Type{T}; iscommutative=true) where {T<:MPILogical} = LAND
+Op(::typeof(|), ::Type{T}; iscommutative=true) where {T<:MPILogical} = LOR
+Op(::typeof(⊻), ::Type{T}; iscommutative=true) where {T<:MPILogical} = LXOR
 
 
 function free(op::Op)
