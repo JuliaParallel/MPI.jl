@@ -47,6 +47,14 @@ for T = [Int]
     end
 end
 
+@test !MPI.Allreduce(false, |, MPI.COMM_WORLD)
+@test MPI.Allreduce(true, |, MPI.COMM_WORLD)
+@test !MPI.Allreduce(false, &, MPI.COMM_WORLD)
+@test MPI.Allreduce(true, &, MPI.COMM_WORLD)
+@test !MPI.Allreduce(false, ⊻, MPI.COMM_WORLD)
+@test MPI.Allreduce(true, ⊻, MPI.COMM_WORLD) ⊻ iseven(comm_size)
+
+
 MPI.Barrier( MPI.COMM_WORLD )
 
 GC.gc()

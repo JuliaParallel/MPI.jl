@@ -84,6 +84,11 @@ function to_type(datatype::Datatype)
     return nothing
 end
 
+# "native" MPI datatypes
+const MPIInteger = Union{Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64}
+const MPIFloatingPoint = Union{Float32, Float64}
+const MPIComplex = Union{ComplexF32, ComplexF64}
+const MPILogical = Union{Bool}
 
 # predefined
 _defined_datatype_methods = Set{Type}()

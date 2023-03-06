@@ -244,3 +244,8 @@ import Base: @deprecate
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
     (true, MPI.deserialize(buf), stat)
 end, false)
+
+Base.@deprecate_binding MPIDatatype Union{Char,
+                          Int8, Int16, Int32, Int64,
+                          UInt8, UInt16, UInt32, UInt64,
+                          Float32, Float64, ComplexF32, ComplexF64} false
