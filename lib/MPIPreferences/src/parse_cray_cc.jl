@@ -5,6 +5,20 @@ filter(f::Function)::Function = x -> filter(f, x)
 map(f::Function)::Function    = x -> map(f, x)
 reduce(f::Function)::Function = x -> reduce(f, x)
 
+struct CrayPE
+    libmpi::String
+    libgtl::String
+    cclibs::Vector{String}
+    gtl_env_switch::String
+    
+    CrayPE(mpi_dl::T, gtl_dl::T, cclibs::Vector{T}) where T <:AbstractString = new(
+        "lib" * mpi_dl * ".so", # Assuming Linux -- CrayPE is only avaialbe for linux anyway
+        "lib" * gtl_dl * ".so",
+        cclibs,
+        "MPICH_GPU_SUPPORT_ENABLED"
+    )
+end
+
 function communicate(cmd::Cmd, input="")
     inp = Pipe()
     out = Pipe()
@@ -74,13 +88,9 @@ function analyze_cray_cc()
         end
     end
 
-
-    println(ld_paths)
-    println(other_libs(libs))
-    println(cray_mpi(libs))
-    println(cray_gtl(libs))
+    CrayPE(cray_mpi(libs), cray_gtl(libs), other_libs(libs))
 end
 
-analyze_cray_cc()
+println(analyze_cray_cc())
 
 end
