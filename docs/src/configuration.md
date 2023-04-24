@@ -19,7 +19,7 @@ julia --project -e 'using Pkg; Pkg.add("MPIPreferences")'
 ```
 
 !!! note
-    The way how MPI.jl is configured has changed with MPI.jl v0.20.
+    The way MPI.jl is configured has changed with MPI.jl v0.20.
     See [Migration from MPI.jl v0.19 or earlier](@ref) for more information on
     how to migrate your configuration from earlier MPI.jl versions.
 
