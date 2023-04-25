@@ -91,6 +91,6 @@ function analyze_cray_cc()
     CrayPE(cray_mpi(libs), cray_gtl(libs), other_libs(libs))
 end
 
-println(analyze_cray_cc())
+# println(analyze_cray_cc())
 
 end

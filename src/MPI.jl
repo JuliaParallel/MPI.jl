@@ -105,9 +105,21 @@ function __init__()
     @static if Sys.isunix()
         # dlopen GTL library (if needed) before dlopen'ing the MPI library:
         # https://github.com/JuliaParallel/MPI.jl/pull/716
-        if ! isnothing(libgtl)
-            Libdl.dlopen(libgtl, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+        # if ! isnothing(libgtl)
+        #     Libdl.dlopen(libgtl, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+        # end
+        preload_enabled = false
+        if isnothing(preloads_env_switch)
+            preload_enabled = true
+        elseif get(ENV, preloads_env_switch, "0") == "1"
+            preload_enabled = true
         end
+        if preload_enabled
+            for preload in preloads
+                Libdl.dlopen(preload, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
+            end
+        end
+
         # dlopen the MPI library before any ccall:
         # - RTLD_GLOBAL is required for Open MPI
         #   https://www.open-mpi.org/community/lists/users/2010/04/12803.php

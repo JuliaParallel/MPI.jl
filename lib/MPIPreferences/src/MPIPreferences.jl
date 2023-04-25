@@ -52,6 +52,7 @@ end
 
 @static if binary == "system"
     include("system.jl")
+    include("parase_cray_cc.jl")
 end
 
 """
@@ -82,7 +83,9 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         "libmpi" => nothing,
         "abi" => nothing,
         "mpiexec" => nothing,
-        "libgtl" => nothing;
+        "preloads" => nothing,
+        "preloads_env_switch" => nothing,
+        "cclibs" => nothing;
         export_prefs=export_prefs,
         force=force
     )
@@ -138,8 +141,7 @@ Options:
   using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported
   values.
 
-- `gtl_names`: can be either `nothing` or a list of GPU Transport Layer (GTL)
-  names. On Cray systems, this is usually `["libmpi_gtl_cuda", "libmpi_gtl_hsa"]`.
+- `vendor`: can be either `nothing` or a vendor name (such a `"cray"`).
 
 - `export_prefs`: if `true`, the preferences into the `Project.toml` instead of
   `LocalPreferences.toml`.
@@ -150,11 +152,23 @@ function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec="mpiexec",
         abi=nothing,
-        gtl_names=nothing,
+        vendor=nothing,
         export_prefs=false,
         force=true
     )
     binary = "system"
+    # vendor workarounds
+    preloads = []
+    preloads_env_switch = nothing
+    cclibs = []
+    if vendor == "cray"
+        cray_pe = CrayParser.analyze_cray_cc()
+        library_names = [cray_pe.libmpi]
+        preloads = [cray_pe.libgtl]
+        preloads_env_switch = cray_pe.gtl_env_switch
+        cclibs = cray_pe.cclibs
+    end
+
     # Set `ZES_ENABLE_SYSMAN` to work around https://github.com/open-mpi/ompi/issues/10142
     libmpi = withenv("ZES_ENABLE_SYSMAN" => "1") do
         find_library(library_names)
@@ -172,16 +186,16 @@ function use_system_binary(;
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
     end
-    libgtl = isnothing(gtl_names) ? nothing : find_library(gtl_names)
-    if libgtl == ""
-        error("""
-            GTL library could not be found with the following name(s):
-                $(gtl_names)
-            If you want to use differnt name(s) for the GTL library, use
-                MPIPreferences.use_system_binary(; gtl_names=[...])
-            If you don't want to enable GTL, use
-                MPIPreferences.use_system_binary(; gtl_names=nothing)
-            """)
+    # libgtl = isnothing(gtl_names) ? nothing : find_library(gtl_names)
+    # if libgtl == ""
+    #     error("""
+    #         GTL library could not be found with the following name(s):
+    #             $(gtl_names)
+    #         If you want to use differnt name(s) for the GTL library, use
+    #             MPIPreferences.use_system_binary(; gtl_names=[...])
+    #         If you don't want to enable GTL, use
+    #             MPIPreferences.use_system_binary(; gtl_names=nothing)
+    #         """)
     end
     set_preferences!(MPIPreferences,
         "_format" => "1.0",
@@ -189,7 +203,9 @@ function use_system_binary(;
         "libmpi" => libmpi,
         "abi" => abi,
         "mpiexec" => mpiexec,
-        "libgtl" => libgtl;
+        "preloads" => preloads,
+        "preloads_env_switch" => preloads_env_switch,
+        "cclibs" => cclibs;
         export_prefs=export_prefs,
         force=force
     )
