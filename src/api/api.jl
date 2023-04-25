@@ -13,17 +13,17 @@ using Libdl
 if MPIPreferences.binary == "MPICH_jll"
     import MPICH_jll: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
-    const preloads = nothing
+    const preloads = []
     const preloads_env_switch = nothing
 elseif MPIPreferences.binary == "OpenMPI_jll"
     import OpenMPI_jll: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
-    const preloads = nothing
+    const preloads = []
     const preloads_env_switch = nothing
 elseif MPIPreferences.binary == "MicrosoftMPI_jll"
     import MicrosoftMPI_jll: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
-    const preloads = nothing
+    const preloads = []
     const preloads_env_switch = nothing
 elseif MPIPreferences.binary == "MPItrampoline_jll"
     import MPItrampoline_jll: MPItrampoline_jll, libmpi, libmpi_handle, mpiexec
