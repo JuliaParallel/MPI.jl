@@ -103,11 +103,8 @@ function __init__()
     end
 
     @static if Sys.isunix()
-        # dlopen GTL library (if needed) before dlopen'ing the MPI library:
-        # https://github.com/JuliaParallel/MPI.jl/pull/716
-        # if ! isnothing(libgtl)
-        #     Libdl.dlopen(libgtl, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-        # end
+        # preload any dependencies of libmpi (if needed, eg. GTL on cray) before
+        # dlopen'ing the MPI library: https://github.com/JuliaParallel/MPI.jl/pull/716
         preload_enabled = false
         if isnothing(preloads_env_switch)
             preload_enabled = true

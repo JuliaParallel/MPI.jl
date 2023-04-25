@@ -50,9 +50,9 @@ else
     error("Unknown binary: $binary")
 end
 
+include("parse_cray_cc.jl")
 @static if binary == "system"
     include("system.jl")
-    include("parase_cray_cc.jl")
 end
 
 """
@@ -83,7 +83,7 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         "libmpi" => nothing,
         "abi" => nothing,
         "mpiexec" => nothing,
-        "preloads" => nothing,
+        "preloads" => [],
         "preloads_env_switch" => nothing,
         "cclibs" => nothing;
         export_prefs=export_prefs,
@@ -180,23 +180,15 @@ function use_system_binary(;
             If you want to try different name(s) for the MPI library, use
                 MPIPreferences.use_system_binary(; library_names=[...])""")
     end
+
     if isnothing(abi)
         abi = identify_abi(libmpi)
     end
+
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
     end
-    # libgtl = isnothing(gtl_names) ? nothing : find_library(gtl_names)
-    # if libgtl == ""
-    #     error("""
-    #         GTL library could not be found with the following name(s):
-    #             $(gtl_names)
-    #         If you want to use differnt name(s) for the GTL library, use
-    #             MPIPreferences.use_system_binary(; gtl_names=[...])
-    #         If you don't want to enable GTL, use
-    #             MPIPreferences.use_system_binary(; gtl_names=nothing)
-    #         """)
-    end
+
     set_preferences!(MPIPreferences,
         "_format" => "1.0",
         "binary" => binary,
@@ -210,7 +202,6 @@ function use_system_binary(;
         force=force
     )
 
-
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
         Due to a bug in Julia (until 1.6.5 and 1.7.1), setting preferences in transitive dependencies
@@ -220,10 +211,10 @@ function use_system_binary(;
     end
 
     if binary == MPIPreferences.binary && abi == MPIPreferences.abi && libmpi == System.libmpi && mpiexec == System.mpiexec_path
-        @info "MPIPreferences unchanged" binary libmpi abi mpiexec libgtl
+        @info "MPIPreferences unchanged" binary libmpi abi mpiexec preloads preloads_env_switch
     else
         PREFS_CHANGED[] = true
-        @info "MPIPreferences changed" binary libmpi abi mpiexec
+        @info "MPIPreferences changed" binary libmpi abi mpiexec preloads preloads_env_switch
 
         if DEPS_LOADED[]
             error("You will need to restart Julia for the changes to take effect")

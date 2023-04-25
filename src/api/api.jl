@@ -13,33 +13,28 @@ using Libdl
 if MPIPreferences.binary == "MPICH_jll"
     import MPICH_jll: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
-    # const libgtl = nothing
     const preloads = nothing
     const preloads_env_switch = nothing
 elseif MPIPreferences.binary == "OpenMPI_jll"
     import OpenMPI_jll: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
-    # const libgtl = nothing
     const preloads = nothing
     const preloads_env_switch = nothing
 elseif MPIPreferences.binary == "MicrosoftMPI_jll"
     import MicrosoftMPI_jll: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
-    # const libgtl = nothing
     const preloads = nothing
     const preloads_env_switch = nothing
 elseif MPIPreferences.binary == "MPItrampoline_jll"
     import MPItrampoline_jll: MPItrampoline_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
-    # TODO: We'll probably need GTL with libmpitrampoline, and until 
-    # MPItrampoline_jll "understands" libgtl, this should be an acceptable
-    # workaround
-    # const libgtl = MPIPreferences.Preferences.@load_preference("libgtl")
+    # TODO: We'll probably need the preloads -- like cray's GTL -- with
+    # libmpitrampoline, and until MPItrampoline_jll "understands" preloads, this
+    # should be an acceptable workaround
     const preloads = MPIPreferences.Preferences.@load_preference("preloads")
     const preloads_env_switch = MPIPreferences.Preferences.@load_preference("preloads_env_switch")
 elseif MPIPreferences.binary == "system"
     import MPIPreferences.System: libmpi, libmpi_handle, mpiexec,
-        # libgtl, libgtl_handle
         preloads, preloads_env_switch
     const libmpiconstants = nothing
 else
