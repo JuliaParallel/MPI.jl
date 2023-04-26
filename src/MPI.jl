@@ -57,6 +57,15 @@ function run_load_time_hooks()
     empty!(_mpi_load_time_hooks)
     nothing
 end
+# Set dst.val = src[] when called
+struct LoadTimeHookSetVal{Dst, Src}
+    dst::Dst
+    src::Src
+end
+function (hook::LoadTimeHookSetVal)()
+    hook.dst.val = hook.src[]
+    return nothing
+end
 
 include("implementations.jl")
 include("error.jl")
