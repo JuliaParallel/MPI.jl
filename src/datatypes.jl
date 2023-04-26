@@ -22,7 +22,7 @@ Base.unsafe_convert(::Type{MPI_Datatype}, datatype::Datatype) = datatype.val
 Base.unsafe_convert(::Type{Ptr{MPI_Datatype}}, datatype::Datatype) = convert(Ptr{MPI_Datatype}, pointer_from_objref(datatype))
 
 const DATATYPE_NULL = Datatype(API.MPI_DATATYPE_NULL[])
-add_load_time_hook!(() -> DATATYPE_NULL.val = API.MPI_DATATYPE_NULL[])
+add_load_time_hook!(LoadTimeHookSetVal(DATATYPE_NULL, API.MPI_DATATYPE_NULL))
 
 Datatype() = Datatype(DATATYPE_NULL.val)
 
@@ -123,7 +123,7 @@ for (mpiname, T) in [
 
     @eval begin
         const $mpiname = Datatype(API.$(Symbol(:MPI_,mpiname))[])
-        add_load_time_hook!(() -> $mpiname.val = API.$(Symbol(:MPI_,mpiname))[])
+        add_load_time_hook!(LoadTimeHookSetVal($mpiname, API.$(Symbol(:MPI_,mpiname))))
         if $T ∉ _defined_datatype_methods
             push!(_defined_datatype_methods, $T)
             Datatype(::Type{$T}) = $mpiname

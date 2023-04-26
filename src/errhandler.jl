@@ -17,9 +17,9 @@ Base.unsafe_convert(::Type{Ptr{MPI_Errhandler}}, errhandler::Errhandler) = conve
 const ERRHANDLER_NULL  = Errhandler(API.MPI_ERRHANDLER_NULL[])
 const ERRORS_ARE_FATAL = Errhandler(API.MPI_ERRORS_ARE_FATAL[])
 const ERRORS_RETURN    = Errhandler(API.MPI_ERRORS_RETURN[]   )
-add_load_time_hook!(() -> ERRHANDLER_NULL.val  = API.MPI_ERRHANDLER_NULL[] )
-add_load_time_hook!(() -> ERRORS_ARE_FATAL.val = API.MPI_ERRORS_ARE_FATAL[])
-add_load_time_hook!(() -> ERRORS_RETURN.val    = API.MPI_ERRORS_RETURN[]   )
+add_load_time_hook!(LoadTimeHookSetVal(ERRHANDLER_NULL,  API.MPI_ERRHANDLER_NULL ))
+add_load_time_hook!(LoadTimeHookSetVal(ERRORS_ARE_FATAL, API.MPI_ERRORS_ARE_FATAL))
+add_load_time_hook!(LoadTimeHookSetVal(ERRORS_RETURN,    API.MPI_ERRORS_RETURN   ))
 
 Errhandler() = Errhandler(ERRHANDLER_NULL.val)
 
