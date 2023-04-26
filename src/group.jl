@@ -13,8 +13,8 @@ Base.unsafe_convert(::Type{Ptr{MPI_Group}}, group::Group) = convert(Ptr{MPI_Grou
 
 const GROUP_NULL = Group(API.MPI_GROUP_NULL[])
 const GROUP_EMPTY = Group(API.MPI_GROUP_EMPTY[])
-add_load_time_hook!(() -> GROUP_NULL.val = API.MPI_GROUP_NULL[])
-add_load_time_hook!(() -> GROUP_EMPTY.val = API.MPI_GROUP_EMPTY[])
+add_load_time_hook!(LoadTimeHookSetVal(GROUP_NULL,  API.MPI_GROUP_NULL ))
+add_load_time_hook!(LoadTimeHookSetVal(GROUP_EMPTY, API.MPI_GROUP_EMPTY))
 
 Group() = Group(GROUP_NULL.val)
 
@@ -80,10 +80,10 @@ const IDENT     = Comparison(API.MPI_IDENT[])
 const CONGRUENT = Comparison(API.MPI_CONGRUENT[])
 const SIMILAR   = Comparison(API.MPI_SIMILAR[])
 const UNEQUAL   = Comparison(API.MPI_UNEQUAL[])
-add_load_time_hook!(() -> IDENT.val     = API.MPI_IDENT[]    )
-add_load_time_hook!(() -> CONGRUENT.val = API.MPI_CONGRUENT[])
-add_load_time_hook!(() -> SIMILAR.val   = API.MPI_SIMILAR[]  )
-add_load_time_hook!(() -> UNEQUAL.val   = API.MPI_UNEQUAL[]  )
+add_load_time_hook!(LoadTimeHookSetVal(IDENT,     API.MPI_IDENT    ))
+add_load_time_hook!(LoadTimeHookSetVal(CONGRUENT, API.MPI_CONGRUENT))
+add_load_time_hook!(LoadTimeHookSetVal(SIMILAR,   API.MPI_SIMILAR  ))
+add_load_time_hook!(LoadTimeHookSetVal(UNEQUAL,   API.MPI_UNEQUAL  ))
 Base.:(==)(tl1::Comparison, tl2::Comparison) = tl1.val == tl2.val
 
 function Group_compare(group1::Group, group2::Group)
