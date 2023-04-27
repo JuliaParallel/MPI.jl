@@ -154,4 +154,12 @@ function __init__()
     end
 end
 
+
+using PrecompileTools: @compile_workload
+@static if VERSION >= v"1.8"
+    @compile_workload begin
+        foreach(hook -> hook(), _mpi_load_time_hooks)
+    end
+end
+
 end
