@@ -158,6 +158,8 @@ end
 using PrecompileTools: @compile_workload
 @static if VERSION >= v"1.8"
     @compile_workload begin
+        # Running the load time hooks here shaves off a significant amount of loading time,
+        # see also https://github.com/JuliaParallel/MPI.jl/pull/728
         foreach(hook -> hook(), _mpi_load_time_hooks)
     end
 end
