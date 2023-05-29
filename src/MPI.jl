@@ -167,9 +167,9 @@ using PrecompileTools: @compile_workload
     # are likely to be called from anyone using MPI in Julia. Thus, it is reasonable
     # to compile them ahead of time instead of compiling them in parallel for each
     # run.
-    Base.precompile(Tuple{typeof(Init)})
-    Base.precompile(Tuple{typeof(Comm_size), Comm})
-    Base.precompile(Tuple{typeof(Comm_size), Comm})
+    Base.precompile(Init, ())
+    Base.precompile(Comm_size, (Comm,))
+    Base.precompile(Comm_size, (Comm,))
 end
 
 end
