@@ -467,7 +467,7 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.9.0"
+          - "2.10.3"
 
       fail-fast: false
 
@@ -536,7 +536,7 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.9.0"
+          - "2.10.3"
 
       fail-fast: false
 
