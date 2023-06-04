@@ -168,7 +168,7 @@ using PrecompileTools: @compile_workload
     # to compile them ahead of time instead of compiling them in parallel for each
     # run.
     Base.precompile(Init, ())
-    Base.precompile(Comm_size, (Comm,))
+    Base.precompile(Comm_rank, (Comm,))
     Base.precompile(Comm_size, (Comm,))
 end
 
