@@ -53,7 +53,7 @@ end
 function run_load_time_hooks()
     @assert !_finished_loading[]
     _finished_loading[] = true
-    foreach(hook -> hook(), _mpi_load_time_hooks)
+    foreach(call, _mpi_load_time_hooks)
     empty!(_mpi_load_time_hooks)
     nothing
 end
@@ -66,6 +66,7 @@ function (hook::LoadTimeHookSetVal)()
     hook.dst.val = hook.src[]
     return nothing
 end
+call(hook) = hook()
 
 include("implementations.jl")
 include("error.jl")
@@ -89,7 +90,7 @@ include("misc.jl")
 include("deprecated.jl")
 
 if !isdefined(Base, :get_extension)
-    using Requires
+    using Requires: @require
 end
 
 function __init__()
@@ -160,8 +161,15 @@ using PrecompileTools: @compile_workload
     @compile_workload begin
         # Running the load time hooks here shaves off a significant amount of loading time,
         # see also https://github.com/JuliaParallel/MPI.jl/pull/728
-        foreach(hook -> hook(), _mpi_load_time_hooks)
+        foreach(call, _mpi_load_time_hooks)
     end
+    # We insert some explicit precompile statements here. The corresponding methods
+    # are likely to be called from anyone using MPI in Julia. Thus, it is reasonable
+    # to compile them ahead of time instead of compiling them in parallel for each
+    # run.
+    Base.precompile(Init, ())
+    Base.precompile(Comm_size, (Comm,))
+    Base.precompile(Comm_size, (Comm,))
 end
 
 end
