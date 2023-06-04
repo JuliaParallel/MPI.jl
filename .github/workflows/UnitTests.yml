@@ -467,7 +467,7 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.8.1"
+          - "2.10.3"
 
       fail-fast: false
 
@@ -536,7 +536,7 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.8.1"
+          - "2.10.3"
 
       fail-fast: false
 
@@ -661,10 +661,10 @@ jobs:
         sudo apt-get install libibverbs-dev libpciaccess-dev libxml2-dev pkgconf rdma-core zlib1g-dev
 
     - name: Install MVAPICH via Spack
-      uses: vsoch/spack-package-action/envpackage@main
-      with:
-        spack_yaml: .ci/mvapich/spack.yaml
-        deploy: false
+      run: |
+        git clone -c feature.manyFiles=true --depth 1 https://github.com/spack/spack.git
+        spack/bin/spack -e .ci/mvapich concretize -f
+        spack/bin/spack -e .ci/mvapich install
 
     - name: Set PATH and LD_LIBRARY_PATH
       run: |
