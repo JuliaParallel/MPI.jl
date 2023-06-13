@@ -12,6 +12,7 @@ MPI.MPI_LIBRARY_VERSION_STRING
 ## Functions
 
 ```@docs
+MPI.versioninfo
 MPI.has_cuda
 MPI.identify_implementation
 ```

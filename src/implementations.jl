@@ -79,3 +79,43 @@ The supported version of the MPI standard.
 $(_doc_external("MPI_Get_version"))
 """
 const MPI_VERSION = Get_version()
+
+using PkgVersion
+"""
+    MPI.versioninfo()
+
+Print a summary of the curent MPI configuration.
+"""
+function versioninfo()
+    println("MPIPreferences:")
+    println("  binary:  ", MPIPreferences.binary)
+    println("  abi:     ", MPIPreferences.abi)
+    if MPIPreferences.binary == "system"
+        println("  libmpi:  ", MPIPreferences.System.libmpi)
+        println("  mpiexec: ", MPIPreferences.System.mpiexec_path)
+    end
+    println()
+    println("Package versions")
+    println("  MPI.jl:             ", PkgVersion.@Version)
+    println("  MPIPreferences.jl:  ", PkgVersion.Version(MPIPreferences))
+    if MPIPreferences.binary == "MPICH_jll"
+        println("  MPICH_jll:          ", PkgVersion.Version(API.MPICH_jll))
+    elseif MPIPreferences.binary == "OpenMPI_jll"
+        println("  OpenMPI_jll:        ", PkgVersion.Version(API.OpenMPI_jll))
+    elseif MPIPreferences.binary == "OpenMPI_jll"
+        println("  OpenMPI_jll:        ", PkgVersion.Version(API.OpenMPI_jll))
+    elseif MPIPreferences.binary == "MicrosoftMPI_jll"
+        println("  MicrosoftMPI_jll:   ", PkgVersion.Version(API.MicrosoftMPI_jll))
+    elseif MPIPreferences.binary == "MPItrampoline_jll"
+        println("  MPItrampoline_jll   ", PkgVersion.Version(API.MPItrampoline_jll))
+    end
+        
+    println()
+    println("Library information:")
+    println("  libmpi:  ", API.libmpi)
+    println("  MPI version:  ", Get_version())
+    println("  Library version:  ")
+    for line in split(Get_library_version(), '\n')
+        println("    ", line)
+    end
+end
