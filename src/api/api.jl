@@ -9,13 +9,13 @@ import MPIPreferences
 using Libdl
 
 if MPIPreferences.binary == "MPICH_jll"
-    import MPICH_jll: libmpi, libmpi_handle, mpiexec
+    import MPICH_jll: MPICH_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "OpenMPI_jll"
-    import OpenMPI_jll: libmpi, libmpi_handle, mpiexec
+    import OpenMPI_jll: OpenMPI_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "MicrosoftMPI_jll"
-    import MicrosoftMPI_jll: libmpi, libmpi_handle, mpiexec
+    import MicrosoftMPI_jll: MicrosoftMPI_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "MPItrampoline_jll"
     import MPItrampoline_jll: MPItrampoline_jll, libmpi, libmpi_handle, mpiexec
