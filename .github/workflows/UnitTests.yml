@@ -223,7 +223,7 @@ jobs:
 
       fail-fast: false
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     env:
       JULIA_MPI_TEST_BINARY: system
@@ -539,7 +539,7 @@ jobs:
 
       fail-fast: false
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     env:
       JULIA_MPI_BINARY: MPItrampoline_jll
