@@ -542,7 +542,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      JULIA_MPI_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_BINARY: MPItrampoline_jll
       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
       MPITRAMPOLINE_MPIEXEC: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiexec
 
