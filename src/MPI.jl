@@ -142,6 +142,10 @@ function __init__()
         # default is "SIGILL,SIGSEGV,SIGBUS,SIGFPE"
         ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
     end
+    # Similar problem with Intel MPI (issue #725).
+    if !haskey(ENV, "IPATH_NO_BACKTRACE")
+        ENV["IPATH_NO_BACKTRACE"] = "1"
+    end
 
     if MPIPreferences.binary == "MPItrampoline_jll" && !haskey(ENV, "MPITRAMPOLINE_MPIEXEC")
         ENV["MPITRAMPOLINE_MPIEXEC"] = API.MPItrampoline_jll.mpich_mpiexec_path
