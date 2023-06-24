@@ -543,6 +543,7 @@ jobs:
 
     env:
       JULIA_MPI_TEST_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_ABI: MPItrampoline
       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
       MPITRAMPOLINE_MPIEXEC: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiexec
 
@@ -615,6 +616,15 @@ jobs:
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use MPItrampoline_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        rm("test/Manifest.toml")
 
     # We can't use the usual actions here as we need to ensure the environment variables are set
     - name: "Build package"
