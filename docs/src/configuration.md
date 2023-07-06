@@ -132,22 +132,21 @@ The function of these settings are as follows:
 An example of running `MPIPreferences.use_system_library(vendor="cray")` in
 `PrgEnv-gnu` is:
 
-   ```toml
-   [MPIPreferences]
-   _format = "1.0"
-   abi = "MPICH"
-   binary = "system"
-   cclibs = ["cupti", "cudart", "cuda", "sci_gnu_82_mpi", "sci_gnu_82", "dl", "dsmml", "xpmem"]
-   libmpi = "libmpi_gnu_91.so"
-   mpiexec = "mpiexec"
-   preloads = ["libmpi_gtl_cuda.so"]
-   preloads_env_switch = "MPICH_GPU_SUPPORT_ENABLED"
-   ```
+```toml
+[MPIPreferences]
+_format = "1.0"
+abi = "MPICH"
+binary = "system"
+cclibs = ["cupti", "cudart", "cuda", "sci_gnu_82_mpi", "sci_gnu_82", "dl", "dsmml", "xpmem"]
+libmpi = "libmpi_gnu_91.so"
+mpiexec = "mpiexec"
+preloads = ["libmpi_gtl_cuda.so"]
+preloads_env_switch = "MPICH_GPU_SUPPORT_ENABLED"
+```
 
 This is an example of CrayMPICH requiring `libmpi_gtl_cuda.so` to be preloaded,
 unless `MPICH_GPU_SUPPORT_ENABLED=0` (the latter allowing MPI-enabled code to
 run on a non-GPU enabled node without needing a seperate `LocalPreferences.toml`).
-
 
 ## [Using an alternative JLL-provided MPI library](@id configure_jll_binary)
 
