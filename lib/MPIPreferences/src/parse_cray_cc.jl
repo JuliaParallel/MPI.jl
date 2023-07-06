@@ -25,16 +25,14 @@ function cray_mpi(libs)
     x = libs |>
         filter(x-> startswith(x, libmpi_prefix)) |> 
         filter(x->!startswith(x, libgtl_prefix))
-    @assert length(x) == 1
-    return x[1]
+    return only(x)
 end
 
 function cray_gtl(libs)
     x = libs |>
         filter(x->startswith(x, libmpi_prefix)) |> 
         filter(x->startswith(x, libgtl_prefix))
-    @assert length(x) == 1
-    return x[1]
+    return only(x)
 end
 
 function other_libs(libs)
