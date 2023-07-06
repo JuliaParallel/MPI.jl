@@ -19,30 +19,6 @@ struct CrayPE
     )
 end
 
-function communicate(cmd::Cmd, input="")
-    inp = Pipe()
-    out = Pipe()
-    err = Pipe()
-
-    process = run(pipeline(cmd, stdin=inp, stdout=out, stderr=err), wait=false)
-
-    close(out.in)
-    close(err.in)
-
-    stdout = @async String(read(out))
-    stderr = @async String(read(err))
-
-    write(process, input)
-    close(inp)
-
-    wait(process)
-    return (
-        stdout = fetch(stdout),
-        stderr = fetch(stderr),
-        code = process.exitcode
-    )
-end
-
 const libmpi_prefix = "mpi_"
 const libgtl_prefix = "mpi_gtl_"
 
@@ -70,12 +46,11 @@ function other_libs(libs)
 end
 
 function analyze_cray_cc()
-    cray_opts = communicate(Cmd(["cc", "--cray-print-opts=all"]))
-    @assert cray_opts.code == 0
+    cray_opts = readchomp(Cmd(["cc", "--cray-print-opts=all"]))
 
     ld_paths = SubString{String}[]
     libs = SubString{String}[]
-    for opt in split(cray_opts.stdout, " ") |>
+    for opt in split(cray_opts, " ")        |>
                map(x->split(x, ","))        |>
                reduce(vcat)                 |>
                map(x->replace(x, "\n"=>""))
