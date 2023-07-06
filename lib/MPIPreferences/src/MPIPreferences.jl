@@ -4,7 +4,7 @@ export use_jll_binary, use_system_binary
 
 using Preferences, Libdl
 
-if !(VersionNumber(@load_preference("_format", "1.0")) <= v"1.0")
+if !(VersionNumber(@load_preference("_format", "1.1")) <= v"1.1")
     error("The preferences attached to MPIPreferences are incompatible with this version of the package.")
 end
 
@@ -78,7 +78,7 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
               Accepted options are:
                   $(join(known_binaries, ", "))""")
     set_preferences!(MPIPreferences,
-        "_format" => "1.0",
+        "_format" => "1.1",
         "binary" => binary,
         "libmpi" => nothing,
         "abi" => nothing,
@@ -195,7 +195,7 @@ function use_system_binary(;
     end
 
     set_preferences!(MPIPreferences,
-        "_format" => "1.0",
+        "_format" => "1.1",
         "binary" => binary,
         "libmpi" => libmpi,
         "abi" => abi,
