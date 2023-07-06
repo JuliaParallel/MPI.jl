@@ -60,7 +60,6 @@ If the implementation is changed, you will need to call this function again. See
     from transitive dependencies is broken ([Preferences.jl#24](https://github.com/JuliaPackaging/Preferences.jl/issues/24)).
     To fix this update your version of Julia, or add `MPIPreferences` as a direct dependency to your project.
 
-
 ### Notes to HPC cluster administrators
 
 Preferences are merged across the Julia load path, such that it is feasible to provide a module file that appends a path to
@@ -106,6 +105,49 @@ Preferences are merged across the Julia load path, such that it is feasible to p
    The user can still provide differing MPI configurations for each Julia project
    that will take precedent by modifying the local `Project.toml` or by providing a
    `LocalPreferences.toml` file.
+
+### Notes about vendor-provided MPI backends
+
+`MPIPreferences` can load vendor-specific libraries and settings using the
+`vendor` parameter, eg `MPIPreferences.use_system_binary(mpiexec="srun", vendor="cray")`
+configures `MPIPreferences` for use on Cray systems with `srun`.
+
+!!! note
+    Currently `vendor` only supports Cray systems.
+
+This populates the `library_names`, `preloads`, `preloads_env_switch` and
+`cclibs` preferences. These are defermined by parsing `cc --cray-print-opts=all`
+emitted from the Cray Compiler Wrappers. Therefore `use_system_binary` needs
+to be run on the target system, with the corresponding `PrgEnv` loaded.
+
+The function of these settings are as follows:
+ * `preloads` specifies a list of libraries that are to be loaded (in order)
+   before `libmpi`.
+ * `preloads_env_switch` specifies the name of an environment variable that, if
+   set to `0`, can disable the `preloads`
+ * `cclibs` is a list of libraries also linked by the compiler wrappers. This is
+   recorded mainly for debugging purposes, and the libraries listed here are not
+   explicitly loaded by `MPI.jl`.
+
+An example of running `MPIPreferences.use_system_library(vendor="cray")` in
+`PrgEnv-gnu` is:
+
+   ```toml
+   [MPIPreferences]
+   _format = "1.0"
+   abi = "MPICH"
+   binary = "system"
+   cclibs = ["cupti", "cudart", "cuda", "sci_gnu_82_mpi", "sci_gnu_82", "dl", "dsmml", "xpmem"]
+   libmpi = "libmpi_gnu_91.so"
+   mpiexec = "mpiexec"
+   preloads = ["libmpi_gtl_cuda.so"]
+   preloads_env_switch = "MPICH_GPU_SUPPORT_ENABLED"
+   ```
+
+This is an example of CrayMPICH requiring `libmpi_gtl_cuda.so` to be preloaded,
+unless `MPICH_GPU_SUPPORT_ENABLED=0` (the latter allowing MPI-enabled code to
+run on a non-GPU enabled node without needing a seperate `LocalPreferences.toml`).
+
 
 ## [Using an alternative JLL-provided MPI library](@id configure_jll_binary)
 

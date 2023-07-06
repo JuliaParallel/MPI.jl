@@ -141,7 +141,12 @@ Options:
   using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported
   values.
 
-- `vendor`: can be either `nothing` or a vendor name (such a `"cray"`).
+- `vendor`: can be either `nothing` or a vendor name (such a `"cray"`). If
+  `vendor` has the value "cray", then the output from `cc --cray-print-opts=all`
+  is parsed for which libraries are linked by the Cray Compiler Wrappers. Note
+  that if `mpi_gtl_*` is present, then this .so will be added to the preloads.
+  Also note that the inputs to `library_names` will be overwritten by the
+  library name used by the compiler wrapper.
 
 - `export_prefs`: if `true`, the preferences into the `Project.toml` instead of
   `LocalPreferences.toml`.
