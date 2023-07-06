@@ -1,9 +1,8 @@
 module CrayParser
 
-import Base: filter, map, reduce
-filter(f::Function)::Function = x -> filter(f, x)
-map(f::Function)::Function    = x -> map(f, x)
-reduce(f::Function)::Function = x -> reduce(f, x)
+filter(f::Function)::Function = Base.Fix1(Base.filter, f)
+map(f::Function)::Function    = Base.Fix1(Base.map, f)
+reduce(f::Function)::Function = Base.Fix1(Base.reduce, f)
 
 struct CrayPE
     libmpi::String
