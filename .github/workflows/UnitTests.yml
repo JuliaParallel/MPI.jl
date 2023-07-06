@@ -39,7 +39,6 @@ jobs:
         julia_version:
           - "1.6"
           - "1"
-          - "~1.9.0-0"
           - "nightly"
         julia_arch: [x64, x86]
         exclude:
@@ -224,7 +223,7 @@ jobs:
 
       fail-fast: false
 
-    runs-on: ubuntu-18.04  # 20.04 not supported
+    runs-on: ubuntu-latest
 
     env:
       JULIA_MPI_TEST_BINARY: system
@@ -467,7 +466,7 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.8.1"
+          - "2.10.3"
 
       fail-fast: false
 
@@ -536,14 +535,15 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.8.1"
+          - "2.10.3"
 
       fail-fast: false
 
-    runs-on: ubuntu-18.04  # 20.04 not supported
+    runs-on: ubuntu-latest
 
     env:
-      JULIA_MPI_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_ABI: MPItrampoline
       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
       MPITRAMPOLINE_MPIEXEC: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiexec
 
@@ -617,6 +617,15 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
+    - name: use MPItrampoline_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        rm("test/Manifest.toml")
+
     # We can't use the usual actions here as we need to ensure the environment variables are set
     - name: "Build package"
       run: |
@@ -661,10 +670,10 @@ jobs:
         sudo apt-get install libibverbs-dev libpciaccess-dev libxml2-dev pkgconf rdma-core zlib1g-dev
 
     - name: Install MVAPICH via Spack
-      uses: vsoch/spack-package-action/envpackage@main
-      with:
-        spack_yaml: .ci/mvapich/spack.yaml
-        deploy: false
+      run: |
+        git clone -c feature.manyFiles=true --depth 1 https://github.com/spack/spack.git
+        spack/bin/spack -e .ci/mvapich concretize -f
+        spack/bin/spack -e .ci/mvapich install
 
     - name: Set PATH and LD_LIBRARY_PATH
       run: |

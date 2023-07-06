@@ -191,7 +191,7 @@ Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MP
 
 
 const REQUEST_NULL = Request(API.MPI_REQUEST_NULL[], nothing)
-add_load_time_hook!(() -> REQUEST_NULL.val = API.MPI_REQUEST_NULL[])
+add_load_time_hook!(LoadTimeHookSetVal(REQUEST_NULL, API.MPI_REQUEST_NULL))
 
 """
     MPI.UnsafeRequest()
@@ -200,11 +200,11 @@ Similar to [`MPI.Request`](@ref), but does not maintain a reference to the
 underlying communication buffer. This may have improve performance by reducing
 memory allocations.
 
-!!! warning 
-    
+!!! warning
+
     The user should ensure that another reference to the communication buffer is
     maintained so that it is not cleaned up by the garbage collector
-    before the communication operation is complete. 
+    before the communication operation is complete.
 
     For example
     ```julia

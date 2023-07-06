@@ -25,7 +25,7 @@ end
 nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS", "")
 nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
 
-@info "Running MPI tests" ArrayType nprocs MPIPreferences.abi MPIPreferences.binary
+MPI.versioninfo()
 
 if haskey(ENV,"JULIA_MPI_TEST_BINARY")
     @test ENV["JULIA_MPI_TEST_BINARY"] == MPIPreferences.binary

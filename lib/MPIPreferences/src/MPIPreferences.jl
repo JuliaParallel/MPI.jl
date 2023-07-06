@@ -247,7 +247,7 @@ function identify_implementation_version_abi(version_string::AbstractString)
     if startswith(version_string, "MPICH")
         impl = "MPICH"
         # "MPICH Version:\t%s\n" /  "MPICH2 Version:\t%s\n"
-        if (m = match(r"^MPICH2? Version:\t(\d+.\d+(?:.\d+)?\w*)\n", version_string)) !== nothing
+        if (m = match(r"^MPICH2? Version:\s+(\d+.\d+(?:.\d+)?\w*)\n", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
 

@@ -24,6 +24,11 @@ if provided == MPI.THREAD_MULTIPLE
     Threads.@threads for i = 1:N
         reqs[N+i] = MPI.Irecv!(@view(recv_arr[i:i]), comm; source=src, tag=i)
         reqs[i] = MPI.Isend(@view(send_arr[i:i]), comm; dest=dst, tag=i)
+        if i == 1 
+            # test that multithreaded GC doesn't cause false-positive segmentation fault detection
+            GC.gc()
+        end
+
     end
 
     MPI.Waitall(reqs)
