@@ -134,7 +134,7 @@ An example of running `MPIPreferences.use_system_library(vendor="cray")` in
 
 ```toml
 [MPIPreferences]
-_format = "1.0"
+_format = "1.1"
 abi = "MPICH"
 binary = "system"
 cclibs = ["cupti", "cudart", "cuda", "sci_gnu_82_mpi", "sci_gnu_82", "dl", "dsmml", "xpmem"]
