@@ -129,6 +129,8 @@ The function of these settings are as follows:
    recorded mainly for debugging purposes, and the libraries listed here are not
    explicitly loaded by `MPI.jl`.
 
+If these are set, the `_format` key will be set to `"1.1"`.
+
 An example of running `MPIPreferences.use_system_library(vendor="cray")` in
 `PrgEnv-gnu` is:
 
