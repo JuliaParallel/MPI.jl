@@ -195,7 +195,7 @@ function use_system_binary(;
     end
 
     set_preferences!(MPIPreferences,
-        "_format" => "1.1",
+        "_format" => isnothing(vendor) ? "1.0" : "1.1",
         "binary" => binary,
         "libmpi" => libmpi,
         "abi" => abi,
