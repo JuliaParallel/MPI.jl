@@ -78,7 +78,7 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
               Accepted options are:
                   $(join(known_binaries, ", "))""")
     set_preferences!(MPIPreferences,
-        "_format" => "1.1",
+        "_format" => "1.0",
         "binary" => binary,
         "libmpi" => nothing,
         "abi" => nothing,
