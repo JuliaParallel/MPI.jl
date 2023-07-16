@@ -154,9 +154,9 @@ function __init__()
         @require CUDA="052768ef-5323-5732-b1bb-66c8b64840ba" include("../ext/CUDAExt.jl")
     end
 
-    if MPI.Initialized()
+    if Initialized()
          # if MPI initialized elsewhere, e.g. when building a library
-        MPI.run_init_hooks()
+        run_init_hooks()
     end
 end
 
