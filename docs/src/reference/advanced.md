@@ -41,6 +41,7 @@ MPI.infoval
 MPI.Errhandler
 MPI.get_errorhandler
 MPI.set_errorhandler!
+MPI.set_default_error_handler_return
 ```
 
 ## Miscellaneous
