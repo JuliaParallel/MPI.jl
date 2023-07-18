@@ -50,6 +50,16 @@ Register a function `f` that will be called as `f()` when `MPI.Init` is
 called. These are invoked in a first-in, first-out (FIFO) order.
 """
 add_init_hook!(f) = push!(mpi_init_hooks, f)
+
+"""
+    MPI.run_init_hooks()
+
+Execute all functions that have been registered using [`MPI.add_init_hook!()`](@ref).
+
+This function is executed automatically by [`MPI.Init()`](@ref) but *must* be invoked
+manually if MPI has been initialized externally by a direct call to `MPI_Init()`. It is safe
+to call this function multiple times (subsequent runs will be a no-op).
+"""
 function run_init_hooks()
     while !isempty(mpi_init_hooks)
         f = popfirst!(mpi_init_hooks) # FIFO
