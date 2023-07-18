@@ -31,6 +31,16 @@ function free(errh::Errhandler)
     return nothing
 end
 
+"""
+    MPI.set_default_error_handler_return()
+
+Set the error handler for `MPI_COMM_SELF` and `MPI_COMM_WORLD` to `MPI_ERRORS_RETURN`. This
+will cause certain MPI errors to appear as Julia exceptions.
+
+This function is executed automatically by [`MPI.Init()`](@ref) but *may* be invoked
+manually if MPI has been initialized externally by a direct call to `MPI_Init()`. It is safe
+to call this function multiple times.
+"""
 function set_default_error_handler_return()
     set_errorhandler!(COMM_SELF, ERRORS_RETURN)
     set_errorhandler!(COMM_WORLD, ERRORS_RETURN)
