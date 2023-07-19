@@ -4,7 +4,6 @@ import MPI
 isdefined(Base, :get_extension) ? (import AMDGPU) : (import ..AMDGPU)
 import MPI: MPIPtr, Buffer, Datatype
 
-
 function Base.cconvert(::Type{MPIPtr}, A::AMDGPU.ROCArray{T}) where T
     A
 end
