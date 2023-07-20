@@ -22,6 +22,7 @@ MPIPreferences.use_jll_binary
 ```@docs
 MPIPreferences.check_unchanged
 MPIPreferences.identify_abi
+MPIPreferences.dlopen_preloads
 ```
 
 ## Preferences schema
