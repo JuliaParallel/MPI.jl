@@ -166,12 +166,15 @@ function use_system_binary(;
     preloads = []
     preloads_env_switch = nothing
     cclibs = []
-    if vendor == "cray"
+    if vendor === nothing
+    elseif vendor == "cray"
         cray_pe = CrayParser.analyze_cray_cc()
         library_names = [cray_pe.libmpi]
         preloads = [cray_pe.libgtl]
         preloads_env_switch = cray_pe.gtl_env_switch
         cclibs = cray_pe.cclibs
+    else
+        error("Unknown vendor $vendor")
     end
 
     # Set `ZES_ENABLE_SYSMAN` to work around https://github.com/open-mpi/ompi/issues/10142
