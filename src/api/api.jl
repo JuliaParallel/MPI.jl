@@ -3,9 +3,7 @@ module API
 export MPI_Aint, MPI_Count, MPI_Offset, MPI_Status,
     MPI_Comm, MPI_Datatype, MPI_Errhandler, MPI_File, MPI_Group,
     MPI_Info, MPI_Message, MPI_Op, MPI_Request, MPI_Win,
-    libmpi, mpiexec, @mpichk, @mpicall, MPIPtr, SentinelPtr, FeatureLevelError,
-    preloads, preloads_env_switch
-    # libgtl
+    libmpi, mpiexec, @mpichk, @mpicall, MPIPtr, SentinelPtr, FeatureLevelError
 
 import MPIPreferences
 using Libdl
@@ -13,29 +11,17 @@ using Libdl
 if MPIPreferences.binary == "MPICH_jll"
     import MPICH_jll: MPICH_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
-    const preloads = []
-    const preloads_env_switch = nothing
 elseif MPIPreferences.binary == "OpenMPI_jll"
     import OpenMPI_jll: OpenMPI_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
-    const preloads = []
-    const preloads_env_switch = nothing
 elseif MPIPreferences.binary == "MicrosoftMPI_jll"
     import MicrosoftMPI_jll: MicrosoftMPI_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
-    const preloads = []
-    const preloads_env_switch = nothing
 elseif MPIPreferences.binary == "MPItrampoline_jll"
     import MPItrampoline_jll: MPItrampoline_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
-    # TODO: We'll probably need the preloads -- like cray's GTL -- with
-    # libmpitrampoline, and until MPItrampoline_jll "understands" preloads, this
-    # should be an acceptable workaround
-    const preloads = MPIPreferences.Preferences.@load_preference("preloads")
-    const preloads_env_switch = MPIPreferences.Preferences.@load_preference("preloads_env_switch")
 elseif MPIPreferences.binary == "system"
-    import MPIPreferences.System: libmpi, libmpi_handle, mpiexec,
-        preloads, preloads_env_switch
+    import MPIPreferences.System: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
 else
     error("Unknown MPI binary: $(MPIPreferences.binary)")

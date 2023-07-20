@@ -112,17 +112,11 @@ function __init__()
         """ ENV["JULIA_MPI_BINARY"]=mpi_env_binary MPIPreferences.binary
     end
 
-    @static if Sys.isunix()
-        # preload any dependencies of libmpi (if needed, eg. GTL on cray) before
-        # dlopen'ing the MPI library: https://github.com/JuliaParallel/MPI.jl/pull/716
-        if !isnothing(preloads)
-            if isnothing(preloads_env_switch) || get(ENV, preloads_env_switch, "0") == "1"
-                for preload in preloads
-                    Libdl.dlopen(preload, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
-                end
-            end
-        end
+    # preload any dependencies of libmpi (if needed, eg. GTL on cray) before
+    # dlopen'ing the MPI library: https://github.com/JuliaParallel/MPI.jl/pull/716
+    MPIPreferences.dlopen_preloads()
 
+    @static if Sys.isunix()
         # dlopen the MPI library before any ccall:
         # - RTLD_GLOBAL is required for Open MPI
         #   https://www.open-mpi.org/community/lists/users/2010/04/12803.php

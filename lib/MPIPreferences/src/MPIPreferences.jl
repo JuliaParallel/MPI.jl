@@ -4,7 +4,7 @@ export use_jll_binary, use_system_binary
 
 using Preferences, Libdl
 
-if !(VersionNumber(@load_preference("_format", "1.1")) <= v"1.1")
+if !(VersionNumber(@load_preference("_format", "1.0")) <= v"1.1")
     error("The preferences attached to MPIPreferences are incompatible with this version of the package.")
 end
 
@@ -50,7 +50,11 @@ else
     error("Unknown binary: $binary")
 end
 
+include("preloads.jl")
+using .Preloads: dlopen_preloads, preloads, preloads_env_switch
+
 include("parse_cray_cc.jl")
+
 @static if binary == "system"
     include("system.jl")
 end
@@ -117,8 +121,8 @@ end
         library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec = "mpiexec",
         abi = nothing,
+        vendor = nothing,
         export_prefs = false,
-        gtl_names=nothing,
         force = true)
 
 Switches the underlying MPI implementation to a system provided one. A restart
