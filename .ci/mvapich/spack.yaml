@@ -4,7 +4,7 @@
 # configuration settings.
 spack:
   # add package specs to the `specs` list
-  specs: [mvapich2@2.3.7%gcc@12.1.0]
+  specs: [mvapich@3.0b%gcc@12.1.0]
   view: true
   concretizer:
     unify: true
