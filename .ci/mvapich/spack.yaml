@@ -4,13 +4,15 @@
 # configuration settings.
 spack:
   # add package specs to the `specs` list
-  specs: [mvapich@3.0b%gcc@12.1.0]
+  specs: [mpijl.mvapich2@2.3.7%gcc@12.1.0]
   view: true
   concretizer:
     unify: true
   config:
     install_tree:
       root: opt/spack
+  repos:
+  - $env/repo
   compilers::
   - compiler:
       spec: clang@12.0.1
