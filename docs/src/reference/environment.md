@@ -24,6 +24,7 @@ MPI.Initialized
 MPI.Finalize
 MPI.Finalized
 MPI.add_init_hook!
+MPI.run_init_hooks
 MPI.add_finalize_hook!
 ```
 
