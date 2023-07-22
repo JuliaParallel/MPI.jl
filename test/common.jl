@@ -8,7 +8,7 @@ if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
 elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
     import AMDGPU
     ArrayType = AMDGPU.ROCArray
-    synchronize() = AMDGPU.HIP.synchronize()
+    synchronize() = AMDGPU.HIP.synchronize() # HIP backend since AMDGPU v0.5
 else
     ArrayType = Array
     synchronize() = nothing
