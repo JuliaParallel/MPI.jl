@@ -76,6 +76,25 @@ for T in MPITestTypes
         @test A == ArrayType{T}(repeat(1:sz, inner=4))
     end
 
+    # serializing version
+    C = MPI.gather(T(rank+1), comm; root=root)
+    if isroot
+        @test C isa Vector{T}
+        @test C == Vector{T}(1:sz)
+    else
+        @test C === nothing
+    end
+end
+
+
+objs = ["test", 1, Array{Int}, [1,"test"]]
+obj = objs[mod(rank, length(objs))+1]
+
+C = MPI.gather(obj, comm; root=root)
+if isroot
+    @test C == [objs[mod1(i, length(objs))] for i = 1:sz]
+else
+    @test C === nothing
 end
 
 MPI.Finalize()

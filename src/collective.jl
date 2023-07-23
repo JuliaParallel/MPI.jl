@@ -295,6 +295,41 @@ Gather(object::T, root::Integer, comm::Comm) where {T} =
     Gather!(Ref(object), Comm_rank(comm) == root ? Array{T}(undef, Comm_size(comm)) : nothing, root, comm)
 
 """
+    gather(obj, comm::Comm; root::Integer=0)
+
+Gather the objects `obj` from all ranks on `comm` to rank `root`. This is able to to handle arbitrary data. On `root`, it returns a vector of the objects, and `nothing` otherwise.
+
+# See also
+
+- [`Gather!`](@ref)
+"""
+function gather(obj, comm::Comm; root::Integer=0)
+    isroot = Comm_rank(comm) == root
+
+    sendbuf = MPI.serialize(obj)
+    count = length(sendbuf)
+
+    counts = Gather(count, comm; root = root)
+
+    if isroot
+        data = Array{UInt8}(undef, sum(counts))
+        recvbuf = VBuffer(data, counts)
+
+        Gatherv!(sendbuf, recvbuf, comm; root = root)
+
+        objs = [
+            MPI.deserialize(view(recvbuf.data, displ+1:displ+count)) for (displ, count) in zip(recvbuf.displs, recvbuf.counts)
+        ]
+        return objs
+    end
+
+    Gatherv!(sendbuf, nothing, comm; root = root)
+
+    return nothing
+end
+
+
+"""
     Gatherv!(sendbuf, recvbuf, comm::Comm; root::Integer=0)
 
 Each process sends the contents of the buffer `sendbuf` to the `root` process. The `root`
