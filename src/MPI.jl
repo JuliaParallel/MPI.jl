@@ -112,11 +112,9 @@ function __init__()
         """ ENV["JULIA_MPI_BINARY"]=mpi_env_binary MPIPreferences.binary
     end
 
-    if isdefined(MPIPreferences, :dlopen_preloads)
-        # preload any dependencies of libmpi (if needed, eg. GTL on cray) before
-        # dlopen'ing the MPI library: https://github.com/JuliaParallel/MPI.jl/pull/716
-        MPIPreferences.dlopen_preloads()
-    end
+    # preload any dependencies of libmpi (if needed, eg. GTL on cray) before
+    # dlopen'ing the MPI library: https://github.com/JuliaParallel/MPI.jl/pull/716
+    MPIPreferences.dlopen_preloads()
 
     @static if Sys.isunix()
         # dlopen the MPI library before any ccall:
