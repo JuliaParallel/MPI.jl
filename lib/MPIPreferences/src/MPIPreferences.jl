@@ -4,7 +4,7 @@ export use_jll_binary, use_system_binary
 
 using Preferences, Libdl
 
-if !(VersionNumber(@load_preference("_format", "1.0")) <= v"1.0")
+if !(VersionNumber(@load_preference("_format", "1.0")) <= v"1.1")
     error("The preferences attached to MPIPreferences are incompatible with this version of the package.")
 end
 
@@ -50,6 +50,11 @@ else
     error("Unknown binary: $binary")
 end
 
+include("preloads.jl")
+using .Preloads: dlopen_preloads, preloads, preloads_env_switch
+
+include("parse_cray_cc.jl")
+
 @static if binary == "system"
     include("system.jl")
 end
@@ -81,7 +86,10 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         "binary" => binary,
         "libmpi" => nothing,
         "abi" => nothing,
-        "mpiexec" => nothing;
+        "mpiexec" => nothing,
+        "preloads" => [],
+        "preloads_env_switch" => nothing,
+        "cclibs" => nothing;
         export_prefs=export_prefs,
         force=force
     )
@@ -113,6 +121,7 @@ end
         library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec = "mpiexec",
         abi = nothing,
+        vendor = nothing,
         export_prefs = false,
         force = true)
 
@@ -136,6 +145,13 @@ Options:
   using [`identify_abi`](@ref). See [`abi`](@ref) for currently supported
   values.
 
+- `vendor`: can be either `nothing` or a vendor name (such a `"cray"`). If
+  `vendor` has the value "cray", then the output from `cc --cray-print-opts=all`
+  is parsed for which libraries are linked by the Cray Compiler Wrappers. Note
+  that if `mpi_gtl_*` is present, then this .so will be added to the preloads.
+  Also note that the inputs to `library_names` will be overwritten by the
+  library name used by the compiler wrapper.
+
 - `export_prefs`: if `true`, the preferences into the `Project.toml` instead of
   `LocalPreferences.toml`.
 
@@ -145,10 +161,26 @@ function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         mpiexec="mpiexec",
         abi=nothing,
+        vendor=nothing,
         export_prefs=false,
-        force=true,
+        force=true
     )
     binary = "system"
+    # vendor workarounds
+    preloads = []
+    preloads_env_switch = nothing
+    cclibs = []
+    if vendor === nothing
+    elseif vendor == "cray"
+        cray_pe = CrayParser.analyze_cray_cc()
+        library_names = [cray_pe.libmpi]
+        preloads = [cray_pe.libgtl]
+        preloads_env_switch = cray_pe.gtl_env_switch
+        cclibs = cray_pe.cclibs
+    else
+        error("Unknown vendor $vendor")
+    end
+
     # Set `ZES_ENABLE_SYSMAN` to work around https://github.com/open-mpi/ompi/issues/10142
     libmpi = withenv("ZES_ENABLE_SYSMAN" => "1") do
         find_library(library_names)
@@ -160,22 +192,27 @@ function use_system_binary(;
             If you want to try different name(s) for the MPI library, use
                 MPIPreferences.use_system_binary(; library_names=[...])""")
     end
+
     if isnothing(abi)
         abi = identify_abi(libmpi)
     end
+
     if mpiexec isa Cmd
         mpiexec = collect(mpiexec)
     end
+
     set_preferences!(MPIPreferences,
-        "_format" => "1.0",
+        "_format" => isnothing(vendor) ? "1.0" : "1.1",
         "binary" => binary,
         "libmpi" => libmpi,
         "abi" => abi,
         "mpiexec" => mpiexec,
+        "preloads" => preloads,
+        "preloads_env_switch" => preloads_env_switch,
+        "cclibs" => cclibs;
         export_prefs=export_prefs,
         force=force
     )
-
 
     if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
         @warn """
@@ -186,10 +223,10 @@ function use_system_binary(;
     end
 
     if binary == MPIPreferences.binary && abi == MPIPreferences.abi && libmpi == System.libmpi && mpiexec == System.mpiexec_path
-        @info "MPIPreferences unchanged" binary libmpi abi mpiexec
+        @info "MPIPreferences unchanged" binary libmpi abi mpiexec preloads preloads_env_switch
     else
         PREFS_CHANGED[] = true
-        @info "MPIPreferences changed" binary libmpi abi mpiexec
+        @info "MPIPreferences changed" binary libmpi abi mpiexec preloads preloads_env_switch
 
         if DEPS_LOADED[]
             error("You will need to restart Julia for the changes to take effect")
