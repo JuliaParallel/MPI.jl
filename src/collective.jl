@@ -321,11 +321,10 @@ function gather(obj, comm::Comm; root::Integer=0)
             MPI.deserialize(view(recvbuf.data, displ+1:displ+count)) for (displ, count) in zip(recvbuf.displs, recvbuf.counts)
         ]
         return objs
+    else
+        Gatherv!(sendbuf, nothing, comm; root = root)
+        return nothing
     end
-
-    Gatherv!(sendbuf, nothing, comm; root = root)
-
-    return nothing
 end
 
 
