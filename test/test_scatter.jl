@@ -26,13 +26,30 @@ for T in MPITestTypes
     end
     @test Array(B)[1] == T(rank+1)
 
+    B = MPI.scatter(A, comm; root = root)
+    @test B == T(rank+1)
+
     # Test throwing
     if isroot
         B = ArrayType{T}(undef, 0)
         @test_throws DivideError MPI.Scatter!(A, B, comm; root=root)
         B = ArrayType{T}(undef, 8)
         @test_throws AssertionError MPI.Scatter!(A, B, comm; root=root)
+
+        wrong_length = ArrayType{T}(undef, size-1)
+        @test_throws ArgumentError MPI.scatter(wrong_length, comm; root=root)
     end
+end
+
+
+objs = ["test", 1, Array{Int}, [1,"test"]]
+objs_sized = [objs[mod1(i, length(objs))] for i = 1:size]
+
+B = MPI.scatter(objs_sized, comm; root = root)
+@test B == objs_sized[rank+1]
+objs_gathered = MPI.gather(B, comm; root = root)
+if isroot
+    @test objs_gathered == objs_sized
 end
 
 MPI.Finalize()

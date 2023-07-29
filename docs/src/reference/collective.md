@@ -36,6 +36,7 @@ MPI.Neighbor_allgatherv!
 ```@docs
 MPI.Scatter!
 MPI.Scatter
+MPI.scatter
 MPI.Scatterv!
 ```
 
