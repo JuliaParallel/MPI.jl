@@ -186,11 +186,18 @@ function scatter(objs::Union{AbstractVector, Nothing}, comm::Comm; root::Integer
             throw(ArgumentError("Length of argument objs ($(length(objs))) != number of ranks in comm ($(Comm_size(comm)))."))
         end
 
-        datasegments = MPI.serialize.(objs)
-        counts = length.(datasegments)
+        sendbuffer = IOBuffer()
+        counts = Vector{Int64}(undef, length(objs))
+
+        last_pos = 0
+        for (i, obj) in enumerate(objs)
+            Serialization.serialize(sendbuffer, i == root + 1 ? nothing : obj)
+            counts[i] = position(sendbuffer) - last_pos
+            last_pos = position(sendbuffer)
+        end
 
         count = Scatter(counts, Int64, comm; root = root)
-        sendbuf = VBuffer(vcat(datasegments...), counts)
+        sendbuf = VBuffer(take!(sendbuffer), counts)
 
         Scatterv!(sendbuf, IN_PLACE, comm; root = root)
         return objs[root + 1]
