@@ -22,6 +22,7 @@ MPI.bcast
 ```@docs
 MPI.Gather!
 MPI.Gather
+MPI.gather
 MPI.Gatherv!
 MPI.Allgather!
 MPI.Allgather
