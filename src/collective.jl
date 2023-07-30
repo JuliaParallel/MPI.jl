@@ -168,6 +168,52 @@ Scatter(sendbuf, ::Type{T}, root::Integer, comm::Comm) where {T} =
     Scatter!(sendbuf, Ref{T}(), root, comm)[]
 
 """
+    scatter(objs::Union{AbstractVector, Nothing}, comm::Comm; root::Integer=0)
+
+Sends the `j`-th element of `objs` in the `root` process to rank `j-1` and returns it. On `root`, `objs` is expected to be a `Comm_size(comm)`-element vector. On the other ranks, it is ignored and can be `nothing`.
+
+This method can handle arbitrary data.
+
+# See also
+
+- [`Scatter!`](@ref)
+"""
+function scatter(objs::Union{AbstractVector, Nothing}, comm::Comm; root::Integer=0)
+    isroot = Comm_rank(comm) == root
+
+    if isroot
+        if length(objs) != Comm_size(comm)
+            throw(ArgumentError("Length of argument objs ($(length(objs))) != number of ranks in comm ($(Comm_size(comm)))."))
+        end
+
+        sendbuffer = IOBuffer()
+        counts = Vector{Int64}(undef, length(objs))
+
+        last_pos = 0
+        for (i, obj) in enumerate(objs)
+            Serialization.serialize(sendbuffer, i == root + 1 ? nothing : obj)
+            counts[i] = position(sendbuffer) - last_pos
+            last_pos = position(sendbuffer)
+        end
+
+        count = Scatter(counts, Int64, comm; root = root)
+        sendbuf = VBuffer(take!(sendbuffer), counts)
+
+        Scatterv!(sendbuf, IN_PLACE, comm; root = root)
+        return objs[root + 1]
+    else
+        count = Scatter(nothing, Int64, comm; root = root)
+
+        data = Array{UInt8}(undef, count)
+        recvbuf = Buffer(data)
+
+        Scatterv!(nothing, recvbuf, comm; root = root)
+        return MPI.deserialize(recvbuf.data)
+    end
+end
+
+
+"""
     Scatterv!(sendbuf, recvbuf, comm::Comm; root::Integer=0)
 
 Splits the buffer `sendbuf` in the `root` process into `Comm_size(comm)` chunks and sends
