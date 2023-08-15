@@ -82,7 +82,7 @@ const MPI_VERSION = Get_version()
 
 using PkgVersion
 """
-    MPI.versioninfo([io::IO=stdout])
+    MPI.versioninfo(io::IO=stdout)
 
 Print a summary of the curent MPI configuration.
 """
