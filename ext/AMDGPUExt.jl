@@ -9,7 +9,7 @@ function Base.cconvert(::Type{MPIPtr}, A::AMDGPU.ROCArray{T}) where T
 end
 
 function Base.unsafe_convert(::Type{MPIPtr}, X::AMDGPU.ROCArray{T}) where T
-    reinterpret(MPIPtr, Base.unsafe_convert(Ptr{T}, X.buf.ptr+X.offset))
+    reinterpret(MPIPtr, Base.unsafe_convert(Ptr{T}, X))
 end
 
 # only need to define this for strided arrays: all others can be handled by generic machinery
