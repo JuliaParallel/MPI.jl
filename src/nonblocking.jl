@@ -774,3 +774,14 @@ function Cancel!(req::AbstractRequest)
     API.MPI_Cancel(req)
     nothing
 end
+
+"""
+    Base.wait(req::MPI.Request)
+
+Non-blocking wait. This will yield to other (Julia) tasks while blocking in a spin loop.
+"""
+function Base.wait(req::MPI.Request)
+    while !MPI.Test(req)
+        yield()
+    end
+ end
