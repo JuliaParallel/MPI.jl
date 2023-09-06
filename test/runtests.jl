@@ -1,6 +1,7 @@
 using Test, MPI
 
 using MPIPreferences
+using Pkg
 
 function parse_flags!(args, flag; default=nothing, typ=typeof(default))
     for f in args
