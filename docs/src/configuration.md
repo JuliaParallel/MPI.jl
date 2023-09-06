@@ -197,7 +197,7 @@ import Pkg; Pkg.test("MPI"; test_args=["--backend=AMDGPU"])
 ```
 
 !!! note
-    The `JULIA_MPI_TEST_ARRAYTYPE` environment variable hs now more effect.
+    The `JULIA_MPI_TEST_ARRAYTYPE` environment variable has no effect anymore.
 
 ### Environment variables
 The test suite can also be modified by the following variables:
