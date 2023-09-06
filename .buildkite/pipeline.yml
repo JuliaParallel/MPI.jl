@@ -101,7 +101,7 @@
       if: build.message !~ /\[skip tests\]/
       timeout_in_minutes: 60
       env:
-        JULIA_MPI_TEST_ARRAYTYPE: CuArray
+        # JULIA_MPI_TEST_ARRAYTYPE: CuArray
         JULIA_MPI_TEST_NPROCS: 2
         JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
         OMPI_ALLOW_RUN_AS_ROOT: 1
@@ -133,7 +133,7 @@
         echo "+++ Run tests"
         julia --color=yes --project=. -e '
            import Pkg
-           Pkg.test("MPI")
+           Pkg.test("MPI"; test_args=["--backend=CUDA"])
            '
 
  - group: "ROCm"
@@ -178,10 +178,10 @@
 
     - wait
 
-    - label: "Tests -- Julia nightly"
+    - label: "Tests -- Julia latest"
       plugins:
         - JuliaCI/julia#v1:
-            version: "nightly" # failing on 1.8
+            version: "1" # failing on 1.8
             persist_depot_dirs: packages,artifacts,compiled
       agents:
         queue: "juliagpu"
@@ -191,14 +191,13 @@
       soft_fail:
         - exit_status: 1
       env:
-        JULIA_MPI_TEST_ARRAYTYPE: ROCArray
+        # JULIA_MPI_TEST_ARRAYTYPE: ROCArray
         JULIA_MPI_TEST_NPROCS: 2
         JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
         OMPI_ALLOW_RUN_AS_ROOT: 1
         OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
         OMPI_MCA_btl_vader_single_copy_mechanism: 'none' # https://github.com/open-mpi/ompi/issues/4948
         OPAL_PREFIX: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi" # Should we set this for the user?
-        JULIA_CUDA_MEMORY_POOL: "none"
       commands: |
         echo "--- Configure MPI"
         buildkite-agent artifact download --step "rocm-build-openmpi" mpi-prefix.tar.gz .
@@ -223,5 +222,5 @@
         echo "+++ Run tests"
         julia --color=yes --project=. -e '
            import Pkg
-           Pkg.test("MPI")
+           Pkg.test("MPI"; test_args=["--backend=AMDGPU"])
            '
