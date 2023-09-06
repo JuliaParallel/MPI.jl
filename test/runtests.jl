@@ -1,10 +1,35 @@
 using Test, MPI
 
 using MPIPreferences
+using Pkg
+
+function parse_flags!(args, flag; default=nothing, typ=typeof(default))
+    for f in args
+        startswith(f, flag) || continue
+
+        if f != flag
+            val = split(f, '=')[2]
+            if !(typ ≡ nothing || typ <: AbstractString)
+                @show typ val
+                val = parse(typ, val)
+            end
+        else
+            val = default
+        end
+
+        filter!(x -> x != f, args)
+        return true, val
+    end
+    return false, default
+end
+
+_, backend_name = parse_flags!(ARGS, "--backend"; default="CPU", typ=String)
 
 # load test packages to trigger precompilation
 using DoubleFloats
-if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "CuArray"
+@static if backend_name == "CUDA"
+    Pkg.add("CUDA")
+    ENV["JULIA_MPI_TEST_ARRAYTYPE"] = "CuArray"
     import CUDA
     if isdefined(CUDA, :versioninfo)
         CUDA.versioninfo()
@@ -13,10 +38,11 @@ if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "CuArray"
     end
     CUDA.precompile_runtime()
     ArrayType = CUDA.CuArray
-elseif get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
+elseif backend_name == "AMDGPU"
+    Pkg.add("AMDGPU")
+    ENV["JULIA_MPI_TEST_ARRAYTYPE"] = "ROCArray"
     import AMDGPU
     AMDGPU.versioninfo()
-    # DEBUG: currently no `precompile_runtime()` functionnality is implemented in AMDGPU.jl. If needed, it could be added by analogy of CUDA; no use of caps in AMDGPU.jl, but https://github.com/JuliaGPU/AMDGPU.jl/blob/cfaade146977594bf18e14b285ee3a9c84fbc7f2/src/execution.jl#L351-L357 shows how to construct a CompilerJob for a given agent.
     ArrayType = AMDGPU.ROCArray
 else
     ArrayType = Array
