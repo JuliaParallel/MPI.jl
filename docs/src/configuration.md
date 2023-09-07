@@ -9,10 +9,10 @@ clusters or multi-GPU machines, you will probably want to configure against a
 system-provided MPI implementation in order to exploit features such as fast network
 interfaces and CUDA-aware or ROCm-aware MPI interfaces.
 
-The MPIPreferences.jl package allows the user to choose which MPI implementation to use in MPI.jl. It uses [Preferences.jl](https://github.com/JuliaPackaging/Preferences.jl) to
-configure the MPI backend for each project separately. This provides
-a single source of truth that can be used for JLL packages (Julia packages providing C libraries)
-that link against MPI. It can be installed by
+The MPIPreferences.jl package allows the user to choose which MPI implementation to use in MPI.jl. It uses
+[Preferences.jl](https://github.com/JuliaPackaging/Preferences.jl) to configure the MPI backend for each
+project separately. This provides a single source of truth that can be used for JLL packages (Julia packages
+providing C libraries) that link against MPI. It can be installed by
 
 ```sh
 julia --project -e 'using Pkg; Pkg.add("MPIPreferences")'
@@ -182,13 +182,27 @@ julia> MPIPreferences.use_system_binary()
 (MPI) pkg> test
 ```
 
+### Testing GPU-aware buffers
+The test suite can target CUDA-aware interface with [`CUDA.CuArray`](https://github.com/JuliaGPU/CUDA.jl)
+and the ROCm-aware interface with [`AMDGPU.ROCArray`](https://github.com/JuliaGPU/AMDGPU.jl) upon selecting
+the corresponding `test_args` kwarg when calling `Pkg.test`.
+
+Run Pkg.test with `--backend=CUDA` to test CUDA-aware MPI buffers
+```
+import Pkg; Pkg.test("MPI"; test_args=["--backend=CUDA"])
+```
+and with `--backend=AMDGPU` to test ROCm-aware MPI buffers
+```
+import Pkg; Pkg.test("MPI"; test_args=["--backend=AMDGPU"])
+```
+
+!!! note
+    The `JULIA_MPI_TEST_ARRAYTYPE` environment variable has no effect anymore.
+
 ### Environment variables
 The test suite can also be modified by the following variables:
 
 - `JULIA_MPI_TEST_NPROCS`: How many ranks to use within the tests
-- `JULIA_MPI_TEST_ARRAYTYPE`: Set to `CuArray` or `ROCArray` to test the CUDA-aware interface with
-  [`CUDA.CuArray`](https://github.com/JuliaGPU/CUDA.jl) or the ROCm-aware interface with
-  [`AMDGPU.ROCArray`](https://github.com/JuliaGPU/AMDGPU.jl) or buffers.
 - `JULIA_MPI_TEST_BINARY`: Check that the specified MPI binary is used for the tests
 - `JULIA_MPI_TEST_ABI`: Check that the specified MPI ABI is used for the tests
 
