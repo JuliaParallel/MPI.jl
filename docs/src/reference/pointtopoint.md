@@ -55,6 +55,7 @@ MPI.Testall
 MPI.Testany
 MPI.Testsome
 MPI.Wait
+Base.wait
 MPI.Waitall
 MPI.Waitany
 MPI.Waitsome
