@@ -778,10 +778,10 @@ end
 """
     Base.wait(req::MPI.Request)
 
-Non-blocking wait. This will yield to other (Julia) tasks while blocking in a spin loop.
+Wait for an MPI request to complete. This will yield to other (Julia) tasks resulting in a cooperative wait.
 """
 function Base.wait(req::MPI.Request)
     while !MPI.Test(req)
         yield()
     end
- end
+end
