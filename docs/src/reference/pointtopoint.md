@@ -55,7 +55,7 @@ MPI.Testall
 MPI.Testany
 MPI.Testsome
 MPI.Wait
-Base.wait
+Base.wait(req::MPI.Request)
 MPI.Waitall
 MPI.Waitany
 MPI.Waitsome
