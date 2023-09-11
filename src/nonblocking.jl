@@ -778,7 +778,7 @@ end
 """
     Base.wait(req::MPI.Request)
 
-Wait for an MPI request to complete. This will yield to other (Julia) tasks resulting in a cooperative wait.
+Wait for an MPI request to complete. Unlike [`MPI.Wait`](@ref), it will yield to other Julia tasks resulting in a cooperative wait.
 """
 function Base.wait(req::MPI.Request)
     while !MPI.Test(req)
