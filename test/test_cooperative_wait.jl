@@ -16,14 +16,13 @@ recv_check = zeros(Int, nsends)
 
 @sync for i = 1:nsends
     Threads.@spawn begin
-        # send to self
         recv_req = MPI.Irecv!(recv_arr[i], MPI.COMM_WORLD; source=myrank, tag=i)
-        send_req = MPI.Isend(send_arr[i], MPI.COMM_WORLD; dest=myrank, tag=i)
-
         wait(recv_req)
         @test MPI.isnull(recv_req)
         recv_check[i] += 1
-
+    end
+    Threads.@spawn begin
+        send_req = MPI.Isend(send_arr[i], MPI.COMM_WORLD; dest=myrank, tag=i)
         wait(send_req)
         @test MPI.isnull(send_req)
         send_check[i] += 1
