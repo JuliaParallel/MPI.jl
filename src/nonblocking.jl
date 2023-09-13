@@ -774,3 +774,14 @@ function Cancel!(req::AbstractRequest)
     API.MPI_Cancel(req)
     nothing
 end
+
+"""
+    Base.wait(req::MPI.Request)
+
+Wait for an MPI request to complete. Unlike [`MPI.Wait`](@ref), it will yield to other Julia tasks resulting in a cooperative wait.
+"""
+function Base.wait(req::MPI.Request)
+    while !MPI.Test(req)
+        yield()
+    end
+end
