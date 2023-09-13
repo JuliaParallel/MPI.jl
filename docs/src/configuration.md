@@ -76,7 +76,7 @@ Preferences are merged across the Julia load path, such that it is feasible to p
    mpiexec = "/software/mpi/bin/mpiexec"
    ```
 
-2. Create a file called `Project.toml` or `JuliaProject.toml` in a central location, for example `/software/mpi/julia` or in the same directory as the MPI library module, and add the following contents:
+2. Create a file called `Project.toml` or `JuliaProject.toml` in a central location (for example `/software/mpi/julia`, or in the same directory as the MPI module file), and add the following contents:
 
    ```toml
    [extras]
@@ -94,11 +94,20 @@ Preferences are merged across the Julia load path, such that it is feasible to p
 
 3. Append the directory containing the file to the [`JULIA_LOAD_PATH`](https://docs.julialang.org/en/v1/manual/environment-variables/#JULIA_LOAD_PATH) environment variable, with a colon (`:`) separator.
 
-   If this variable is _not_ already set, it should be prefixed with a colon to ensure correct
-   behavior of the Julia load path, e.g. `JULIA_LOAD_PATH=":/software/mpi/julia"`.
+   !!! note
+       If this variable is _not_ already set, it should be prefixed with a colon to ensure correct
+       behavior of the Julia load path (e.g. `JULIA_LOAD_PATH=":/software/mpi/julia"`)
+
    If using environment modules, this can be achieved with
    ```
    append-path -d {} JULIA_LOAD_PATH :/software/mpi/julia
+   ```
+   or if using an older version of environment modules
+   ```
+   if { ![info exists ::env(JULIA_LOAD_PATH)] } {
+       append-path JULIA_LOAD_PATH ""
+   }
+   append-path JULIA_LOAD_PATH /software/mpi/julia
    ```
    in the corresponding module file (preferably the module file for the MPI installation or for Julia).
 
