@@ -1,7 +1,7 @@
 # tests for the various kinds of waits
 include("common.jl")
 
-MPI.Init()
+MPI.Init(threadlevel=:multiple)
 
 myrank = MPI.Comm_rank(MPI.COMM_WORLD)
 commsize = MPI.Comm_rank(MPI.COMM_WORLD)
