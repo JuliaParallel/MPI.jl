@@ -50,7 +50,8 @@ DocMeta.setdocmeta!(MPI, :DocTestSetup, :(using MPI); recursive=true)
 makedocs(
     sitename = "MPI.jl",
     format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", nothing) == "true"
+        prettyurls = get(ENV, "CI", nothing) == "true",
+        size_threshold_ignore = ["reference/api.md"],
     ),
     modules = [MPI, MPIPreferences],
     pages = Any[
@@ -77,7 +78,6 @@ makedocs(
         ],
         "refindex.md",
     ],
-    strict = true,
 )
 
 deploydocs(
