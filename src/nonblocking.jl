@@ -330,9 +330,8 @@ function Base.resize!(mreq::MultiRequest, n::Integer)
     resize!(mreq.buffers, n)
     for i = m+1:n
         # initialize
-        req = mreq[i]
-        req.val = API.MPI_REQUEST_NULL[]
-        req.buffer = nothing
+        mreq.vals[i] = API.MPI_REQUEST_NULL[]
+        mreq.buffers[i] = nothing
     end
     return mreq
 end
@@ -345,8 +344,7 @@ function Base.resize!(mreq::UnsafeMultiRequest, n::Integer)
     resize!(mreq.vals, n)
     for i = m+1:n
         # initialize
-        req = mreq[i]
-        req.val = API.MPI_REQUEST_NULL[]
+        mreq.vals[i] = API.MPI_REQUEST_NULL[]
     end
     return mreq
 end
