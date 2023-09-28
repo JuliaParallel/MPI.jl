@@ -26,7 +26,7 @@ for T in MPITestTypes
     end
     @test Array(B)[1] == T(rank+1)
 
-    B = MPI.scatter(A, comm; root = root)
+    B = MPI.scatter(Array(A), comm; root = root)
     @test B == T(rank+1)
 
     # Test throwing

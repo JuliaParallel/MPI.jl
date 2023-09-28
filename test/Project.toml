@@ -16,4 +16,4 @@ CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 
 [compat]
 AMDGPU = "0.6"
-CUDA = "3, 4"
+CUDA = "3, 4, 5"

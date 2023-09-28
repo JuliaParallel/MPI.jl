@@ -20,7 +20,7 @@ Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 
 [compat]
 AMDGPU = "0.5.7, 0.6"
-CUDA = "3, 4"
+CUDA = "3, 4, 5"
 DocStringExtensions = "0.8, 0.9"
 MPIPreferences = "0.1.8"
 PkgVersion = "0.3"
