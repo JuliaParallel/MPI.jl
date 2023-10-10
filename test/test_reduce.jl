@@ -32,6 +32,22 @@ val = isroot ? 0 : nothing
 @test MPI.Reduce(rank, MPI.MIN, comm; root=root) == val
 @test MPI.Reduce(rank, min, comm; root=root) == val
 
+val = isroot ? 1 : nothing
+input = isroot ? 1 : 0
+@test MPI.Reduce(input, MPI.BOR, comm; root=root) == val
+@test MPI.Reduce(input, |, comm; root=root) == val
+
+val = isroot ? 1 : nothing
+input = isroot ? 1 : 0
+@test MPI.Reduce(input, MPI.BXOR, comm; root=root) == val
+@test MPI.Reduce(input, ⊻, comm; root=root) == val
+
+val = isroot ? 0 : nothing
+input = isroot ? 0 : 1
+@test MPI.Reduce(input, MPI.BAND, comm; root=root) == val
+@test MPI.Reduce(input, &, comm; root=root) == val
+
+
 val = isroot ? sz : nothing
 @test MPI.Reduce(1, +, root, comm) == val
 
