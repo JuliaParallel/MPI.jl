@@ -20,6 +20,12 @@ for T in setdiff(MPITestTypes, [Char, Int8, UInt8])
 
     B = MPI.Scan(T(rank+1), *, comm)
     @test B[1] == prodrank
+
+    # in-place
+    C = copy(A)
+    C = MPI.Scan!(C, *, comm)
+    @test C isa ArrayType{T}
+    @test C == ArrayType{T}(fill(T(prodrank), 4))
 end
 
 MPI.Finalize()
