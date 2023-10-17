@@ -24,9 +24,9 @@ using MPI
         end
 
         additional_initial_parts_cmd = if Sys.isunix()
-            [""]
+            String[]
         else
-            ["powershell.exe", "-ExecutionPolicy", "Bypass", "-File"]
+            String["powershell.exe", "-ExecutionPolicy", "Bypass", "-File"]
         end
 
         # `Base.julia_cmd()` ensures keeping consistent flags when running subprocesses.
@@ -40,7 +40,7 @@ using MPI
         # Test help messages
         for help_flag in ("-h", "--help")
             help_message = withenv(env...) do
-                read(`$(additional_initial_parts_cmd) $(mpiexecjl) --project=$(dir) --help`, String)
+                read(`$(additional_initial_parts_cmd) $(mpiexecjl) --project=$(dir) $help_flag`, String)
             end
             @test occursin(r"Usage:.*MPIEXEC_ARGUMENTS", help_message)
         end
