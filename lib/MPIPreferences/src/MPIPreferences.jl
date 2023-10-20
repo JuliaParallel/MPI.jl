@@ -177,11 +177,7 @@ function use_system_binary(;
         # if there is no preload, then set preloads to "nothing" instead of
         # "[nothing]" -- the later of which would cause an error when trying to
         # dump as toml
-        if cray_pe.libgtl == nothing
-            preloads = nothing
-        else
-            preloads = [cray_pe.libgtl]
-        end
+        preloads = isnothing(cray_pe.libgtl) ? nothing : [cray_pe.libgtl]
         preloads_env_switch = cray_pe.gtl_env_switch
         cclibs = cray_pe.cclibs
     else
