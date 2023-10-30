@@ -111,11 +111,10 @@ using Test
 
 @testset "hello" begin
     n = 2  # number of processes
-    mpiexec() do exe  # MPI wrapper
-        run(`$exe -n $n $(Base.julia_cmd()) [...]/01-hello.jl`)
-        # alternatively:
-        # p = run(ignorestatus(`...`))
-        # @test success(p)
+    run(`$(mpiexec()) -n $n $(Base.julia_cmd()) [...]/01-hello.jl`)
+    # alternatively:
+    # p = run(ignorestatus(`$(mpiexec()) ...`))
+    # @test success(p)
     end
 end
 ```
