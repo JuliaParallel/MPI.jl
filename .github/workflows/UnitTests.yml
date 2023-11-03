@@ -476,116 +476,75 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
 
 
-  # test-mpitrampoline-intel-linux:
-  #   timeout-minutes: 20
-  #   strategy:
-  #     matrix:
-  #       julia_version:
-  #         - "1.6"
-  #         # We don't need to test all combinations
-  #         # - "1.7"
-  #         # - "nightly"
-  #       MPIWrapper:
-  #         - "2.10.3"
+  test-mpitrampoline-intel-linux:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        julia_version:
+          - "1.6"
+          # We don't need to test all combinations
+          # - "1.7"
+          # - "nightly"
+        MPIWrapper:
+          - "2.10.3"
 
-  #     fail-fast: false
+      fail-fast: false
 
-  #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-2019.9.304-ecfipz6mxgepmrkwp5dl5oohion5m54r.spack
 
-  #   env:
-  #     JULIA_MPI_TEST_BINARY: MPItrampoline_jll
-  #     JULIA_MPI_TEST_ABI: MPItrampoline
-  #     MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
-  #     MPITRAMPOLINE_MPIEXEC: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiexec
+    env:
+      JULIA_MPI_TEST_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_ABI: MPItrampoline
+      MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
 
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
 
-  #   - name: Cache Intel MPI
-  #     id: cache-intelmpi
-  #     uses: actions/cache@v3
-  #     with:
-  #       path: l_mpi_2019.9.304.tgz
-  #       key: ${{ runner.os }}-intelmpi-2019.9.304
+    - name: Set MPITRAMPOLINE_MPIEXEC
+      run: echo "MPITRAMPOLINE_MPIEXEC=$(which mpiexec)" >> "${GITHUB_ENV}"
 
-  #   - name: Download Intel MPI
-  #     if: steps.cache-intelmpi.outputs.cache-hit != 'true'
-  #     run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
+    - name: Build MPIwrapper
+      run: |
+        apt-get update
+        apt-get install -y wget cmake gcc g++ gfortran python3
+        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
+        tar xzf v${MPIWrapper}.tar.gz
+        cd MPIwrapper-*
+        cmake \
+            -DMPIEXEC_EXECUTABLE=mpiexec \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            .
+        cmake --build .
+        cmake --install .
+      env:
+        MPIWrapper: ${{matrix.MPIWrapper}}
 
-  #   - name: Install Intel MPI
-  #     run: |
-  #       tar -xzf l_mpi_2019.9.304.tgz
-  #       pushd l_mpi_2019.9.304
-  #       cat << EOF > intel.conf
-  #       ACCEPT_EULA=accept
-  #       CONTINUE_WITH_OPTIONAL_ERROR=yes
-  #       PSET_INSTALL_DIR=${HOME}/intel
-  #       CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
-  #       PSET_MODE=install
-  #       ARCH_SELECTED=ALL
-  #       COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
-  #       EOF
-  #       ./install.sh --silent intel.conf
-  #       popd
+    - uses: julia-actions/setup-julia@latest
+      with:
+        version: ${{ matrix.julia_version }}
 
-  #   - name: Build MPIwrapper
-  #     run: |
-  #       source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-  #       wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
-  #       tar xzf v${MPIWrapper}.tar.gz
-  #       cd MPIwrapper-*
-  #       cmake \
-  #           -DMPIEXEC_EXECUTABLE=mpiexec \
-  #           -DCMAKE_BUILD_TYPE=Debug \
-  #           -DCMAKE_INSTALL_PREFIX=/usr/local \
-  #           .
-  #       cmake --build .
-  #       sudo cmake --install .
-  #     env:
-  #       MPIWrapper: ${{matrix.MPIWrapper}}
+    - uses: julia-actions/cache@v1
 
-  #   - uses: julia-actions/setup-julia@latest
-  #     with:
-  #       version: ${{ matrix.julia_version }}
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
 
-  #   # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-  #   - name: Cache artifacts
-  #     uses: actions/cache@v3
-  #     env:
-  #       cache-name: cache-artifacts
-  #     with:
-  #       path: ~/.julia/artifacts
-  #       key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-  #       restore-keys: |
-  #         ${{ runner.os }}-test-${{ env.cache-name }}-
-  #         ${{ runner.os }}-test-
-  #         ${{ runner.os }}-
+    - name: use MPItrampoline_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        rm("test/Manifest.toml")
 
-  #   - name: add MPIPreferences
-  #     shell: julia --color=yes --project=. {0}
-  #     run: |
-  #       using Pkg
-  #       Pkg.develop(path="lib/MPIPreferences")
+    - uses: julia-actions/julia-runtest@latest
 
-  #   - name: use MPItrampoline_jll
-  #     shell: julia --color=yes --project=test {0}
-  #     run: |
-  #       using Pkg
-  #       Pkg.develop(path="lib/MPIPreferences")
-  #       using MPIPreferences
-  #       MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
-  #       rm("test/Manifest.toml")
-
-  #   # We can't use the usual actions here as we need to ensure the environment variables are set
-  #   - name: "Build package"
-  #     run: |
-  #       source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-  #       julia --color=yes --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
-  #   - name: "Run tests"
-  #     run: |
-  #       source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-  #       julia --color=yes --project -e 'using Pkg; Pkg.test()'
 
   test-spack-mvapich:
     timeout-minutes: 20
