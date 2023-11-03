@@ -9,4 +9,5 @@ Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 
 [compat]
 julia = "1.6"
+Libdl = "1"
 Preferences = "1"
