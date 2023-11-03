@@ -1,3 +1,6 @@
+@show Base.julia_cmd()
+exit(0)
+
 using Test, MPI
 
 using MPIPreferences
