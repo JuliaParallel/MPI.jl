@@ -221,140 +221,84 @@ jobs:
 
     - uses: julia-actions/julia-runtest@latest
 
-  # test-intel-linux:
-  #   timeout-minutes: 20
-  #   strategy:
-  #     matrix:
-  #       julia_version:
-  #         - "1"
+  test-intel-linux:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        julia_version:
+          - "1"
 
-  #     fail-fast: false
+      fail-fast: false
 
-  #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-2019.9.304-ecfipz6mxgepmrkwp5dl5oohion5m54r.spack
 
-  #   env:
-  #     JULIA_MPI_TEST_BINARY: system
-  #     JULIA_MPI_TEST_ABI: MPICH
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_ABI: MPICH
 
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
 
-  #   - name: Cache Intel MPI
-  #     id: cache-intelmpi
-  #     uses: actions/cache@v3
-  #     with:
-  #       path: l_mpi_2019.9.304.tgz
-  #       key: ${{ runner.os }}-intelmpi-2019.9.304
+    - uses: julia-actions/setup-julia@latest
+      with:
+        version: ${{ matrix.julia_version }}
 
-  #   - name: Download Intel MPI
-  #     if: steps.cache-intelmpi.outputs.cache-hit != 'true'
-  #     run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
+    - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
 
-  #   - name: Install Intel MPI
-  #     run: |
-  #       tar -xzf l_mpi_2019.9.304.tgz
-  #       pushd l_mpi_2019.9.304
-  #       cat << EOF > intel.conf
-  #       ACCEPT_EULA=accept
-  #       CONTINUE_WITH_OPTIONAL_ERROR=yes
-  #       PSET_INSTALL_DIR=${HOME}/intel
-  #       CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
-  #       PSET_MODE=install
-  #       ARCH_SELECTED=ALL
-  #       COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
-  #       EOF
-  #       ./install.sh --silent intel.conf
-  #       popd
+    - name: use system MPI
+      run: |
+        julia --color=yes --project=. -e '
+          using MPIPreferences
+          MPIPreferences.use_system_binary()'
 
-  #   - uses: julia-actions/setup-julia@latest
-  #     with:
-  #       version: ${{ matrix.julia_version }}
-
-  #   - uses: julia-actions/cache@v1
-  #   - name: add MPIPreferences
-  #     shell: julia --color=yes --project=. {0}
-  #     run: |
-  #       using Pkg
-  #       Pkg.develop(path="lib/MPIPreferences")
-
-  #   - name: use system MPI
-  #     run: |
-  #       source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-  #       julia --color=yes --project=. -e '
-  #         using MPIPreferences
-  #         MPIPreferences.use_system_binary()'
-
-  #   # we can't use the usual actions here as we need to ensure the environment variables are set
-  #   - name: "Run tests"
-  #     run: |
-  #       source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-  #       julia --color=yes --project -e 'using Pkg; Pkg.test()'
+    - uses: julia-actions/julia-runtest@latest
 
 
-  # test-oneapi-linux:
-  #   timeout-minutes: 20
-  #   strategy:
-  #     matrix:
-  #       julia_version:
-  #         - "1"
+  test-oneapi-linux:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        julia_version:
+          - "1"
 
-  #     fail-fast: false
+      fail-fast: false
 
-  #   runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-2021.7.0-gzc7es2p27ftwyk4sdplynlj6d54xzi6.spack
 
-  #   env:
-  #     JULIA_MPI_TEST_BINARY: system
-  #     JULIA_MPI_TEST_ABI: MPICH
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_ABI: MPICH
 
-  #   steps:
-  #   - name: Checkout
-  #     uses: actions/checkout@v4
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
 
-  #   - name: Cache oneAPI MPI
-  #     id: cache-oneapi-mpi
-  #     uses: actions/cache@v3
-  #     with:
-  #       path: l_mpi_oneapi_p_2021.7.0.8711_offline.sh
-  #       key: ${{ runner.os }}-oneapi-mpi-2021.7.0.08711
+    - uses: julia-actions/setup-julia@v1
+      with:
+        version: ${{ matrix.julia_version }}
 
-  #   - name: Download oneAPI MPI
-  #     if: steps.cache-oneapi-mpi.outputs.cache-hit != 'true'
-  #     run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/18926/l_mpi_oneapi_p_2021.7.0.8711_offline.sh
+    - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
 
-  #   - name: Install oneAPI MPI
-  #     run: |
-  #       chmod +x l_mpi_oneapi_p_2021.7.0.8711_offline.sh
-  #       ./l_mpi_oneapi_p_2021.7.0.8711_offline.sh \
-  #           -a \
-  #           --silent \
-  #           --eula accept \
-  #           --ignore-errors \
-  #           --install-dir ${HOME}/oneapi \
+    - name: use system MPI
+      run: |
+        julia --color=yes --project=. -e '
+          using MPIPreferences
+          MPIPreferences.use_system_binary()'
 
-  #   - uses: julia-actions/setup-julia@v1
-  #     with:
-  #       version: ${{ matrix.julia_version }}
-
-  #   - uses: julia-actions/cache@v1
-  #   - name: add MPIPreferences
-  #     shell: julia --color=yes --project=. {0}
-  #     run: |
-  #       using Pkg
-  #       Pkg.develop(path="lib/MPIPreferences")
-
-  #   - name: use system MPI
-  #     run: |
-  #       source ${HOME}/oneapi/setvars.sh
-  #       julia --color=yes --project=. -e '
-  #         using MPIPreferences
-  #         MPIPreferences.use_system_binary()'
-
-  #   # we can't use the usual actions here as we need to ensure the environment variables are set
-  #   - name: "Run tests"
-  #     run: |
-  #       source ${HOME}/oneapi/setvars.sh
-  #       julia --color=yes --project -e 'using Pkg; Pkg.test()'
+    - uses: julia-actions/julia-runtest@latest
 
 
   test-system-msmpi:
