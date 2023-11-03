@@ -476,7 +476,7 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
 
 
-  test-mpitrampoline-intel-linux:
+  test-mpitrampoline-oneapi-linux:
     timeout-minutes: 20
     strategy:
       matrix:
@@ -491,7 +491,7 @@ jobs:
       fail-fast: false
 
     runs-on: ubuntu-latest
-    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-2019.9.304-ecfipz6mxgepmrkwp5dl5oohion5m54r.spack
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-2021.7.0-gzc7es2p27ftwyk4sdplynlj6d54xzi6.spack
 
     env:
       JULIA_MPI_TEST_BINARY: MPItrampoline_jll
