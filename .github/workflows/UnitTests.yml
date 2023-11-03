@@ -481,10 +481,7 @@ jobs:
     strategy:
       matrix:
         julia_version:
-          - "1.6"
-          # We don't need to test all combinations
-          # - "1.7"
-          # - "nightly"
+          - "1"
         MPIWrapper:
           - "2.10.3"
 
