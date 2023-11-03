@@ -680,6 +680,6 @@ jobs:
       shell: julia --color=yes --project=. {0}
       run: |
         using MPIPreferences
-        MPIPreferences.use_system_binary(; library_names=["$(dirname(dirname(Sys.which("mpiexec"))))/lib/libmpi.so"])
+        MPIPreferences.use_system_binary()
 
     - uses: julia-actions/julia-runtest@latest
