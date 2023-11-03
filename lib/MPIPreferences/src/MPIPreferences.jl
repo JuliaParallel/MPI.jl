@@ -170,11 +170,14 @@ function use_system_binary(;
     preloads = []
     preloads_env_switch = nothing
     cclibs = []
-    if vendor === nothing
+    if isnothing(vendor)
     elseif vendor == "cray"
         cray_pe = CrayParser.analyze_cray_cc()
         library_names = [cray_pe.libmpi]
-        preloads = [cray_pe.libgtl]
+        # if there is no preload, then set preloads to "nothing" instead of
+        # "[nothing]" -- the later of which would cause an error when trying to
+        # dump as toml
+        preloads = isnothing(cray_pe.libgtl) ? nothing : [cray_pe.libgtl]
         preloads_env_switch = cray_pe.gtl_env_switch
         cclibs = cray_pe.cclibs
     else
