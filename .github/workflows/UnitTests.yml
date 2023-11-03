@@ -505,6 +505,13 @@ jobs:
     - name: Set MPITRAMPOLINE_MPIEXEC
       run: echo "MPITRAMPOLINE_MPIEXEC=$(which mpiexec)" >> "${GITHUB_ENV}"
 
+    # Inside containers, GitHub Actions remaps `/home/runner/work` to `/__w`, but this
+    # results into a broken path. See <https://github.com/actions/runner/issues/2185>.
+    # Let's create this now missing symlink to work around this shenanigan.
+    - name: Create symlink
+      run: |
+        ln -s /home/runner/work/github-actions-buildcache /__w/github-actions-buildcache
+
     - name: Build MPIwrapper
       run: |
         apt-get update
