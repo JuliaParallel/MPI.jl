@@ -111,13 +111,13 @@ jobs:
     - uses: julia-actions/cache@v1
 
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
     - name: use OpenMPI_jll
-      shell: julia --color=yes --project=test {0}
+      shell: julia --color=yes --check-bounds=yes --project=test {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
@@ -159,13 +159,13 @@ jobs:
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
     - name: use system MPI
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using MPIPreferences
         MPIPreferences.use_system_binary()
@@ -212,13 +212,13 @@ jobs:
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
     - name: use system MPI
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using MPIPreferences
         MPIPreferences.use_system_binary()
@@ -251,14 +251,14 @@ jobs:
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
     - name: use system MPI
       run: |
-        julia --color=yes --project=. -e '
+        julia --color=yes --check-bounds=yes --project=. -e '
           using MPIPreferences
           MPIPreferences.use_system_binary()'
 
@@ -291,14 +291,14 @@ jobs:
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
     - name: use system MPI
       run: |
-        julia --color=yes --project=. -e '
+        julia --color=yes --check-bounds=yes --project=. -e '
           using MPIPreferences
           MPIPreferences.use_system_binary()'
 
@@ -334,13 +334,13 @@ jobs:
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
     - name: add MPIPreferences, use system
-      shell: julia --color=yes --project=test {0}
+      shell: julia --color=yes --check-bounds=yes --project=test {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
@@ -391,13 +391,13 @@ jobs:
     - uses: julia-actions/cache@v1
 
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
     - name: use MPItrampoline_jll
-      shell: julia --color=yes --project=test {0}
+      shell: julia --color=yes --check-bounds=yes --project=test {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
@@ -464,13 +464,13 @@ jobs:
     - uses: julia-actions/cache@v1
 
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
     - name: use MPItrampoline_jll
-      shell: julia --color=yes --project=test {0}
+      shell: julia --color=yes --check-bounds=yes --project=test {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
@@ -531,13 +531,13 @@ jobs:
     - uses: julia-actions/cache@v1
 
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
     - name: use MPItrampoline_jll
-      shell: julia --color=yes --project=test {0}
+      shell: julia --color=yes --check-bounds=yes --project=test {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
@@ -575,14 +575,14 @@ jobs:
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
         Pkg.precompile()
 
     - name: use system MPI
-      shell: julia --color=yes --project=. {0}
+      shell: julia --color=yes --check-bounds=yes --project=. {0}
       run: |
         using MPIPreferences
         MPIPreferences.use_system_binary()
