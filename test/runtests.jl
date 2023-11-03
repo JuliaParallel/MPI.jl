@@ -78,9 +78,10 @@ testfiles = sort(filter(istest, readdir(testdir)))
         # Some command as the others, but always use a single process
         run(cmd(1))
     elseif f == "test_threads.jl"
-        if MPI.MPI_LIBRARY == "IntelMPI" && MPI.MPI_LIBRARY_VERSION < v"2020"
-            # Legacy Intel MPI (before 2020) crashes threads tests:
-            # <https://github.com/JuliaParallel/MPI.jl/issues/725>.
+        # Legacy Intel MPI (before 2020) crashes threads tests:
+        # <https://github.com/JuliaParallel/MPI.jl/issues/725>.  These tests fail also on
+        # 32-bit Windows: <https://github.com/JuliaParallel/MPI.jl/issues/711>.
+        if (MPI.MPI_LIBRARY == "IntelMPI" && MPI.MPI_LIBRARY_VERSION < v"2020") || (Sys.iswindows() && Sys.WORD_SIZE == 32)
             @test_broken false
         else
             withenv("JULIA_NUM_THREADS" => "4") do
