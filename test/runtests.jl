@@ -73,39 +73,44 @@ istest(f) = endswith(f, ".jl") && startswith(f, "test_") && !in(f, excludefiles)
 testfiles = sort(filter(istest, readdir(testdir)))
 
 @testset "$f" for f in testfiles
-    mpiexec() do mpirun
-        cmd(n=nprocs) = `$mpirun -n $n $(Base.julia_cmd()) --startup-file=no $(joinpath(testdir, f))`
-        if f == "test_spawn.jl"
-            # Some command as the others, but always use a single process
-            run(cmd(1))
-        elseif f == "test_threads.jl"
+    cmd(n=nprocs) = `$(mpiexec()) -n $n $(Base.julia_cmd()) --startup-file=no $(joinpath(testdir, f))`
+    if f == "test_spawn.jl"
+        # Some command as the others, but always use a single process
+        run(cmd(1))
+    elseif f == "test_threads.jl"
+        # Legacy Intel MPI (before 2020) crashes threads tests:
+        # <https://github.com/JuliaParallel/MPI.jl/issues/725>.  These tests fail also on
+        # 32-bit Windows: <https://github.com/JuliaParallel/MPI.jl/issues/711>.
+        if (MPI.MPI_LIBRARY == "IntelMPI" && MPI.MPI_LIBRARY_VERSION < v"2020") || (Sys.iswindows() && Sys.WORD_SIZE == 32)
+            @test_broken false
+        else
             withenv("JULIA_NUM_THREADS" => "4") do
                 run(cmd())
             end
-        elseif f == "test_error.jl"
-            r = run(ignorestatus(cmd()))
-            @test !success(r)
-        elseif f == "test_errorhandler.jl" && MPI.MPI_LIBRARY in ("unknown", "FujitsuMPI")
-            # Fujitsu MPI is known to not work with custom error handlers.  Also
-            # unknown implementations may fail for the same reason.
-            try
-                run(cmd())
-            catch e
-                @error """
-                       $(f) tests failed.  This may due to the fact this implementation of MPI doesn't support custom error handlers.
-                       See the full error message for more details.  Some messages may have been written above.
-                       """ exception=(e, catch_backtrace())
-                @test_broken false
-            end
-        else
-            # MPI_Reduce with MPICH 3.4.2 on macOS when root != 0 and
-            # when recvbuf == C_NULL segfaults
-            # <https://github.com/pmodels/mpich/issues/5700>
-            if get(ENV, "JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE", "") != "" && Sys.isapple() && f == "test_reduce.jl"
-                return
-            end
-            run(cmd())
         end
-        @test true
+    elseif f == "test_error.jl"
+        r = run(ignorestatus(cmd()))
+        @test !success(r)
+    elseif f == "test_errorhandler.jl" && MPI.MPI_LIBRARY in ("unknown", "FujitsuMPI")
+        # Fujitsu MPI is known to not work with custom error handlers.  Also
+        # unknown implementations may fail for the same reason.
+        try
+            run(cmd())
+        catch e
+            @error """
+                   $(f) tests failed.  This may due to the fact this implementation of MPI doesn't support custom error handlers.
+                   See the full error message for more details.  Some messages may have been written above.
+                   """ exception=(e, catch_backtrace())
+            @test_broken false
+        end
+    else
+        # MPI_Reduce with MPICH 3.4.2 on macOS when root != 0 and
+        # when recvbuf == C_NULL segfaults
+        # <https://github.com/pmodels/mpich/issues/5700>
+        if get(ENV, "JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE", "") != "" && Sys.isapple() && f == "test_reduce.jl"
+            return
+        end
+        run(cmd())
     end
+    @test true
 end

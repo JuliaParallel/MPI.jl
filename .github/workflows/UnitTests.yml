@@ -71,6 +71,7 @@ jobs:
       with:
         files: lcov.info
     - uses: julia-actions/julia-uploadcoveralls@v1
+      continue-on-error: true
       env:
         COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
 
@@ -94,6 +95,8 @@ jobs:
     env:
       JULIA_MPI_TEST_BINARY: OpenMPI_jll
       JULIA_MPI_TEST_ABI: OpenMPI
+      OMPI_MCA_btl_base_warn_component_unused: 0
+      OMPI_MCA_rmaps_base_oversubscribe: true
 
     runs-on: ${{ matrix.os }}
 
@@ -190,6 +193,7 @@ jobs:
     env:
       JULIA_MPI_TEST_BINARY: system
       OMPI_MCA_btl_base_warn_component_unused: 0
+      OMPI_MCA_rmaps_base_oversubscribe: true
 
     steps:
     - name: Checkout
@@ -231,6 +235,7 @@ jobs:
       fail-fast: false
 
     runs-on: ubuntu-latest
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-2019.9.304-ecfipz6mxgepmrkwp5dl5oohion5m54r.spack
 
     env:
       JULIA_MPI_TEST_BINARY: system
@@ -239,98 +244,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Cache Intel MPI
-      id: cache-intelmpi
-      uses: actions/cache@v3
-      with:
-        path: l_mpi_2019.9.304.tgz
-        key: ${{ runner.os }}-intelmpi-2019.9.304
-
-    - name: Download Intel MPI
-      if: steps.cache-intelmpi.outputs.cache-hit != 'true'
-      run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
-
-    - name: Install Intel MPI
-      run: |
-        tar -xzf l_mpi_2019.9.304.tgz
-        pushd l_mpi_2019.9.304
-        cat << EOF > intel.conf
-        ACCEPT_EULA=accept
-        CONTINUE_WITH_OPTIONAL_ERROR=yes
-        PSET_INSTALL_DIR=${HOME}/intel
-        CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
-        PSET_MODE=install
-        ARCH_SELECTED=ALL
-        COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
-        EOF
-        ./install.sh --silent intel.conf
-        popd
-
-    - uses: julia-actions/setup-julia@latest
-      with:
-        version: ${{ matrix.julia_version }}
-
-    - uses: julia-actions/cache@v1
-    - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
-      run: |
-        using Pkg
-        Pkg.develop(path="lib/MPIPreferences")
-
-    - name: use system MPI
-      run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --color=yes --project=. -e '
-          using MPIPreferences
-          MPIPreferences.use_system_binary()'
-
-    # we can't use the usual actions here as we need to ensure the environment variables are set
-    - name: "Run tests"
-      run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --color=yes --project -e 'using Pkg; Pkg.test()'
-
-
-  test-oneapi-linux:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        julia_version:
-          - "1"
-
-      fail-fast: false
-
-    runs-on: ubuntu-latest
-
-    env:
-      JULIA_MPI_TEST_BINARY: system
-      JULIA_MPI_TEST_ABI: MPICH
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Cache oneAPI MPI
-      id: cache-oneapi-mpi
-      uses: actions/cache@v3
-      with:
-        path: l_mpi_oneapi_p_2021.7.0.8711_offline.sh
-        key: ${{ runner.os }}-oneapi-mpi-2021.7.0.08711
-
-    - name: Download oneAPI MPI
-      if: steps.cache-oneapi-mpi.outputs.cache-hit != 'true'
-      run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/18926/l_mpi_oneapi_p_2021.7.0.8711_offline.sh
-
-    - name: Install oneAPI MPI
-      run: |
-        chmod +x l_mpi_oneapi_p_2021.7.0.8711_offline.sh
-        ./l_mpi_oneapi_p_2021.7.0.8711_offline.sh \
-            -a \
-            --silent \
-            --eula accept \
-            --ignore-errors \
-            --install-dir ${HOME}/oneapi \
 
     - uses: julia-actions/setup-julia@v1
       with:
@@ -345,16 +258,51 @@ jobs:
 
     - name: use system MPI
       run: |
-        source ${HOME}/oneapi/setvars.sh
         julia --color=yes --project=. -e '
           using MPIPreferences
           MPIPreferences.use_system_binary()'
 
-    # we can't use the usual actions here as we need to ensure the environment variables are set
-    - name: "Run tests"
+    - uses: julia-actions/julia-runtest@latest
+
+
+  test-oneapi-linux:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        julia_version:
+          - "1"
+
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-2021.7.0-gzc7es2p27ftwyk4sdplynlj6d54xzi6.spack
+
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_ABI: MPICH
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - uses: julia-actions/setup-julia@v1
+      with:
+        version: ${{ matrix.julia_version }}
+
+    - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
       run: |
-        source ${HOME}/oneapi/setvars.sh
-        julia --color=yes --project -e 'using Pkg; Pkg.test()'
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use system MPI
+      run: |
+        julia --color=yes --project=. -e '
+          using MPIPreferences
+          MPIPreferences.use_system_binary()'
+
+    - uses: julia-actions/julia-runtest@latest
 
 
   test-system-msmpi:
@@ -485,6 +433,7 @@ jobs:
       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
       MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
       OMPI_MCA_btl_base_warn_component_unused: 0
+      OMPI_MCA_rmaps_base_oversubscribe: true
 
     steps:
     - name: Checkout
@@ -532,62 +481,36 @@ jobs:
     - uses: julia-actions/julia-runtest@latest
 
 
-  test-mpitrampoline-intel-linux:
+  test-mpitrampoline-oneapi-linux:
     timeout-minutes: 20
     strategy:
       matrix:
         julia_version:
-          - "1.6"
-          # We don't need to test all combinations
-          # - "1.7"
-          # - "nightly"
+          - "1"
         MPIWrapper:
           - "2.10.3"
 
       fail-fast: false
 
     runs-on: ubuntu-latest
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-2021.7.0-gzc7es2p27ftwyk4sdplynlj6d54xzi6.spack
 
     env:
       JULIA_MPI_TEST_BINARY: MPItrampoline_jll
       JULIA_MPI_TEST_ABI: MPItrampoline
       MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
-      MPITRAMPOLINE_MPIEXEC: /home/runner/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiexec
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Cache Intel MPI
-      id: cache-intelmpi
-      uses: actions/cache@v3
-      with:
-        path: l_mpi_2019.9.304.tgz
-        key: ${{ runner.os }}-intelmpi-2019.9.304
-
-    - name: Download Intel MPI
-      if: steps.cache-intelmpi.outputs.cache-hit != 'true'
-      run: wget https://registrationcenter-download.intel.com/akdlm/irc_nas/tec/17263/l_mpi_2019.9.304.tgz
-
-    - name: Install Intel MPI
-      run: |
-        tar -xzf l_mpi_2019.9.304.tgz
-        pushd l_mpi_2019.9.304
-        cat << EOF > intel.conf
-        ACCEPT_EULA=accept
-        CONTINUE_WITH_OPTIONAL_ERROR=yes
-        PSET_INSTALL_DIR=${HOME}/intel
-        CONTINUE_WITH_INSTALLDIR_OVERWRITE=yes
-        PSET_MODE=install
-        ARCH_SELECTED=ALL
-        COMPONENTS=;intel-conda-index-tool__x86_64;intel-comp-l-all-vars__noarch;intel-comp-nomcu-vars__noarch;intel-imb__x86_64;intel-mpi-rt__x86_64;intel-mpi-sdk__x86_64;intel-mpi-doc__x86_64;intel-mpi-samples__x86_64;intel-mpi-installer-license__x86_64;intel-conda-impi_rt-linux-64-shadow-package__x86_64;intel-conda-impi-devel-linux-64-shadow-package__x86_64;intel-mpi-psxe__x86_64;intel-psxe-common__noarch;intel-compxe-pset
-        EOF
-        ./install.sh --silent intel.conf
-        popd
+    - name: Set MPITRAMPOLINE_MPIEXEC
+      run: echo "MPITRAMPOLINE_MPIEXEC=$(which mpiexec)" >> "${GITHUB_ENV}"
 
     - name: Build MPIwrapper
       run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
+        apt-get update
+        apt-get install -y wget cmake gcc g++ gfortran python3
         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
         tar xzf v${MPIWrapper}.tar.gz
         cd MPIwrapper-*
@@ -597,26 +520,15 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=/usr/local \
             .
         cmake --build .
-        sudo cmake --install .
+        cmake --install .
       env:
         MPIWrapper: ${{matrix.MPIWrapper}}
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
-    # https://discourse.julialang.org/t/recommendation-cache-julia-artifacts-in-ci-services/35484
-    - name: Cache artifacts
-      uses: actions/cache@v3
-      env:
-        cache-name: cache-artifacts
-      with:
-        path: ~/.julia/artifacts
-        key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-        restore-keys: |
-          ${{ runner.os }}-test-${{ env.cache-name }}-
-          ${{ runner.os }}-test-
-          ${{ runner.os }}-
+    - uses: julia-actions/cache@v1
 
     - name: add MPIPreferences
       shell: julia --color=yes --project=. {0}
@@ -633,18 +545,11 @@ jobs:
         MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
         rm("test/Manifest.toml")
 
-    # We can't use the usual actions here as we need to ensure the environment variables are set
-    - name: "Build package"
-      run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --color=yes --project -e 'using Pkg; Pkg.instantiate(verbose=true); Pkg.build(verbose=true)'
-    - name: "Run tests"
-      run: |
-        source ${HOME}/intel/compilers_and_libraries/linux/mpi/intel64/bin/mpivars.sh release
-        julia --color=yes --project -e 'using Pkg; Pkg.test()'
+    - uses: julia-actions/julia-runtest@latest
+
 
   test-spack-mvapich:
-    timeout-minutes: 60
+    timeout-minutes: 20
     strategy:
       matrix:
         julia_version:
@@ -653,6 +558,7 @@ jobs:
       fail-fast: false
 
     runs-on: ubuntu-22.04
+    container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich2-2.3.7-1-hs7gkcclsnk55kqm52a4behdnt3dug6b.spack
 
     env:
       JULIA_MPI_TEST_BINARY: system
@@ -663,31 +569,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Cache MVAPICH
-      uses: actions/cache@v3
-      with:
-        path: |
-          .ci/mvapich/opt
-          .ci/mvapich/.spack-env
-        key: ${{ runner.os }}-mvapich-2.3.7
-
-    - name: Install MVAPICH dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install libibverbs-dev libpciaccess-dev libxml2-dev pkgconf rdma-core zlib1g-dev
-
-    - name: Install MVAPICH via Spack
-      run: |
-        git clone -c feature.manyFiles=true --depth 1 https://github.com/spack/spack.git
-        spack/bin/spack -e .ci/mvapich concretize -f
-        spack/bin/spack -e .ci/mvapich install
-
-    - name: Set PATH and LD_LIBRARY_PATH
-      run: |
-        echo "PATH=$(realpath .ci/mvapich/.spack-env/view/bin):${PATH}" >> $GITHUB_ENV
-        echo "LD_LIBRARY_PATH=$(realpath .ci/mvapich/.spack-env/view/lib):${LD_LIBRARY_PATH}" >> $GITHUB_ENV
-
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 

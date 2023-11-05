@@ -60,6 +60,11 @@ f = MPI.bcast(f, root, comm)
 @test f(5) == g(5)
 @test f(7) == g(7)
 
+f = MPI.bcast(f, comm, root=root)
+@test f(3) == g(3)
+@test f(5) == g(5)
+@test f(7) == g(7)
+
 
 A = Dict("foo" => "bar")
 if MPI.Comm_rank(comm) == root

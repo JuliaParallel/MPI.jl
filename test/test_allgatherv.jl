@@ -27,6 +27,12 @@ for T in MPITestTypes
     synchronize()
     MPI.Allgatherv!(MPI.IN_PLACE, VBuffer(B, counts), comm)
     @test B == ArrayType{T}(check)
+    
+    # Test implicit MPI_IN_PLACE
+    B = ArrayType(fill(T(rank), sum(counts)))
+    synchronize()
+    MPI.Allgatherv!(VBuffer(B, counts), comm)
+    @test B == ArrayType{T}(check)
 end
 
 MPI.Finalize()
