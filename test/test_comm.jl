@@ -42,5 +42,8 @@ else
     @test splitcomm3 == MPI.COMM_NULL
 end
 
+# Fortran conversion
+@test MPI.API.MPI_Comm_f2c(MPI.API.MPI_Comm_c2f(MPI.COMM_SELF.val)) == MPI.COMM_SELF.val
+
 MPI.Finalize()
 @test MPI.Finalized()
