@@ -15,7 +15,7 @@ struct CrayPE
         gtl_dl::T,
         cclibs::Vector{T}
     ) where T <:AbstractString = new(
-        "lib" * mpi_dl * ".so", # Assuming Linux -- CrayPE is only avaialbe for linux anyway
+        "lib" * mpi_dl * ".so", # Assuming Linux -- CrayPE is only available for linux anyway
         "lib" * gtl_dl * ".so",
         cclibs,
         "MPICH_GPU_SUPPORT_ENABLED"
@@ -25,7 +25,7 @@ struct CrayPE
         gtl_dl::Nothing,
         cclibs::Vector{T}
     ) where T <:AbstractString = new(
-        "lib" * mpi_dl * ".so", # Assuming Linux -- CrayPE is only avaialbe for linux anyway
+        "lib" * mpi_dl * ".so", # Assuming Linux -- CrayPE is only available for linux anyway
         nothing,
         cclibs,
         "MPICH_GPU_SUPPORT_ENABLED"
