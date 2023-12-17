@@ -37,4 +37,4 @@ If `binary == "system"`, then the following keys are also required (otherwise th
 - `abi`: The ABI of the MPI implementation. This should be one of the strings listed in [`MPIPreferences.abi`](@ref).
 - `mpiexec`: either
   - a string corresponding to the MPI launcher executable
-  - an array of strings, with the first entry being the executable and remaining entried being additional flags that should be used with the executable.
+  - an array of strings, with the first entry being the executable and remaining entries being additional flags that should be used with the executable.

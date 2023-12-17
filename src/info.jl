@@ -22,7 +22,7 @@ x = info[key]
 delete!(info, key)
 ```
 
-If `init=false` is used in the costructor (the default), a "null" `Info` object will be
+If `init=false` is used in the constructor (the default), a "null" `Info` object will be
 returned: no keys can be added to such an object.
 """
 mutable struct Info <: AbstractDict{Symbol,String}

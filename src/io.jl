@@ -464,7 +464,7 @@ end
 """
     MPI.File.set_atomicity(file::FileHandle, flag::Bool)
 
-Set the consitency option for the `fh`.
+Set the consistency option for the `fh`.
 
 # External links
 $(_doc_external("MPI_File_get_atomicity"))

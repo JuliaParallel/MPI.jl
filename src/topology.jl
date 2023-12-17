@@ -241,8 +241,7 @@ Create a new communicator from a given directed graph topology, described by inc
 - `comm::Comm`: The communicator on which the distributed graph topology should be induced.
 - `sources::Vector{Cint}`: An array with the ranks for which this call will specify outgoing edges.
 - `degrees::Vector{Cint}`: An array with the number of outgoing edges for each entry in the sources array.
-- `destinations::Vector{Cint}`: An array containing with lenght of the sum of the entries in the degrees array
-                                describing the ranks towards the edges point.
+- `destinations::Vector{Cint}`: An array containing destination nodes for the source nodes in the source node array, of length`sum(sources)`.
 - `weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}`: The edge weights of the specified edges. The default is [`MPI.UNWEIGHTED`](@ref).
 - `reorder::Bool=false`: If set true, then the MPI implementation can reorder the source and destination indices.
 
