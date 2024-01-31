@@ -53,7 +53,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         arch: ${{ matrix.julia_arch }}
         version: ${{ matrix.julia_version }}
@@ -65,7 +65,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
     - uses: julia-actions/julia-processcoverage@v1
     - uses: codecov/codecov-action@v3
       with:
@@ -104,7 +104,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         arch: ${{ matrix.julia_arch }}
         version: ${{ matrix.julia_version }}
@@ -125,7 +125,7 @@ jobs:
         MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
   test-system-brew:
     timeout-minutes: 20
@@ -153,7 +153,7 @@ jobs:
       env:
         MPI: ${{ matrix.mpi }}
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
@@ -170,7 +170,7 @@ jobs:
         using MPIPreferences
         MPIPreferences.use_system_binary()
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
       env:
         # TODO: Only disable this test for MPICH. OpenMPI works fine.
         JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
@@ -206,7 +206,7 @@ jobs:
       env:
         MPI: ${{ matrix.mpi }}
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
@@ -223,7 +223,7 @@ jobs:
         using MPIPreferences
         MPIPreferences.use_system_binary()
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
   test-intel-linux:
     timeout-minutes: 20
@@ -249,6 +249,11 @@ jobs:
       with:
         version: ${{ matrix.julia_version }}
 
+    - name: Install jq # Needed for `julia-actions/cache`
+      run: |
+        apt-get update
+        apt-get install -y jq
+
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
       shell: julia --color=yes --project=. {0}
@@ -262,7 +267,7 @@ jobs:
           using MPIPreferences
           MPIPreferences.use_system_binary()'
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-oneapi-linux:
@@ -289,6 +294,11 @@ jobs:
       with:
         version: ${{ matrix.julia_version }}
 
+    - name: Install jq # Needed for `julia-actions/cache`
+      run: |
+        apt-get update
+        apt-get install -y jq
+
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
       shell: julia --color=yes --project=. {0}
@@ -302,7 +312,7 @@ jobs:
           using MPIPreferences
           MPIPreferences.use_system_binary()'
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-system-msmpi:
@@ -328,7 +338,7 @@ jobs:
       run: msmpisetup.exe -unattend -minimal
       shell: cmd
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
@@ -351,7 +361,7 @@ jobs:
         )
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-mpitrampoline-jll:
@@ -384,7 +394,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
@@ -405,7 +415,7 @@ jobs:
         MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-mpitrampoline-system-apt:
@@ -457,7 +467,7 @@ jobs:
       env:
         MPIWrapper: ${{matrix.MPIWrapper}}
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
@@ -478,7 +488,7 @@ jobs:
         MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-mpitrampoline-oneapi-linux:
@@ -510,7 +520,8 @@ jobs:
     - name: Build MPIwrapper
       run: |
         apt-get update
-        apt-get install -y wget cmake gcc g++ gfortran python3
+        # jq is needed for `julia-actions/cache`
+        apt-get install -y wget cmake gcc g++ gfortran python3 jq
         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
         tar xzf v${MPIWrapper}.tar.gz
         cd MPIwrapper-*
@@ -545,7 +556,7 @@ jobs:
         MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-spack-mvapich:
@@ -573,6 +584,11 @@ jobs:
       with:
         version: ${{ matrix.julia_version }}
 
+    - name: Install jq # Needed for `julia-actions/cache`
+      run: |
+        apt-get update
+        apt-get install -y jq
+
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
       shell: julia --color=yes --project=. {0}
@@ -587,4 +603,4 @@ jobs:
         using MPIPreferences
         MPIPreferences.use_system_binary()
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
