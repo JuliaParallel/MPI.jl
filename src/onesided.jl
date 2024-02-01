@@ -221,6 +221,18 @@ function Win_fence(win::Win; nostore=false, noput=false, noprecede=false, nosucc
 end
 
 """
+    Win_flush_local(win::Win; rank)
+
+Completes locally all outstanding RMA operations initiated by the calling process to the
+target rank on the specified window.
+
+# External links
+$(_doc_external("MPI_Win_flush_local"))
+"""
+Win_flush_local(win::Win; rank) = Win_flush_local(rank, win)
+Win_flush_local(rank::Integer, win::Win) = API.MPI_Win_flush_local(rank, win)
+
+"""
     Win_flush(win::Win; rank)
 
 Completes all outstanding RMA operations initiated by the calling process to the
