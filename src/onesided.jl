@@ -70,6 +70,42 @@ function Win_create(base::SubArray{T}, comm::Comm; infokws...) where T
 end
 
 """
+    win, array = MPI.Win_allocate(Array{T}, dims, comm::Comm; infokws...)
+
+Create and allocate a window for objects of type `T` of dimension
+`dims` (either an integer or tuple of integers), returning a `Win` and the
+`Array{T}` attached to the local process.
+
+This is a collective call over `comm`, but `dims` can differ for each call (and
+can be zero).
+
+If the underlying implementation supports MPI 4.1, 
+use [`MPI.Win_shared_query`](@ref) to obtain the `Array` attached to a different
+process in the same shared memory space.
+
+`infokws` are info keys providing optimization hints.
+
+[`MPI.free`](@ref) should be called on the `Win` object once operations have
+been completed.
+"""
+function Win_allocate(::Type{Ptr{T}}, len::Integer, comm::Comm; kwargs...) where T
+    win = Win()
+    out_baseptr = Ref{Ptr{T}}()
+    # int MPI_Win_allocate(MPI_Aint size, int disp_unit, MPI_Info info,
+    #                      MPI_Comm comm, void *baseptr, MPI_Win *win)
+    API.MPI_Win_allocate(len*sizeof(T), sizeof(T), Info(kwargs...), comm, out_baseptr, win)
+    finalizer(free, win)
+    return win, out_baseptr[]
+end
+function Win_allocate(::Type{Array{T}}, dims, comm::Comm; kwargs...) where T
+    win, ptr = Win_allocate(Ptr{T}, prod(dims), comm; kwargs...)
+    array = unsafe_wrap(Array, ptr, dims)
+    win.object = array
+    finalizer(free, win)
+    return win, array
+end
+
+"""
     win, array = MPI.Win_allocate_shared(Array{T}, dims, comm::Comm; infokws...)
 
 Create and allocate a shared memory window for objects of type `T` of dimension
