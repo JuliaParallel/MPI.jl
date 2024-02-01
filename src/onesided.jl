@@ -235,6 +235,41 @@ Win_flush(rank::Integer, win::Win) = API.MPI_Win_flush(rank, win)
 Win_sync(win::Win) = API.MPI_Win_sync(win)
 
 """
+    Win_lock_all(win::Win; nocheck=false)
+
+Starts an RMA access epoch. The window can be
+accessed by RMA operations at all processes on `win` during that epoch.
+This operation is equivalent to a call to Win_lock(shared) for all processes
+associted with the window.
+
+If `nocheck=true`, no other process holds, or will attempt to acquire, a
+conflicting lock, while the caller holds the window lock. This is useful when
+mutual exclusion is achieved by other means, but the coherence operations that
+may be attached to the lock and unlock calls are still required.
+
+# External links
+$(_doc_external("MPI_Win_lock_all"))
+"""
+function Win_lock_all(win::Win; nocheck::Bool = false)
+    Win_lock_all(nocheck * API.MPI_MODE_NOCHECK[], win)
+end
+function Win_lock_all(assert::Integer, win::Win)
+    # int MPI_Win_lock_all(int assert, MPI_Win win)
+    API.MPI_Win_lock_all(assert, win)
+end
+
+"""
+    Win_unlock_all(win::Win)
+
+Completes an RMA access epoch started by a call to [`Win_lock_all`](@ref).
+
+# External links
+$(_doc_external("MPI_Win_unlock_all"))
+"""
+Win_unlock_all(win::Win) = Win_unlock_all(win)
+Win_unlock_all(win::Win) = API.MPI_Win_unlock_all(win)
+
+"""
     Win_lock(win::Win; rank::Integer, type=:exclusive/:shared, nocheck=false)
 
 Starts an RMA access epoch. The window at the process with rank `rank` can be
