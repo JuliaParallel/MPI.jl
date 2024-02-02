@@ -229,13 +229,17 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        julia_version:
-          - "1"
+        include:
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-jq
+            name: "Intel MPI 2019.9.304"
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-jq
+            name: "Intel oneAPI MPI 2021.7.0"
 
       fail-fast: false
 
     runs-on: ubuntu-latest
-    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-2019.9.304-ecfipz6mxgepmrkwp5dl5oohion5m54r.spack
+    container: ${{ matrix.container }}
+    name: "Test ${{ matrix.name }}"
 
     env:
       JULIA_MPI_TEST_BINARY: system
@@ -247,57 +251,7 @@ jobs:
 
     - uses: julia-actions/setup-julia@v1
       with:
-        version: ${{ matrix.julia_version }}
-
-    - name: Install jq # Needed for `julia-actions/cache`
-      run: |
-        apt-get update
-        apt-get install -y jq
-
-    - uses: julia-actions/cache@v1
-    - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
-      run: |
-        using Pkg
-        Pkg.develop(path="lib/MPIPreferences")
-
-    - name: use system MPI
-      run: |
-        julia --color=yes --project=. -e '
-          using MPIPreferences
-          MPIPreferences.use_system_binary()'
-
-    - uses: julia-actions/julia-runtest@v1
-
-
-  test-oneapi-linux:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        julia_version:
-          - "1"
-
-      fail-fast: false
-
-    runs-on: ubuntu-latest
-    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-2021.7.0-gzc7es2p27ftwyk4sdplynlj6d54xzi6.spack
-
-    env:
-      JULIA_MPI_TEST_BINARY: system
-      JULIA_MPI_TEST_ABI: MPICH
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - uses: julia-actions/setup-julia@v1
-      with:
-        version: ${{ matrix.julia_version }}
-
-    - name: Install jq # Needed for `julia-actions/cache`
-      run: |
-        apt-get update
-        apt-get install -y jq
+        version: "1"
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
@@ -503,7 +457,7 @@ jobs:
       fail-fast: false
 
     runs-on: ubuntu-latest
-    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-2021.7.0-gzc7es2p27ftwyk4sdplynlj6d54xzi6.spack
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-jq
 
     env:
       JULIA_MPI_TEST_BINARY: MPItrampoline_jll
@@ -520,8 +474,7 @@ jobs:
     - name: Build MPIwrapper
       run: |
         apt-get update
-        # jq is needed for `julia-actions/cache`
-        apt-get install -y wget cmake gcc g++ gfortran python3 jq
+        apt-get install -y wget cmake gcc g++ gfortran python3
         wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
         tar xzf v${MPIWrapper}.tar.gz
         cd MPIwrapper-*
@@ -563,13 +516,15 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        julia_version:
-          - "1"
+        include:
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich2-jq
+            name: "MVAPICH 2.3.7"
 
       fail-fast: false
 
     runs-on: ubuntu-22.04
-    container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich2-2.3.7-1-hs7gkcclsnk55kqm52a4behdnt3dug6b.spack
+    container: ${{ matrix.container }}
+    name: "Test ${{ matrix.name }}"
 
     env:
       JULIA_MPI_TEST_BINARY: system
@@ -582,12 +537,7 @@ jobs:
 
     - uses: julia-actions/setup-julia@v1
       with:
-        version: ${{ matrix.julia_version }}
-
-    - name: Install jq # Needed for `julia-actions/cache`
-      run: |
-        apt-get update
-        apt-get install -y jq
+        version: "1"
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
