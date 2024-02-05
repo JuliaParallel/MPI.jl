@@ -233,7 +233,7 @@ jobs:
           - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-jq
             name: "Intel MPI 2019.9.304"
           - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-jq
-            name: "Intel oneAPI MPI 2021.7.0"
+            name: "Intel oneAPI MPI 2021.11.0"
 
       fail-fast: false
 
