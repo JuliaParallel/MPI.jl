@@ -44,6 +44,10 @@ jobs:
         exclude:
           - os: macos-latest
             julia_arch: x86
+        include:
+          - os: macos-14
+            julia_arch: "aarch64"
+            julia_version: "1"
 
       fail-fast: false
 
