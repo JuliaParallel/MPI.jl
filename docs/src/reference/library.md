@@ -14,5 +14,6 @@ MPI.MPI_LIBRARY_VERSION_STRING
 ```@docs
 MPI.versioninfo
 MPI.has_cuda
+MPI.has_rocm
 MPI.identify_implementation
 ```
