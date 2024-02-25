@@ -12,6 +12,12 @@ if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
     @test MPI.has_cuda()
 end
 
+@test MPI.has_rocm() isa Bool
+
+if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
+    @test MPI.has_rocm()
+end
+
 @test !MPI.Finalized()
 MPI.Finalize()
 @test MPI.Finalized()
