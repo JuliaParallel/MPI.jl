@@ -125,7 +125,7 @@ configures `MPIPreferences` for use on Cray systems with `srun`.
     Currently `vendor` only supports Cray systems.
 
 This populates the `library_names`, `preloads`, `preloads_env_switch` and
-`cclibs` preferences. These are defermined by parsing `cc --cray-print-opts=all`
+`cclibs` preferences. These are determined by parsing `cc --cray-print-opts=all`
 emitted from the Cray Compiler Wrappers. Therefore `use_system_binary` needs
 to be run on the target system, with the corresponding `PrgEnv` loaded.
 
@@ -157,7 +157,7 @@ preloads_env_switch = "MPICH_GPU_SUPPORT_ENABLED"
 
 This is an example of CrayMPICH requiring `libmpi_gtl_cuda.so` to be preloaded,
 unless `MPICH_GPU_SUPPORT_ENABLED=0` (the latter allowing MPI-enabled code to
-run on a non-GPU enabled node without needing a seperate `LocalPreferences.toml`).
+run on a non-GPU enabled node without needing a separate `LocalPreferences.toml`).
 
 ## [Using an alternative JLL-provided MPI library](@id configure_jll_binary)
 

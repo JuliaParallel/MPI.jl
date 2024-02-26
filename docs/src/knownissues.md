@@ -93,6 +93,11 @@ This signal interception can be controlled by setting the environment variable `
 ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
 ```
 at `__init__`. If set externally, it should be modified to exclude `SIGSEGV` from the list.
+Note that in some cases even if `UCX_ERROR_SIGNALS` is not set explicitly, UCX might still take SIGSEGV as an error signal. In this case, it might be needed to explicitly set `UCX_ERROR_SIGNALS` with
+```
+export UCX_ERROR_SIGNALS="SIGILL,SIGBUS,SIGFPE"
+```
+before calling `mpiexec`.
 
 ## CUDA-aware MPI
 

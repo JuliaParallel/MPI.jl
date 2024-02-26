@@ -135,6 +135,35 @@ end
 
 include("generated_api.jl")
 
+for handle in [
+    :MPI_Comm,
+    :MPI_Datatype,
+    :MPI_Errhandler,
+    :MPI_File,
+    :MPI_Group,
+    :MPI_Info,
+    :MPI_Message,
+    :MPI_Op,
+    :MPI_Request,
+    :MPI_Win,
+]
+    handle_f2c = Symbol(handle,:_f2c)
+    handle_c2f = Symbol(handle,:_c2f)
+    @eval begin
+        if $handle == Cint
+            $handle_f2c(fcomm::Cint) = fcomm
+            $handle_c2f(comm::Cint) = comm
+        else
+            function $handle_f2c(fcomm::Cint)
+                ccall(($(Meta.quot(handle_f2c)), libmpi), $handle, (Cint,), fcomm)
+            end
+            function $handle_c2f(comm::$handle)
+                ccall(($(Meta.quot(handle_c2f)), libmpi), Cint, ($handle,), comm)
+            end
+        end
+    end
+end
+
 # since this is called by invokelatest, it isn't automatically precompiled
 precompile(init_consts, ())
 

@@ -1,7 +1,7 @@
 name = "MPIPreferences"
 uuid = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 authors = []
-version = "0.1.9"
+version = "0.1.10"
 
 [deps]
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -9,4 +9,5 @@ Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 
 [compat]
 julia = "1.6"
+Libdl = "1"
 Preferences = "1"

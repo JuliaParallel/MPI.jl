@@ -76,7 +76,7 @@ Isend(data, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Reques
 Starts a nonblocking send of using a serialized version of `obj` to MPI rank
 `dest` of communicator `comm` using with the message tag `tag`.
 
-Returns the commication `Request` for the nonblocking send.
+Returns the communication `Request` for the nonblocking send.
 """
 isend(data, comm::Comm, req::AbstractRequest = Request(); dest::Integer, tag::Integer=0) =
     isend(data, dest, tag, comm, req)

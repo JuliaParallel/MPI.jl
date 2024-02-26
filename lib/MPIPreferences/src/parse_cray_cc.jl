@@ -6,13 +6,27 @@ reduce(f::Function)::Function = Base.Fix1(Base.reduce, f)
 
 struct CrayPE
     libmpi::String
-    libgtl::String
+    libgtl::Union{String, Nothing}
     cclibs::Vector{String}
     gtl_env_switch::String
-    
-    CrayPE(mpi_dl::T, gtl_dl::T, cclibs::Vector{T}) where T <:AbstractString = new(
-        "lib" * mpi_dl * ".so", # Assuming Linux -- CrayPE is only avaialbe for linux anyway
+
+    CrayPE(
+        mpi_dl::T,
+        gtl_dl::T,
+        cclibs::Vector{T}
+    ) where T <:AbstractString = new(
+        "lib" * mpi_dl * ".so", # Assuming Linux -- CrayPE is only available for linux anyway
         "lib" * gtl_dl * ".so",
+        cclibs,
+        "MPICH_GPU_SUPPORT_ENABLED"
+    )
+    CrayPE(
+        mpi_dl::T,
+        gtl_dl::Nothing,
+        cclibs::Vector{T}
+    ) where T <:AbstractString = new(
+        "lib" * mpi_dl * ".so", # Assuming Linux -- CrayPE is only available for linux anyway
+        nothing,
         cclibs,
         "MPICH_GPU_SUPPORT_ENABLED"
     )
@@ -21,23 +35,30 @@ end
 const libmpi_prefix = "mpi_"
 const libgtl_prefix = "mpi_gtl_"
 
+function only_or_nothing(iter)
+    if length(iter) == 0
+        return nothing
+    end
+    only(iter)
+end
+
 function cray_mpi(libs)
     x = libs |>
-        filter(x-> startswith(x, libmpi_prefix)) |> 
+        filter(x-> startswith(x, libmpi_prefix)) |>
         filter(x->!startswith(x, libgtl_prefix))
     return only(x)
 end
 
 function cray_gtl(libs)
     x = libs |>
-        filter(x->startswith(x, libmpi_prefix)) |> 
+        filter(x->startswith(x, libmpi_prefix)) |>
         filter(x->startswith(x, libgtl_prefix))
-    return only(x)
+    return only_or_nothing(x)
 end
 
 function other_libs(libs)
     x = libs |>
-        filter(x->!startswith(x, libmpi_prefix)) |> 
+        filter(x->!startswith(x, libmpi_prefix)) |>
         filter(x->!startswith(x, libgtl_prefix))
     return x
 end
