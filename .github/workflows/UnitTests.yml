@@ -558,3 +558,52 @@ jobs:
         MPIPreferences.use_system_binary()
 
     - uses: julia-actions/julia-runtest@v1
+
+
+  # TODO: Can remove this once we can use OpenMPI_jll v5
+  test-spack-openmpi5:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        include:
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:openmpi5-jq
+            name: "OpenMPI 5.0.2"
+
+      fail-fast: false
+
+    runs-on: ubuntu-22.04
+    container: ${{ matrix.container }}
+    name: "Test ${{ matrix.name }}"
+
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_ABI: OpenMPI
+      # Allow running as root
+      OMPI_ALLOW_RUN_AS_ROOT: 1
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+      # Allow oversubscription
+      PRTE_MCA_rmaps_default_mapping_policy: :oversubscribe
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - uses: julia-actions/setup-julia@v1
+      with:
+        version: "1"
+
+    - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        Pkg.precompile()
+
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using MPIPreferences
+        MPIPreferences.use_system_binary()
+
+    - uses: julia-actions/julia-runtest@v1
