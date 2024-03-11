@@ -26,6 +26,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1'
+      - uses: julia-actions/cache@v1
       - name: Install dependencies
         shell: julia --color=yes --project=docs/ {0}
         run: |

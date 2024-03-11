@@ -63,6 +63,50 @@ export OMPI_MCA_coll_hcoll_enable="0"
 
 before starting the MPI process.
 
+## MPICH
+
+### `gethostbyname` failure in `internal_Init_thread`
+
+When your internal network stack/route is not correctly configured for the local loopback device, MPICH may fail to initialize with an error message which looks like the following:
+
+```
+Fatal error in internal_Init_thread: Other MPI error, error stack:
+internal_Init_thread(67)...........: MPI_Init_thread(argc=0x0, argv=0x0, required=2, provided=0x16db94160) failed
+MPII_Init_thread(234)..............:
+MPID_Init(67)......................:
+init_world(171)....................: channel initialization failed
+MPIDI_CH3_Init(84).................:
+MPID_nem_init(314).................:
+MPID_nem_tcp_init(175).............:
+MPID_nem_tcp_get_business_card(397):
+GetSockInterfaceAddr(370)..........: gethostbyname failed, bogon (errno 0)
+```
+
+A workaround is provided in the [documentation of the MOOSE framework](https://mooseframework.inl.gov/help/troubleshooting.html) and we report it here for reference:
+
+* obtain your hostname
+  ```console
+  $ hostname
+  mycoolname
+  ```
+* for both Linux and macOS systems, in your `/etc/hosts` file map the hostname you obtained at the previous step to the [localhost address `127.0.0.1`](https://en.wikipedia.org/wiki/Localhost), if not already present.
+  _**Note**_: this step requires root access, to modify the system configuration file `/etc/hosts`, if you don't have it talk to your system administrator.
+  For example, open the file `/etc/hosts` with `sudo` access with your favorite text editor (e.g. `sudo vi /etc/hosts`, or `sudo emacs /etc/hosts`) and add the line
+  ```
+  127.0.0.1  mycoolname
+  ```
+  to the end of the file
+* as an alternative to the previous step, only for macOS systems, run the command
+  ```
+  sudo scutil --set HostName mycoolname
+  ```
+  However it has been reported that this method may not always be effective.
+
+For further information see
+
+- [MPI.jl issue #824](https://github.com/JuliaParallel/MPI.jl/issues/824)
+- [MOOSE discussion #23610](https://github.com/idaholab/moose/discussions/23610)
+
 ## UCX
 
 [UCX](https://www.openucx.org/) is a communication framework used by several MPI implementations.
