@@ -43,6 +43,19 @@ for T = [Int]
             vals = MPI.Allreduce(send_arr, op, MPI.COMM_WORLD)
             @test vals isa ArrayType{T}
             @test vals == comm_size .* send_arr
+
+            # Nonblocking
+            recv_arr = ArrayType{T}(undef, size(send_arr))
+            req = MPI.IAllreduce!(send_arr, recv_arr, op, MPI.COMM_WORLD)
+            MPI.Wait(req)
+            @test recv_arr == comm_size .* send_arr
+
+            # Nonblocking (IN_PLACE)
+            recv_arr = copy(send_arr)
+            synchronize()
+            req = MPI.IAllreduce!(recv_arr, op, MPI.COMM_WORLD)
+            MPI.Wait(req)
+            @test recv_arr == comm_size .* send_arr
         end
     end
 end
