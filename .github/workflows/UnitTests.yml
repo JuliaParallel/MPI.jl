@@ -523,6 +523,8 @@ jobs:
         include:
           - container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich2-jq
             name: "MVAPICH 2.3.7"
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich3-jq
+            name: "MVAPICH 3.0b"
 
       fail-fast: false
 

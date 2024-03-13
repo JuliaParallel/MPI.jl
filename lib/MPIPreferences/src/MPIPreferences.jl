@@ -297,7 +297,7 @@ function identify_implementation_version_abi(version_string::AbstractString)
             end
         end
 
-    elseif startswith(version_string, "MVAPICH2")
+    elseif startswith(version_string, "MVAPICH")
         impl = "MVAPICH"
         # "MVAPICH2 Version      :\t%s\n")
         if (m = match(r"^MVAPICH2? Version\s*:\t(\S*)\n", version_string)) !== nothing
