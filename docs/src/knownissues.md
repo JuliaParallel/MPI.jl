@@ -143,6 +143,14 @@ export UCX_ERROR_SIGNALS="SIGILL,SIGBUS,SIGFPE"
 ```
 before calling `mpiexec`.
 
+Similarly, Intel MPI would error if the above signal is raised ([#725](https://github.com/JuliaParallel/MPI.jl/issues/725)), resulting in a segmentation fault error like
+```
+[6950] signal (11.-6): Segmentation fault
+in expression starting at /home/runner/work/MPI.jl/MPI.jl/test/test_threads.jl:18
+ijl_gc_enable at /cache/build/default-amdci4-6/julialang/julia-release-1-dot-9/src/gc.c:3222
+```
+MPI.jl works around this problem by setting the environment variable `IPATH_NO_BACKTRACE` to `1`, unless already defined.
+
 ## CUDA-aware MPI
 
 ### Memory pool
