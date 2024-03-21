@@ -34,7 +34,7 @@ using MPI
         example = joinpath(@__DIR__, "..", "docs", "examples", "01-hello.jl")
         env = ["JULIA_BINDIR" => Sys.BINDIR]
         p = withenv(env...) do
-            run(`$(additional_initial_parts_cmd) $(mpiexecjl) -n $(nprocs) --project=$(dir) $(julia) $(example)`)
+            run(`$(additional_initial_parts_cmd) $(mpiexecjl) -n $(nprocs) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
         end
         @test success(p)
         # Test help messages
