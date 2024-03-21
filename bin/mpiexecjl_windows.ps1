@@ -24,6 +24,8 @@ function usage {
 $julia_args = @()
 $PROJECT_ARG = ""
 
+echo $args
+
 foreach ($arg in $args) {
     if ($arg -match "^--project(=.*)?$") {
         $PROJECT_ARG = $arg
@@ -55,7 +57,11 @@ if ($env:JULIA_BINDIR) {
 $SCRIPT = @'
 using MPI
 ENV[\"JULIA_PROJECT\"] = dirname(Base.active_project())
-mpiexec(exe -> run(`$exe $ARGS`))
+try
+    mpiexec(exe -> run(`$exe $ARGS`))
+catch e
+    rethrow(e)
+end
 '@
 
 $PRECOMPILATION_SCRIPT = @'
@@ -75,3 +81,6 @@ if ($PROJECT_ARG) {
 } else {
     & $JULIA_CMD --color=yes --startup-file=no --compile=min -O0 -e $SCRIPT -- $julia_args
 }
+
+# Guarantees that we will exit .ps1 with the same process status as the last command executed
+exit $lastExitCode
