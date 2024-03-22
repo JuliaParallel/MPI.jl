@@ -26,4 +26,4 @@ jobs:
       - name: Install dependencies
         run: sudo apt install shellcheck
       - name: Check scripts
-        run: shellcheck bin/*
+        run: shellcheck bin/mpiexecjl_unix

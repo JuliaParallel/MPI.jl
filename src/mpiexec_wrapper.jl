@@ -19,6 +19,13 @@ function install_mpiexecjl(; command::String = "mpiexecjl",
     end
     mkpath(destdir)
     verbose && @info "Installing `$(command)` to `$(destdir)`..."
-    cp(joinpath(@__DIR__, "..", "bin", "mpiexecjl"), exec; force = force)
+    if Sys.isunix()
+        cp(joinpath(@__DIR__, "..", "bin", "mpiexecjl_unix"), exec; force = force)
+    elseif Sys.iswindows()
+        exec *= ".ps1"
+        cp(joinpath(@__DIR__, "..", "bin", "mpiexecjl_windows.ps1"), exec; force = force)
+    else
+        throw(ErrorException("Unsupported platform: $(Sys.KERNEL)"))
+    end
     verbose && @info "Done!"
 end
