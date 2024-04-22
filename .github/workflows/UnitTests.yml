@@ -536,6 +536,9 @@ jobs:
       JULIA_MPI_TEST_BINARY: system
       JULIA_MPI_TEST_EXCLUDE: test_spawn.jl
       MV2_SMP_USE_CMA: 0
+      # Work around issue with affinity not set.  Ref:
+      # https://github.com/JuliaParallel/MPI.jl/pull/810#issuecomment-1920255386
+      MVP_ENABLE_AFFINITY: 0
 
     steps:
     - name: Checkout
