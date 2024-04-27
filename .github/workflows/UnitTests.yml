@@ -344,6 +344,13 @@ jobs:
         exclude:
           - os: macos-latest
             julia_arch: x86
+        include:
+          - os: macos-latest
+            julia_arch: aarch64
+          - os: macos-13
+            julia_arch: x64
+          - os: macos-12
+            julia_arch: x64
 
       fail-fast: false
 
