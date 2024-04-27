@@ -140,10 +140,14 @@ jobs:
           - openmpi
         julia_version:
           - "1"
+        os:
+          - macos-latest
+          - macos-13
+          - macos-12
 
       fail-fast: false
 
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     env:
       JULIA_MPI_TEST_BINARY: system
       ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
