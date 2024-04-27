@@ -140,12 +140,11 @@ jobs:
           - openmpi
         julia_version:
           - "1"
-        os:
-          - macos-13
 
       fail-fast: false
 
-    runs-on: ${{ matrix.os }}
+    # Hotfix: change back to `macos-latest` once tests on aarch64 are working again
+    runs-on: macos-13
     env:
       JULIA_MPI_TEST_BINARY: system
       ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
