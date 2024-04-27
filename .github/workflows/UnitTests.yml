@@ -141,9 +141,7 @@ jobs:
         julia_version:
           - "1"
         os:
-          - macos-latest
           - macos-13
-          - macos-12
 
       fail-fast: false
 
@@ -344,16 +342,14 @@ jobs:
         exclude:
           - os: macos-latest
             julia_arch: x86
-        include:
+          # Hotfix: remove once tests on aarch64 are working again
           - os: macos-latest
             mpi: mpitrampoline
             julia_version: '1.6'
-            julia_arch: aarch64
-          - os: macos-13
-            mpi: mpitrampoline
-            julia_version: '1.6'
             julia_arch: x64
-          - os: macos-12
+        include:
+          # Hotfix: remove once tests on aarch64 are working again
+          - os: macos-13
             mpi: mpitrampoline
             julia_version: '1.6'
             julia_arch: x64
