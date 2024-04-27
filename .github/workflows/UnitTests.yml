@@ -346,10 +346,16 @@ jobs:
             julia_arch: x86
         include:
           - os: macos-latest
+            mpi: mpitrampoline
+            julia_version: '1.6'
             julia_arch: aarch64
           - os: macos-13
+            mpi: mpitrampoline
+            julia_version: '1.6'
             julia_arch: x64
           - os: macos-12
+            mpi: mpitrampoline
+            julia_version: '1.6'
             julia_arch: x64
 
       fail-fast: false
