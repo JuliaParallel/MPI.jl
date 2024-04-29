@@ -783,7 +783,7 @@ Allreduce(obj::T, op, comm::Comm) where {T} =
     Scan!(sendrecvbuf, op, comm::Comm)
 
 Inclusive prefix reduction (analagous to `accumulate` in Julia): `recvbuf` on rank `i`
-will contain the the result of reducing `sendbuf` by `op` from ranks `0:i`.
+will contain the result of reducing `sendbuf` by `op` from ranks `0:i`.
 
 If only a single buffer `sendrecvbuf` is provided, then operations will be performed
 in-place.
@@ -814,7 +814,7 @@ Scan!(buf, op, comm::Comm) =
     recvbuf = Scan(sendbuf, op, comm::Comm)
 
 Inclusive prefix reduction (analagous to `accumulate` in Julia): `recvbuf` on rank `i`
-will contain the the result of reducing `sendbuf` by `op` from ranks `0:i`.
+will contain the result of reducing `sendbuf` by `op` from ranks `0:i`.
 
 `sendbuf` can also be a scalar, in which case `recvbuf` will also be a scalar of the same
 type.
@@ -838,7 +838,7 @@ Scan(object::T, op, comm::Comm) where {T} = Scan!(Ref(object), Ref{T}(), op, com
     Exscan!(sendrecvbuf, op, comm::Comm)
 
 Exclusive prefix reduction (analagous to `accumulate` in Julia): `recvbuf` on rank `i`
-will contain the the result of reducing `sendbuf` by `op` from ranks `0:i-1`. The
+will contain the result of reducing `sendbuf` by `op` from ranks `0:i-1`. The
 `recvbuf` on rank `0` is ignored, and the `recvbuf` on rank `1` will contain the contents
 of `sendbuf` on rank `0`.
 
@@ -870,7 +870,7 @@ Exscan!(buf, op, comm::Comm) = Exscan!(IN_PLACE, buf, op, comm)
     recvbuf = Exscan(sendbuf, op, comm::Comm)
 
 Exclusive prefix reduction (analagous to `accumulate` in Julia): `recvbuf` on rank `i`
-will contain the the result of reducing `sendbuf` by `op` from ranks `0:i-1`. The
+will contain the result of reducing `sendbuf` by `op` from ranks `0:i-1`. The
 `recvbuf` on rank `0` is undefined, and the `recvbuf` on rank `1` will contain the contents
 of `sendbuf` on rank `0`.
 
