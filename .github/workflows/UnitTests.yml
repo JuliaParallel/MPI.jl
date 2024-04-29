@@ -171,8 +171,8 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    # - name: Setup tmate session
-    #   uses: mxschmitt/action-tmate@v3
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: use system MPI
       shell: julia --color=yes --project=. {0}
