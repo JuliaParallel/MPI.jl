@@ -119,6 +119,7 @@ end
 """
     use_system_binary(;
         library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
+        extra_paths = String[],
         mpiexec = "mpiexec",
         abi = nothing,
         vendor = nothing,
@@ -134,6 +135,9 @@ Options:
   [`Libdl.find_library`](https://docs.julialang.org/en/v1/stdlib/Libdl/#Base.Libc.Libdl.find_library).
   If the library isn't in the library search path, you can specify the full path
   to the library.
+
+- `extra_paths`: indicate extra directories where to search for the MPI library,
+  besides the default ones of the dynamic linker.
 
 - `mpiexec`: the MPI launcher executable. The default is `mpiexec`, but some
   clusters require using the scheduler launcher interface (e.g. `srun` on Slurm,
@@ -159,6 +163,7 @@ Options:
 """
 function use_system_binary(;
         library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
+        extra_paths=String[],
         mpiexec="mpiexec",
         abi=nothing,
         vendor=nothing,
@@ -186,12 +191,14 @@ function use_system_binary(;
 
     # Set `ZES_ENABLE_SYSMAN` to work around https://github.com/open-mpi/ompi/issues/10142
     libmpi = withenv("ZES_ENABLE_SYSMAN" => "1") do
-        find_library(library_names)
+        find_library(library_names, extra_paths)
     end
     if libmpi == ""
         error("""
             MPI library could not be found with the following name(s):
                 $(library_names)
+            in the following extra directories (in addition to the default ones):
+                $(extra_paths)
             If you want to try different name(s) for the MPI library, use
                 MPIPreferences.use_system_binary(; library_names=[...])""")
     end
