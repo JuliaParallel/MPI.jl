@@ -165,10 +165,7 @@ jobs:
 
     - name: Install MPI via homebrew
       run: |
-        brew install "${MPI}"
-        echo "DYLD_FALLBACK_LIBRARY_PATH=$(brew --prefix ${MPI})/lib" >> "${GITHUB_ENV}"
-      env:
-        MPI: ${{ matrix.mpi }}
+        brew install "${{ matrix.mpi }}"
 
     - uses: julia-actions/setup-julia@v1
       with:
@@ -186,7 +183,9 @@ jobs:
       shell: julia --color=yes --project=. {0}
       run: |
         using MPIPreferences
-        MPIPreferences.use_system_binary()
+        mpi_prefix = readchomp(`brew --prefix ${{ matrix.mpi }}`)
+        libdir = joinpath(mpi_prefix, "lib")
+        MPIPreferences.use_system_binary(; extra_paths=[libdir])
 
     - uses: julia-actions/julia-runtest@v1
       env:
