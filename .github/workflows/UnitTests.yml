@@ -135,15 +135,26 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
+        os:
+          - macos-13
+          - macos-14
         mpi:
           - mpich
           - openmpi
         julia_version:
           - "1"
+        julia_arch:
+          - "x64"
+          - "aarch64"
+        exclude:
+          - os: macos-13
+            julia_arch: "aarch64"
+          - os: macos-14
+            julia_arch: "x64"
 
       fail-fast: false
 
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     env:
       JULIA_MPI_TEST_BINARY: system
       ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
@@ -153,13 +164,16 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install MPI via homebrew
-      run: brew install $MPI
+      run: |
+        brew install "${MPI}"
+        echo "DYLD_FALLBACK_LIBRARY_PATH=$(brew --prefix ${MPI})/lib" >> "${GITHUB_ENV}"
       env:
         MPI: ${{ matrix.mpi }}
 
     - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
+        arch: ${{ matrix.julia_arch }}
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
