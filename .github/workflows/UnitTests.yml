@@ -143,8 +143,7 @@ jobs:
 
       fail-fast: false
 
-    # Hotfix: change back to `macos-latest` once tests on aarch64 are working again
-    runs-on: macos-13
+    runs-on: macos-latest
     env:
       JULIA_MPI_TEST_BINARY: system
       ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
@@ -341,17 +340,6 @@ jobs:
         exclude:
           - os: macos-latest
             julia_arch: x86
-          # Hotfix: remove once tests on aarch64 are working again
-          - os: macos-latest
-            mpi: mpitrampoline
-            julia_version: '1.6'
-            julia_arch: x64
-        include:
-          # Hotfix: remove once tests on aarch64 are working again
-          - os: macos-13
-            mpi: mpitrampoline
-            julia_version: '1.6'
-            julia_arch: x64
 
       fail-fast: false
 
