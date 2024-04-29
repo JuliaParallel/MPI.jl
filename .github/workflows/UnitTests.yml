@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
+          - macos-13
           - ubuntu-latest
           - windows-latest
         julia_version:
@@ -42,7 +42,7 @@ jobs:
           - "nightly"
         julia_arch: [x64, x86]
         exclude:
-          - os: macos-latest
+          - os: macos-13
             julia_arch: x86
         include:
           - os: macos-14
@@ -84,7 +84,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
+          - macos-13
           - ubuntu-latest
         julia_version:
           - "1.6"
@@ -92,7 +92,7 @@ jobs:
           - "nightly"
         julia_arch: [x64, x86]
         exclude:
-          - os: macos-latest
+          - os: macos-13
             julia_arch: x86
 
       fail-fast: false
@@ -341,7 +341,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
+          - macos-13
           - ubuntu-latest
         mpi: [mpitrampoline]
         julia_version:
@@ -352,7 +352,7 @@ jobs:
           - x64
           - x86
         exclude:
-          - os: macos-latest
+          - os: macos-13
             julia_arch: x86
 
       fail-fast: false
