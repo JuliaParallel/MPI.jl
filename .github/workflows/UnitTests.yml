@@ -135,6 +135,9 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
+        os:
+          - macos-13
+          - macos-14
         mpi:
           - mpich
           # - openmpi
@@ -143,7 +146,7 @@ jobs:
 
       fail-fast: false
 
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     env:
       JULIA_MPI_TEST_BINARY: system
       ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
@@ -168,19 +171,25 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-
-    - name: use system MPI
+    - name: Julia versioninfo
       shell: julia --color=yes --project=. {0}
       run: |
-        using MPIPreferences
-        MPIPreferences.use_system_binary()
+        using InteractiveUtils
+        versioninfo(; verbose=true)
 
-    - uses: julia-actions/julia-runtest@v1
-      env:
-        # TODO: Only disable this test for MPICH. OpenMPI works fine.
-        JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
+
+    # - name: use system MPI
+    #   shell: julia --color=yes --project=. {0}
+    #   run: |
+    #     using MPIPreferences
+    #     MPIPreferences.use_system_binary()
+
+    # - uses: julia-actions/julia-runtest@v1
+    #   env:
+    #     # TODO: Only disable this test for MPICH. OpenMPI works fine.
+    #     JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
 
 
   # test-system-apt:
