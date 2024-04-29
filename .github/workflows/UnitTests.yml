@@ -171,20 +171,20 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - name: Julia versioninfo
-      shell: julia --color=yes --project=. {0}
-      run: |
-        using InteractiveUtils
-        versioninfo(; verbose=true)
-
     # - name: Setup tmate session
     #   uses: mxschmitt/action-tmate@v3
 
-    # - name: use system MPI
-    #   shell: julia --color=yes --project=. {0}
-    #   run: |
-    #     using MPIPreferences
-    #     MPIPreferences.use_system_binary()
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using MPIPreferences
+        MPIPreferences.use_system_binary()
+
+    - name: MPI.versioninfo()
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using MPI
+        MPI.versioninfo()
 
     # - uses: julia-actions/julia-runtest@v1
     #   env:
