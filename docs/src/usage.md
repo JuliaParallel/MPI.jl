@@ -74,6 +74,13 @@ with:
 $ mpiexecjl --project=/path/to/project -n 20 julia script.jl
 ```
 
+On Windows systems, `mpiexecjl` is a powershell script that can be called as
+follows:
+
+```powershell
+powershell.exe -ExecutionPolicy ByPass -File $env:userprofile\\.julia\\bin\\mpiexecjl.ps1 --project=/path/to/project -n 20 julia script.jl
+```
+
 ## CUDA-aware MPI support
 
 If your MPI implementation has been compiled with CUDA support, then `CUDA.CuArray`s (from the
