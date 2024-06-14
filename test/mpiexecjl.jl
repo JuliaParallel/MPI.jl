@@ -34,5 +34,10 @@ using MPI
         # Without arguments, or only with the `--project` option, the wrapper will fail
         @test !withenv(() -> success(`$(mpiexecjl) --project=$(dir)`), env...)
         @test !withenv(() -> success(`$(mpiexecjl)`), env...)
+        # Test that the wrapper exits with the same exit code as the MPI process
+        exit_code = 10
+        p = run(`$(mpiexecjl) -n $(nprocs) --project=$(dir) $(julia) --startup-file=no -e "exit($(exit_code))"`; wait=false)
+        wait(p)
+        @test p.exitcode == exit_code
     end
 end
