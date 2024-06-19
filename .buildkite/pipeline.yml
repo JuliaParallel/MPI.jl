@@ -5,7 +5,7 @@
       key: "cuda-build-openmpi"
       agents:
         queue: "juliagpu"
-        cuda: "11.0"
+        cuda: "*"
       env:
         OPENMPI_VER: "4.1"
         OPENMPI_VER_FULL: "4.1.4"
@@ -96,7 +96,7 @@
             persist_depot_dirs: packages,artifacts,compiled
       agents:
         queue: "juliagpu"
-        cuda: "11.0"
+        cuda: "*"
       if: build.message !~ /\[skip tests\]/
       timeout_in_minutes: 60
       env:
