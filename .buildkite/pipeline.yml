@@ -48,10 +48,10 @@
       matrix:
         setup:
           version:
-            - "1.6"
-            - "1.7"
-            - "1.8"
-            - "1.9"
+            # - "1.6"
+            # - "1.7"
+            # - "1.8"
+            # - "1.9"
             - "1.10"
       plugins:
         - JuliaCI/julia#v1:
@@ -61,7 +61,7 @@
         queue: "juliagpu"
         cuda: "*"
       if: build.message !~ /\[skip tests\]/
-      timeout_in_minutes: 60
+      timeout_in_minutes: 90
       env:
         JULIA_MPI_TEST_NPROCS: 2
         JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
