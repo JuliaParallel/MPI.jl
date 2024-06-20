@@ -39,15 +39,10 @@ using DoubleFloats
     CUDA.precompile_runtime()
     ArrayType = CUDA.CuArray
 
-    MPI.Init()
-    if !MPI.has_cuda()
-        @error """
-        Your MPI implementation may not support CUDA.
-        To force running the tests anyway set the environment
-        variable `JULIA_MPI_HAS_CUDA=true`.
-        """
-        MPI.versioninfo()
-        exit(1)
+    @info """
+    Running CUDA tests. Ensure that your MPI implementation is
+    CUDA-aware using `MPI.has_cuda` before reporting issues.
+    """
     end
 elseif backend_name == "AMDGPU"
     Pkg.add("AMDGPU")
