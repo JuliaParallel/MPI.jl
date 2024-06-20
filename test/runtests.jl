@@ -43,7 +43,6 @@ using DoubleFloats
     Running CUDA tests. Ensure that your MPI implementation is
     CUDA-aware using `MPI.has_cuda` before reporting issues.
     """
-    end
 elseif backend_name == "AMDGPU"
     Pkg.add("AMDGPU")
     ENV["JULIA_MPI_TEST_ARRAYTYPE"] = "ROCArray"
