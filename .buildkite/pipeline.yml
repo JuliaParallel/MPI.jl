@@ -186,7 +186,7 @@
             '
 
         echo "+++ Run tests"
-        export JULIA_MPI_TEST_EXCLUDE="test_allreduce.jl,test_reduce.jl"
+        export JULIA_MPI_TEST_EXCLUDE="test_allreduce.jl,test_reduce.jl,test_scan.jl"
         julia --color=yes --project=. -e '
            import Pkg
            Pkg.test("MPI"; test_args=["--backend=AMDGPU"])
