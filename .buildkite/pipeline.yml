@@ -48,11 +48,13 @@
       matrix:
         setup:
           version:
-            # - "1.6"
-            # - "1.7"
-            # - "1.8"
-            # - "1.9"
+            - "1.6"
+            - "1.7"
+            - "1.8"
+            - "1.9"
             - "1.10"
+      concurrency: 1
+      concurrency_group: mpi_cuda
       plugins:
         - JuliaCI/julia#v1:
             version: "{{matrix.version}}"
@@ -104,7 +106,7 @@
       key: "rocm-build-openmpi"
       agents:
         queue: "juliagpu"
-        rocm: "*" # todo fix ROCM version
+        rocm: "*"
       env:
         OPENMPI_VER: "5.0"
         OPENMPI_VER_FULL: "5.0.3"
