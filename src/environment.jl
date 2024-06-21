@@ -324,6 +324,9 @@ provides a mechanism to check, so it will return `false` with other implementati
 
 This can be overriden by setting the `JULIA_MPI_HAS_CUDA` environment variable to `true`
 or `false`.
+
+!!! note
+    For OpenMPI or OpenMPI-based implementations you first need to call [Init()](@ref).
 """
 function has_cuda()
     flag = get(ENV, "JULIA_MPI_HAS_CUDA", nothing)
