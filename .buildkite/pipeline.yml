@@ -48,11 +48,13 @@
       matrix:
         setup:
           version:
-            # - "1.6"
-            # - "1.7"
-            # - "1.8"
-            # - "1.9"
+            - "1.6"
+            - "1.7"
+            - "1.8"
+            - "1.9"
             - "1.10"
+      concurrency: 3
+      concurrency_group: mpi_cuda
       plugins:
         - JuliaCI/julia#v1:
             version: "{{matrix.version}}"
