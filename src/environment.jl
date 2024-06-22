@@ -327,6 +327,8 @@ or `false`.
 
 !!! note
     For OpenMPI or OpenMPI-based implementations you first need to call [Init()](@ref).
+
+See also [`MPI.has_rocm`](@ref) for ROCm support.
 """
 function has_cuda()
     flag = get(ENV, "JULIA_MPI_HAS_CUDA", nothing)
@@ -354,6 +356,8 @@ provides a mechanism to check, so it will return `false` with other implementati
 
 This can be overriden by setting the `JULIA_MPI_HAS_ROCM` environment variable to `true`
 or `false`.
+
+See also [`MPI.has_cuda`](@ref) for CUDA support.
 """
 function has_rocm()
     flag = get(ENV, "JULIA_MPI_HAS_ROCM", nothing)
@@ -369,3 +373,17 @@ function has_rocm()
         return parse(Bool, flag)
     end
 end
+
+"""
+    MPI.has_gpu()
+
+Checks if the MPI implementation is known to have GPU support. Currently this checks for the
+following GPUs:
+
+1. CUDA: via [`MPI.has_cuda`](@ref)
+2. ROCm: via [`MPI.has_rocm`](@ref)
+
+See also [`MPI.has_cuda`](@ref) and [`MPI.has_rocm`](@ref) for more fine-grained
+checks.
+"""
+has_gpu() = has_cuda() || has_rocm()
