@@ -8,14 +8,20 @@ MPI.Init()
 
 @test MPI.has_cuda() isa Bool
 
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "CuArray"
+if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "CuArray"
     @test MPI.has_cuda()
 end
 
 @test MPI.has_rocm() isa Bool
 
-if get(ENV,"JULIA_MPI_TEST_ARRAYTYPE","") == "ROCArray"
+if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "ROCArray"
     @test MPI.has_rocm()
+end
+
+@test MPI.has_gpu() isa Bool
+
+if get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "CuArray" || get(ENV, "JULIA_MPI_TEST_ARRAYTYPE", "") == "ROCArray"
+    @test MPI.has_gpu()
 end
 
 @test !MPI.Finalized()
