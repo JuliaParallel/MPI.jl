@@ -150,6 +150,8 @@
         setup:
           version:
             - "1.10"
+      concurrency: 1
+      concurrency_group: mpi_rocm
       plugins:
         - JuliaCI/julia#v1:
             version: "{{matrix.version}}"
