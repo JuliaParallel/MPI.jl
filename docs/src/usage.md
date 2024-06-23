@@ -98,7 +98,8 @@ should confirm your MPI implementation to have the ROCm support (AMDGPU) enabled
 [alltoall\_test\_rocm\_multigpu.jl](https://gist.github.com/luraess/a47931d7fb668bd4348a2c730d5489f4) should confirm 
 your ROCm-aware MPI implementation to use multiple AMD GPUs (one GPU per rank).
 
-The status of ROCm (AMDGPU) support cannot currently be queried.
+If using OpenMPI, the status of ROCm support can be checked via the
+[`MPI.has_rocm()`](@ref) function.
 
 ## Writing MPI tests
 
