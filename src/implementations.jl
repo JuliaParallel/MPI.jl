@@ -84,7 +84,7 @@ using PkgVersion
 """
     MPI.versioninfo(io::IO=stdout)
 
-Print a summary of the curent MPI configuration.
+Print a summary of the current MPI configuration.
 """
 function versioninfo(io::IO=stdout)
     println(io, "MPIPreferences:")

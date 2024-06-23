@@ -33,7 +33,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
+          - macos-13
           - ubuntu-latest
           - windows-latest
         julia_version:
@@ -42,8 +42,12 @@ jobs:
           - "nightly"
         julia_arch: [x64, x86]
         exclude:
-          - os: macos-latest
+          - os: macos-13
             julia_arch: x86
+        include:
+          - os: macos-14
+            julia_arch: "aarch64"
+            julia_version: "1"
 
       fail-fast: false
 
@@ -53,7 +57,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         arch: ${{ matrix.julia_arch }}
         version: ${{ matrix.julia_version }}
@@ -65,7 +69,7 @@ jobs:
         using Pkg
         Pkg.develop(path="lib/MPIPreferences")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
     - uses: julia-actions/julia-processcoverage@v1
     - uses: codecov/codecov-action@v3
       with:
@@ -80,7 +84,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
+          - macos-13
           - ubuntu-latest
         julia_version:
           - "1.6"
@@ -88,7 +92,7 @@ jobs:
           - "nightly"
         julia_arch: [x64, x86]
         exclude:
-          - os: macos-latest
+          - os: macos-13
             julia_arch: x86
 
       fail-fast: false
@@ -104,7 +108,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         arch: ${{ matrix.julia_arch }}
         version: ${{ matrix.julia_version }}
@@ -125,21 +129,32 @@ jobs:
         MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
   test-system-brew:
     timeout-minutes: 20
     strategy:
       matrix:
+        os:
+          - macos-13
+          - macos-14
         mpi:
           - mpich
           - openmpi
         julia_version:
           - "1"
+        julia_arch:
+          - "x64"
+          - "aarch64"
+        exclude:
+          - os: macos-13
+            julia_arch: "aarch64"
+          - os: macos-14
+            julia_arch: "x64"
 
       fail-fast: false
 
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     env:
       JULIA_MPI_TEST_BINARY: system
       ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
@@ -149,13 +164,13 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install MPI via homebrew
-      run: brew install $MPI
-      env:
-        MPI: ${{ matrix.mpi }}
+      run: |
+        brew install "${{ matrix.mpi }}"
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
+        arch: ${{ matrix.julia_arch }}
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
@@ -168,9 +183,11 @@ jobs:
       shell: julia --color=yes --project=. {0}
       run: |
         using MPIPreferences
-        MPIPreferences.use_system_binary()
+        mpi_prefix = readchomp(`brew --prefix ${{ matrix.mpi }}`)
+        libdir = joinpath(mpi_prefix, "lib")
+        MPIPreferences.use_system_binary(; extra_paths=[libdir])
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
       env:
         # TODO: Only disable this test for MPICH. OpenMPI works fine.
         JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
@@ -206,7 +223,7 @@ jobs:
       env:
         MPI: ${{ matrix.mpi }}
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
@@ -223,19 +240,23 @@ jobs:
         using MPIPreferences
         MPIPreferences.use_system_binary()
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
   test-intel-linux:
     timeout-minutes: 20
     strategy:
       matrix:
-        julia_version:
-          - "1"
+        include:
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-jq
+            name: "Intel MPI 2019.9.304"
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-jq
+            name: "Intel oneAPI MPI 2021.11.0"
 
       fail-fast: false
 
     runs-on: ubuntu-latest
-    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-2019.9.304-ecfipz6mxgepmrkwp5dl5oohion5m54r.spack
+    container: ${{ matrix.container }}
+    name: "Test ${{ matrix.name }}"
 
     env:
       JULIA_MPI_TEST_BINARY: system
@@ -247,7 +268,7 @@ jobs:
 
     - uses: julia-actions/setup-julia@v1
       with:
-        version: ${{ matrix.julia_version }}
+        version: "1"
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
@@ -262,47 +283,7 @@ jobs:
           using MPIPreferences
           MPIPreferences.use_system_binary()'
 
-    - uses: julia-actions/julia-runtest@latest
-
-
-  test-oneapi-linux:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        julia_version:
-          - "1"
-
-      fail-fast: false
-
-    runs-on: ubuntu-latest
-    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-2021.7.0-gzc7es2p27ftwyk4sdplynlj6d54xzi6.spack
-
-    env:
-      JULIA_MPI_TEST_BINARY: system
-      JULIA_MPI_TEST_ABI: MPICH
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - uses: julia-actions/setup-julia@v1
-      with:
-        version: ${{ matrix.julia_version }}
-
-    - uses: julia-actions/cache@v1
-    - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
-      run: |
-        using Pkg
-        Pkg.develop(path="lib/MPIPreferences")
-
-    - name: use system MPI
-      run: |
-        julia --color=yes --project=. -e '
-          using MPIPreferences
-          MPIPreferences.use_system_binary()'
-
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-system-msmpi:
@@ -328,7 +309,7 @@ jobs:
       run: msmpisetup.exe -unattend -minimal
       shell: cmd
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
@@ -351,7 +332,7 @@ jobs:
         )
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-mpitrampoline-jll:
@@ -359,7 +340,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-latest
+          - macos-13
           - ubuntu-latest
         mpi: [mpitrampoline]
         julia_version:
@@ -370,7 +351,7 @@ jobs:
           - x64
           - x86
         exclude:
-          - os: macos-latest
+          - os: macos-13
             julia_arch: x86
 
       fail-fast: false
@@ -384,7 +365,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
@@ -405,7 +386,7 @@ jobs:
         MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-mpitrampoline-system-apt:
@@ -421,7 +402,7 @@ jobs:
           # - "1.7"
           # - "nightly"
         MPIWrapper:
-          - "2.10.3"
+          - "2.11.0"
 
       fail-fast: false
 
@@ -457,7 +438,7 @@ jobs:
       env:
         MPIWrapper: ${{matrix.MPIWrapper}}
 
-    - uses: julia-actions/setup-julia@latest
+    - uses: julia-actions/setup-julia@v1
       with:
         version: ${{ matrix.julia_version }}
 
@@ -478,7 +459,7 @@ jobs:
         MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-mpitrampoline-oneapi-linux:
@@ -488,12 +469,12 @@ jobs:
         julia_version:
           - "1"
         MPIWrapper:
-          - "2.10.3"
+          - "2.11.0"
 
       fail-fast: false
 
     runs-on: ubuntu-latest
-    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-2021.7.0-gzc7es2p27ftwyk4sdplynlj6d54xzi6.spack
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-jq
 
     env:
       JULIA_MPI_TEST_BINARY: MPItrampoline_jll
@@ -545,25 +526,32 @@ jobs:
         MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
         rm("test/Manifest.toml")
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
 
 
   test-spack-mvapich:
     timeout-minutes: 20
     strategy:
       matrix:
-        julia_version:
-          - "1"
+        include:
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich2-jq
+            name: "MVAPICH 2.3.7"
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich3-jq
+            name: "MVAPICH 3.0"
 
       fail-fast: false
 
     runs-on: ubuntu-22.04
-    container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich2-2.3.7-1-hs7gkcclsnk55kqm52a4behdnt3dug6b.spack
+    container: ${{ matrix.container }}
+    name: "Test ${{ matrix.name }}"
 
     env:
       JULIA_MPI_TEST_BINARY: system
       JULIA_MPI_TEST_EXCLUDE: test_spawn.jl
       MV2_SMP_USE_CMA: 0
+      # Work around issue with affinity not set.  Ref:
+      # https://github.com/JuliaParallel/MPI.jl/pull/810#issuecomment-1920255386
+      MVP_ENABLE_AFFINITY: 0
 
     steps:
     - name: Checkout
@@ -571,7 +559,7 @@ jobs:
 
     - uses: julia-actions/setup-julia@v1
       with:
-        version: ${{ matrix.julia_version }}
+        version: "1"
 
     - uses: julia-actions/cache@v1
     - name: add MPIPreferences
@@ -587,4 +575,53 @@ jobs:
         using MPIPreferences
         MPIPreferences.use_system_binary()
 
-    - uses: julia-actions/julia-runtest@latest
+    - uses: julia-actions/julia-runtest@v1
+
+
+  # TODO: Can remove this once we can use OpenMPI_jll v5
+  test-spack-openmpi5:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        include:
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:openmpi5-jq
+            name: "OpenMPI 5.0.2"
+
+      fail-fast: false
+
+    runs-on: ubuntu-22.04
+    container: ${{ matrix.container }}
+    name: "Test ${{ matrix.name }}"
+
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_ABI: OpenMPI
+      # Allow running as root
+      OMPI_ALLOW_RUN_AS_ROOT: 1
+      OMPI_ALLOW_RUN_AS_ROOT_CONFIRM: 1
+      # Allow oversubscription
+      PRTE_MCA_rmaps_default_mapping_policy: :oversubscribe
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - uses: julia-actions/setup-julia@v1
+      with:
+        version: "1"
+
+    - uses: julia-actions/cache@v1
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        Pkg.precompile()
+
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using MPIPreferences
+        MPIPreferences.use_system_binary()
+
+    - uses: julia-actions/julia-runtest@v1

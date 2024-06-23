@@ -61,7 +61,12 @@ fi
 SCRIPT='
 using MPI
 ENV["JULIA_PROJECT"] = dirname(Base.active_project())
-mpiexec(exe -> run(`$exe $ARGS`))
+proc = run(pipeline(`$(mpiexec()) $(ARGS)`; stdout, stderr); wait=false)
+wait(proc)
+if !iszero(proc.exitcode)
+   @error "The MPI process failed" proc
+end
+exit(proc.exitcode)
 '
 
 if [ -n "${PROJECT_ARG}" ]; then

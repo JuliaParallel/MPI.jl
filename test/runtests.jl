@@ -38,6 +38,11 @@ using DoubleFloats
     end
     CUDA.precompile_runtime()
     ArrayType = CUDA.CuArray
+
+    @info """
+    Running CUDA tests. Ensure that your MPI implementation is
+    CUDA-aware using `MPI.has_cuda` before reporting issues.
+    """
 elseif backend_name == "AMDGPU"
     Pkg.add("AMDGPU")
     ENV["JULIA_MPI_TEST_ARRAYTYPE"] = "ROCArray"

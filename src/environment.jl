@@ -320,10 +320,15 @@ Wtime() = API.MPI_Wtime()
 
 Check if the MPI implementation is known to have CUDA support. Currently only Open MPI
 provides a mechanism to check, so it will return `false` with other implementations
-(unless overriden).
+(unless overriden). For "IBMSpectrumMPI" it will return `true`.
 
 This can be overriden by setting the `JULIA_MPI_HAS_CUDA` environment variable to `true`
 or `false`.
+
+!!! note
+    For OpenMPI or OpenMPI-based implementations you first need to call [Init()](@ref).
+
+See also [`MPI.has_rocm`](@ref) for ROCm support.
 """
 function has_cuda()
     flag = get(ENV, "JULIA_MPI_HAS_CUDA", nothing)
@@ -331,7 +336,7 @@ function has_cuda()
         # Only Open MPI provides a function to check CUDA support
         @static if MPI_LIBRARY == "OpenMPI"
             # int MPIX_Query_cuda_support(void)
-            return 0 != ccall((:MPIX_Query_cuda_support, libmpi), Cint, ())
+            return @ccall libmpi.MPIX_Query_cuda_support()::Bool
         elseif MPI_LIBRARY == "IBMSpectrumMPI"
             return true
         else
@@ -341,3 +346,44 @@ function has_cuda()
         return parse(Bool, flag)
     end
 end
+
+"""
+    MPI.has_rocm()
+
+Check if the MPI implementation is known to have ROCm support. Currently only Open MPI
+provides a mechanism to check, so it will return `false` with other implementations
+(unless overriden).
+
+This can be overriden by setting the `JULIA_MPI_HAS_ROCM` environment variable to `true`
+or `false`.
+
+See also [`MPI.has_cuda`](@ref) for CUDA support.
+"""
+function has_rocm()
+    flag = get(ENV, "JULIA_MPI_HAS_ROCM", nothing)
+    if flag === nothing
+        # Only Open MPI provides a function to check ROCm support
+        @static if MPI_LIBRARY == "OpenMPI" && MPI_LIBRARY_VERSION ≥ v"5"
+            # int MPIX_Query_rocm_support(void)
+            return @ccall libmpi.MPIX_Query_rocm_support()::Bool
+        else
+            return false
+        end
+    else
+        return parse(Bool, flag)
+    end
+end
+
+"""
+    MPI.has_gpu()
+
+Checks if the MPI implementation is known to have GPU support. Currently this checks for the
+following GPUs:
+
+1. CUDA: via [`MPI.has_cuda`](@ref)
+2. ROCm: via [`MPI.has_rocm`](@ref)
+
+See also [`MPI.has_cuda`](@ref) and [`MPI.has_rocm`](@ref) for more fine-grained
+checks.
+"""
+has_gpu() = has_cuda() || has_rocm()
