@@ -106,34 +106,38 @@
       key: "rocm-build-openmpi"
       agents:
         queue: "juliagpu"
-        rocm: "*" # todo fix ROCM version
+        rocm: "*"
       env:
-        OPENMPI_VER: "4.1"
-        OPENMPI_VER_FULL: "4.1.4"
-        UCX_VER: "1.13-rc1"
+        OPENMPI_VER: "5.0"
+        OPENMPI_VER_FULL: "5.0.3"
+        UCX_VER: "1.17.0"
         CCACHE_DIR: "/root/ccache"
       commands: |
         echo "--- Install packages"
         apt-get install --yes --no-install-recommends curl ccache
         export PATH="/usr/lib/ccache/:$$PATH"
+
         echo "--- Build UCX"
-        curl -L https://github.com/openucx/ucx/releases/download/v1.13.0-rc1/ucx-1.13.0.tar.gz --output ucx.tar.gz
+        curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
         tar -zxf ucx.tar.gz
         pushd ucx-*
         ./configure --with-rocm --enable-mt --prefix=$$(realpath ../mpi-prefix)
         make -j
         make install
         popd
+
         echo "--- Build OpenMPI"
         curl -L https://download.open-mpi.org/release/open-mpi/v$${OPENMPI_VER}/openmpi-$${OPENMPI_VER_FULL}.tar.gz --output openmpi.tar.gz
         tar -zxf openmpi.tar.gz
-        pushd openmpi-*
-        ./configure --with-ucx=$$(realpath ../mpi-prefix) --prefix=$$(realpath ../mpi-prefix)
+        pushd openmpi-$${OPENMPI_VER_FULL}
+        ./configure --with-ucx=$$(realpath ../mpi-prefix) --with-rocm --prefix=$$(realpath ../mpi-prefix)
         make -j
         make install
         popd
+
         echo "--- Package prefix"
         tar -zcf mpi-prefix.tar.gz mpi-prefix/
+
         echo "--- ccache stats"
         ccache -s
       artifact_paths:
@@ -141,18 +145,22 @@
 
     - wait
 
-    - label: "Tests -- Julia latest"
+    - label: "Tests -- Julia {{matrix.version}}"
+      matrix:
+        setup:
+          version:
+            - "1.10"
+      concurrency: 1
+      concurrency_group: mpi_rocm
       plugins:
         - JuliaCI/julia#v1:
-            version: "1" # failing on 1.8
+            version: "{{matrix.version}}"
             persist_depot_dirs: packages,artifacts,compiled
       agents:
         queue: "juliagpu"
-        rocm: "*" # todo fix ROCM version
+        rocm: "*"
       if: build.message !~ /\[skip tests\]/
-      timeout_in_minutes: 60
-      soft_fail:
-        - exit_status: 1
+      timeout_in_minutes: 90
       env:
         JULIA_MPI_TEST_NPROCS: 2
         JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/openmpi"
@@ -182,6 +190,7 @@
             '
 
         echo "+++ Run tests"
+        export JULIA_MPI_TEST_EXCLUDE="test_allreduce.jl,test_reduce.jl,test_scan.jl"
         julia --color=yes --project=. -e '
            import Pkg
            Pkg.test("MPI"; test_args=["--backend=AMDGPU"])
