@@ -7,9 +7,9 @@
         queue: "juliagpu"
         cuda: "*"
       env:
-        OPENMPI_VER: "5.0"
-        OPENMPI_VER_FULL: "5.0.3"
-        UCX_VER: "1.17.0"
+        OPENMPI_VER: "4.1"
+        OPENMPI_VER_FULL: "4.1.4"
+        UCX_VER: "1.12.1"
         CCACHE_DIR: "/root/ccache"
       commands: |
         echo "--- Install packages"
