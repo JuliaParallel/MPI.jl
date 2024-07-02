@@ -112,6 +112,22 @@ function __init__()
         """ ENV["JULIA_MPI_BINARY"]=mpi_env_binary MPIPreferences.binary
     end
 
+    # Set environment variables before dlopen.
+
+    # disable UCX memory cache, since it doesn't work correctly
+    # https://github.com/openucx/ucx/issues/5061
+    if !haskey(ENV, "UCX_MEMTYPE_CACHE")
+        ENV["UCX_MEMTYPE_CACHE"] = "no"
+    end
+
+    # Julia multithreading uses SIGSEGV to sync threads
+    # https://docs.julialang.org/en/v1/devdocs/debuggingtips/#Dealing-with-signals-1
+    # By default, UCX will error if this occurs (issue #337)
+    if !haskey(ENV, "UCX_ERROR_SIGNALS")
+        # default is "SIGILL,SIGSEGV,SIGBUS,SIGFPE"
+        ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
+    end
+
     # preload any dependencies of libmpi (if needed, eg. GTL on cray) before
     # dlopen'ing the MPI library: https://github.com/JuliaParallel/MPI.jl/pull/716
     MPIPreferences.dlopen_preloads()
@@ -132,20 +148,6 @@ function __init__()
     # Needs to be called after `dlopen`. Use `invokelatest` so that `cglobal`
     # calls don't trigger early `dlopen`-ing of the library.
     Base.invokelatest(API.init_consts)
-
-    # disable UCX memory cache, since it doesn't work correctly
-    # https://github.com/openucx/ucx/issues/5061
-    if !haskey(ENV, "UCX_MEMTYPE_CACHE")
-        ENV["UCX_MEMTYPE_CACHE"] = "no"
-    end
-
-    # Julia multithreading uses SIGSEGV to sync threads
-    # https://docs.julialang.org/en/v1/devdocs/debuggingtips/#Dealing-with-signals-1
-    # By default, UCX will error if this occurs (issue #337)
-    if !haskey(ENV, "UCX_ERROR_SIGNALS")
-        # default is "SIGILL,SIGSEGV,SIGBUS,SIGFPE"
-        ENV["UCX_ERROR_SIGNALS"] = "SIGILL,SIGBUS,SIGFPE"
-    end
 
     if MPIPreferences.binary == "MPItrampoline_jll" && !haskey(ENV, "MPITRAMPOLINE_MPIEXEC")
         ENV["MPITRAMPOLINE_MPIEXEC"] = API.MPItrampoline_jll.mpich_mpiexec_path
