@@ -320,9 +320,9 @@ Wtime() = API.MPI_Wtime()
 
 Check if the MPI implementation is known to have CUDA support. Currently only Open MPI
 provides a mechanism to check, so it will return `false` with other implementations
-(unless overriden). For "IBMSpectrumMPI" it will return `true`.
+(unless overridden). For "IBMSpectrumMPI" it will return `true`.
 
-This can be overriden by setting the `JULIA_MPI_HAS_CUDA` environment variable to `true`
+This can be overridden by setting the `JULIA_MPI_HAS_CUDA` environment variable to `true`
 or `false`.
 
 !!! note
@@ -352,9 +352,9 @@ end
 
 Check if the MPI implementation is known to have ROCm support. Currently only Open MPI
 provides a mechanism to check, so it will return `false` with other implementations
-(unless overriden).
+(unless overridden).
 
-This can be overriden by setting the `JULIA_MPI_HAS_ROCM` environment variable to `true`
+This can be overridden by setting the `JULIA_MPI_HAS_ROCM` environment variable to `true`
 or `false`.
 
 See also [`MPI.has_cuda`](@ref) for CUDA support.
