@@ -66,7 +66,7 @@ Switches the underlying MPI implementation to one provided by JLL packages. A
 restart of Julia is required for the changes to take effect.
 
 Available options are:
-- `"MicrosoftMPI_jll"` (Only option and default on Winddows)
+- `"MicrosoftMPI_jll"` (Only option and default on Windows)
 - `"MPICH_jll"` (Default on all other platform)
 - `"OpenMPI_jll"`
 - `"MPItrampoline_jll"`
