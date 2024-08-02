@@ -346,7 +346,7 @@ Matching non-blocking probe. Similar to [`MPI.Iprobe`](@ref), except that it
 also returns `msg`, an [`MPI.Message`](@ref) object. 
 
 Checks if there is a message that can be received matching `source`, `tag` and
-`comm`. If so, returns `ismsg = true`, and a [`Message`](@ref) objec `msg`,
+`comm`. If so, returns `ismsg = true`, and a [`Message`](@ref) object `msg`,
 which must be received by either [`MPI.Mrecv!`](@ref) or [`MPI.Imrecv!`](@ref).
 Otherwise `msg` is set to be a null `Message`.
     
@@ -380,7 +380,7 @@ Matching blocking probe. Similar to [`MPI.Probe`](@ref), except that it also
 returns `msg`, an [`MPI.Message`](@ref) object. 
 
 Blocks until a message that can be received matching `source`, `tag` and `comm`,
-returning a [`Message`](@ref) objec `msg`, which must be received by either
+returning a [`Message`](@ref) object `msg`, which must be received by either
 [`MPI.Mrecv!`](@ref) or [`MPI.Imrecv!`](@ref).
     
 The `Status` argument additionally returns the [`Status`](@ref) of the completed

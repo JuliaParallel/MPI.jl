@@ -287,7 +287,7 @@ It is unaffected by [`MPI.Finalize`](@ref), and is one of the few functions that
 called before [`MPI.Init`](@ref).
 
 # External links
-$(_doc_external("MPI_Intialized"))
+$(_doc_external("MPI_Initialized"))
 """
 function Initialized()
     flag = Ref{Cint}()
