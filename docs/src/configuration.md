@@ -2,7 +2,7 @@
 
 By default, MPI.jl will download and link against the following MPI implementations:
 - [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi) on Windows
-- [MPICH](http://www.mpich.org/) on all other platforms
+- [MPICH](https://www.mpich.org/) on all other platforms
 
 This is suitable for most single-node use cases, but for larger systems, such as HPC
 clusters or multi-GPU machines, you will probably want to configure against a
@@ -30,12 +30,12 @@ julia --project -e 'using Pkg; Pkg.add("MPIPreferences")'
 MPI.jl requires a shared library installation of a C MPI library, supporting the MPI 3.0
 standard or later. The following MPI implementations should work out-of-the-box with MPI.jl:
 
-- [Open MPI](http://www.open-mpi.org/)
-- [MPICH](http://www.mpich.org/) (v3.1 or later)
+- [Open MPI](https://www.open-mpi.org/)
+- [MPICH](https://www.mpich.org/) (v3.1 or later)
 - [Intel MPI](https://software.intel.com/en-us/mpi-library)
 - [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
 - [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
-- [MVAPICH](http://mvapich.cse.ohio-state.edu/)
+- [MVAPICH](https://mvapich.cse.ohio-state.edu/)
 - [Cray MPICH](https://docs.nersc.gov/development/compilers/wrappers/)
 - [Fujitsu MPI](https://www.fujitsu.com/global/about/resources/publications/technicalreview/2020-03/article07.html#cap-03)
 - [HPE MPT/HMPT](https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&docId=a00105727en_us)
