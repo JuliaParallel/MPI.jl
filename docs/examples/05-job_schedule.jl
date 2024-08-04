@@ -3,8 +3,8 @@
 # assigns one element to each worker to compute the operation.
 # When the worker is finished, the root sends another element
 # until each element is added 100
-# Inspired on
-# https://www.hpc.ntnu.no/ntnu-hpc-group/vilje/user-guide/software/mpi-and-mpi-io-training-tutorial/basic-mpi/job-queue
+# Inspired on https://www.hpc.ntnu.no/vilje/software/mpi-and-mpi-io-training-tutorial/
+# wget https://www.hpc.ntnu.no/wp-content/uploads/2019/09/mpiexamples.tar.gz
 
 using MPI
 
