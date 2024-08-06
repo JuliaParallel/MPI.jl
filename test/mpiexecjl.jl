@@ -15,25 +15,21 @@ using MPI
         # Test a run of mpiexec
         nprocs_str = get(ENV, "JULIA_MPI_TEST_NPROCS", "")
         nprocs = nprocs_str == "" ? clamp(Sys.CPU_THREADS, 2, 4) : parse(Int, nprocs_str)
-        mpiexecjl = joinpath(dir, "mpiexecjl")
+        env = ["JULIA_BINDIR" => Sys.BINDIR]
+        mpiexecjl = addenv(`$(joinpath(dir, "mpiexecjl"))`, env...)
         # `Base.julia_cmd()` ensures keeping consistent flags when running subprocesses.
         julia = Base.julia_cmd()
         example = joinpath(@__DIR__, "..", "docs", "examples", "01-hello.jl")
-        env = ["JULIA_BINDIR" => Sys.BINDIR]
-        p = withenv(env...) do
-            run(`$(mpiexecjl) -n $(nprocs) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
-        end
+        p = run(`$(mpiexecjl) -n $(nprocs) --project=$(dir) $(julia) --startup-file=no -q $(example)`)
         @test success(p)
         # Test help messages
         for help_flag in ("-h", "--help")
-            help_message = withenv(env...) do
-                read(`$(mpiexecjl) --project=$(dir) --help`, String)
-            end
+            help_message = read(`$(mpiexecjl) --project=$(dir) --help`, String)
             @test occursin(r"Usage:.*MPIEXEC_ARGUMENTS", help_message)
         end
         # Without arguments, or only with the `--project` option, the wrapper will fail
-        @test !withenv(() -> success(`$(mpiexecjl) --project=$(dir)`), env...)
-        @test !withenv(() -> success(`$(mpiexecjl)`), env...)
+        @test !success(`$(mpiexecjl) --project=$(dir)`)
+        @test !success(mpiexecjl)
         # Test that the wrapper exits with the same exit code as the MPI process
         exit_code = 10
         p = run(`$(mpiexecjl) -n $(nprocs) --project=$(dir) $(julia) --startup-file=no -e "exit($(exit_code))"`; wait=false)
