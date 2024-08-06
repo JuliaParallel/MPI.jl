@@ -19,9 +19,27 @@ end
 
 
 function _doc_external(fname)
-"""
-- `$fname` man page: [OpenMPI](https://www.open-mpi.org/doc/current/man3/$fname.3.php), [MPICH](https://www.mpich.org/static/docs/latest/www3/$fname.html)
-"""
+    # Ideally we'd like to use the "latest" version of the docs, but MPICH v4.0
+    # at the moment seems to be the last version with all the docstrings.
+    mpich = "[MPICH](https://www.mpich.org/static/docs/v4.0/www3/$(fname).html)"
+    # All the *_c functions are undocumented in OpenMPI website
+    if !endswith(string(fname), "_c")
+        openmpi = "[OpenMPI](https://docs.open-mpi.org/en/main/man-openmpi/man3/$(fname).3.html)"
+        # Few docstrings aren't available for MPICH
+        if fname in (:MPI_Status_c2f, :MPI_Status_f2c) || startswith(string(fname), "MPI_Type_create_f90_")
+            return """
+            - `$fname` man page: $(openmpi)
+            """
+        else
+            return """
+            - `$fname` man page: $(openmpi), $(mpich)
+            """
+        end
+    else
+        return """
+        - `$fname` man page: $(mpich)
+        """
+    end
 end
 
 """
