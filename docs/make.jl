@@ -78,6 +78,7 @@ makedocs(
         ],
         "refindex.md",
     ],
+    linkcheck = true,
 )
 
 deploydocs(
