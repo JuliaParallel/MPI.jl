@@ -1,7 +1,7 @@
 # Configuration
 
 By default, MPI.jl will download and link against the following MPI implementations:
-- [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi) on Windows
+- [Microsoft MPI](https://learn.microsoft.com/en-us/message-passing-interface/microsoft-mpi) on Windows
 - [MPICH](https://www.mpich.org/) on all other platforms
 
 This is suitable for most single-node use cases, but for larger systems, such as HPC
@@ -32,9 +32,9 @@ standard or later. The following MPI implementations should work out-of-the-box 
 
 - [Open MPI](https://www.open-mpi.org/)
 - [MPICH](https://www.mpich.org/) (v3.1 or later)
-- [Intel MPI](https://software.intel.com/en-us/mpi-library)
-- [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
-- [IBM Spectrum MPI](https://www.ibm.com/us-en/marketplace/spectrum-mpi)
+- [Intel MPI](https://www.intel.com/content/www/us/en/developer/tools/oneapi/mpi-library.html)
+- [Microsoft MPI](https://learn.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
+- [IBM Spectrum MPI](https://www.ibm.com/products/spectrum-mpi)
 - [MVAPICH](https://mvapich.cse.ohio-state.edu/)
 - [Cray MPICH](https://docs.nersc.gov/development/compilers/wrappers/)
 - [Fujitsu MPI](https://www.fujitsu.com/global/about/resources/publications/technicalreview/2020-03/article07.html#cap-03)
@@ -163,7 +163,7 @@ run on a non-GPU enabled node without needing a separate `LocalPreferences.toml`
 
 The following MPI implementations are provided as JLL packages and automatically obtained when installing MPI.jl:
 
-- `MicrosoftMPI_jll`: [Microsoft MPI](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi) Default for Windows
+- `MicrosoftMPI_jll`: [Microsoft MPI](https://learn.microsoft.com/en-us/message-passing-interface/microsoft-mpi) Default for Windows
 - `MPICH_jll`: [MPICH](https://www.mpich.org/). Default for all other systems
 - `OpenMPI_jll`: [Open MPI](https://www.open-mpi.org/)
 - `MPItrampoline_jll`: [MPItrampoline](https://github.com/eschnett/MPItrampoline): an MPI forwarding layer.
