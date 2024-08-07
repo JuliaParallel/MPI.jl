@@ -5,8 +5,8 @@
 # until each element is added 100
 # Inspired by https://www.hpc.ntnu.no/vilje/software/mpi-and-mpi-io-training-tutorial/
 # https://www.hpc.ntnu.no/vilje/software/mpi-and-mpi-io-training-tutorial/basic-mpi/job-queue/
-# the updated job_queue.c file is available in the extracted .tar.gz 04_job_queue subdirectory
-# wget https://www.hpc.ntnu.no/wp-content/uploads/2019/09/mpiexamples.tar.gz
+# an updated job_queue.c is available in the basic_mpi/04_job_queue/src subdirectory of
+# the extracted https://www.hpc.ntnu.no/wp-content/uploads/2019/09/mpiexamples.tar.gz
 
 using MPI
 
