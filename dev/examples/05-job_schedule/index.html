@@ -5,8 +5,10 @@
 # assigns one element to each worker to compute the operation.
 # When the worker is finished, the root sends another element
 # until each element is added 100
-# Inspired on
-# https://www.hpc.ntnu.no/ntnu-hpc-group/vilje/user-guide/software/mpi-and-mpi-io-training-tutorial/basic-mpi/job-queue
+# Inspired by https://www.hpc.ntnu.no/vilje/software/mpi-and-mpi-io-training-tutorial/
+# https://www.hpc.ntnu.no/vilje/software/mpi-and-mpi-io-training-tutorial/basic-mpi/job-queue/
+# an updated job_queue.c is available in the basic_mpi/04_job_queue/src subdirectory of
+# the extracted https://www.hpc.ntnu.no/wp-content/uploads/2019/09/mpiexamples.tar.gz
 
 using MPI
 
@@ -134,9 +136,9 @@ f = x -&gt; x.+100
 data = collect(1:10)
 job_queue(data,f)</code></pre><pre><code class="nohighlight hljs">&gt; mpiexecjl -n 4 julia examples/05-job_schedule.jl
 Root: Sent number 1 to Worker 1
-Worker 1: Received number 1 from root
 Root: Sent number 2 to Worker 2
 Root: Sent number 3 to Worker 3
+Worker 1: Received number 1 from root
 Root: Received number 101 from Worker 1
 Root: Sent number 4 to Worker 1
 Worker 1: Received number 4 from root
@@ -159,14 +161,14 @@ Root: Received number 109 from Worker 1
 Root: Sent number 10 to Worker 1
 Worker 1: Received number 10 from root
 Root: Received number 110 from Worker 1
-Worker 2: Received number 2 from root
-Root: Received number 102 from Worker 2
 Worker 3: Received number 3 from root
 Root: Received number 103 from Worker 3
+Worker 2: Received number 2 from root
+Root: Received number 102 from Worker 2
 Root: Finish Worker 1
 Worker 1: Finish
 Root: Finish Worker 2
 Worker 2: Finish
 Root: Finish Worker 3
 Worker 3: Finish
-Root: New data = [101, 104, 105, 106, 107, 108, 109, 110, 102, 103]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../04-sendrecv/">« Send/receive</a><a class="docs-footer-nextpage" href="../06-scatterv/">Scatterv and Gatherv »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.5.0 on <span class="colophon-date" title="Tuesday 6 August 2024 22:11">Tuesday 6 August 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Root: New data = [101, 104, 105, 106, 107, 108, 109, 110, 103, 102]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../04-sendrecv/">« Send/receive</a><a class="docs-footer-nextpage" href="../06-scatterv/">Scatterv and Gatherv »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.5.0 on <span class="colophon-date" title="Wednesday 7 August 2024 21:36">Wednesday 7 August 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
