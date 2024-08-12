@@ -20,7 +20,7 @@ Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 
 [compat]
 Distributed = "1"
-AMDGPU = "0.6, 0.7, 0.8, 0.9, 1.0"
+AMDGPU = "0.6, 0.7, 0.8, 0.9, 1"
 CUDA = "3, 4, 5"
 DocStringExtensions = "0.8, 0.9"
 Libdl = "1"
