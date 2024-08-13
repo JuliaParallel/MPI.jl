@@ -9,6 +9,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 [compat]
 AMDGPU = "0.6, 0.7, 0.8, 0.9"
 CUDA = "3, 4, 5"
+MPIPreferences = "0.1"
 TOML = "< 0.0.1, 1.0"
 
 [extras]
