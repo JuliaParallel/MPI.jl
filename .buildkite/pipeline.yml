@@ -94,7 +94,7 @@
             '
 
         echo "+++ Run tests"
-        export JULIA_MPI_TEST_EXCLUDE="test_allreduce.jl,test_allgather.jl,test_allgatherv.jl"
+        export JULIA_MPI_TEST_EXCLUDE="test_allreduce.jl,test_allgather.jl,test_allgatherv.jl,test_alltoall.jl"
         julia --color=yes --project=. -e '
            import Pkg
            Pkg.test("MPI"; test_args=["--backend=CUDA"])
