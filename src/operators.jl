@@ -108,24 +108,34 @@ function Op(f, T=Any; iscommutative=false)
     return op
 end
 
+"""
+    @Op(f, T)
+
+Define a custom operator [`Op`](@ref) using the function `f`.
+
+"""
 macro Op(f, T)
     name_wrapper = gensym(Symbol(f, :_, T, :_wrapper))
     name_fptr = gensym(Symbol(f, :_, T, :_ptr))
     name_module = gensym(Symbol(f, :_, T, :_module))
-    esc(quote
+    expr = quote
         module $(name_module)
+            import ..$f, ..$T
             $(name_wrapper) = $OpWrapper{typeof($f),$T}($f)
             $(name_fptr) = @cfunction($(name_wrapper), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{$MPI_Datatype}))
             function __init__()
                 global $(name_fptr) = @cfunction($(name_wrapper), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{$MPI_Datatype}))
             end
-            function $Op(::typeof($f), ::Type{T}; iscommutative=true)
-                op = $Op($OP_NULL.val, $(name_fptr))
+            import MPI: Op
+            function Op(::typeof($f), ::Type{$T}; iscommutative=true)
+                op = Op($OP_NULL.val, $(name_fptr))
                 # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
                 $API.MPI_Op_create($(name_fptr), iscommutative, op)
 
                 finalizer($free, op)
             end
         end
-    end)
+    end
+    expr.head = :toplevel
+    esc(expr)
 end

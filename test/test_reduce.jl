@@ -59,12 +59,10 @@ if isroot
     @test sum_mesg == sz .* mesg
 end
 
-@eval begin
-    function my_reduce(x, y)
-        2x+y-x
-    end
-    MPI.@Op(my_reduce, Int)
+function my_reduce(x, y)
+    2x+y-x
 end
+MPI.@Op(my_reduce, Int)
 
 if can_do_closures
     operators = [MPI.SUM, +, my_reduce, (x,y) -> 2x+y-x]
