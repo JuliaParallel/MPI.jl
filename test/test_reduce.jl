@@ -62,7 +62,7 @@ end
 function my_reduce(x, y)
     2x+y-x
 end
-@Op(my_reduce, Int)
+MPI.@Op(my_reduce, Int)
 
 if can_do_closures
     operators = [MPI.SUM, +, my_reduce, (x,y) -> 2x+y-x]
