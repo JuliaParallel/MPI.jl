@@ -120,7 +120,8 @@ macro Op(f, T)
     name_module = gensym(Symbol(f, :_, T, :_module))
     expr = quote
         module $(name_module)
-            import ..$f, ..$T
+            # import ..$f, ..$T
+            $(Expr(:import, Expr(:., :., :., f), Expr(:., :., :., T))) # Julia 1.6 strugles with import ..$f, ..$T
             $(name_wrapper) = $OpWrapper{typeof($f),$T}($f)
             $(name_fptr) = @cfunction($(name_wrapper), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{$MPI_Datatype}))
             function __init__()
