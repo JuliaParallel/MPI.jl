@@ -26,6 +26,7 @@ MPI.Types.duplicate
 
 ```@docs
 MPI.Op
+MPI.@Op
 ```
 
 ## Info objects

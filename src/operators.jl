@@ -112,7 +112,24 @@ end
     @Op(f, T)
 
 Define a custom operator [`Op`](@ref) using the function `f`.
+On platfroms like AArch53, Julia does not support runtime closures,
+being passed to C. The generic version of [`Op`](@ref) uses that
+to support arbitrary function being passed as MPI reduction operators.
+In contrast `@Op` can be used to statically declare a function to
+be passed as an MPI operator.
 
+```julia
+function my_reduce(x, y)
+    2x+y-x
+end
+MPI.@Op(my_reduce, Int)
+# ...
+    MPI.Reduce!(send_arr, recv_arr, my_reduce, MPI.COMM_WORLD; root=root)
+#...
+
+!!! warning
+    Note that `@Op` works be introducing a new method to `Op`, potentially invalidating other users of `Op`.
+```
 """
 macro Op(f, T)
     name_wrapper = gensym(Symbol(f, :_, T, :_wrapper))
