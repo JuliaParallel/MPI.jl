@@ -91,6 +91,21 @@ function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t:
 end
 
 
+function (w::OpWrapper{F,Any})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype}) where {F}
+    len = unsafe_load(_len)
+    T = to_type(Datatype(unsafe_load(t))) # Ptr might actually point to a Julia object so we could unsafe_pointer_to_objref?
+    @assert isconcretetype(T)
+    function copy(::Type{T}) where T
+        a = Ptr{T}(_a)
+        b = Ptr{T}(_b)
+        for i = 1:len
+            unsafe_store!(b, w.f(unsafe_load(a,i), unsafe_load(b,i)), i)
+        end
+    end
+    copy(T)
+    return nothing
+end
+
 function Op(f, T=Any; iscommutative=false)
     @static if MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32
         error("User-defined reduction operators are not supported on 32-bit Windows.\nSee https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.")
