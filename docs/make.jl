@@ -78,7 +78,9 @@ makedocs(
         ],
         "refindex.md",
     ],
-    linkcheck = true,
+    # Run linkcheck tests only on CI, to speed up building of documentation locally.  If one
+    # wants to run the linkchecks locally they can set the environment variable `CI=true`.
+    linkcheck = get(ENV, "CI", "false") == "true",
     linkcheck_useragent = nothing,
 )
 
