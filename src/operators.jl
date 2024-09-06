@@ -174,3 +174,11 @@ macro Op(f, T)
     expr.head = :toplevel
     esc(expr)
 end
+
+@Op(min, Any)
+@Op(max, Any)
+@Op(+, Any)
+@Op(*, Any)
+@Op(&, Any)
+@Op(|, Any)
+@Op(⊻, Any)
