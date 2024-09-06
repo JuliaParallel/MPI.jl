@@ -162,7 +162,7 @@ macro Op(f, T)
                 $(name_fptr)[] = @cfunction($(name_wrapper), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{$MPI_Datatype}))
             end
             import MPI: Op
-            function Op(::typeof($f), ::Type{$T}; iscommutative=true)
+            function Op(::typeof($f), ::Type{<:$T}; iscommutative=true)
                 op = Op($OP_NULL.val, $(name_fptr)[])
                 # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
                 $API.MPI_Op_create($(name_fptr)[], iscommutative, op)
