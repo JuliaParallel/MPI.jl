@@ -81,21 +81,11 @@ end
 
 function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype}) where {F,T}
     len = unsafe_load(_len)
-    @assert isconcretetype(T)
-    a = Ptr{T}(_a)
-    b = Ptr{T}(_b)
-    for i = 1:len
-        unsafe_store!(b, w.f(unsafe_load(a,i), unsafe_load(b,i)), i)
+    if !isconcretetype(T)
+        T = to_type(Datatype(unsafe_load(t))) # Ptr might actually point to a Julia object so we could unsafe_pointer_to_objref?
     end
-    return nothing
-end
-
-
-function (w::OpWrapper{F,Any})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype}) where {F}
-    len = unsafe_load(_len)
-    T = to_type(Datatype(unsafe_load(t))) # Ptr might actually point to a Julia object so we could unsafe_pointer_to_objref?
-    @assert isconcretetype(T)
     function copy(::Type{T}) where T
+        @assert isconcretetype(T)
         a = Ptr{T}(_a)
         b = Ptr{T}(_b)
         for i = 1:len
