@@ -66,5 +66,5 @@ There are two typical solutions to this problem:
 When working with non-Julia libraries or tools, `MPI_Init` may be invoked in another part
 of the execution flow and not via MPI.jl's [`MPI.Init`](@ref) function. This leaves some
 package-internal settings uninitialized. In this case, you need to call
-[`MPI.run_init_hooks`)(@ref) manually to fully initialize MPI.jl. You may also want to
-consider calling [`MPI.set_default_error_handler_return`](@ref).
+[`MPI.run_init_hooks()`](@ref) manually to fully initialize MPI.jl. You may also want to
+consider calling [`MPI.set_default_error_handler_return()`](@ref).
