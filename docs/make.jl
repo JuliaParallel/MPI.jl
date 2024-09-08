@@ -39,7 +39,7 @@ for (example_title, example_md) in EXAMPLES
         println(mdfile, "```")
         println(mdfile, "> mpiexecjl -n 4 julia $example_jl")
         cd(@__DIR__) do
-            write(mdfile, mpiexec(cmd -> read(`$cmd -n 4 $(Base.julia_cmd()) --project $example_jl`)))
+            write(mdfile, read(`$(mpiexec()) -n 4 $(Base.julia_cmd()) --project $example_jl`))
         end
         println(mdfile, "```")
     end

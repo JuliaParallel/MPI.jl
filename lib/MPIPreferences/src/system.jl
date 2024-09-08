@@ -8,7 +8,8 @@ module System
     const preloads_env_switch = @load_preference("preloads_env_switch")
     const mpiexec_path = @load_preference("mpiexec")
     mpiexec(;adjust_PATH=true, adjust_LIBPATH=true) = `$mpiexec_path`
-    mpiexec(f;adjust_PATH=true, adjust_LIBPATH=true) = f(`$mpiexec_path`)
+    # The following method may be removed in future releases.
+    Base.@deprecate mpiexec(f;adjust_PATH=true, adjust_LIBPATH=true) f(mpiexec())
 
     libmpi_handle = C_NULL
     function __init__()

@@ -1,12 +1,12 @@
 """
-    mpiexec(fn)
+    mpiexec()
 
-A wrapper function for the MPI launcher executable. Calls `fn(cmd)`, where `cmd` is a `Cmd` object of the MPI launcher.
+A wrapper function for the MPI launcher executable. Returns a `Cmd` object pointing to the MPI launcher.
 
 # Usage
 
 ```jldoctest
-julia> mpiexec(cmd -> run(`\$cmd -n 3 echo hello world`));
+julia> run(`\$(mpiexec()) -n 3 echo hello world`);
 hello world
 hello world
 hello world
