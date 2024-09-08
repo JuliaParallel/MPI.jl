@@ -99,6 +99,8 @@ jobs:
       JULIA_MPI_TEST_ABI: OpenMPI
       OMPI_MCA_btl_base_warn_component_unused: 0
       OMPI_MCA_rmaps_base_oversubscribe: true
+      # Allow oversubscription
+      PRTE_MCA_rmaps_default_mapping_policy: :oversubscribe
 
     runs-on: ${{ matrix.os }}
 
