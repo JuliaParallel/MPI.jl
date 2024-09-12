@@ -149,7 +149,7 @@ end
 
 function Datatype(::Type{T}) where {T}
     global created_datatypes
-    get!(created_datatypes, T) do
+    datatype = get!(created_datatypes, T) do
         datatype = Datatype()
         # lazily initialize so that it can be safely precompiled
         function init()
@@ -162,6 +162,15 @@ function Datatype(::Type{T}) where {T}
         init()
         datatype
     end
+
+    # Make sure the "aligned" size of the type matches the MPI "extent".
+    sz = sizeof(T)
+    al = Base.datatype_alignment(T)
+    mpi_extent = Types.extent(datatype)
+    aligned_size = (0, cld(sz,al)*al)
+    @assert mpi_extent == aligned_size "The MPI extent of type $(T) ($(mpi_extent[2])) does not match the size expected by Julia ($(aligned_size[2]))"
+
+    return datatype
 end
 
 function Base.show(io::IO, datatype::Datatype)

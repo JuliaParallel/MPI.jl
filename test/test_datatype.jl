@@ -87,16 +87,18 @@ end
 primitive type Primitive16 16 end
 primitive type Primitive24 24 end
 primitive type Primitive80 80 end
+primitive type Primitive104 104 end
 
-@testset for PrimitiveType in (Primitive16, Primitive24, Primitive80)
+@testset for PrimitiveType in (Primitive16, Primitive24, Primitive80, Primitive104)
+    if PrimitiveType == Primitive80 && VERSION >= v"1.12-" && Sys.WORD_SIZE == 32
+        # LLVM alignment on 32-bit systems doesn't necessarily agree with MPI
+        # extent for all types larger than 64 bits.
+        continue
+    end
+
     sz = sizeof(PrimitiveType)
     al = Base.datatype_alignment(PrimitiveType)
     @test MPI.Types.extent(MPI.Datatype(PrimitiveType)) == (0, cld(sz,al)*al)
-
-    if VERSION < v"1.3" && PrimitiveType == Primitive80
-        # alignment is broken on earlier Julia versions
-        continue
-    end
 
     arr = [Core.Intrinsics.trunc_int(PrimitiveType, UInt128(comm_rank + i)) for i = 1:4]
     arr_recv = Array{PrimitiveType}(undef,4)
