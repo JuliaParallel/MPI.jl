@@ -87,18 +87,17 @@ end
 primitive type Primitive16 16 end
 primitive type Primitive24 24 end
 primitive type Primitive80 80 end
+primitive type Primitive104 104 end
+primitive type Primitive136 136 end
 
-@testset for PrimitiveType in (Primitive16, Primitive24, Primitive80)
+@testset for PrimitiveType in (Primitive16, Primitive24, Primitive80, Primitive104, Primitive136)
     sz = sizeof(PrimitiveType)
     al = Base.datatype_alignment(PrimitiveType)
     @test MPI.Types.extent(MPI.Datatype(PrimitiveType)) == (0, cld(sz,al)*al)
 
-    if VERSION < v"1.3" && PrimitiveType == Primitive80
-        # alignment is broken on earlier Julia versions
-        continue
-    end
+    conv = sizeof(PrimitiveType) <= sizeof(UInt128) ? Core.Intrinsics.trunc_int : Core.Intrinsics.sext_int
 
-    arr = [Core.Intrinsics.trunc_int(PrimitiveType, UInt128(comm_rank + i)) for i = 1:4]
+    arr = [conv(PrimitiveType, UInt128(comm_rank + i)) for i = 1:4]
     arr_recv = Array{PrimitiveType}(undef,4)
 
     recv_req = MPI.Irecv!(arr_recv, src, 2, MPI.COMM_WORLD)
@@ -106,7 +105,7 @@ primitive type Primitive80 80 end
 
     MPI.Waitall([recv_req, send_req])
 
-    @test arr_recv == [Core.Intrinsics.trunc_int(PrimitiveType, UInt128(src + i)) for i = 1:4]
+    @test arr_recv == [conv(PrimitiveType, UInt128(src + i)) for i = 1:4]
 end
 
 @testset "packed non-aligned tuples" begin
