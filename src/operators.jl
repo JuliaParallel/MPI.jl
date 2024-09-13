@@ -114,34 +114,39 @@ function Op(f, T=Any; iscommutative=false)
 end
 
 """
-    @Op(f, T)
+    @RegisterOp(f, T, internal=false)
 
-Define a custom operator [`Op`](@ref) using the function `f`.
+Register a custom operator [`Op`](@ref) using the function `f` statically.
 On platfroms like AArch64, Julia does not support runtime closures,
 being passed to C. The generic version of [`Op`](@ref) uses that
 to support arbitrary function being passed as MPI reduction operators.
-In contrast `@Op` can be used to statically declare a function to
+In contrast `@RegisterOp` can be used to statically declare a function to
 be passed as an MPI operator.
 
 ```julia
 function my_reduce(x, y)
     2x+y-x
 end
-MPI.@Op(my_reduce, Int)
+MPI.@RegisterOp(my_reduce, Int)
 # ...
 MPI.Reduce!(send_arr, recv_arr, my_reduce, MPI.COMM_WORLD; root=root)
 #...
 ```
 !!! warning
-    Note that `@Op` works be introducing a new method to `Op`, potentially invalidating other users of `Op`.
+    Note that `@RegisterOp` works be introducing a new method to `Op`, potentially invalidating other users of `Op`.
+
+!!! note
+    `T` can be `Any`, but that will lead to a runtime dispatch.
 """
-macro Op(f, T)
+macro RegisterOp(f, T)
     name_wrapper = gensym(Symbol(f, :_, T, :_wrapper))
     name_fptr = gensym(Symbol(f, :_, T, :_ptr))
     name_module = gensym(Symbol(f, :_, T, :_module))
     # The gist is that we can use a method very similar to how we handle `min`/`max`
     # but since this might be used from user code we can't use add_load_time_hook!
     # this is why we introduce a new module that has a `__init__` function.
+    # If this module approach is too costly for loading MPI.jl for internal use we could use
+    # `add_load_time_hook`
     expr = quote
         module $(name_module)
             # import ..$f, ..$T
@@ -152,6 +157,7 @@ macro Op(f, T)
                 $(name_fptr)[] = @cfunction($(name_wrapper), Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{$MPI_Datatype}))
             end
             import MPI: Op
+            # we can't create a const Op since MPI needs to be initialized?
             function Op(::typeof($f), ::Type{<:$T}; iscommutative=true)
                 op = Op($OP_NULL.val, $(name_fptr)[])
                 # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
@@ -165,10 +171,10 @@ macro Op(f, T)
     esc(expr)
 end
 
-@Op(min, Any)
-@Op(max, Any)
-@Op(+, Any)
-@Op(*, Any)
-@Op(&, Any)
-@Op(|, Any)
-@Op(⊻, Any)
+@RegisterOp(min, Any)
+@RegisterOp(max, Any)
+@RegisterOp(+, Any)
+@RegisterOp(*, Any)
+@RegisterOp(&, Any)
+@RegisterOp(|, Any)
+@RegisterOp(⊻, Any)
