@@ -88,19 +88,16 @@ primitive type Primitive16 16 end
 primitive type Primitive24 24 end
 primitive type Primitive80 80 end
 primitive type Primitive104 104 end
+primitive type Primitive136 136 end
 
-@testset for PrimitiveType in (Primitive16, Primitive24, Primitive80, Primitive104)
-    if PrimitiveType == Primitive80 && VERSION >= v"1.12-" && Sys.WORD_SIZE == 32
-        # LLVM alignment on 32-bit systems doesn't necessarily agree with MPI
-        # extent for all types larger than 64 bits.
-        continue
-    end
-
+@testset for PrimitiveType in (Primitive16, Primitive24, Primitive80, Primitive104, Primitive136)
     sz = sizeof(PrimitiveType)
     al = Base.datatype_alignment(PrimitiveType)
     @test MPI.Types.extent(MPI.Datatype(PrimitiveType)) == (0, cld(sz,al)*al)
 
-    arr = [Core.Intrinsics.trunc_int(PrimitiveType, UInt128(comm_rank + i)) for i = 1:4]
+    conv = sizeof(PrimitiveType) <= sizeof(UInt128) ? Core.Intrinsics.trunc_int : Core.Intrinsics.sext_int
+
+    arr = [conv(PrimitiveType, UInt128(comm_rank + i)) for i = 1:4]
     arr_recv = Array{PrimitiveType}(undef,4)
 
     recv_req = MPI.Irecv!(arr_recv, src, 2, MPI.COMM_WORLD)
@@ -108,7 +105,7 @@ primitive type Primitive104 104 end
 
     MPI.Waitall([recv_req, send_req])
 
-    @test arr_recv == [Core.Intrinsics.trunc_int(PrimitiveType, UInt128(src + i)) for i = 1:4]
+    @test arr_recv == [conv(PrimitiveType, UInt128(src + i)) for i = 1:4]
 end
 
 @testset "packed non-aligned tuples" begin

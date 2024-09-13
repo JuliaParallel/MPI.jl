@@ -446,8 +446,10 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
     types = Datatype[]
 
     if isprimitivetype(T)
-        # primitive type
-        szrem = sz = sizeof(T)
+        # This is a primitive type.  Create a type which has size an integer multiple of its
+        # alignment on the Julia side: <https://github.com/JuliaParallel/MPI.jl/issues/853>.
+        al = Base.datatype_alignment(T)
+        szrem = sz = cld(sizeof(T), al) * al
         disp = 0
         for (i,basetype) in (8 => Datatype(UInt64), 4 => Datatype(UInt32), 2 => Datatype(UInt16), 1 => Datatype(UInt8))
             if sz == i
