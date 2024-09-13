@@ -159,7 +159,7 @@ macro RegisterOp(f, T)
             end
             import MPI: Op
             # we can't create a const Op since MPI needs to be initialized?
-            function Op(::typeof($f), ::Type{<:$T}; iscommutative=true)
+            function Op(::typeof($f), ::Type{<:$T}; iscommutative=false)
                 op = Op($OP_NULL.val, $(name_fptr)[])
                 # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
                 $API.MPI_Op_create($(name_fptr)[], iscommutative, op)
