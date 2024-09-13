@@ -16,6 +16,7 @@ associative, and if `iscommutative` is true, assumed to be commutative as well.
 - [`Allreduce!`](@ref)/[`Allreduce`](@ref)
 - [`Scan!`](@ref)/[`Scan`](@ref)
 - [`Exscan!`](@ref)/[`Exscan`](@ref)
+- [`@RegisterOp`](@ref)
 """
 mutable struct Op
     val::MPI_Op
