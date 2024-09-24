@@ -210,3 +210,5 @@ However they have two limitations:
 
 * [Julia's C-compatible function pointers](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/index.html#Creating-C-Compatible-Julia-Function-Pointers-1) cannot be used where the `stdcall` calling convention is expected, which is the case for 32-bit Microsoft MPI,
 * closure cfunctions in Julia are based on LLVM trampolines, which are not supported on ARM architecture.
+
+As an alternative [`MPI.@RegisterOp`](@ref) may be used to statically register reduction operations.

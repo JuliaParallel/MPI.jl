@@ -59,10 +59,15 @@ if isroot
     @test sum_mesg == sz .* mesg
 end
 
+function my_reduce(x, y)
+    2x+y-x
+end
+MPI.@RegisterOp(my_reduce, Any)
+
 if can_do_closures
-    operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
+    operators = [MPI.SUM, +, my_reduce, (x,y) -> 2x+y-x]
 else
-    operators = [MPI.SUM, +]
+    operators = [MPI.SUM, +, my_reduce]
 end
 
 for T = [Int]
@@ -117,18 +122,16 @@ end
 
 MPI.Barrier( MPI.COMM_WORLD )
 
-if can_do_closures
-    send_arr = [Double64(i)/10 for i = 1:10]
+send_arr = [Double64(i)/10 for i = 1:10]
 
-    result = MPI.Reduce(send_arr, +, MPI.COMM_WORLD; root=root)
-    if rank == root
-        @test result ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
-    else
-        @test result === nothing
-    end
-
-    MPI.Barrier( MPI.COMM_WORLD )
+result = MPI.Reduce(send_arr, +, MPI.COMM_WORLD; root=root)
+if rank == root
+    @test result ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
+else
+    @test result === nothing
 end
+
+MPI.Barrier( MPI.COMM_WORLD )
 
 GC.gc()
 MPI.Finalize()

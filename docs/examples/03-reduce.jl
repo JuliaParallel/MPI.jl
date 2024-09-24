@@ -31,10 +31,15 @@ function pool(S1::SummaryStat, S2::SummaryStat)
     SummaryStat(m,v,n)
 end
 
+# Register the custom reduction operator.  This is necessary only on platforms
+# where Julia doesn't support closures as cfunctions (e.g. ARM), but can be used
+# on all platforms for consistency.
+MPI.@RegisterOp(pool, SummaryStat)
+
 X = randn(10,3) .* [1,3,7]'
 
 # Perform a scalar reduction
-summ = MPI.Reduce(SummaryStat(X), pool, root, comm)
+summ = MPI.Reduce(SummaryStat(X), pool, comm; root)
 
 if MPI.Comm_rank(comm) == root
     @show summ.var
@@ -42,7 +47,7 @@ end
 
 # Perform a vector reduction:
 # the reduction operator is applied elementwise
-col_summ = MPI.Reduce(mapslices(SummaryStat,X,dims=1), pool, root, comm)
+col_summ = MPI.Reduce(mapslices(SummaryStat,X,dims=1), pool, comm; root)
 
 if MPI.Comm_rank(comm) == root
     col_var = map(summ -> summ.var, col_summ)
