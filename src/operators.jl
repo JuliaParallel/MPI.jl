@@ -101,9 +101,17 @@ end
 
 function Op(f, T=Any; iscommutative=false)
     @static if MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32
-        error("User-defined reduction operators are not supported on 32-bit Windows.\nSee https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.")
+        error("""
+            User-defined reduction operators are not supported on 32-bit Windows.
+            See https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.
+        """)
     elseif Sys.ARCH ∈ (:aarch64, :ppc64le, :powerpc64le) || startswith(lowercase(String(Sys.ARCH)), "arm")
-        error("User-defined reduction operators are currently not supported on non-Intel architectures.\nSee https://github.com/JuliaParallel/MPI.jl/issues/404 for more details.")
+        error("""
+            User-defined reduction operators are currently not supported on non-Intel architectures.
+            See https://github.com/JuliaParallel/MPI.jl/issues/404 for more details.
+
+            You may want to use `@RegisterOp` to statically register `f`.
+            """)
     end
     w = OpWrapper{typeof(f),T}(f)
     fptr = @cfunction($w, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype}))
