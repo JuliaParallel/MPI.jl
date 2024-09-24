@@ -15,7 +15,6 @@ AMDGPU = "0.6, 0.7, 0.8, 0.9, 1"
 CUDA = "3, 4, 5"
 DoubleFloats = "1.4"
 MPIPreferences = "0.1"
-StaticArrays = "1"
 TOML = "< 0.0.1, 1.0"
 
 [extras]
