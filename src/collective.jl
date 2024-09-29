@@ -103,6 +103,29 @@ function bcast(obj, root::Integer, comm::Comm)
     return obj
 end
 
+
+"""
+    Ibcast!(buf, comm::Comm; root::Integer=0[, req::AbstractRequest = Request()])
+
+Broadcast the buffer `buf` from `root` to all processes in `comm`.
+
+# External links
+$(_doc_external("MPI_Ibcast"))
+"""
+Ibcast!(buf, comm::Comm; root::Integer=Cint(0)) =
+    Ibcast!(buf, root, comm)
+
+function Ibcast!(buf::Buffer, root::Integer, comm::Comm, req::AbstractRequest = Request())
+    # int MPI_Ibcast(void *buffer, int count, MPI_Datatype datatype, int root,
+    #   MPI_Comm comm, MPI_Request *request)
+    API.MPI_Ibcast(buf.data, buf.count, buf.datatype, root, comm, req)
+    return req
+end
+function Ibcast!(data, root::Integer, comm::Comm)
+    Ibcast!(Buffer(data), root, comm)
+end
+
+
 """
     Scatter!(sendbuf::Union{UBuffer,Nothing}, recvbuf, comm::Comm;
         root::Integer=0)
