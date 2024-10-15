@@ -1,0 +1,9 @@
+[MPIPreferences]
+__clear__ = ["preloads"]
+_format = "1.1"
+abi = "MPICH"
+binary = "system"
+cclibs = ["sci_gnu_82_mpi", "sci_gnu_82", "dl", "dsmml", "xpmem"]
+libmpi = "libmpi_gnu_91.so"
+mpiexec = "srun"
+preloads_env_switch = "MPICH_GPU_SUPPORT_ENABLED"
