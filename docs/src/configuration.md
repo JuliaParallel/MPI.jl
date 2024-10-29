@@ -140,7 +140,7 @@ The function of these settings are as follows:
 
 If these are set, the `_format` key will be set to `"1.1"`.
 
-An example of running `MPIPreferences.use_system_library(vendor="cray")` in
+An example of running `MPIPreferences.use_system_binary(vendor="cray")` in
 `PrgEnv-gnu` is:
 
 ```toml
