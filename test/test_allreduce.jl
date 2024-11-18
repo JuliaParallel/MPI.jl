@@ -52,8 +52,8 @@ for T = [Int]
             if iallreduce_supported
                 req = MPI.IAllreduce!(send_arr, recv_arr, op, MPI.COMM_WORLD)
                 MPI.Wait(req)
+                @test recv_arr == comm_size .* send_arr
             end
-            @test recv_arr == comm_size .* send_arr skip=!iallreduce_supported
 
             # Nonblocking (IN_PLACE)
             recv_arr = copy(send_arr)
@@ -61,8 +61,8 @@ for T = [Int]
             if iallreduce_supported
                 req = MPI.IAllreduce!(recv_arr, op, MPI.COMM_WORLD)
                 MPI.Wait(req)
+                @test recv_arr == comm_size .* send_arr
             end
-            @test recv_arr == comm_size .* send_arr skip=!iallreduce_supported
         end
     end
 end
