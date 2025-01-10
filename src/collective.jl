@@ -103,6 +103,32 @@ function bcast(obj, root::Integer, comm::Comm)
     return obj
 end
 
+
+"""
+    Ibcast!(buf, comm::Comm; root::Integer=0[, req::AbstractRequest = Request()])
+
+Broadcast the buffer `buf` from `root` to all processes in `comm`.
+
+The operation is non-blocking, and the request object `req` can be used to wait
+for the operation to complete.
+
+# External links
+$(_doc_external("MPI_Ibcast"))
+"""
+Ibcast!(buf, comm::Comm; root::Integer=Cint(0)) =
+    Ibcast!(buf, root, comm)
+
+function Ibcast!(buf::Buffer, root::Integer, comm::Comm, req::AbstractRequest = Request())
+    # int MPI_Ibcast(void *buffer, int count, MPI_Datatype datatype, int root,
+    #   MPI_Comm comm, MPI_Request *request)
+    API.MPI_Ibcast(buf.data, buf.count, buf.datatype, root, comm, req)
+    return req
+end
+function Ibcast!(data, root::Integer, comm::Comm)
+    Ibcast!(Buffer(data), root, comm)
+end
+
+
 """
     Scatter!(sendbuf::Union{UBuffer,Nothing}, recvbuf, comm::Comm;
         root::Integer=0)
@@ -774,6 +800,43 @@ Allreduce(sendbuf::AbstractArray, op, comm::Comm) =
     Allreduce!(sendbuf, similar(sendbuf), op, comm)
 Allreduce(obj::T, op, comm::Comm) where {T} =
     Allreduce!(Ref(obj), Ref{T}(), op, comm)[]
+
+## Iallreduce
+
+# mutating
+"""
+    Iallreduce!(sendbuf, recvbuf, op, comm::Comm, req::AbstractRequest=Request())
+    Iallreduce!(sendrecvbuf, op, comm::Comm, req::AbstractRequest=Request())
+
+Performs elementwise reduction using the operator `op` on the buffer `sendbuf`,
+storing the result in the `recvbuf` of all processes in the group.
+
+If only one `sendrecvbuf` buffer is provided, then the operation is performed
+in-place.
+
+The operation is non-blocking, and the request object `req` can be used to wait
+for the operation to complete.
+
+# See also
+- [`Op`](@ref) for details on reduction operators.
+
+# External links
+$(_doc_external("MPI_Iallreduce"))
+"""
+function Iallreduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, comm::Comm, req::AbstractRequest=Request())
+    # int MPI_Iallreduce(const void *sendbuf, void *recvbuf, int count,
+    # MPI_Datatype datatype, MPI_Op op, MPI_Comm comm,
+    # MPI_Request *request)
+    API.MPI_Iallreduce(rbuf.senddata, rbuf.recvdata, rbuf.count, rbuf.datatype, op, comm, req)
+    return req
+end
+Iallreduce!(rbuf::RBuffer, op, comm::Comm, req::AbstractRequest=Request()) =
+    Iallreduce!(rbuf, Op(op, eltype(rbuf)), comm, req)
+Iallreduce!(sendbuf, recvbuf, op, comm::Comm, req::AbstractRequest=Request()) =
+    Iallreduce!(RBuffer(sendbuf, recvbuf), op, comm, req)
+
+# inplace
+Iallreduce!(buf, op, comm::Comm, req::AbstractRequest=Request()) = Iallreduce!(IN_PLACE, buf, op, comm, req)
 
 ## Scan
 
