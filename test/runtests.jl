@@ -71,6 +71,19 @@ if Sys.isunix()
     include("mpiexecjl.jl")
 end
 
+function is_mpi_operation_supported(mpi_op, n=nprocs)
+    test_file = joinpath(@__DIR__, "mpi_support_test.jl")
+    cmd = `$(mpiexec()) -n $n $(Base.julia_cmd()) --startup-file=no $test_file $mpi_op`
+    supported = success(run(ignorestatus(cmd)))
+    !supported && @warn "$mpi_op is unsupported with $backend_name"
+    return supported
+end
+
+if ArrayType != Array  # we expect that only GPU backends can have unsupported features
+    ENV["JULIA_MPI_TEST_IALLREDUCE"] = is_mpi_operation_supported("IAllreduce")
+    ENV["JULIA_MPI_TEST_IREDUCE"] = is_mpi_operation_supported("IReduce")
+end
+
 excludefiles = split(get(ENV,"JULIA_MPI_TEST_EXCLUDE",""),',')
 
 testdir = @__DIR__
