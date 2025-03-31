@@ -145,7 +145,7 @@ before calling `mpiexec`.
 
 ## CUDA-aware MPI
 
-[CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) starts its own internal threads, thus the notes above apply.
+[CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) starts its own internal threads, thus the notes in the section about [Multi-threading and signal handling](@ref) apply.
 In particular you may see an error like:
 
 ```
