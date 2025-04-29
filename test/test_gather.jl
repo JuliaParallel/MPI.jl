@@ -97,5 +97,23 @@ else
     @test C === nothing
 end
 
+# Test that the number of ranks is as expected:
+# <https://github.com/JuliaParallel/MPI.jl/issues/905>.
+num_processes = get(ENV, "JULIA_MPI_TEST_NUM_PROCESSES", nothing)
+if isnothing(num_processes)
+    @test false broken=true
+else
+    ranks = MPI.Gather(rank, comm)
+    comm_sizes = MPI.Gather(sz, comm)
+
+    if isroot
+        n = parse(Int, num_processes)
+        # Note: there's a similar test above, but not comparing with the
+        # externally set `JULIA_MPI_TEST_NUM_PROCESSES`.
+        @test sort(ranks) == 0:(n - 1)
+        @test all(==(n), comm_sizes)
+    end
+end
+
 MPI.Finalize()
 @test MPI.Finalized()
