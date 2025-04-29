@@ -3,10 +3,11 @@ using MPI
 MPI.Init()
 comm = MPI.COMM_WORLD
 rank = MPI.Comm_rank(comm)
-if rank == 1
+@show rank
+if rank == 0
+    @show MPI.Comm_size(comm)
     @show get(ENV, "MPI_LOCALNRANKS", nothing)
     @show get(ENV, "OMPI_COMM_WORLD_SIZE", nothing)
-    @show MPI.Comm_size(comm)
 end
 
 function main()
