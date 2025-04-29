@@ -201,14 +201,15 @@ jobs:
     strategy:
       matrix:
         mpi:
-          - libmpich-dev
+          # MPICH in Ubuntu is currently broken: https://github.com/pmodels/mpich/issues/7064
+          # - libmpich-dev
           - libopenmpi-dev
         julia_version:
           - "1"
 
       fail-fast: false
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     env:
       JULIA_MPI_TEST_BINARY: system
@@ -397,7 +398,8 @@ jobs:
     strategy:
       matrix:
         mpi:
-          - libmpich-dev
+          # MPICH in Ubuntu is currently broken: https://github.com/pmodels/mpich/issues/7064
+          # - libmpich-dev
           - libopenmpi-dev
         julia_version:
           - "1"
@@ -409,7 +411,7 @@ jobs:
 
       fail-fast: false
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     env:
       JULIA_MPI_TEST_BINARY: MPItrampoline_jll
