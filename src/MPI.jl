@@ -1,5 +1,7 @@
 module MPI
 
+# Hello world
+
 using Libdl, Serialization
 using DocStringExtensions
 import MPIPreferences
