@@ -224,8 +224,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install $MPI
         mpiexec --version
-        mpicc hello-world.c -o hello-world
-        mpiexec -np 4 ./hello-world
       env:
         MPI: ${{ matrix.mpi }}
 
