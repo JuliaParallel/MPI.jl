@@ -1,8 +1,4 @@
 using MPI
-
-@show get(ENV, "MPI_LOCALNRANKS", nothing)
-@show get(ENV, "OMPI_COMM_WORLD_SIZE", nothing)
-
 function main()
     MPI.Init()
     comm = MPI.COMM_WORLD
