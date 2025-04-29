@@ -101,7 +101,7 @@ end
 # <https://github.com/JuliaParallel/MPI.jl/issues/905>.
 num_processes = get(ENV, "JULIA_MPI_TEST_NUM_PROCESSES", nothing)
 if isnothing(num_processes)
-    @test false broken=true
+    @test_broken false
 else
     ranks = MPI.Gather(rank, comm)
     comm_sizes = MPI.Gather(sz, comm)
