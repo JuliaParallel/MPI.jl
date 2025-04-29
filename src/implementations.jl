@@ -119,4 +119,9 @@ function versioninfo(io::IO=stdout)
     for line in split(Get_library_version(), '\n')
         println(io, "    ", line)
     end
+    println(io, "  MPI launcher: ", mpiexec()[1])
+    mpiexec_path = Sys.which(mpiexec()[1])
+    if !isnothing(mpiexec_path)
+        println(io, "  MPI launcher path: ", mpiexec_path)
+    end
 end
