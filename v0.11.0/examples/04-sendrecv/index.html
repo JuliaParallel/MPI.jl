@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Send/receive · MPI.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">MPI.jl</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">MPI.jl</a></li><li><a class="tocitem" href="../../installation/">Installation</a></li><li><a class="tocitem" href="../../usage/">Usage</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../01-hello/">Hello world</a></li><li><a class="tocitem" href="../02-broadcast/">Broadcast</a></li><li><a class="tocitem" href="../03-reduce/">Reduce</a></li><li class="is-active"><a class="tocitem" href>Send/receive</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../../environment/">Environment</a></li><li><a class="tocitem" href="../../comm/">Communicators</a></li><li><a class="tocitem" href="../../pointtopoint/">Point-to-point communication</a></li></ul></li><li><a class="tocitem" href="../../functions/">Function reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Send/receive</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Send/receive</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaParallel/MPI.jl/blob/master/docs/src/examples/04-sendrecv.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Send/receive-1"><a class="docs-heading-anchor" href="#Send/receive-1">Send/receive</a><a class="docs-heading-anchor-permalink" href="#Send/receive-1" title="Permalink"></a></h1><pre><code class="language-julia"># examples/04-sendrecv.jl
+using MPI
+MPI.Init()
+
+comm = MPI.COMM_WORLD
+rank = MPI.Comm_rank(comm)
+size = MPI.Comm_size(comm)
+
+dst = mod(rank+1, size)
+src = mod(rank-1, size)
+
+N = 4
+
+send_mesg = Array{Float64}(undef, N)
+recv_mesg = Array{Float64}(undef, N)
+
+fill!(send_mesg, Float64(rank))
+
+rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
+
+print(&quot;$rank: Sending   $rank -&gt; $dst = $send_mesg\n&quot;)
+sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
+
+stats = MPI.Waitall!([rreq, sreq])
+
+print(&quot;$rank: Received $src -&gt; $rank = $recv_mesg\n&quot;)
+
+MPI.Barrier(comm)</code></pre><pre><code class="language-none">&gt; mpiexec -n 3 julia examples/04-sendrecv.jl
+1: Sending   1 -&gt; 2 = [1.0, 1.0, 1.0, 1.0]
+2: Sending   2 -&gt; 0 = [2.0, 2.0, 2.0, 2.0]
+0: Sending   0 -&gt; 1 = [0.0, 0.0, 0.0, 0.0]
+1: Received 0 -&gt; 1 = [0.0, 0.0, 0.0, 0.0]
+2: Received 1 -&gt; 2 = [1.0, 1.0, 1.0, 1.0]
+0: Received 2 -&gt; 0 = [2.0, 2.0, 2.0, 2.0]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../03-reduce/">« Reduce</a><a class="docs-footer-nextpage" href="../../environment/">Environment »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 4 December 2019 22:47">Wednesday 4 December 2019</span>. Using Julia version 1.0.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
