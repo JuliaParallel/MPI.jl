@@ -10,6 +10,7 @@ if rank == 1
     @show MPI.Comm_size(comm)
 end
 
+
 @testset "mpiexecjl" begin
     mktempdir() do dir
         # Install MPI locally, so that we can test the `--project` flag to
