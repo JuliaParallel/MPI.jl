@@ -71,9 +71,12 @@ jobs:
 
     - uses: julia-actions/julia-runtest@v1
     - uses: julia-actions/julia-processcoverage@v1
+      # Allow CI to pass even if the `processcoverage` step fails:
+      continue-on-error: true
     - uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
         files: lcov.info
     - uses: julia-actions/julia-uploadcoveralls@v1
       continue-on-error: true
