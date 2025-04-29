@@ -201,7 +201,8 @@ jobs:
     strategy:
       matrix:
         mpi:
-          - libmpich-dev
+          # MPICH in Ubuntu is currently broken: https://github.com/pmodels/mpich/issues/7064
+          # - libmpich-dev
           - libopenmpi-dev
         julia_version:
           - "1"
@@ -397,7 +398,8 @@ jobs:
     strategy:
       matrix:
         mpi:
-          - libmpich-dev
+          # MPICH in Ubuntu is currently broken: https://github.com/pmodels/mpich/issues/7064
+          # - libmpich-dev
           - libopenmpi-dev
         julia_version:
           - "1"
