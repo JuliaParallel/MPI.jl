@@ -1,6 +1,16 @@
 using Test, Pkg
 using MPI
 
+MPI.Init()
+comm = MPI.COMM_WORLD
+rank = MPI.Comm_rank(comm)
+if rank == 1
+    @show get(ENV, "MPI_LOCALNRANKS", nothing)
+    @show get(ENV, "OMPI_COMM_WORLD_SIZE", nothing)
+    @show MPI.Comm_size(comm)
+end
+
+
 @testset "mpiexecjl" begin
     mktempdir() do dir
         # Install MPI locally, so that we can test the `--project` flag to
