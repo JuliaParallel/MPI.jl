@@ -78,7 +78,11 @@ istest(f) = endswith(f, ".jl") && startswith(f, "test_") && !in(f, excludefiles)
 testfiles = sort(filter(istest, readdir(testdir)))
 
 @testset "$f" for f in testfiles
-    cmd(n=nprocs) = `$(mpiexec()) -n $n $(Base.julia_cmd()) --startup-file=no $(joinpath(testdir, f))`
+    cmd(n=nprocs) =
+        addenv(`$(mpiexec()) -n $n $(Base.julia_cmd()) --startup-file=no $(joinpath(testdir, f))`,
+               # `JULIA_MPI_TEST_NUM_PROCESSES` is used in `test_gather.jl` to
+               # test number of processes.
+               "JULIA_MPI_TEST_NUM_PROCESSES"=>string(n))
     if f == "test_spawn.jl"
         # Some command as the others, but always use a single process
         run(cmd(1))
