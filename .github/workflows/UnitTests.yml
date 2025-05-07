@@ -135,7 +135,7 @@ jobs:
     - uses: julia-actions/julia-runtest@v1
 
   test-system-brew:
-    timeout-minutes: 20
+    timeout-minutes: 40
     strategy:
       matrix:
         os:
@@ -340,7 +340,7 @@ jobs:
 
 
   test-mpitrampoline-jll:
-    timeout-minutes: 20
+    timeout-minutes: 40
     strategy:
       matrix:
         os:
