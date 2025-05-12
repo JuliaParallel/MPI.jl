@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Job Scheduling · MPI.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="MPI.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">MPI.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">MPI.jl</a></li><li><a class="tocitem" href="../../configuration/">Configuration</a></li><li><a class="tocitem" href="../../usage/">Usage</a></li><li><a class="tocitem" href="../../external/">External libraries and packages</a></li><li><a class="tocitem" href="../../knownissues/">Known issues</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../01-hello/">Hello world</a></li><li><a class="tocitem" href="../02-broadcast/">Broadcast</a></li><li><a class="tocitem" href="../03-reduce/">Reduce</a></li><li><a class="tocitem" href="../04-sendrecv/">Send/receive</a></li><li class="is-active"><a class="tocitem" href>Job Scheduling</a></li><li><a class="tocitem" href="../06-scatterv/">Scatterv and Gatherv</a></li><li><a class="tocitem" href="../07-rma_active/">Active RMA</a></li><li><a class="tocitem" href="../08-rma_passive/">Passive RMA</a></li><li><a class="tocitem" href="../09-graph_communication/">Graph Communication</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../../reference/mpipreferences/">MPIPreferences.jl</a></li><li><a class="tocitem" href="../../reference/library/">Library information</a></li><li><a class="tocitem" href="../../reference/environment/">Environment</a></li><li><a class="tocitem" href="../../reference/misc/">Miscellanea</a></li><li><a class="tocitem" href="../../reference/comm/">Communicators</a></li><li><a class="tocitem" href="../../reference/buffers/">Buffers</a></li><li><a class="tocitem" href="../../reference/pointtopoint/">Point-to-point communication</a></li><li><a class="tocitem" href="../../reference/collective/">Collective communication</a></li><li><a class="tocitem" href="../../reference/onesided/">One-sided communication</a></li><li><a class="tocitem" href="../../reference/topology/">Topology</a></li><li><a class="tocitem" href="../../reference/io/">I/O</a></li><li><a class="tocitem" href="../../reference/advanced/">Advanced</a></li><li><a class="tocitem" href="../../reference/api/">Low-level API</a></li></ul></li><li><a class="tocitem" href="../../refindex/">Index</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Job Scheduling</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Job Scheduling</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaParallel/MPI.jl/blob/master/docs/examples/05-job_schedule.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Job-Scheduling"><a class="docs-heading-anchor" href="#Job-Scheduling">Job Scheduling</a><a id="Job-Scheduling-1"></a><a class="docs-heading-anchor-permalink" href="#Job-Scheduling" title="Permalink"></a></h1><pre><code class="language-julia hljs"># examples/05-job_schedule.jl
+# This example demonstrates a job scheduling through adding the
+# number 100 to every component of the vector data. The root
+# assigns one element to each worker to compute the operation.
+# When the worker is finished, the root sends another element
+# until each element is added 100
+# Inspired on
+# https://www.hpc.ntnu.no/ntnu-hpc-group/vilje/user-guide/software/mpi-and-mpi-io-training-tutorial/basic-mpi/job-queue
+
+using MPI
+
+function job_queue(data,f)
+    MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    rank = MPI.Comm_rank(comm)
+    world_size = MPI.Comm_size(comm)
+    nworkers = world_size - 1
+
+    root = 0
+
+    MPI.Barrier(comm)
+    T = eltype(data)
+    N = size(data)[1]
+    send_mesg = Array{T}(undef, 1)
+    recv_mesg = Array{T}(undef, 1)
+
+    if rank == root # I am root
+
+        idx_recv = 0
+        idx_sent = 1
+
+        new_data = Array{T}(undef, N)
+        # Array of workers requests
+        sreqs_workers = Array{MPI.Request}(undef,nworkers)
+        # -1 = start, 0 = channel not available, 1 = channel available
+        status_workers = ones(nworkers).*-1
+
+        # Send message to workers
+        for dst in 1:nworkers
+            if idx_sent &gt; N
+                break
+            end
+            send_mesg[1] = data[idx_sent]
+            sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=dst+32)
+            idx_sent += 1
+            sreqs_workers[dst] = sreq
+            status_workers[dst] = 0
+            print(&quot;Root: Sent number $(send_mesg[1]) to Worker $dst\n&quot;)
+        end
+
+        # Send and receive messages until all elements are added
+        while idx_recv != N
+            # Check to see if there is an available message to receive
+            for dst in 1:nworkers
+                if status_workers[dst] == 0
+                    flag = MPI.Test(sreqs_workers[dst])
+                    if flag
+                        status_workers[dst] = 1
+                    end
+                end
+            end
+            for dst in 1:nworkers
+                if status_workers[dst] == 1
+                    ismessage = MPI.Iprobe(comm; source=dst, tag=dst+32)
+                    if ismessage
+                        # Receives message
+                        MPI.Recv!(recv_mesg, comm; source=dst, tag=dst+32)
+                        idx_recv += 1
+                        new_data[idx_recv] = recv_mesg[1]
+                        print(&quot;Root: Received number $(recv_mesg[1]) from Worker $dst\n&quot;)
+                        if idx_sent &lt;= N
+                            send_mesg[1] = data[idx_sent]
+                            # Sends new message
+                            sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=dst+32)
+                            idx_sent += 1
+                            sreqs_workers[dst] = sreq
+                            status_workers[dst] = 1
+                            print(&quot;Root: Sent number $(send_mesg[1]) to Worker $dst\n&quot;)
+                        end
+                    end
+                end
+            end
+        end
+
+        for dst in 1:nworkers
+            # Termination message to worker
+            send_mesg[1] = -1
+            sreq = MPI.Isend(send_mesg, comm; dest=dst, tag=dst+32)
+            sreqs_workers[dst] = sreq
+            status_workers[dst] = 0
+            print(&quot;Root: Finish Worker $dst\n&quot;)
+        end
+
+        MPI.Waitall(sreqs_workers)
+        print(&quot;Root: New data = $new_data\n&quot;)
+    else # If rank == worker
+        # -1 = start, 0 = channel not available, 1 = channel available
+        status_worker = -1
+        while true
+            sreqs_workers = Array{MPI.Request}(undef,1)
+            ismessage = MPI.Iprobe(comm; source=root, tag=rank+32)
+
+            if ismessage
+                # Receives message
+                MPI.Recv!(recv_mesg, comm; source=root, tag=rank+32)
+                # Termination message from root
+                if recv_mesg[1] == -1
+                    print(&quot;Worker $rank: Finish\n&quot;)
+                    break
+                end
+                print(&quot;Worker $rank: Received number $(recv_mesg[1]) from root\n&quot;)
+                # Apply function (add number 100) to array
+                send_mesg = f(recv_mesg)
+                sreq = MPI.Isend(send_mesg, comm; dest=root, tag=rank+32)
+                sreqs_workers[1] = sreq
+                status_worker = 0
+            end
+            # Check to see if there is an available message to receive
+            if status_worker == 0
+                flag = MPI.Test(sreqs_workers[1])
+                if flag
+                    status_worker = 1
+                end
+            end
+        end
+    end
+    MPI.Barrier(comm)
+    MPI.Finalize()
+end
+
+f = x -&gt; x.+100
+data = collect(1:10)
+job_queue(data,f)</code></pre><pre><code class="nohighlight hljs">&gt; mpiexecjl -n 4 julia examples/05-job_schedule.jl
+Root: Sent number 1 to Worker 1
+Root: Sent number 2 to Worker 2
+Root: Sent number 3 to Worker 3
+Worker 2: Received number 2 from root
+Worker 1: Received number 1 from root
+Worker 3: Received number 3 from root
+Root: Received number 101 from Worker 1
+Root: Sent number 4 to Worker 1
+Root: Received number 102 from Worker 2
+Root: Sent number 5 to Worker 2
+Root: Received number 103 from Worker 3
+Root: Sent number 6 to Worker 3
+Worker 1: Received number 4 from root
+Root: Received number 104 from Worker 1
+Root: Sent number 7 to Worker 1
+Worker 1: Received number 7 from root
+Root: Received number 107 from Worker 1
+Root: Sent number 8 to Worker 1
+Worker 1: Received number 8 from root
+Root: Received number 108 from Worker 1
+Root: Sent number 9 to Worker 1
+Worker 1: Received number 9 from root
+Root: Received number 109 from Worker 1
+Root: Sent number 10 to Worker 1
+Worker 1: Received number 10 from root
+Root: Received number 110 from Worker 1
+Worker 3: Received number 6 from root
+Worker 2: Received number 5 from root
+Root: Received number 105 from Worker 2
+Root: Received number 106 from Worker 3
+Root: Finish Worker 1
+Worker 1: Finish
+Root: Finish Worker 2
+Root: Finish Worker 3
+Root: New data = [101, 102, 103, 104, 107, 108, 109, 110, 105, 106]
+Worker 2: Finish
+Worker 3: Finish</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../04-sendrecv/">« Send/receive</a><a class="docs-footer-nextpage" href="../06-scatterv/">Scatterv and Gatherv »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Tuesday 5 September 2023 23:23">Tuesday 5 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
