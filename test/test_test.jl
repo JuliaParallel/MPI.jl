@@ -70,6 +70,10 @@ resize!(reqs, 4)
 @test length(reqs) == 4
 @test all(MPI.isnull, reqs)
 
+resize!(reqs, 2)
+@test length(reqs) == 2
+@test all(MPI.isnull, reqs)
+
 reqs = MPI.UnsafeMultiRequest(2)
 GC.@preserve send_mesg recv_mesg begin
     MPI.Irecv!(recv_mesg, comm, reqs[1]; source=src, tag=src+32)
@@ -82,9 +86,15 @@ GC.@preserve send_mesg recv_mesg begin
 
     MPI.Waitall(reqs)
     @test MPI.Testall(reqs)
+
+    @test eltype(reqs[1]) == MPI.MultiRequestItem{MPI.UnsafeMultiRequest} 
 end
 resize!(reqs, 4)
 @test length(reqs) == 4
+@test all(MPI.isnull, reqs)
+
+resize!(reqs, 2)
+@test length(reqs) == 2
 @test all(MPI.isnull, reqs)
 
 MPI.Finalize()
