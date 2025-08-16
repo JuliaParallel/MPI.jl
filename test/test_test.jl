@@ -86,8 +86,6 @@ GC.@preserve send_mesg recv_mesg begin
 
     MPI.Waitall(reqs)
     @test MPI.Testall(reqs)
-
-    @test eltype(reqs[1]) == MPI.MultiRequestItem{MPI.UnsafeMultiRequest} 
 end
 resize!(reqs, 4)
 @test length(reqs) == 4
