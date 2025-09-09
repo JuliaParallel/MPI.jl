@@ -34,15 +34,19 @@ Requires = "~0.5, 1.0"
 Serialization = "1"
 Sockets = "1"
 julia = "1.6"
+oneAPI = "2.1"
 
 [extensions]
 AMDGPUExt = "AMDGPU"
 CUDAExt = "CUDA"
+OneAPIExt = "oneAPI"
 
 [extras]
 AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+oneAPI = "8f75cd03-7ff8-4ecb-9b8f-daf728133b1b"
 
 [weakdeps]
 AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+oneAPI = "8f75cd03-7ff8-4ecb-9b8f-daf728133b1b"
