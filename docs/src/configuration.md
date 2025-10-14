@@ -51,7 +51,7 @@ This is the recommended way to use MPI.jl. By default, MPI.jl will use
 `MPICH_jll` as jll MPI backend.
 
 You can select from four different jll MPI binaries:
-- [`MPICH_jll`](http://www.mpich.org/)),  the default
+- [`MPICH_jll`](http://www.mpich.org/),  the default
 - [`OpenMPI_jll`](https://www.open-mpi.org/), an alternative to MPICH
 - [`MPItrampoline_jll`](https://github.com/eschnett/MPItrampoline), a
   forwarding MPI implementation that uses another MPI implementation
