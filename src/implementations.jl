@@ -102,8 +102,6 @@ function versioninfo(io::IO=stdout)
         println(io, "  MPICH_jll:          ", PkgVersion.Version(API.MPICH_jll))
     elseif MPIPreferences.binary == "OpenMPI_jll"
         println(io, "  OpenMPI_jll:        ", PkgVersion.Version(API.OpenMPI_jll))
-    elseif MPIPreferences.binary == "OpenMPI_jll"
-        println(io, "  OpenMPI_jll:        ", PkgVersion.Version(API.OpenMPI_jll))
     elseif MPIPreferences.binary == "MicrosoftMPI_jll"
         println(io, "  MicrosoftMPI_jll:   ", PkgVersion.Version(API.MicrosoftMPI_jll))
     elseif MPIPreferences.binary == "MPItrampoline_jll"
