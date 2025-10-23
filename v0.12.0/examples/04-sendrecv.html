@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Send/receive · MPI.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>MPI.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search.html"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../index.html">MPI.jl</a></li><li><a class="toctext" href="../installation.html">Installation</a></li><li><a class="toctext" href="../usage.html">Usage</a></li><li><span class="toctext">Examples</span><ul><li><a class="toctext" href="01-hello.html">Hello world</a></li><li><a class="toctext" href="02-broadcast.html">Broadcast</a></li><li><a class="toctext" href="03-reduce.html">Reduce</a></li><li class="current"><a class="toctext" href="04-sendrecv.html">Send/receive</a><ul class="internal"></ul></li></ul></li><li><span class="toctext">Reference</span><ul><li><a class="toctext" href="../environment.html">Environment</a></li><li><a class="toctext" href="../comm.html">Communicators</a></li><li><a class="toctext" href="../pointtopoint.html">Point-to-point communication</a></li><li><a class="toctext" href="../collective.html">Collective communication</a></li><li><a class="toctext" href="../onesided.html">One-sided communication</a></li><li><a class="toctext" href="../topology.html">Topology</a></li><li><a class="toctext" href="../io.html">I/O</a></li><li><a class="toctext" href="../advanced.html">Advanced</a></li></ul></li><li><a class="toctext" href="../refindex.html">Index</a></li></ul></nav><article id="docs"><header><nav><ul><li>Examples</li><li><a href="04-sendrecv.html">Send/receive</a></li></ul><a class="edit-page" href="https://github.com/JuliaParallel/MPI.jl/blob/master/docs/src/examples/04-sendrecv.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Send/receive</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Send/receive-1" href="#Send/receive-1">Send/receive</a></h1><pre><code class="language-julia"># examples/04-sendrecv.jl
+using MPI
+MPI.Init()
+
+comm = MPI.COMM_WORLD
+rank = MPI.Comm_rank(comm)
+size = MPI.Comm_size(comm)
+
+dst = mod(rank+1, size)
+src = mod(rank-1, size)
+
+N = 4
+
+send_mesg = Array{Float64}(undef, N)
+recv_mesg = Array{Float64}(undef, N)
+
+fill!(send_mesg, Float64(rank))
+
+rreq = MPI.Irecv!(recv_mesg, src,  src+32, comm)
+
+print(&quot;$rank: Sending   $rank -&gt; $dst = $send_mesg\n&quot;)
+sreq = MPI.Isend(send_mesg, dst, rank+32, comm)
+
+stats = MPI.Waitall!([rreq, sreq])
+
+print(&quot;$rank: Received $src -&gt; $rank = $recv_mesg\n&quot;)
+
+MPI.Barrier(comm)</code></pre><pre><code class="language-none">&gt; mpiexec -n 3 julia examples/04-sendrecv.jl
+2: Sending   2 -&gt; 0 = [2.0, 2.0, 2.0, 2.0]
+0: Sending   0 -&gt; 1 = [0.0, 0.0, 0.0, 0.0]
+1: Sending   1 -&gt; 2 = [1.0, 1.0, 1.0, 1.0]
+0: Received 2 -&gt; 0 = [2.0, 2.0, 2.0, 2.0]
+2: Received 1 -&gt; 2 = [1.0, 1.0, 1.0, 1.0]
+1: Received 0 -&gt; 1 = [0.0, 0.0, 0.0, 0.0]</code></pre><footer><hr/><a class="previous" href="03-reduce.html"><span class="direction">Previous</span><span class="title">Reduce</span></a><a class="next" href="../environment.html"><span class="direction">Next</span><span class="title">Environment</span></a></footer></article></body></html>
