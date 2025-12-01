@@ -55,7 +55,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - uses: julia-actions/setup-julia@v2
       with:
@@ -109,7 +109,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - uses: julia-actions/setup-julia@v2
       with:
@@ -164,7 +164,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Install MPI via homebrew
       run: |
@@ -218,7 +218,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Install MPI via apt
       run: |
@@ -268,7 +268,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - uses: julia-actions/setup-julia@v2
       with:
@@ -303,7 +303,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Download Microsoft MPI
       run: (new-object net.webclient).DownloadFile("https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe", "msmpisetup.exe")
@@ -367,7 +367,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - uses: julia-actions/setup-julia@v2
       with:
@@ -423,7 +423,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Install MPI via apt
       run: |
@@ -488,7 +488,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - name: Set MPITRAMPOLINE_MPIEXEC
       run: echo "MPITRAMPOLINE_MPIEXEC=$(which mpiexec)" >> "${GITHUB_ENV}"
@@ -560,7 +560,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
 
     - uses: julia-actions/setup-julia@v2
       with:
