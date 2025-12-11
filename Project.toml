@@ -1,12 +1,13 @@
 name = "MPI"
 uuid = "da04e1cc-30fd-572f-bb4f-1f8673147195"
-authors = []
 version = "0.20.23"
+authors = []
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+MPIABI_jll = "b5ada748-db0f-5fc0-8972-9331c762740c"
 MPICH_jll = "7cb0a576-ebde-5e09-9194-50597f1243b4"
 MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 MPItrampoline_jll = "f1f71cc9-e9ae-5b93-9b94-4fe0e1ad3748"
@@ -18,12 +19,21 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 
+[weakdeps]
+AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+
+[extensions]
+AMDGPUExt = "AMDGPU"
+CUDAExt = "CUDA"
+
 [compat]
-Distributed = "1"
 AMDGPU = "0.6, 0.7, 0.8, 0.9, 1, 2"
 CUDA = "3, 4, 5"
+Distributed = "1"
 DocStringExtensions = "0.8, 0.9"
 Libdl = "1"
+MPIABI_jll = "0.1.1"
 MPICH_jll = "4"
 MPIPreferences = "0.1.8"
 MPItrampoline_jll = "5"
@@ -35,14 +45,6 @@ Serialization = "1"
 Sockets = "1"
 julia = "1.10"
 
-[extensions]
-AMDGPUExt = "AMDGPU"
-CUDAExt = "CUDA"
-
 [extras]
-AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
-CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
-
-[weakdeps]
 AMDGPU = "21141c5a-9bdb-4563-92ae-f87d6854732e"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
