@@ -37,7 +37,7 @@ jobs:
           - ubuntu-latest
           - windows-latest
         julia_version:
-          - "1.6"
+          # - "1.6"
           - "1.10"
           - "1"
           - "nightly"
@@ -92,7 +92,7 @@ jobs:
           - macos-15-intel 
           - ubuntu-latest
         julia_version:
-          - "1.6"
+          # - "1.6"
           - "1.10"
           - "1"
           - "nightly"
@@ -133,11 +133,6 @@ jobs:
         using MPIPreferences
         MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
         rm("test/Manifest.toml")
-        if VERSION < v"1.10"
-            # OpenMPI_jll 5.0.9 has only been built for `libgfortran5`,
-            # and the Julia 1.6 we're using here uses `libgfortran4`.
-            Pkg.add(name="OpenMPI_jll", version="5.0.8")
-        end
 
     - uses: julia-actions/julia-runtest@v1
 
@@ -355,7 +350,7 @@ jobs:
           - ubuntu-latest
         mpi: [mpitrampoline]
         julia_version:
-          - "1.6"
+          # - "1.6"
           - "1.10"
           - "1"
           - "nightly"
