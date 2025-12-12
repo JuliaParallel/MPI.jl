@@ -7,10 +7,11 @@
         queue: "juliagpu"
         cuda: "*"
       env:
-        #TODO OPENMPI_VER: "4.1"
-        #TODO OPENMPI_VER_FULL: "4.1.8"
-        OPENMPI_VER: "5.0"
-        OPENMPI_VER_FULL: "5.0.9"
+        # This is broken for OpenMPI 5 and Julia 1.12, so we stick with OpenMPI 4
+        OPENMPI_VER: "4.1"
+        OPENMPI_VER_FULL: "4.1.8"
+        # OPENMPI_VER: "5.0"
+        # OPENMPI_VER_FULL: "5.0.9"
         UCX_VER: "1.19.1"
         CCACHE_DIR: "/root/ccache"
       commands: |
@@ -107,10 +108,12 @@
         queue: "juliagpu"
         rocm: "*"
       env:
-        #TODO OPENMPI_VER: "5.0"
-        #TODO OPENMPI_VER_FULL: "5.0.9"
-        OPENMPI_VER: "4.1"
-        OPENMPI_VER_FULL: "4.1.8"
+        # This is broken for OpenMPI 5 and Julia 1.12.
+        # It is broken for OpenMPI 4 for all versions of Julia. So we use OpenMPI 5 and skip Julia 1.12
+        OPENMPI_VER: "5.0"
+        OPENMPI_VER_FULL: "5.0.9"
+        # OPENMPI_VER: "4.1"
+        # OPENMPI_VER_FULL: "4.1.8"
         UCX_VER: "1.19.1"
         CCACHE_DIR: "/root/ccache"
       commands: |
@@ -159,7 +162,7 @@
             #  0  /var/lib/buildkite-agent/builds/gpuci-9/julialang/mpi-dot-jl/openmpi/lib/libucs.so.0(ucs_handle_error+0x2e4) [0x7ee18c9bc4d4]
             #  1  /var/lib/buildkite-agent/builds/gpuci-9/julialang/mpi-dot-jl/openmpi/lib/libucs.so.0(+0x3b6ca) [0x7ee18c9bc6ca]
             #
-            - "1.12"
+            # - "1.12"
       concurrency: 1
       concurrency_group: mpi_rocm
       plugins:
