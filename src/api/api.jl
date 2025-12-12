@@ -140,6 +140,13 @@ end
 
 include("generated_api.jl")
 
+# We define this function here temporarily. This call will fail for
+# MPI <5. Once we regenerate the API for MPI 5.0, this should go away
+# again.
+function MPI_Abi_get_version(major, minor)
+    @mpicall ccall((:MPI_Abi_get_version, libmpi), Cint, (Ptr{Cint}, Ptr{Cint}), major, minor)
+end
+
 for handle in [
     :MPI_Comm,
     :MPI_Datatype,
