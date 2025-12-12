@@ -129,15 +129,15 @@ jobs:
       shell: julia --color=yes --project=test {0}
       run: |
         using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
+        rm("test/Manifest.toml")
         if VERSION < v"1.10"
             # OpenMPI_jll 5.0.9 has only been built for `libgfortran5`,
             # and the Julia 1.6 we're using here uses `libgfortran4`.
             Pkg.add(name="OpenMPI_jll", version="5.0.8")
         end
-        Pkg.develop(path="lib/MPIPreferences")
-        using MPIPreferences
-        MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
-        rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@v1
 
