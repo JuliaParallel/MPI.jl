@@ -33,7 +33,8 @@ if provided >= MPI.ThreadLevel(:multiple)
 
     @test recv_check == ones(Int, nsends)
     @test send_check == ones(Int, nsends)
-    @test all(recv_arr[i] == [i] for i = 1:nsends)
+    @test all(Array(send_arr[i]) == [i] for i = 1:nsends)
+    @test all(Array(recv_arr[i]) == [i] for i = 1:nsends)
 
 end
 
