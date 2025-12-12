@@ -70,6 +70,13 @@ function Get_version()
     VersionNumber(major[], minor[])
 end
 
+function Abi_get_version()
+    major = Ref{Cint}()
+    minor = Ref{Cint}()
+    API.MPI_Abi_get_version(major, minor)
+    VersionNumber(major[], minor[])
+end
+
 """
     MPI_VERSION :: VersionNumber
 
