@@ -17,14 +17,14 @@
       commands: |
         echo "--- Install packages"
         apt-get install --yes --no-install-recommends curl ccache
-        export PATH="/usr/lib/ccache/:$$PATH"
+        export PATH="/usr/lib/ccache:$$PATH"
 
         echo "--- Build UCX"
         curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
         tar -zxf ucx.tar.gz
         pushd ucx-*
         ./configure --with-cuda=/usr/local/cuda --enable-mt --prefix=$$(realpath ../mpi-prefix)
-        make -j
+        make -j $(nproc)
         make install
         popd
 
@@ -33,7 +33,7 @@
         tar -zxf openmpi.tar.gz
         pushd openmpi-$${OPENMPI_VER_FULL}
         ./configure --with-ucx=$$(realpath ../mpi-prefix) --with-cuda=/usr/local/cuda --prefix=$$(realpath ../mpi-prefix)
-        make -j
+        make -j $(nproc)
         make install
         popd
 
@@ -119,14 +119,14 @@
       commands: |
         echo "--- Install packages"
         apt-get install --yes --no-install-recommends curl ccache
-        export PATH="/usr/lib/ccache/:$$PATH"
+        export PATH="/usr/lib/ccache:$$PATH"
 
         echo "--- Build UCX"
         curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
         tar -zxf ucx.tar.gz
         pushd ucx-*
         ./configure --with-rocm --enable-mt --prefix=$$(realpath ../mpi-prefix)
-        make -j
+        make -j $(nproc)
         make install
         popd
 
@@ -135,7 +135,7 @@
         tar -zxf openmpi.tar.gz
         pushd openmpi-$${OPENMPI_VER_FULL}
         ./configure --with-ucx=$$(realpath ../mpi-prefix) --with-rocm --prefix=$$(realpath ../mpi-prefix)
-        make -j
+        make -j $(nproc)
         make install
         popd
 
