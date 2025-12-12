@@ -1,10 +1,14 @@
 # tests for the various kinds of waits
 include("common.jl")
 
-MPI.Init(threadlevel=:multiple)
+provided = MPI.Init(threadlevel=:multiple)
+if !(provided == MPI.ThreadLevel(:multiple))
+    @show provided MPI.ThreadLevel(:multiple)
+end
+@assert provided == MPI.ThreadLevel(:multiple)
 
 myrank = MPI.Comm_rank(MPI.COMM_WORLD)
-commsize = MPI.Comm_rank(MPI.COMM_WORLD)
+commsize = MPI.Comm_size(MPI.COMM_WORLD)
 
 nsends = 2
 send_arr = [ArrayType{Int}([i]) for i = 1:nsends]
@@ -31,6 +35,7 @@ end
 
 @test recv_check == ones(Int, nsends)
 @test send_check == ones(Int, nsends)
+@test all(recv_arr[i] == [i] for i = 1:nsends)
 
 MPI.Barrier(MPI.COMM_WORLD)
 MPI.Finalize()
