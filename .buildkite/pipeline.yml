@@ -8,8 +8,8 @@
         cuda: "*"
       env:
         OPENMPI_VER: "4.1"
-        OPENMPI_VER_FULL: "4.1.4"
-        UCX_VER: "1.12.1"
+        OPENMPI_VER_FULL: "4.1.8"
+        UCX_VER: "1.19.1"   # "1.12.1"
         CCACHE_DIR: "/root/ccache"
       commands: |
         echo "--- Install packages"
@@ -48,12 +48,9 @@
       matrix:
         setup:
           version:
-            - "1.6"
-            - "1.7"
-            - "1.8"
-            - "1.9"
             - "1.10"
             - "1.11"
+            - "1.12"
       concurrency: 1
       concurrency_group: mpi_cuda
       plugins:
@@ -110,8 +107,8 @@
         rocm: "*"
       env:
         OPENMPI_VER: "5.0"
-        OPENMPI_VER_FULL: "5.0.3"
-        UCX_VER: "1.17.0"
+        OPENMPI_VER_FULL: "5.0.9"
+        UCX_VER: "1.19.1"   # "1.17.0"
         CCACHE_DIR: "/root/ccache"
       commands: |
         echo "--- Install packages"
@@ -151,7 +148,7 @@
         setup:
           version:
             - "1.10"
-            - "1.11"
+            - "1.12"
       concurrency: 1
       concurrency_group: mpi_rocm
       plugins:
