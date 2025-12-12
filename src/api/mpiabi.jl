@@ -14,7 +14,11 @@ struct MPI_Status
     MPI_SOURCE::Cint
     MPI_TAG::Cint
     MPI_ERROR::Cint
-    MPI_internal::NTuple{5,Cint}
+    MPI_internal1::Cint
+    MPI_internal2::Cint
+    MPI_internal3::Cint
+    MPI_internal4::Cint
+    MPI_internal5::Cint
 end
 
 const MPI_Op = Ptr{Cvoid}
