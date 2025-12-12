@@ -7,9 +7,11 @@
         queue: "juliagpu"
         cuda: "*"
       env:
-        OPENMPI_VER: "4.1"
-        OPENMPI_VER_FULL: "4.1.8"
-        UCX_VER: "1.19.1"   # "1.12.1"
+        #TODO OPENMPI_VER: "4.1"
+        #TODO OPENMPI_VER_FULL: "4.1.8"
+        OPENMPI_VER: "5.0"
+        OPENMPI_VER_FULL: "5.0.9"
+        UCX_VER: "1.19.1"
         CCACHE_DIR: "/root/ccache"
       commands: |
         echo "--- Install packages"
@@ -105,9 +107,11 @@
         queue: "juliagpu"
         rocm: "*"
       env:
-        OPENMPI_VER: "5.0"
-        OPENMPI_VER_FULL: "5.0.9"
-        UCX_VER: "1.18.1"   # "1.19.1"   # "1.17.0"
+        #TODO OPENMPI_VER: "5.0"
+        #TODO OPENMPI_VER_FULL: "5.0.9"
+        OPENMPI_VER: "4.1"
+        OPENMPI_VER_FULL: "4.1.8"
+        UCX_VER: "1.19.1"
         CCACHE_DIR: "/root/ccache"
       commands: |
         echo "--- Install packages"
