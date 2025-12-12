@@ -70,6 +70,13 @@ function Get_version()
     VersionNumber(major[], minor[])
 end
 
+function Abi_get_version()
+    major = Ref{Cint}()
+    minor = Ref{Cint}()
+    API.MPI_Abi_get_version(major, minor)
+    VersionNumber(major[], minor[])
+end
+
 """
     MPI_VERSION :: VersionNumber
 
@@ -98,14 +105,16 @@ function versioninfo(io::IO=stdout)
     println(io, "Package versions")
     println(io, "  MPI.jl:             ", PkgVersion.@Version)
     println(io, "  MPIPreferences.jl:  ", PkgVersion.Version(MPIPreferences))
-    if MPIPreferences.binary == "MPICH_jll"
+    if MPIPreferences.binary == "MPIABI_jll"
+        println(io, "  MPIABI_jll:          ", PkgVersion.Version(API.MPICH_jll))
+    elseif MPIPreferences.binary == "MPICH_jll"
         println(io, "  MPICH_jll:          ", PkgVersion.Version(API.MPICH_jll))
-    elseif MPIPreferences.binary == "OpenMPI_jll"
-        println(io, "  OpenMPI_jll:        ", PkgVersion.Version(API.OpenMPI_jll))
-    elseif MPIPreferences.binary == "MicrosoftMPI_jll"
-        println(io, "  MicrosoftMPI_jll:   ", PkgVersion.Version(API.MicrosoftMPI_jll))
     elseif MPIPreferences.binary == "MPItrampoline_jll"
         println(io, "  MPItrampoline_jll   ", PkgVersion.Version(API.MPItrampoline_jll))
+    elseif MPIPreferences.binary == "MicrosoftMPI_jll"
+        println(io, "  MicrosoftMPI_jll:   ", PkgVersion.Version(API.MicrosoftMPI_jll))
+    elseif MPIPreferences.binary == "OpenMPI_jll"
+        println(io, "  OpenMPI_jll:        ", PkgVersion.Version(API.OpenMPI_jll))
     end
 
     println(io)

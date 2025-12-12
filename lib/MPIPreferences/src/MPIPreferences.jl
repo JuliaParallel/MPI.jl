@@ -16,10 +16,11 @@ const DEPS_LOADED = Ref(false)
 
 The currently selected binary. The possible values are
 
+- `"MPIABI_jll"`: use the binary provided by [MPIABI_jll](https://github.com/JuliaBinaryWrappers/MPIABI_jll.jl)
 - `"MPICH_jll"`: use the binary provided by [MPICH_jll](https://github.com/JuliaBinaryWrappers/MPICH_jll.jl)
-- `"OpenMPI_jll"`: use the binary provided by [OpenMPI_jll](https://github.com/JuliaBinaryWrappers/OpenMPI_jll.jl)
-- `"MicrosoftMPI_jll"`: use binary provided by [MicrosoftMPI_jll](https://github.com/JuliaBinaryWrappers/MicrosoftMPI_jll.jl/)
 - `"MPItrampoline_jll"`: use the binary provided by [MPItrampoline_jll](https://github.com/JuliaBinaryWrappers/MPItrampoline_jll.jl/)
+- `"MicrosoftMPI_jll"`: use binary provided by [MicrosoftMPI_jll](https://github.com/JuliaBinaryWrappers/MicrosoftMPI_jll.jl/)
+- `"OpenMPI_jll"`: use the binary provided by [OpenMPI_jll](https://github.com/JuliaBinaryWrappers/OpenMPI_jll.jl)
 - `"system"`: use a system-provided binary.
 
 """
@@ -30,22 +31,24 @@ const binary = @load_preference("binary", Sys.iswindows() ? "MicrosoftMPI_jll" :
 
 The ABI (application binary interface) of the currently selected binary. Supported values are:
 
+- `"MPIABI"`: MPI-ABI-compatible ABI (https://www.mpi-form.org/)
 - `"MPICH"`: MPICH-compatible ABI (https://www.mpich.org/abi/)
-- `"OpenMPI"`: Open MPI compatible ABI (Open MPI, IBM Spectrum MPI, Fujitsu MPI)
-- `"MicrosoftMPI"`: Microsoft MPI
 - `"MPItrampoline"`: MPItrampoline
-- `"HPE MPT"`: HPE MPT
+- `"MicrosoftMPI"`: Microsoft MPI
+- `"OpenMPI"`: Open MPI compatible ABI (Open MPI, IBM Spectrum MPI, Fujitsu MPI)
 """
 const abi = if binary == "system"
     @load_preference("abi")
-elseif binary == "MicrosoftMPI_jll"
-    "MicrosoftMPI"
+elseif binary == "MPIABI_jll"
+    "MPIABI"
 elseif binary == "MPICH_jll"
     "MPICH"
-elseif binary == "OpenMPI_jll"
-    "OpenMPI"
 elseif binary == "MPItrampoline_jll"
     "MPItrampoline"
+elseif binary == "MicrosoftMPI_jll"
+    "MicrosoftMPI"
+elseif binary == "OpenMPI_jll"
+    "OpenMPI"
 else
     error("Unknown binary: $binary")
 end
@@ -66,16 +69,17 @@ Switches the underlying MPI implementation to one provided by JLL packages. A
 restart of Julia is required for the changes to take effect.
 
 Available options are:
-- `"MicrosoftMPI_jll"` (Only option and default on Windows)
+- `"MPIABI_jll"`
 - `"MPICH_jll"` (Default on all other platform)
-- `"OpenMPI_jll"`
 - `"MPItrampoline_jll"`
+- `"MicrosoftMPI_jll"` (Only option and default on Windows)
+- `"OpenMPI_jll"`
 
 The `export_prefs` option determines whether the preferences being set should be
 stored within `LocalPreferences.toml` or `Project.toml`.
 """
 function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_jll"; export_prefs=false, force=true)
-    known_binaries = ("MicrosoftMPI_jll", "MPICH_jll", "OpenMPI_jll", "MPItrampoline_jll")
+    known_binaries = ("MPIABI_jll", "MPICH_jll", "MicrosoftMPI_jll", "MPItrampoline_jll", "OpenMPI_jll")
     binary in known_binaries ||
         error("""
               Unknown jll: $binary.
@@ -118,7 +122,7 @@ end
 
 """
     use_system_binary(;
-        library_names = ["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
+        library_names = ["libmpi", "libmpi_abi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         extra_paths = String[],
         mpiexec = "mpiexec",
         abi = nothing,
@@ -162,7 +166,7 @@ Options:
 - `force`: if `true`, the preferences are set even if they are already set.
 """
 function use_system_binary(;
-        library_names=["libmpi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
+        library_names=["libmpi", "libmpi_abi", "libmpi_ibm", "msmpi", "libmpich", "libmpi_cray", "libmpitrampoline"],
         extra_paths=String[],
         mpiexec="mpiexec",
         abi=nothing,
