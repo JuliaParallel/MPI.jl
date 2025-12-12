@@ -38,6 +38,6 @@ if provided >= MPI.ThreadLevel(:multiple)
 
 end
 
-# MPI.Barrier(MPI.COMM_WORLD)
+MPI.Barrier(MPI.COMM_WORLD)
 MPI.Finalize()
 @test MPI.Finalized()
