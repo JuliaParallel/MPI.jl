@@ -62,12 +62,12 @@ MPI.File.read_ordered!(fh, buf)
 
 MPI.Barrier(comm)
 MPI.File.sync(fh)
-#TODO if Sys.iswindows()
-#TODO     # TODO: this has to be fixed: https://github.com/JuliaParallel/MPI.jl/issues/555
-#TODO     @test_skip MPI.File.get_position_shared(fh) == sum(1:sz)
-#TODO else
+if Sys.iswindows()
+    # TODO: this has to be fixed: https://github.com/JuliaParallel/MPI.jl/issues/555
+    @test_skip MPI.File.get_position_shared(fh) == sum(1:sz)
+else
     @test MPI.File.get_position_shared(fh) == sum(1:sz)
-#TODO end
+end
 
 MPI.File.set_view!(fh, 0, MPI.Datatype(UInt8), MPI.Datatype(UInt8))
 MPI.Barrier(comm)
