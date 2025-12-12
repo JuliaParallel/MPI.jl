@@ -46,6 +46,7 @@ MPI.Barrier(comm)
 MPI.File.sync(fh)
 
 MPI.File.write_ordered(fh, fill(Int64(rank), rank+1))
+MPI.Barrier(comm)
 @test MPI.File.get_position_shared(fh) == sum(1:sz)
 
 MPI.File.seek_shared(fh, 0)
