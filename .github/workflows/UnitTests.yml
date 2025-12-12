@@ -37,6 +37,7 @@ jobs:
           - ubuntu-latest
           - windows-latest
         julia_version:
+          - "1.6"
           - "1.10"
           - "1"
           - "nightly"
@@ -91,6 +92,7 @@ jobs:
           - macos-15-intel
           - ubuntu-latest
         julia_version:
+          - "1.6"
           - "1.10"
           - "1"
           - "nightly"
@@ -348,6 +350,7 @@ jobs:
           - ubuntu-latest
         mpi: [mpitrampoline]
         julia_version:
+          - "1.6"
           - "1.10"
           - "1"
           - "nightly"
