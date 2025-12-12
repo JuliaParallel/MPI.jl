@@ -8,18 +8,21 @@ export MPI_Aint, MPI_Count, MPI_Offset, MPI_Status,
 import MPIPreferences
 using Libdl
 
-if MPIPreferences.binary == "MPICH_jll"
+if MPIPreferences.binary == "MPIABI_jll"
+    import MPIABI_jll: MPIABI_jll, libmpi, libmpi_handle, mpiexec
+    const libmpiconstants = nothing
+elseif MPIPreferences.binary == "MPICH_jll"
     import MPICH_jll: MPICH_jll, libmpi, libmpi_handle, mpiexec
-    const libmpiconstants = nothing
-elseif MPIPreferences.binary == "OpenMPI_jll"
-    import OpenMPI_jll: OpenMPI_jll, libmpi, libmpi_handle, mpiexec
-    const libmpiconstants = nothing
-elseif MPIPreferences.binary == "MicrosoftMPI_jll"
-    import MicrosoftMPI_jll: MicrosoftMPI_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
 elseif MPIPreferences.binary == "MPItrampoline_jll"
     import MPItrampoline_jll: MPItrampoline_jll, libmpi, libmpi_handle, mpiexec
     const libmpiconstants = MPItrampoline_jll.libload_time_mpi_constants_path
+elseif MPIPreferences.binary == "MicrosoftMPI_jll"
+    import MicrosoftMPI_jll: MicrosoftMPI_jll, libmpi, libmpi_handle, mpiexec
+    const libmpiconstants = nothing
+elseif MPIPreferences.binary == "OpenMPI_jll"
+    import OpenMPI_jll: OpenMPI_jll, libmpi, libmpi_handle, mpiexec
+    const libmpiconstants = nothing
 elseif MPIPreferences.binary == "system"
     import MPIPreferences.System: libmpi, libmpi_handle, mpiexec
     const libmpiconstants = nothing
@@ -33,7 +36,7 @@ const initexprs = Any[]
 """
     @const_ref name T expr
 
-Defines an constant binding
+Defines a constant binding
 ```julia
 const name = Ref{T}()
 ```
@@ -48,14 +51,16 @@ macro const_ref(name, T, expr)
     :(const $(esc(name)) = Ref{$T}())
 end
 
-@static if MPIPreferences.abi == "MPICH"
+@static if MPIPreferences.abi == "MPIABI"
+    include("mpiabi.jl")
+elseif MPIPreferences.abi == "MPICH"
     include("mpich.jl")
-elseif MPIPreferences.abi == "OpenMPI"
-    include("openmpi.jl")
-elseif MPIPreferences.abi == "MicrosoftMPI"
-    include("microsoftmpi.jl")
 elseif MPIPreferences.abi == "MPItrampoline"
     include("mpitrampoline.jl")
+elseif MPIPreferences.abi == "MicrosoftMPI"
+    include("microsoftmpi.jl")
+elseif MPIPreferences.abi == "OpenMPI"
+    include("openmpi.jl")
 elseif MPIPreferences.abi == "HPE MPT"
     include("mpt.jl")
 else
