@@ -49,7 +49,7 @@ MPI.File.write_ordered(fh, fill(Int64(rank), rank+1))
 MPI.Barrier(comm)
 MPI.File.sync(fh)
 # TODO: this has to be fixed: https://github.com/JuliaParallel/MPI.jl/issues/879
-@test MPI.File.get_position_shared(fh) == sum(1:sz) skip=Sys.isapple()
+@test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.isapple() || Sys.iswindows()
 
 MPI.File.seek_shared(fh, 0)
 @test MPI.File.get_position_shared(fh) == 0
@@ -65,7 +65,7 @@ MPI.Barrier(comm)
 MPI.File.sync(fh)
 MPI.Barrier(comm)
 # TODO: this has to be fixed: https://github.com/JuliaParallel/MPI.jl/issues/879
-@test MPI.File.get_position_shared(fh) == sum(1:sz) skip=Sys.iswindows()
+@test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.iswindows()
 
 MPI.File.set_view!(fh, 0, MPI.Datatype(UInt8), MPI.Datatype(UInt8))
 MPI.Barrier(comm)
