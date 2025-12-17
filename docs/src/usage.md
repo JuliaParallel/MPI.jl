@@ -89,9 +89,9 @@ send and receive buffers for point-to-point and collective operations (they may 
 
 ### CUDA
 
-Successfully running the [alltoall\_test\_cuda.jl](https://gist.github.com/luraess/0063e90cb08eb2208b7fe204bbd90ed2)
+Successfully running the [alltoall\_test\_cuda.jl](../examples/alltoall_test_cuda.jl)
 should confirm your MPI implementation to have the CUDA support enabled. Moreover, successfully running the
-[alltoall\_test\_cuda\_multigpu.jl](https://gist.github.com/luraess/ed93cc09ba04fe16f63b4219c1811566) should confirm
+[alltoall\_test\_cuda\_multigpu.jl](../examples/alltoall_test_cuda_multigpu.jl) should confirm
 your CUDA-aware MPI implementation to use multiple Nvidia GPUs (one GPU per rank).
 
 If using OpenMPI, the status of CUDA support can be checked via the
@@ -99,9 +99,9 @@ If using OpenMPI, the status of CUDA support can be checked via the
 
 ### ROCm
 
-Successfully running the [alltoall\_test\_rocm.jl](https://gist.github.com/luraess/c228ec08629737888a18c6a1e397643c)
+Successfully running the [alltoall\_test\_rocm.jl](../examples/alltoall_test_rocm.jl)
 should confirm your MPI implementation to have the ROCm support (AMDGPU) enabled. Moreover, successfully running the
-[alltoall\_test\_rocm\_multigpu.jl](https://gist.github.com/luraess/a47931d7fb668bd4348a2c730d5489f4) should confirm
+[alltoall\_test\_rocm\_multigpu.jl](../examples/alltoall_test_rocm_multigpu.jl) should confirm
 your ROCm-aware MPI implementation to use multiple AMD GPUs (one GPU per rank).
 
 If using OpenMPI, the status of ROCm support can be checked via the
