@@ -22,7 +22,7 @@ function sync()
     # First ensure that all local changes are flushed ...
     MPI.File.sync(fh)
     # ... then wait for all other process to finish doing that ...
-    MPI_Barrier(comm)
+    MPI.Barrier(comm)
     # ... then make sure we see all change that the other processes made.
     MPI.File.sync(fh)
 end
