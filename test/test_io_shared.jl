@@ -7,26 +7,23 @@ rank = MPI.Comm_rank(comm)
 sz = MPI.Comm_size(comm)
 filename = MPI.bcast(tempname(), 0, comm)
 
-#TODO MPI.Barrier(comm)
-
 # Collective write
 fh = MPI.File.open(comm, filename, read=true, write=true, create=true)
 @test MPI.File.get_position_shared(fh) == 0
-
-if !MPI.File.get_atomicity(fh)
-    MPI.File.set_atomicity(fh, true)
-end
-@test MPI.File.get_atomicity(fh)
 
 function sync()
     # First ensure that all local changes are flushed ...
     MPI.File.sync(fh)
     # ... then wait for all other process to finish doing that ...
     MPI.Barrier(comm)
-    # ... then make sure we see all change that the other processes made.
+    # ... then make sure we see all changes that the other processes made.
     MPI.File.sync(fh)
 end
 
+if !MPI.File.get_atomicity(fh)
+    MPI.File.set_atomicity(fh, true)
+end
+@test MPI.File.get_atomicity(fh)
 sync()
 
 header = "my header"
@@ -51,6 +48,7 @@ sync()
 #TODO # https://github.com/JuliaParallel/MPI.jl/issues/555,
 #TODO # https://github.com/JuliaParallel/MPI.jl/issues/579
 #TODO @test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.isapple() || Sys.iswindows()
+# TODO: still broken on Apple
 @test MPI.File.get_position_shared(fh) == sum(1:sz)
 
 MPI.File.seek_shared(fh, 0)
