@@ -80,6 +80,13 @@ If your MPI implementation has been compiled with CUDA or ROCm support, then `CU
 [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl)) or `AMDGPU.ROCArray`s (from [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl)) can be passed directly as
 send and receive buffers for point-to-point and collective operations (they may also work with one-sided operations, but these are not often supported). GPU-aware MPI requires in most cases to use a [system provided MPI installation](@ref using_system_mpi).
 
+!!! note "Preloads"
+    On Cray machines, you may need to ensure the following preloads to be set in the preferences:
+    ```
+    preloads = ["libmpi_gtl_hsa.so"]
+    preloads_env_switch = "MPICH_GPU_SUPPORT_ENABLED"
+    ```
+
 ### CUDA
 
 Successfully running the [alltoall\_test\_cuda.jl](https://gist.github.com/luraess/0063e90cb08eb2208b7fe204bbd90ed2)
@@ -100,21 +107,15 @@ your ROCm-aware MPI implementation to use multiple AMD GPUs (one GPU per rank).
 If using OpenMPI, the status of ROCm support can be checked via the
 [`MPI.has_rocm()`](@ref) function.
 
-!!! note "Preloads"
-    On Cray machines, you may need to ensure the following preloads to be set in the preferences:
-    ```
-    preloads = ["libmpi_gtl_hsa.so"]
-    preloads_env_switch = "MPICH_GPU_SUPPORT_ENABLED"
-    ```
+### Multiple GPUs per node
 
-!!! note "Multiple GPUs per node"
-    In a configuration with multiple GPUs per node, mapping GPU ID to node local MPI rank can be achieved either (1) on the application side using node-local communicator (`MPI.COMM_TYPE_SHARED`) or (2) on the system side setting device visibility accordingly.
-    For (1), using the node-local rank `rank_loc` is a way to select the GPU device:
-    ```
-    comm_loc = MPI.Comm_split_type(comm, MPI.COMM_TYPE_SHARED, rank)
-    rank_loc = MPI.Comm_rank(comm_loc)
-    ```
-    For (2), one can use the default device but make sur to handle device visibility in the scheduler or by using `CUDA/ROCM_VISIBLE_DEVICES`.
+In a configuration with multiple GPUs per node, mapping GPU ID to node local MPI rank can be achieved either (1) on the application side using node-local communicator (`MPI.COMM_TYPE_SHARED`) or (2) on the system side setting device visibility accordingly.
+For (1), using the node-local rank `rank_loc` is a way to select the GPU device:
+```
+comm_loc = MPI.Comm_split_type(comm, MPI.COMM_TYPE_SHARED, rank)
+rank_loc = MPI.Comm_rank(comm_loc)
+```
+For (2), one can use the default device but make sur to handle device visibility in the scheduler or by using `CUDA/ROCM_VISIBLE_DEVICES`.
 
 ## Writing MPI tests
 
