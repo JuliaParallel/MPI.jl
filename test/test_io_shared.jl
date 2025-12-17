@@ -1,5 +1,19 @@
 include("common.jl")
 
+# Find MPI vendor
+library_version = MPI.Get_library_version()
+# Peel off MPItrampoline if present
+if startswith(library_version, "MPIwrapper ")
+    library_version = join(split(library_version, "\n")[2:end], "\n")
+end
+if startswith(library_version, "MPICH ")
+    vendor = :MPICH
+elseif startswith(library_version, "Open MPI ")
+    vendor = :OpenMPI
+else
+    vendor = nothing
+end
+
 MPI.Init()
 
 comm = MPI.COMM_WORLD
@@ -44,12 +58,8 @@ sync()
 
 MPI.File.write_ordered(fh, fill(Int64(rank), rank+1))
 sync()
-#TODO # TODO: this has to be fixed:
-#TODO # https://github.com/JuliaParallel/MPI.jl/issues/555,
-#TODO # https://github.com/JuliaParallel/MPI.jl/issues/579
-#TODO @test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.isapple() || Sys.iswindows()
-# TODO: still broken on Apple with MPICH
-@test MPI.File.get_position_shared(fh) == sum(1:sz)
+# https://github.com/JuliaParallel/MPI.jl/issues/879
+@test MPI.File.get_position_shared(fh) == sum(1:sz) skip = (vendor == :MPICH && Sys.isapple())
 
 MPI.File.seek_shared(fh, 0)
 @test MPI.File.get_position_shared(fh) == 0
@@ -60,11 +70,8 @@ MPI.File.read_ordered!(fh, buf)
 @test buf == fill(Int64(rank), rank+1)
 sync()
 
-#TODO # TODO: this has to be fixed:
-#TODO # https://github.com/JuliaParallel/MPI.jl/issues/555
-#TODO @test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.iswindows()
-# TODO: still broken on Windows with MPICH
-@test MPI.File.get_position_shared(fh) == sum(1:sz)
+# https://github.com/JuliaParallel/MPI.jl/issues/555
+@test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.iswindows()
 
 MPI.File.set_view!(fh, 0, MPI.Datatype(UInt8), MPI.Datatype(UInt8))
 sync()
