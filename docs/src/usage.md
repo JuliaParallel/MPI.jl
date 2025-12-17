@@ -74,32 +74,47 @@ with:
 $ mpiexecjl --project=/path/to/project -n 20 julia script.jl
 ```
 
-## CUDA-aware MPI support
+## GPU-aware MPI support
 
-If your MPI implementation has been compiled with CUDA support, then `CUDA.CuArray`s (from the
-[CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) package) can be passed directly as
-send and receive buffers for point-to-point and collective operations (they may also work with one-sided operations, but these are not often supported).
+If your MPI implementation has been compiled with CUDA or ROCm support, then `CUDA.CuArray`s (from
+[CUDA.jl](https://github.com/JuliaGPU/CUDA.jl)) or `AMDGPU.ROCArray`s (from [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl)) can be passed directly as
+send and receive buffers for point-to-point and collective operations (they may also work with one-sided operations, but these are not often supported). GPU-aware MPI requires to in most cases to use a [system provided MPI installation](configuration.md#using_system_mpi).
 
-Successfully running the [alltoall\_test\_cuda.jl](https://gist.github.com/luraess/0063e90cb08eb2208b7fe204bbd90ed2) 
-should confirm your MPI implementation to have the CUDA support enabled. Moreover, successfully running the 
-[alltoall\_test\_cuda\_multigpu.jl](https://gist.github.com/luraess/ed93cc09ba04fe16f63b4219c1811566) should confirm 
+### CUDA
+
+Successfully running the [alltoall\_test\_cuda.jl](https://gist.github.com/luraess/0063e90cb08eb2208b7fe204bbd90ed2)
+should confirm your MPI implementation to have the CUDA support enabled. Moreover, successfully running the
+[alltoall\_test\_cuda\_multigpu.jl](https://gist.github.com/luraess/ed93cc09ba04fe16f63b4219c1811566) should confirm
 your CUDA-aware MPI implementation to use multiple Nvidia GPUs (one GPU per rank).
 
 If using OpenMPI, the status of CUDA support can be checked via the
 [`MPI.has_cuda()`](@ref) function.
 
-## ROCm-aware MPI support
+### ROCm
 
-If your MPI implementation has been compiled with ROCm support (AMDGPU), then `AMDGPU.ROCArray`s (from the
-[AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl) package) can be passed directly as send and receive buffers for point-to-point and collective operations (they may also work with one-sided operations, but these are not often supported).
-
-Successfully running the [alltoall\_test\_rocm.jl](https://gist.github.com/luraess/c228ec08629737888a18c6a1e397643c) 
-should confirm your MPI implementation to have the ROCm support (AMDGPU) enabled. Moreover, successfully running the 
-[alltoall\_test\_rocm\_multigpu.jl](https://gist.github.com/luraess/a47931d7fb668bd4348a2c730d5489f4) should confirm 
+Successfully running the [alltoall\_test\_rocm.jl](https://gist.github.com/luraess/c228ec08629737888a18c6a1e397643c)
+should confirm your MPI implementation to have the ROCm support (AMDGPU) enabled. Moreover, successfully running the
+[alltoall\_test\_rocm\_multigpu.jl](https://gist.github.com/luraess/a47931d7fb668bd4348a2c730d5489f4) should confirm
 your ROCm-aware MPI implementation to use multiple AMD GPUs (one GPU per rank).
 
 If using OpenMPI, the status of ROCm support can be checked via the
 [`MPI.has_rocm()`](@ref) function.
+
+> [!NOTE]
+> On Cray machines, you may need to ensure the following preloads to be set in the preferences:
+> ```
+> preloads = ["libmpi_gtl_hsa.so"]
+> preloads_env_switch = "MPICH_GPU_SUPPORT_ENABLED"
+> ```
+
+> [!NOTE]
+> In a configuration with multiple GPUs per node, mapping GPU ID to node local MPI rank can be achieved either (1) on the application side using node-local communicator (`MPI.COMM_TYPE_SHARED`) or (2) on the system side setting device visibility accordingly.
+> If using (1), one can use the node-local rank `rank_loc` to select the GPU device:
+> ```
+> comm_loc = MPI.Comm_split_type(comm, MPI.COMM_TYPE_SHARED, rank)
+> rank_loc = MPI.Comm_rank(comm_loc)
+> ```
+> If using (2), one can use the default device but make sur to handle device visbility in the scheduler; for SLURM on Cray systems, this can be mostly achieved using `--gpus-per-task=1`.
 
 ## Writing MPI tests
 
