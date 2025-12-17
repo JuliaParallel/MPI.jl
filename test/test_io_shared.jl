@@ -48,7 +48,7 @@ sync()
 #TODO # https://github.com/JuliaParallel/MPI.jl/issues/555,
 #TODO # https://github.com/JuliaParallel/MPI.jl/issues/579
 #TODO @test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.isapple() || Sys.iswindows()
-# TODO: still broken on Apple
+# TODO: still broken on Apple with MPICH
 @test MPI.File.get_position_shared(fh) == sum(1:sz)
 
 MPI.File.seek_shared(fh, 0)
@@ -63,6 +63,7 @@ sync()
 #TODO # TODO: this has to be fixed:
 #TODO # https://github.com/JuliaParallel/MPI.jl/issues/555
 #TODO @test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.iswindows()
+# TODO: still broken on Windows with MPICH
 @test MPI.File.get_position_shared(fh) == sum(1:sz)
 
 MPI.File.set_view!(fh, 0, MPI.Datatype(UInt8), MPI.Datatype(UInt8))

@@ -556,6 +556,8 @@ jobs:
       MV2_SMP_USE_CMA: 0
       # Work around issue with affinity not set.  Ref:
       # https://github.com/JuliaParallel/MPI.jl/pull/810#issuecomment-1920255386
+      # MVAPICH 2 and 3 use different environment variables; set both.
+      MV2_ENABLE_AFFINITY: 0
       MVP_ENABLE_AFFINITY: 0
 
     steps:
