@@ -57,7 +57,7 @@ MPI.File.set_view!(fh, byte_offset, MPI.Datatype(Int64), MPI.Datatype(Int64))
 sync(comm, fh)
 # https://github.com/JuliaParallel/MPI.jl/issues/555
 # https://github.com/JuliaParallel/MPI.jl/issues/879
-@test MPI.File.get_position_shared(fh) == 0 skip = Sys.isapple() || Sys.iswindows()
+@test MPI.File.get_position_shared(fh) == 0 skip = Sys.isapple() || (vendor == :MPICH && Sys.isunix()) || Sys.iswindows()
 
 MPI.File.write_ordered(fh, fill(Int64(rank), rank+1))
 sync(comm, fh)
