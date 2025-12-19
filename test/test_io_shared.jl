@@ -60,7 +60,7 @@ sync(comm, fh)
 MPI.File.write_ordered(fh, fill(Int64(rank), rank+1))
 sync(comm, fh)
 # https://github.com/JuliaParallel/MPI.jl/issues/879
-@test MPI.File.get_position_shared(fh) == sum(1:sz) skip = (vendor == :MPICH && Sys.isapple())
+@test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.isapple()
 
 MPI.File.seek_shared(fh, 0)
 @test MPI.File.get_position_shared(fh) == 0
