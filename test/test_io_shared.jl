@@ -55,7 +55,8 @@ byte_offset = MPI.File.get_byte_offset(fh, offset)
 
 MPI.File.set_view!(fh, byte_offset, MPI.Datatype(Int64), MPI.Datatype(Int64))
 sync(comm, fh)
-@test MPI.File.get_position_shared(fh) == 0
+# https://github.com/JuliaParallel/MPI.jl/issues/879
+@test MPI.File.get_position_shared(fh) == 0 skip = Sys.isapple()
 
 MPI.File.write_ordered(fh, fill(Int64(rank), rank+1))
 sync(comm, fh)
