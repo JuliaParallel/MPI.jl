@@ -1,5 +1,15 @@
 include("common.jl")
 
+# Syncing parallel MPI I/O is a bit involved:
+function sync(comm, fh)
+    # First ensure that all local changes are flushed ...
+    MPI.File.sync(fh)
+    # ... then wait for all other process to finish doing that ...
+    MPI.Barrier(comm)
+    # ... then make sure we see all changes that the other processes made.
+    MPI.File.sync(fh)
+end
+
 # Find MPI vendor
 library_version = MPI.Get_library_version()
 # Peel off MPItrampoline if present
@@ -25,27 +35,18 @@ filename = MPI.bcast(tempname(), 0, comm)
 fh = MPI.File.open(comm, filename, read=true, write=true, create=true)
 @test MPI.File.get_position_shared(fh) == 0
 
-function sync()
-    # First ensure that all local changes are flushed ...
-    MPI.File.sync(fh)
-    # ... then wait for all other process to finish doing that ...
-    MPI.Barrier(comm)
-    # ... then make sure we see all changes that the other processes made.
-    MPI.File.sync(fh)
-end
-
 if !MPI.File.get_atomicity(fh)
     MPI.File.set_atomicity(fh, true)
 end
 @test MPI.File.get_atomicity(fh)
-sync()
+sync(comm, fh)
 
 header = "my header"
 
 if rank == 0
     MPI.File.write_shared(fh, header)
 end
-sync()
+sync(comm, fh)
 
 offset = MPI.File.get_position_shared(fh)
 @test offset == sizeof(header)
@@ -53,38 +54,38 @@ byte_offset = MPI.File.get_byte_offset(fh, offset)
 @test byte_offset == offset
 
 MPI.File.set_view!(fh, byte_offset, MPI.Datatype(Int64), MPI.Datatype(Int64))
-sync()
+sync(comm, fh)
 @test MPI.File.get_position_shared(fh) == 0
 
 MPI.File.write_ordered(fh, fill(Int64(rank), rank+1))
-sync()
+sync(comm, fh)
 # https://github.com/JuliaParallel/MPI.jl/issues/879
 @test MPI.File.get_position_shared(fh) == sum(1:sz) skip = (vendor == :MPICH && Sys.isapple())
 
 MPI.File.seek_shared(fh, 0)
 @test MPI.File.get_position_shared(fh) == 0
-sync()
+sync(comm, fh)
 
 buf = zeros(Int64, rank+1)
 MPI.File.read_ordered!(fh, buf)
 @test buf == fill(Int64(rank), rank+1)
-sync()
+sync(comm, fh)
 
 # https://github.com/JuliaParallel/MPI.jl/issues/555
 @test MPI.File.get_position_shared(fh) == sum(1:sz) skip = Sys.iswindows()
 
 MPI.File.set_view!(fh, 0, MPI.Datatype(UInt8), MPI.Datatype(UInt8))
-sync()
+sync(comm, fh)
 MPI.File.seek_shared(fh, 0)
 @test MPI.File.get_position_shared(fh) == 0
-sync()
+sync(comm, fh)
 
 if rank == sz-1
     buf = Array{UInt8}(undef, sizeof(header))
     MPI.File.read_shared!(fh, buf)
     @test String(buf) == header
 end
-sync()
+sync(comm, fh)
 
 @test MPI.File.get_position_shared(fh) == sizeof(header)
 
