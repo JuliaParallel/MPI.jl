@@ -33,19 +33,19 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-13
+          - macos-15-intel
           - ubuntu-latest
           - windows-latest
         julia_version:
-          - "1.6"
+          - "min"
           - "1"
           - "nightly"
         julia_arch: [x64, x86]
         exclude:
-          - os: macos-13
+          - os: macos-15-intel
             julia_arch: x86
         include:
-          - os: macos-14
+          - os: macos-15
             julia_arch: "aarch64"
             julia_version: "1"
 
@@ -88,10 +88,10 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-13
+          - macos-15-intel
           - ubuntu-latest
         julia_version:
-          - "1.6"
+          - "min"
           - "1"
           - "nightly"
         julia_arch: [x64]
@@ -139,8 +139,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-13
-          - macos-14
+          - macos-15
+          - macos-15-intel
         mpi:
           - mpich
           - openmpi
@@ -150,9 +150,9 @@ jobs:
           - "x64"
           - "aarch64"
         exclude:
-          - os: macos-13
+          - os: macos-15-intel
             julia_arch: "aarch64"
-          - os: macos-14
+          - os: macos-15
             julia_arch: "x64"
 
       fail-fast: false
@@ -344,18 +344,18 @@ jobs:
     strategy:
       matrix:
         os:
-          - macos-13
+          - macos-15-intel
           - ubuntu-latest
         mpi: [mpitrampoline]
         julia_version:
-          - "1.6"
+          - "min"
           - "1"
           - "nightly"
         julia_arch:
           - x64
           - x86
         exclude:
-          - os: macos-13
+          - os: macos-15-intel
             julia_arch: x86
 
       fail-fast: false
@@ -556,6 +556,8 @@ jobs:
       MV2_SMP_USE_CMA: 0
       # Work around issue with affinity not set.  Ref:
       # https://github.com/JuliaParallel/MPI.jl/pull/810#issuecomment-1920255386
+      # MVAPICH 2 and 3 use different environment variables; set both.
+      MV2_ENABLE_AFFINITY: 0
       MVP_ENABLE_AFFINITY: 0
 
     steps:
