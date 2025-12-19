@@ -144,7 +144,13 @@ include("generated_api.jl")
 # MPI <5. Once we regenerate the API for MPI 5.0, this should go away
 # again.
 function MPI_Abi_get_version(major, minor)
-    @mpicall ccall((:MPI_Abi_get_version, libmpi), Cint, (Ptr{Cint}, Ptr{Cint}), major, minor)
+    try
+        @mpicall ccall((:MPI_Abi_get_version, libmpi), Cint, (Ptr{Cint}, Ptr{Cint}), major, minor)
+    catch
+        # This is an older MPI implementation which does not support the MPI ABI.
+        major[] = -1
+        minor[] = -1
+    end
 end
 
 for handle in [

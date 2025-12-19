@@ -70,13 +70,6 @@ function Get_version()
     VersionNumber(major[], minor[])
 end
 
-function Abi_get_version()
-    major = Ref{Cint}()
-    minor = Ref{Cint}()
-    API.MPI_Abi_get_version(major, minor)
-    VersionNumber(major[], minor[])
-end
-
 """
     MPI_VERSION :: VersionNumber
 
@@ -86,6 +79,26 @@ The supported version of the MPI standard.
 $(_doc_external("MPI_Get_version"))
 """
 const MPI_VERSION = Get_version()
+
+
+function Abi_get_version()
+    major = Ref{Cint}()
+    minor = Ref{Cint}()
+    API.MPI_Abi_get_version(major, minor)
+    major[] == -1 && return nothing
+    VersionNumber(major[], minor[])
+end
+
+"""
+    MPI_ABI_VERSION :: Union{Nothing,VersionNumber}
+
+The supported version of the MPI ABI standard.
+
+# External links
+$(_doc_external("MPI_Abi_get_version"))
+"""
+const MPI_ABI_VERSION = Abi_get_version()
+
 
 using PkgVersion
 """
@@ -122,6 +135,7 @@ function versioninfo(io::IO=stdout)
     println(io, "  libmpi:  ", API.libmpi)
     println(io, "  libmpi dlpath:  ", Libdl.dlpath(API.libmpi))
     println(io, "  MPI version:  ", Get_version())
+    println(io, "  MPI ABI version:  ", Abi_get_version())
     println(io, "  Library version:  ")
     for line in split(Get_library_version(), '\n')
         println(io, "    ", line)
