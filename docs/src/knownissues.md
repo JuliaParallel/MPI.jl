@@ -82,7 +82,7 @@ MPID_nem_tcp_get_business_card(397):
 GetSockInterfaceAddr(370)..........: gethostbyname failed, bogon (errno 0)
 ```
 
-A workaround is provided in the [documentation of the MOOSE framework](https://mooseframework.inl.gov/help/troubleshooting.html) and we report it here for reference:
+A workaround is provided in the [documentation of the MOOSE framework](https://mooseframework.inl.gov/moose/help/troubleshooting.html) and we report it here for reference:
 
 * obtain your hostname
   ```console
