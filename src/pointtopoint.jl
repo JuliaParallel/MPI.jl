@@ -185,10 +185,10 @@ end
     req = Irecv!(recvbuf, comm::Comm[, req::AbstractRequest = Request()];
             source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
-Starts a nonblocking receive into the buffer `data` from MPI rank `source` of communicator
-`comm` using with the message tag `tag`.
+Starts a nonblocking receive into the buffer `recvbuf` from MPI rank `source` of communicator
+`comm` using the message tag `tag`.
 
-`data` can be a [`Buffer`](@ref), or any object for which `Buffer(data)` is defined.
+`recvbuf` can be a [`Buffer`](@ref), or any object for which `Buffer(recvbuf)` is defined.
 
 Returns the [`AbstractRequest`](@ref) object for the nonblocking receive.
 
@@ -343,13 +343,13 @@ isnull(msg::Message) = msg.val == API.MPI_MESSAGE_NULL[]
         source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
 Matching non-blocking probe. Similar to [`MPI.Iprobe`](@ref), except that it
-also returns `msg`, an [`MPI.Message`](@ref) object. 
+also returns `msg`, an [`MPI.Message`](@ref) object.
 
 Checks if there is a message that can be received matching `source`, `tag` and
 `comm`. If so, returns `ismsg = true`, and a [`Message`](@ref) object `msg`,
 which must be received by either [`MPI.Mrecv!`](@ref) or [`MPI.Imrecv!`](@ref).
 Otherwise `msg` is set to be a null `Message`.
-    
+
 The `Status` argument additionally returns the [`Status`](@ref) of the completed
 request.
 
@@ -377,12 +377,12 @@ end
         source::Integer=MPI.ANY_SOURCE, tag::Integer=MPI.ANY_TAG)
 
 Matching blocking probe. Similar to [`MPI.Probe`](@ref), except that it also
-returns `msg`, an [`MPI.Message`](@ref) object. 
+returns `msg`, an [`MPI.Message`](@ref) object.
 
 Blocks until a message that can be received matching `source`, `tag` and `comm`,
 returning a [`Message`](@ref) object `msg`, which must be received by either
 [`MPI.Mrecv!`](@ref) or [`MPI.Imrecv!`](@ref).
-    
+
 The `Status` argument additionally returns the [`Status`](@ref) of the completed
 request.
 

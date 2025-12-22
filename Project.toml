@@ -1,7 +1,7 @@
 name = "MPI"
 uuid = "da04e1cc-30fd-572f-bb4f-1f8673147195"
 authors = []
-version = "0.20.22"
+version = "0.20.23"
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
@@ -20,7 +20,7 @@ Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 
 [compat]
 Distributed = "1"
-AMDGPU = "0.6, 0.7, 0.8, 0.9, 1"
+AMDGPU = "0.6, 0.7, 0.8, 0.9, 1, 2"
 CUDA = "3, 4, 5"
 DocStringExtensions = "0.8, 0.9"
 Libdl = "1"
@@ -33,7 +33,7 @@ PrecompileTools = "1.0.1"
 Requires = "~0.5, 1.0"
 Serialization = "1"
 Sockets = "1"
-julia = "1.6"
+julia = "1.10"
 
 [extensions]
 AMDGPUExt = "AMDGPU"

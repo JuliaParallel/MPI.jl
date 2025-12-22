@@ -6,8 +6,28 @@ By default, MPI.jl will download and link against the following MPI implementati
 
 This is suitable for most single-node use cases, but for larger systems, such as HPC
 clusters or multi-GPU machines, you will probably want to configure against a
-system-provided MPI implementation in order to exploit features such as fast network
+specialized MPI implementation in order to exploit features such as fast network
 interfaces and CUDA-aware or ROCm-aware MPI interfaces.
+
+There are three ways to point Julia to an MPI implementation:
+- *jll binaries* (preferred). A jll binary is a package that is built
+  via [BinaryBuilder](https://docs.binarybuilder.org/stable/) and can
+  be downloaded for all architectures. Almost all external libraries
+  (such as CUDA, HDF5, libpng, OpenSSL, ...) are provided as jll
+  binaries because they are quick and easy to download and work out of
+  the box.
+- *system binaries* (for experts only). A system binary is a shared
+  library that you need to configure and build yourself. This is
+  tricky even for experts. The problem is not just build the shared
+  library, in addition one has to be careful to ensure that the shared
+  library is ABI compatible with all other package you are using.
+  (More details on this below.)
+
+If you want to use an MPI implementation on your system, then you can
+either use it as *system binary* (this is for experts only), or you
+can use MPItrampoline as *jll binary*, and point MPItrampoline to the
+other MPI library. This is preferred since it automatically ensures
+ABI compatibility.
 
 The MPIPreferences.jl package allows the user to choose which MPI implementation to use in MPI.jl. It uses
 [Preferences.jl](https://github.com/JuliaPackaging/Preferences.jl) to configure the MPI backend for each
@@ -23,7 +43,136 @@ julia --project -e 'using Pkg; Pkg.add("MPIPreferences")'
     See [Migration from MPI.jl v0.19 or earlier](@ref) for more information on
     how to migrate your configuration from earlier MPI.jl versions.
 
+
+
+## [Using a jll MPI backend](@id using_jll_mpi)
+
+This is the recommended way to use MPI.jl. By default, MPI.jl will use
+`MPICH_jll` as jll MPI backend.
+
+You can select from four different jll MPI binaries:
+- [`MPICH_jll`](http://www.mpich.org/),  the default
+- [`OpenMPI_jll`](https://www.open-mpi.org/), an alternative to MPICH
+- [`MPItrampoline_jll`](https://github.com/eschnett/MPItrampoline), a
+  forwarding MPI implementation that uses another MPI implementation
+- [`MicrosoftMPI_jll`](https://docs.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
+  for Windows
+
+For example, to switch to OpenMPI, you would first use MPIPreferenes.jl to switch:
+
+```sh
+julia> using MPIPreferences
+
+julia> MPIPreferences.use_jll_binary("OpenMPI_jll")
+┌ Info: MPIPreferences changed
+└   binary = "OpenMPI_jll"
+```
+
+Next you need to restart Julia (!) and re-instantiate your packages:
+
+```sh
+julia> using Pkg
+
+julia> Pkg.instantiate()
+```
+
+This is necessary because other jll packages (e.g. `HDF5_jll`) may
+depend on MPI, and a different build of `HDF5_jll` needs to be
+installed for ABI compatibility.
+
+To switch back to `MPICH_jll`, repeat the steps above with
+`"MPICH_JLL"` as argument to `MPIPreferences.use_jll_binary`. Don't
+forget to restart Julia and re-instantiate your packages again.
+
+
+
+## [Using MPItrampoline](@id using_mpitrampoline)
+
+MPItrampoline is an easier and safer way to use external MPI
+implementations. MPItrampoline defines an ABI for MPI calls (similar
+to the way
+[`libblastrampoline`](https://github.com/JuliaLinearAlgebra/libblastrampoline)
+works for linear algebra), which allows switching between different
+MPI backends without recompiling code. Unfortunately this ABI is not
+yet standardized (but it might be in [MPI
+5](https://www.mpi-forum.org)!), and therefore you have to install a
+small wrapper library for every MPI implementation that you want to
+use via MPItrampoline.
+
+The general design is:
+- There is a pre-installed MPI implementation on your system (e.g.
+  supporting CUDA or Slingshot)
+- You (or a system administrator) installs
+  [`MPIwrapper`](https://github.com/eschnett/MPIwrapper), which
+  implements the MPI ABI
+
+On the Julia side, the following happens:
+- MPItrampoline provides the regular MPI functionality, internally
+  calling out via the MPI ABI to any MPI implementation
+- Other packages (ADIOS2, HDF5, or MPI.jl) can always rely on
+  MPItrampoline
+- At run time (when starting Julia), you choose which MPI
+  implementation you use by setting an environment variable
+
+
+The documentation for
+[MPItrampoline](https://github.com/eschnett/MPItrampoline) describes
+how to install MPIwrapper. This is possibly as simple as
+
+```sh
+cmake -B build -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=$HOME/mpiwrapper
+cmake --build build
+cmake --install build
+```
+
+but nothing is ever simple on an HPC system. It might be necessary to
+load certain modules, or to specify more cmake MPI configuration
+options.
+
+Define an environment variable to select this MPI implemenation:
+
+```sh
+export MPITRAMPOLINE_LIB="$HOME/mpiwrapper/lib/libmpiwrapper.so"
+```
+
+pointing to the shared library provided by the MPIwrapper you just
+built. (If you do not set this environment variable the MPItrampoline
+will fall back onto a built-in MPICH. That is, in principle MPI.jl
+could switch over to always using `MPItrampoline_jll`!)
+
+Next you switch MPI.jl over to using `MPItrampoline_jll` as jll
+binary:
+
+```sh
+julia> using MPIPreferences
+
+julia> MPIPreferences.use_jll_binary("MPItrampoline_jll")
+┌ Info: MPIPreferences changed
+└   binary = "MPItrampoline_jll"
+```
+
+and then restart Julia (see above) and re-instantiate your packages:
+
+```sh
+julia> using Pkg
+
+julia> Pkg.instantiate()
+```
+
+You are ready to test this out:
+```sh
+julia> using MPI
+
+julia> MPI.Get_library_version()
+"MPIwrapper 2.11.0, using MPIABI 2.10.0, wrapping:\nMPICH Version:      4.2.1\nMPICH Release date: Wed Apr 17 15:30:02 CDT 2024\nMPICH ABI:          16:1:4\nMPICH Device:       ch3:nemesis\nMPICH configure:    --build=x86_64-linux-musl --host=x86_64-apple-darwin14 --disable-dependency-tracking --disable-doc --enable-shared=no --enable-static=yes --enable-threads=multiple --with-device=ch3 --prefix=/workspace/destdir/lib/mpich --enable-two-level-namespace\nMPICH CC:           cc -fPIC -DPIC  -fno-common  -O2\nMPICH CXX:          c++ -fPIC -DPIC  -O2\nMPICH F77:          gfortran -fPIC -DPIC  -O2\nMPICH FC:           gfortran -fPIC -DPIC  -O2\nMPICH features:     \n"
+```
+
+
+
 ## [Using a system-provided MPI backend](@id using_system_mpi)
+
+This is an alternative way to using an external MPI implementation
+that does not rely on MPItrampoline.
 
 ### Requirements
 
@@ -140,7 +289,7 @@ The function of these settings are as follows:
 
 If these are set, the `_format` key will be set to `"1.1"`.
 
-An example of running `MPIPreferences.use_system_library(vendor="cray")` in
+An example of running `MPIPreferences.use_system_binary(vendor="cray")` in
 `PrgEnv-gnu` is:
 
 ```toml
@@ -174,6 +323,8 @@ julia --project -e 'using MPIPreferences; MPIPreferences.use_jll_binary("MPItram
 ```
 If you omit the JLL binary name, the default is selected for the respective
 operating system.
+
+
 
 ## Configuration of the MPI.jl testsuite
 
@@ -214,6 +365,7 @@ The test suite can also be modified by the following variables:
 - `JULIA_MPI_TEST_NPROCS`: How many ranks to use within the tests
 - `JULIA_MPI_TEST_BINARY`: Check that the specified MPI binary is used for the tests
 - `JULIA_MPI_TEST_ABI`: Check that the specified MPI ABI is used for the tests
+
 
 
 ## Migration from MPI.jl v0.19 or earlier

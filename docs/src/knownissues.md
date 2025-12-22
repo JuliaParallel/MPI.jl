@@ -195,7 +195,7 @@ Make sure to:
   ```
   julia --project -e 'using Pkg; Pkg.add(["AMDGPU", "MPIPreferences", "MPI"]); using MPIPreferences; MPIPreferences.use_system_binary()'
   ```
-- Then in Julia, upon loading MPI and CUDA modules, you can check
+- Then in Julia, upon loading MPI and AMDGPU modules, you can check
   - AMDGPU version: `AMDGPU.versioninfo()`
   - If MPI has ROCm: [`MPI.has_rocm()`](@ref)
   - If you are using correct MPI implementation: `MPI.identify_implementation()`

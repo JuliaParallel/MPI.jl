@@ -7,21 +7,24 @@
         queue: "juliagpu"
         cuda: "*"
       env:
+        # This is broken for OpenMPI 5 and Julia 1.12, so we stick with OpenMPI 4
         OPENMPI_VER: "4.1"
-        OPENMPI_VER_FULL: "4.1.4"
-        UCX_VER: "1.12.1"
+        OPENMPI_VER_FULL: "4.1.8"
+        # OPENMPI_VER: "5.0"
+        # OPENMPI_VER_FULL: "5.0.9"
+        UCX_VER: "1.19.1"
         CCACHE_DIR: "/root/ccache"
       commands: |
         echo "--- Install packages"
         apt-get install --yes --no-install-recommends curl ccache
-        export PATH="/usr/lib/ccache/:$$PATH"
+        export PATH="/usr/lib/ccache:$$PATH"
 
         echo "--- Build UCX"
         curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
         tar -zxf ucx.tar.gz
         pushd ucx-*
         ./configure --with-cuda=/usr/local/cuda --enable-mt --prefix=$$(realpath ../mpi-prefix)
-        make -j
+        make -j $(nproc)
         make install
         popd
 
@@ -30,7 +33,7 @@
         tar -zxf openmpi.tar.gz
         pushd openmpi-$${OPENMPI_VER_FULL}
         ./configure --with-ucx=$$(realpath ../mpi-prefix) --with-cuda=/usr/local/cuda --prefix=$$(realpath ../mpi-prefix)
-        make -j
+        make -j $(nproc)
         make install
         popd
 
@@ -48,11 +51,8 @@
       matrix:
         setup:
           version:
-            - "1.6"
-            - "1.7"
-            - "1.8"
-            - "1.9"
             - "1.10"
+            - "1.12"
       concurrency: 1
       concurrency_group: mpi_cuda
       plugins:
@@ -108,21 +108,25 @@
         queue: "juliagpu"
         rocm: "*"
       env:
+        # This is broken for OpenMPI 5 and Julia 1.12.
+        # It is broken for OpenMPI 4 for all versions of Julia. So we use OpenMPI 5 and skip Julia 1.12
         OPENMPI_VER: "5.0"
-        OPENMPI_VER_FULL: "5.0.3"
-        UCX_VER: "1.17.0"
+        OPENMPI_VER_FULL: "5.0.9"
+        # OPENMPI_VER: "4.1"
+        # OPENMPI_VER_FULL: "4.1.8"
+        UCX_VER: "1.19.1"
         CCACHE_DIR: "/root/ccache"
       commands: |
         echo "--- Install packages"
         apt-get install --yes --no-install-recommends curl ccache
-        export PATH="/usr/lib/ccache/:$$PATH"
+        export PATH="/usr/lib/ccache:$$PATH"
 
         echo "--- Build UCX"
         curl -L https://github.com/openucx/ucx/releases/download/v$${UCX_VER}/ucx-$${UCX_VER}.tar.gz --output ucx.tar.gz
         tar -zxf ucx.tar.gz
         pushd ucx-*
         ./configure --with-rocm --enable-mt --prefix=$$(realpath ../mpi-prefix)
-        make -j
+        make -j $(nproc)
         make install
         popd
 
@@ -131,7 +135,7 @@
         tar -zxf openmpi.tar.gz
         pushd openmpi-$${OPENMPI_VER_FULL}
         ./configure --with-ucx=$$(realpath ../mpi-prefix) --with-rocm --prefix=$$(realpath ../mpi-prefix)
-        make -j
+        make -j $(nproc)
         make install
         popd
 
@@ -150,6 +154,15 @@
         setup:
           version:
             - "1.10"
+            - "1.11"
+            #
+            # Skip the test with Julia 1.12 because it segfaults while installing packages:
+            # [amdgpu1:516  :0:516] Caught signal 11 (Segmentation fault: invalid permissions for mapped object at address 0x7ee1a9ec5000)
+            # ==== backtrace (tid:    516) ====
+            #  0  /var/lib/buildkite-agent/builds/gpuci-9/julialang/mpi-dot-jl/openmpi/lib/libucs.so.0(ucs_handle_error+0x2e4) [0x7ee18c9bc4d4]
+            #  1  /var/lib/buildkite-agent/builds/gpuci-9/julialang/mpi-dot-jl/openmpi/lib/libucs.so.0(+0x3b6ca) [0x7ee18c9bc6ca]
+            #
+            # - "1.12"
       concurrency: 1
       concurrency_group: mpi_rocm
       plugins:
