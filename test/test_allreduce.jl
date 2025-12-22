@@ -13,6 +13,9 @@ else
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
 end
 
+iallreduce_supported = get(ENV, "JULIA_MPI_TEST_IALLREDUCE", "true") == "true"
+
+
 for T = [Int]
     for dims = [1, 2, 3]
         send_arr = ArrayType(zeros(T, Tuple(3 for i in 1:dims)))
@@ -43,6 +46,23 @@ for T = [Int]
             vals = MPI.Allreduce(send_arr, op, MPI.COMM_WORLD)
             @test vals isa ArrayType{T}
             @test vals == comm_size .* send_arr
+
+            # Nonblocking
+            recv_arr = ArrayType{T}(undef, size(send_arr))
+            if iallreduce_supported
+                req = MPI.IAllreduce!(send_arr, recv_arr, op, MPI.COMM_WORLD)
+                MPI.Wait(req)
+                @test recv_arr == comm_size .* send_arr
+            end
+
+            # Nonblocking (IN_PLACE)
+            recv_arr = copy(send_arr)
+            synchronize()
+            if iallreduce_supported
+                req = MPI.IAllreduce!(recv_arr, op, MPI.COMM_WORLD)
+                MPI.Wait(req)
+                @test recv_arr == comm_size .* send_arr
+            end
         end
     end
 end

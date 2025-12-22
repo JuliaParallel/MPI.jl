@@ -55,8 +55,10 @@ MPI.Neighbor_alltoallv!
 ```@docs
 MPI.Reduce!
 MPI.Reduce
+MPI.IReduce!
 MPI.Allreduce!
 MPI.Allreduce
+MPI.IAllreduce!
 MPI.Scan!
 MPI.Scan
 MPI.Exscan!

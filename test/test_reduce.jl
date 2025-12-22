@@ -9,6 +9,8 @@ const can_do_closures =
     Sys.ARCH !== :aarch64 &&
     !startswith(string(Sys.ARCH), "arm")
 
+ireduce_supported = get(ENV, "JULIA_MPI_TEST_IREDUCE", "true") == "true"
+
 using DoubleFloats
 
 MPI.Init()
@@ -116,6 +118,26 @@ for T = [Int]
                 @test recv_arr isa ArrayType{T}
                 @test recv_arr == sz .* view(send_arr, 2:3)
             end
+
+            # Nonblocking
+            recv_arr = ArrayType{T}(undef, size(send_arr))
+            if ireduce_supported
+                req = MPI.IReduce!(send_arr, recv_arr, op, MPI.COMM_WORLD; root=root)
+                MPI.Wait(req)
+                if isroot
+                    @test recv_arr == sz .* send_arr
+                end
+            end
+
+            # Nonblocking (IN_PLACE)
+            recv_arr = copy(send_arr)
+            if ireduce_supported
+                req = MPI.IReduce!(recv_arr, op, MPI.COMM_WORLD; root=root)
+                MPI.Wait(req)
+                if isroot
+                    @test recv_arr == sz .* send_arr
+                end
+            end
         end
     end
 end
@@ -129,6 +151,15 @@ if rank == root
     @test result ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
 else
     @test result === nothing
+end
+
+recv_arr = isroot ? zeros(eltype(send_arr), size(send_arr)) : nothing
+if ireduce_supported
+    req = MPI.IReduce!(send_arr, recv_arr, +, MPI.COMM_WORLD; root=root)
+    MPI.Wait(req)
+    if rank == root
+        @test recv_arr ≈ [Double64(sz*i)/10 for i = 1:10] rtol=sz*eps(Double64)
+    end
 end
 
 MPI.Barrier( MPI.COMM_WORLD )
