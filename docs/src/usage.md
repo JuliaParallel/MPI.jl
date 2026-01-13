@@ -115,7 +115,7 @@ For (1), using the node-local rank `rank_loc` is a way to select the GPU device:
 comm_loc = MPI.Comm_split_type(comm, MPI.COMM_TYPE_SHARED, rank)
 rank_loc = MPI.Comm_rank(comm_loc)
 ```
-For (2), one can use the default device but make sur to handle device visibility in the scheduler or by using `CUDA/ROCM_VISIBLE_DEVICES`.
+For (2), one can use the default device but make sure to handle device visibility in the scheduler or by using `CUDA/ROCM_VISIBLE_DEVICES`.
 
 ## Writing MPI tests
 
