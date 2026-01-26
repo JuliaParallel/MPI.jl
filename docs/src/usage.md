@@ -74,6 +74,14 @@ with:
 $ mpiexecjl --project=/path/to/project -n 20 julia script.jl
 ```
 
+!!! note "Juliaup"
+    If you use `juliaup` as a manager for your `julia` installation and you want to use a non-default channel with `mpiexecjl`,
+    you need to use the environment variable `JULIAUP_CHANNEL` instead of using the `+` syntax.
+
+    ```shell
+    JULIAUP_CHANNEL=1.12 mpiexecjl --project=/path/to/project -n 20 julia script.jl
+    ```
+
 ## GPU-aware MPI support
 
 If your MPI implementation has been compiled with CUDA or ROCm support, then `CUDA.CuArray`s (from
