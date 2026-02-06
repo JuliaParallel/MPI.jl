@@ -2,8 +2,9 @@ name: Unit Tests
 
 on:
   pull_request:
-    paths:
+    paths: &paths
       - '.github/workflows/UnitTests.yml'
+      - 'Project.toml'
       - 'bin/**'
       - 'deps/**'
       - 'src/**'
@@ -13,13 +14,7 @@ on:
     branches:
       - master
       - release-*
-    paths:
-      - '.github/workflows/UnitTests.yml'
-      - 'bin/**'
-      - 'deps/**'
-      - 'src/**'
-      - 'test/**'
-      - 'lib/**'
+    paths: *paths
 
 concurrency:
   # Skip intermediate builds: all builds except for builds on the `master` branch
