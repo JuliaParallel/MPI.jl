@@ -80,8 +80,8 @@ function is_mpi_operation_supported(mpi_op, n=nprocs)
 end
 
 if ArrayType != Array  # we expect that only GPU backends can have unsupported features
-    ENV["JULIA_MPI_TEST_IALLREDUCE"] = is_mpi_operation_supported("IAllreduce")
-    ENV["JULIA_MPI_TEST_IREDUCE"] = is_mpi_operation_supported("IReduce")
+    ENV["JULIA_MPI_TEST_IALLREDUCE"] = is_mpi_operation_supported("Iallreduce")
+    ENV["JULIA_MPI_TEST_IREDUCE"] = is_mpi_operation_supported("Ireduce")
 end
 
 excludefiles = split(get(ENV,"JULIA_MPI_TEST_EXCLUDE",""),',')

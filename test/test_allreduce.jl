@@ -50,7 +50,7 @@ for T = [Int]
             # Nonblocking
             recv_arr = ArrayType{T}(undef, size(send_arr))
             if iallreduce_supported
-                req = MPI.IAllreduce!(send_arr, recv_arr, op, MPI.COMM_WORLD)
+                req = MPI.Iallreduce!(send_arr, recv_arr, op, MPI.COMM_WORLD)
                 MPI.Wait(req)
                 @test recv_arr == comm_size .* send_arr
             end
@@ -59,7 +59,7 @@ for T = [Int]
             recv_arr = copy(send_arr)
             synchronize()
             if iallreduce_supported
-                req = MPI.IAllreduce!(recv_arr, op, MPI.COMM_WORLD)
+                req = MPI.Iallreduce!(recv_arr, op, MPI.COMM_WORLD)
                 MPI.Wait(req)
                 @test recv_arr == comm_size .* send_arr
             end

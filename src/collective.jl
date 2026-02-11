@@ -716,11 +716,11 @@ function Reduce(object::T, op, root::Integer, comm::Comm) where {T}
     end
 end
 
-## IReduce
+## Ireduce
 
 """
-    IReduce!(sendbuf, recvbuf, op, comm::Comm[, req::AbstractRequest = Request()]; root::Integer=0)
-    IReduce!(sendrecvbuf, op, comm::Comm[, req::AbstractRequest = Request()]; root::Integer=0)
+    Ireduce!(sendbuf, recvbuf, op, comm::Comm[, req::AbstractRequest = Request()]; root::Integer=0)
+    Ireduce!(sendrecvbuf, op, comm::Comm[, req::AbstractRequest = Request()]; root::Integer=0)
 
 Starts a nonblocking elementwise reduction using the operator `op` on the buffer `sendbuf` and
 stores the result in `recvbuf` on the process of rank `root`.
@@ -733,18 +733,18 @@ Returns the [`AbstractRequest`](@ref) object for the nonblocking reduction.
 
 # See also
 - [`Reduce!`](@ref) the equivalent blocking operation.
-- [`IAllreduce!`](@ref) to send reduction to all ranks.
+- [`Iallreduce!`](@ref) to send reduction to all ranks.
 - [`Op`](@ref) for details on reduction operators.
 
 # External links
 $(_doc_external("MPI_Ireduce"))
 """
-IReduce!(sendrecvbuf, op, comm::Comm, req::AbstractRequest=Request(); root::Integer=Cint(0)) =
-    IReduce!(sendrecvbuf, op, root, comm, req)
-IReduce!(sendbuf, recvbuf, op, comm::Comm, req::AbstractRequest=Request(); root::Integer=Cint(0)) =
-    IReduce!(sendbuf, recvbuf, op, root, comm, req)
+Ireduce!(sendrecvbuf, op, comm::Comm, req::AbstractRequest=Request(); root::Integer=Cint(0)) =
+    Ireduce!(sendrecvbuf, op, root, comm, req)
+Ireduce!(sendbuf, recvbuf, op, comm::Comm, req::AbstractRequest=Request(); root::Integer=Cint(0)) =
+    Ireduce!(sendbuf, recvbuf, op, root, comm, req)
 
-function IReduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm, req::AbstractRequest=Request())
+function Ireduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm, req::AbstractRequest=Request())
     # int MPI_Ireduce(const void* sendbuf, void* recvbuf, int count,
     #                 MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm,
     #                 MPI_Request* req)
@@ -753,17 +753,17 @@ function IReduce!(rbuf::RBuffer, op::Union{Op,MPI_Op}, root::Integer, comm::Comm
     return req
 end
 
-IReduce!(rbuf::RBuffer, op, root::Integer, comm::Comm, req::AbstractRequest=Request()) =
-    IReduce!(rbuf, Op(op, eltype(rbuf)), root, comm, req)
-IReduce!(sendbuf, recvbuf, op, root::Integer, comm::Comm, req::AbstractRequest=Request()) =
-    IReduce!(RBuffer(sendbuf, recvbuf), op, root, comm, req)
+Ireduce!(rbuf::RBuffer, op, root::Integer, comm::Comm, req::AbstractRequest=Request()) =
+    Ireduce!(rbuf, Op(op, eltype(rbuf)), root, comm, req)
+Ireduce!(sendbuf, recvbuf, op, root::Integer, comm::Comm, req::AbstractRequest=Request()) =
+    Ireduce!(RBuffer(sendbuf, recvbuf), op, root, comm, req)
 
 # inplace
-function IReduce!(buf, op, root::Integer, comm::Comm, req::AbstractRequest=Request())
+function Ireduce!(buf, op, root::Integer, comm::Comm, req::AbstractRequest=Request())
     if Comm_rank(comm) == root
-        IReduce!(IN_PLACE, buf, op, root, comm, req)
+        Ireduce!(IN_PLACE, buf, op, root, comm, req)
     else
-        IReduce!(buf, nothing, op, root, comm, req)
+        Ireduce!(buf, nothing, op, root, comm, req)
     end
 end
 
@@ -826,11 +826,11 @@ Allreduce(sendbuf::AbstractArray, op, comm::Comm) =
 Allreduce(obj::T, op, comm::Comm) where {T} =
     Allreduce!(Ref(obj), Ref{T}(), op, comm)[]
 
-## IAllreduce
+## Iallreduce
 
 """
-    IAllreduce!(sendbuf, recvbuf, op, comm::Comm[, req::AbstractRequest = Request()])
-    IAllreduce!(sendrecvbuf, op, comm::Comm[, req::AbstractRequest = Request()])
+    Iallreduce!(sendbuf, recvbuf, op, comm::Comm[, req::AbstractRequest = Request()])
+    Iallreduce!(sendrecvbuf, op, comm::Comm[, req::AbstractRequest = Request()])
 
 Starts a nonblocking elementwise reduction using the operator `op` on the buffer `sendbuf`, storing
 the result in the `recvbuf` of all processes in the group.
@@ -841,13 +841,13 @@ Returns the [`AbstractRequest`](@ref) object for the nonblocking reduction.
 
 # See also
 - [`Allreduce!`](@ref) the equivalent blocking operation.
-- [`IReduce!`](@ref) to send reduction to a single rank.
+- [`Ireduce!`](@ref) to send reduction to a single rank.
 - [`Op`](@ref) for details on reduction operators.
 
 # External links
 $(_doc_external("MPI_Iallreduce"))
 """
-function IAllreduce!(rbuf::RBuffer, op::Union{Op, MPI_Op}, comm::Comm, req::AbstractRequest=Request())
+function Iallreduce!(rbuf::RBuffer, op::Union{Op, MPI_Op}, comm::Comm, req::AbstractRequest=Request())
     @assert isnull(req)
     # int MPI_Iallreduce(const void* sendbuf, void* recvbuf, int count,
     #                    MPI_Datatype datatype, MPI_Op op, MPI_Comm comm,
@@ -856,14 +856,14 @@ function IAllreduce!(rbuf::RBuffer, op::Union{Op, MPI_Op}, comm::Comm, req::Abst
     setbuffer!(req, rbuf)
     return req
 end
-IAllreduce!(rbuf::RBuffer, op, comm::Comm, req::AbstractRequest=Request()) =
-    IAllreduce!(rbuf, Op(op, eltype(rbuf)), comm, req)
-IAllreduce!(sendbuf, recvbuf, op, comm::Comm, req::AbstractRequest=Request()) =
-    IAllreduce!(RBuffer(sendbuf, recvbuf), op, comm, req)
+Iallreduce!(rbuf::RBuffer, op, comm::Comm, req::AbstractRequest=Request()) =
+    Iallreduce!(rbuf, Op(op, eltype(rbuf)), comm, req)
+Iallreduce!(sendbuf, recvbuf, op, comm::Comm, req::AbstractRequest=Request()) =
+    Iallreduce!(RBuffer(sendbuf, recvbuf), op, comm, req)
 
 # inplace
-IAllreduce!(rbuf, op, comm::Comm, req::AbstractRequest=Request()) =
-    IAllreduce!(IN_PLACE, rbuf, op, comm, req)
+Iallreduce!(rbuf, op, comm::Comm, req::AbstractRequest=Request()) =
+    Iallreduce!(IN_PLACE, rbuf, op, comm, req)
 
 ## Scan
 
