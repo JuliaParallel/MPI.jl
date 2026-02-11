@@ -9,7 +9,12 @@ const can_do_closures =
     Sys.ARCH !== :aarch64 &&
     !startswith(string(Sys.ARCH), "arm")
 
+reduce_supported = get(ENV, "JULIA_MPI_TEST_REDUCE", "true") == "true"
 ireduce_supported = get(ENV, "JULIA_MPI_TEST_IREDUCE", "true") == "true"
+if !reduce_supported
+    @warn "Skipping all tests in 'test_reduce.jl' as reductions are unsupported"
+    exit(0)
+end
 
 using DoubleFloats
 

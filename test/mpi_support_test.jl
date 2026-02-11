@@ -6,17 +6,30 @@ MPI.Init()
 # (or a similar signal) when called, which cannot be handled in Julia in a portable way.
 
 op = ARGS[1]
-if op == "Iallreduce"
-    # Iallreduce is unsupported for CUDA with OpenMPI + UCX
-    # See https://docs.open-mpi.org/en/main/tuning-apps/networking/cuda.html#which-mpi-apis-do-not-work-with-cuda-aware-ucx
+if op == "Allreduce"
+    # Allreduce is unsupported for AMDGPU with UCX
+    send_arr = ArrayType(zeros(Int, 1))
+    recv_arr = ArrayType{Int}(undef, 1)
+    synchronize()
+    MPI.Allreduce!(send_arr, recv_arr, +, MPI.COMM_WORLD)
+
+elseif op == "Iallreduce"
+    # Iallreduce is unsupported for CUDA with OpenMPI 5 + UCX
     send_arr = ArrayType(zeros(Int, 1))
     recv_arr = ArrayType{Int}(undef, 1)
     synchronize()
     req = MPI.Iallreduce!(send_arr, recv_arr, +, MPI.COMM_WORLD)
     MPI.Wait(req)
 
+elseif op == "Reduce"
+    # Reduce is unsupported for AMDGPU with UCX
+    send_arr = ArrayType(zeros(Int, 1))
+    recv_arr = ArrayType{Int}(undef, 1)
+    synchronize()
+    MPI.Reduce!(send_arr, recv_arr, +, MPI.COMM_WORLD; root=0)
+
 elseif op == "Ireduce"
-    # Iallreduce is unsupported for CUDA with OpenMPI + UCX
+    # Ireduce is unsupported for CUDA with OpenMPI 5 + UCX
     send_arr = ArrayType(zeros(Int, 1))
     recv_arr = ArrayType{Int}(undef, 1)
     synchronize()

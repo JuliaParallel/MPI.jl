@@ -1,5 +1,12 @@
 include("common.jl")
 
+allreduce_supported = get(ENV, "JULIA_MPI_TEST_ALLREDUCE", "true") == "true"
+iallreduce_supported = get(ENV, "JULIA_MPI_TEST_IALLREDUCE", "true") == "true"
+if !allreduce_supported
+    @warn "Skipping all tests in 'test_allreduce.jl' as reductions are unsupported"
+    exit(0)
+end
+
 MPI.Init()
 
 comm_size = MPI.Comm_size(MPI.COMM_WORLD)
@@ -12,8 +19,6 @@ if ArrayType != Array ||
 else
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
 end
-
-iallreduce_supported = get(ENV, "JULIA_MPI_TEST_IALLREDUCE", "true") == "true"
 
 
 for T = [Int]

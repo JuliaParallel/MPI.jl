@@ -74,12 +74,16 @@ end
 function is_mpi_operation_supported(mpi_op, n=nprocs)
     test_file = joinpath(@__DIR__, "mpi_support_test.jl")
     cmd = `$(mpiexec()) -n $n $(Base.julia_cmd()) --startup-file=no $test_file $mpi_op`
-    supported = success(run(ignorestatus(cmd)))
+    cmd = pipeline(ignorestatus(cmd); stderr=devnull)
+    process = run(cmd)
+    supported = success(process)
     !supported && @warn "$mpi_op is unsupported with $backend_name"
     return supported
 end
 
 if ArrayType != Array  # we expect that only GPU backends can have unsupported features
+    ENV["JULIA_MPI_TEST_ALLREDUCE"] = is_mpi_operation_supported("Allreduce")
+    ENV["JULIA_MPI_TEST_REDUCE"] = is_mpi_operation_supported("Reduce")
     ENV["JULIA_MPI_TEST_IALLREDUCE"] = is_mpi_operation_supported("Iallreduce")
     ENV["JULIA_MPI_TEST_IREDUCE"] = is_mpi_operation_supported("Ireduce")
 end
