@@ -111,7 +111,8 @@
         # This is broken for OpenMPI 5 and Julia 1.12.
         # It is broken for OpenMPI 4 for all versions of Julia. So we use OpenMPI 5 and skip Julia 1.12
         OPENMPI_VER: "5.0"
-        OPENMPI_VER_FULL: "5.0.9"
+        #TODO OPENMPI_VER_FULL: "5.0.9"
+        OPENMPI_VER_FULL: "5.0.10"
         # OPENMPI_VER: "4.1"
         # OPENMPI_VER_FULL: "4.1.8"
         UCX_VER: "1.19.1"
@@ -154,7 +155,8 @@
         setup:
           version:
             - "1.10"
-            - "1.11"
+            #TODO - "1.11"
+            - "1.12"
             #
             # Skip the test with Julia 1.12 because it segfaults while installing packages:
             # [amdgpu1:516  :0:516] Caught signal 11 (Segmentation fault: invalid permissions for mapped object at address 0x7ee1a9ec5000)
