@@ -7,9 +7,11 @@ function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
     ptr = Base.unsafe_convert(Ptr{T}, x)
     reinterpret(MPIPtr, ptr)
 end
-function Base.unsafe_convert(::Type{MPIPtr}, x::Base.OffsetCConvert{T}) where {T}
-    ptr = Base.unsafe_convert(Ptr{T}, x)   # Base handles offset arithmetic
-    reinterpret(MPIPtr, ptr)
+@static if VERSION >= v"1.14.0-DEV"
+    function Base.unsafe_convert(::Type{MPIPtr}, x::Base.OffsetCConvert{T}) where {T}
+        ptr = Base.unsafe_convert(Ptr{T}, x)   # Base handles offset arithmetic
+        reinterpret(MPIPtr, ptr)
+    end
 end
 
 
