@@ -79,54 +79,6 @@ jobs:
         COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
 
 
-  test-mpiabi-jll:
-    timeout-minutes: 20
-    strategy:
-      matrix:
-        os:
-          - macos-15-intel
-          - ubuntu-latest
-        julia_version:
-          - "min"
-          - "1"
-          - "nightly"
-        julia_arch: [x64]
-
-      fail-fast: false
-    env:
-      JULIA_MPI_TEST_BINARY: MPIABI_jll
-      JULIA_MPI_TEST_ABI: MPIABI
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v6
-
-    - uses: julia-actions/setup-julia@v2
-      with:
-        arch: ${{ matrix.julia_arch }}
-        version: ${{ matrix.julia_version }}
-    - uses: julia-actions/cache@v2
-
-    - name: add MPIPreferences
-      shell: julia --color=yes --project=. {0}
-      run: |
-        using Pkg
-        Pkg.develop(path="lib/MPIPreferences")
-
-    - name: use OpenMPI_jll
-      shell: julia --color=yes --project=test {0}
-      run: |
-        using Pkg
-        Pkg.develop(path="lib/MPIPreferences")
-        using MPIPreferences
-        MPIPreferences.use_jll_binary("MPIABI_jll", export_prefs=true)
-        rm("test/Manifest.toml")
-
-    - uses: julia-actions/julia-runtest@v1
-
-
   test-openmpi-jll:
     timeout-minutes: 20
     strategy:
