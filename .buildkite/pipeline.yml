@@ -155,8 +155,8 @@
         setup:
           version:
             - "1.10"
-            #TODO - "1.11"
-            - "1.12"
+            - "1.11"
+            - "1.12"   #TODO
             #
             # Skip the test with Julia 1.12 because it segfaults while installing packages:
             # [amdgpu1:516  :0:516] Caught signal 11 (Segmentation fault: invalid permissions for mapped object at address 0x7ee1a9ec5000)
@@ -205,7 +205,7 @@
             '
 
         echo "+++ Run tests"
-        export JULIA_MPI_TEST_EXCLUDE="test_allreduce.jl,test_reduce.jl,test_scan.jl"
+        #TODO export JULIA_MPI_TEST_EXCLUDE="test_allreduce.jl,test_reduce.jl,test_scan.jl"
         julia --color=yes --project=. -e '
            import Pkg
            Pkg.test("MPI"; test_args=["--backend=AMDGPU"])
