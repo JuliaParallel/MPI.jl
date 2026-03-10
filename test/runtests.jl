@@ -84,7 +84,7 @@ testfiles = sort(filter(istest, readdir(testdir)))
                # test number of processes.
                "JULIA_MPI_TEST_NUM_PROCESSES"=>string(n))
     if f == "test_spawn.jl"
-        # Same command as the others, but always use a single process
+        # Some command as the others, but always use a single process
         run(cmd(1))
     elseif f == "test_threads.jl"
         # Legacy Intel MPI (before 2020) crashes threads tests:

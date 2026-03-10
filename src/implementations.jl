@@ -80,7 +80,6 @@ $(_doc_external("MPI_Get_version"))
 """
 const MPI_VERSION = Get_version()
 
-
 using PkgVersion
 """
     MPI.versioninfo(io::IO=stdout)
@@ -100,7 +99,7 @@ function versioninfo(io::IO=stdout)
     println(io, "  MPI.jl:             ", PkgVersion.@Version)
     println(io, "  MPIPreferences.jl:  ", PkgVersion.Version(MPIPreferences))
     if MPIPreferences.binary == "MPIABI_jll"
-        println(io, "  MPIABI_jll:          ", PkgVersion.Version(API.MPICH_jll))
+        println(io, "  MPIABI_jll:         ", PkgVersion.Version(API.MPICH_jll))
     elseif MPIPreferences.binary == "MPICH_jll"
         println(io, "  MPICH_jll:          ", PkgVersion.Version(API.MPICH_jll))
     elseif MPIPreferences.binary == "MPItrampoline_jll"

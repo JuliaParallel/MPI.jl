@@ -78,7 +78,6 @@ jobs:
       env:
         COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
 
-
   test-openmpi-jll:
     timeout-minutes: 20
     strategy:
@@ -129,7 +128,6 @@ jobs:
         rm("test/Manifest.toml")
 
     - uses: julia-actions/julia-runtest@v1
-
 
   test-system-brew:
     timeout-minutes: 20
@@ -242,7 +240,6 @@ jobs:
         MPIPreferences.use_system_binary()
 
     - uses: julia-actions/julia-runtest@v1
-
 
   test-intel-linux:
     timeout-minutes: 20

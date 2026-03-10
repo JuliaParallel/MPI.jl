@@ -31,6 +31,7 @@ const binary = @load_preference("binary", Sys.iswindows() ? "MicrosoftMPI_jll" :
 
 The ABI (application binary interface) of the currently selected binary. Supported values are:
 
+- `"HPE MPT"`: HPE MPT
 - `"MPIABI"`: MPI-ABI-compatible ABI (https://www.mpi-form.org/)
 - `"MPICH"`: MPICH-compatible ABI (https://www.mpich.org/abi/)
 - `"MPItrampoline"`: MPItrampoline

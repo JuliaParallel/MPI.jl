@@ -82,12 +82,6 @@ makedocs(
     # wants to run the linkchecks locally they can set the environment variable `CI=true`.
     linkcheck = get(ENV, "CI", "false") == "true",
     linkcheck_useragent = nothing,
-    # - Our cross references contain paths that begin with `..`.
-    #   Documenter does not like this. We know this, and we disable
-    #   this check until we fixed this.
-    # - The link checks do not work on CI because the web sites to
-    #   which we point forbid access to our CI systems (403).
-    warnonly = [:cross_references, :linkcheck],
 )
 
 deploydocs(
