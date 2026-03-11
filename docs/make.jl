@@ -82,6 +82,11 @@ makedocs(
     # wants to run the linkchecks locally they can set the environment variable `CI=true`.
     linkcheck = get(ENV, "CI", "false") == "true",
     linkcheck_useragent = nothing,
+    linkcheck_ignore = [
+        "https://mooseframework.inl.gov/help/troubleshooting.html",
+        r"https://docs\.open-mpi\.org/.*",
+        r"https://mpi4py\.readthedocs\.io/.*",
+    ],
 )
 
 deploydocs(
