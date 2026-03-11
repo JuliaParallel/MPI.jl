@@ -84,6 +84,8 @@ makedocs(
     linkcheck_useragent = nothing,
     linkcheck_ignore = [
         "https://mooseframework.inl.gov/help/troubleshooting.html",
+        "https://docs.open-mpi.org",
+        "https://mpi4py.readthedocs.io",
     ],
 )
 
