@@ -1,6 +1,11 @@
 MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
 
+# Implementation note
+# Base.cconvert and Base.unsafe_convert are a matched pair. 
+# We must implement Base.unsafe_convert(MPIPtr, ::typeof(Base.cconvert(MPIPtr, x))),
+# which is not possible to do generically. So we must define them as we find them.
+
 Base.cconvert(::Type{MPIPtr}, x::Union{Ptr{T}, Array{T}, Ref{T}}) where T = Base.cconvert(Ptr{T}, x)
 Base.cconvert(::Type{MPIPtr}, x::SubArray{T}) where T = Base.cconvert(Ptr{T}, x)
 function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
