@@ -4,7 +4,7 @@ MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
 struct CConvWrapper{T, C}
     cconv::C
 end
-function CConvWrapper(T, x)
+function CConvWrapper(::Type{T}, x) where T
     cconv = Base.cconvert(T, x)
     CConvWrapper{T, typeof(cconv)}(cconv)
 end
