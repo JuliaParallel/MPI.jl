@@ -45,6 +45,7 @@ MPI.Sendrecv!
 MPI.Isend
 MPI.isend
 MPI.Irecv!
+MPI.Isendrecv!
 ```
 
 ### Completion
