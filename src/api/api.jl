@@ -76,9 +76,7 @@ end
 primitive type MPIPtr Sys.WORD_SIZE
 end
 @assert sizeof(MPIPtr) == sizeof(Ptr{Cvoid})
-Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
-Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
-
+Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
 
 # Initialize the ref constants from the library.
 # This is not `API.__init__`, as it should be called _after_

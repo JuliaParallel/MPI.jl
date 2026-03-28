@@ -1,16 +1,27 @@
 MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
 
-Base.cconvert(::Type{MPIPtr}, x::Union{Ptr{T}, Array{T}, Ref{T}}) where T = Base.cconvert(Ptr{T}, x)
-Base.cconvert(::Type{MPIPtr}, x::SubArray{T}) where T = Base.cconvert(Ptr{T}, x)
-function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
-    ptr = Base.unsafe_convert(Ptr{T}, x)
+struct CConvWrapper{T, C}
+    cconv::C
+end
+function CConvWrapper(T, x)
+    cconv = Base.cconvert(T, x)
+    CConvWrapper{T, typeof(cconv)}(cconv)
+end
+
+function Base.unsafe_convert(::Type{MPIPtr}, x::CConvWrapper{T}) where T
+    ptr = Base.unsafe_convert(T, x.cconv)
     reinterpret(MPIPtr, ptr)
 end
 
+function Base.cconvert(::Type{MPIPtr}, x::Union{Array{T}, SubArray{T}, Ref{T}}) where T
+    CConvWrapper(Ptr{T}, x)
+end
+function Base.cconvert(::Type{MPIPtr}, x::String)
+    CConvWrapper(Ptr{UInt8}, x)
+end
 
-Base.cconvert(::Type{MPIPtr}, x::String) = x
-Base.unsafe_convert(::Type{MPIPtr}, x::String) = reinterpret(MPIPtr, pointer(x))
+Base.cconvert(::Type{MPIPtr}, ptr::Ptr) = reinterpret(MPIPtr, ptr)
 
 Base.cconvert(::Type{MPIPtr}, ::Nothing) = reinterpret(MPIPtr, C_NULL)
 
@@ -45,7 +56,7 @@ MPIPtr
 
 struct InPlace
 end
-Base.cconvert(::Type{MPIPtr}, ::InPlace) = API.MPI_IN_PLACE[]
+Base.cconvert(::Type{MPIPtr}, ::InPlace) = reinterpret(MPIPtr, API.MPI_IN_PLACE[])
 
 
 """
