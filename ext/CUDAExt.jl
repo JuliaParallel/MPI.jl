@@ -2,22 +2,14 @@ module CUDAExt
 
 import MPI 
 isdefined(Base, :get_extension) ? (import CUDA) : (import ..CUDA)
-import MPI: MPIPtr, Buffer, Datatype
+import MPI: MPIPtr, Buffer, Datatype, CConvWrapper
 
 function Base.cconvert(::Type{MPIPtr}, buf::CUDA.CuArray{T}) where T
-    Base.cconvert(CUDA.CuPtr{T}, buf) # returns DeviceBuffer
+    CConvWrapper(CUDA.CuPtr{T}, buf)
 end
 
-function Base.unsafe_convert(::Type{MPIPtr}, X::CUDA.CuArray{T}) where T
-    reinterpret(MPIPtr, Base.unsafe_convert(CUDA.CuPtr{T}, X))
-end
-
-# only need to define this for strided arrays: all others can be handled by generic machinery
-function Base.unsafe_convert(::Type{MPIPtr}, V::SubArray{T,N,P,I,true}) where {T,N,P<:CUDA.CuArray,I}
-    X = parent(V)
-    pX = Base.unsafe_convert(CUDA.CuPtr{T}, X)
-    pV = pX + ((V.offset1 + V.stride1) - first(LinearIndices(X)))*sizeof(T)
-    return reinterpret(MPIPtr, pV)
+function Base.cconvert(::Type{MPIPtr}, buf::SubArray{T,N,P,I,true}) where {T,N,P<:CUDA.CuArray,I}
+    CConvWrapper(CUDA.CuPtr{T}, buf)
 end
 
 function Buffer(arr::CUDA.CuArray)
