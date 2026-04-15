@@ -82,14 +82,28 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
-        os:
-          - macos-15-intel
-          - ubuntu-latest
-        julia_version:
-          - "min"
-          - "1"
-          - "nightly"
-        julia_arch: [x64, x86]
+        include:
+          - julia_arch: "arm64"
+            os: "macOS-26"
+            julia_version: "1"
+          - julia_arch: "arm64"
+            os: "ubuntu-24.04-arm"
+            julia_version: "1"
+          - julia_arch: "x64"
+            os: "macOS-15-intel"
+            julia_version: "1"
+          - julia_arch: "x64"
+            os: "ubuntu-24.04"
+            julia_version: "1"
+          - julia_arch: "x86"
+            os: "ubuntu-24.04"
+            julia_version: "1"
+          - julia_arch: "x64"
+            os: "ubuntu-24.04"
+            julia_version: "min"
+          - julia_arch: "x64"
+            os: "ubuntu-24.04"
+            julia_version: "nightly"
 
       fail-fast: false
     env:
