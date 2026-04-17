@@ -131,6 +131,8 @@ jobs:
     - name: use MPIABI_jll
       shell: julia --color=yes --project=test {0}
       run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
         MPIPreferences.use_jll_binary("MPIABI_jll", export_prefs=true)
         rm("test/Manifest.toml")
@@ -180,6 +182,8 @@ jobs:
     - name: use OpenMPI_jll
       shell: julia --color=yes --project=test {0}
       run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
         using MPIPreferences
         MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
         rm("test/Manifest.toml")
