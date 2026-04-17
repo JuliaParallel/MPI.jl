@@ -163,12 +163,27 @@ function Datatype(::Type{T}) where {T}
         @assert Initialized()
         # init()
         # TODO vvv
+
         oldtype = API.MPI_UINT32_T[]
         @show oldtype
         size = Ref{Cint}()
         API.MPI_Type_size(oldtype, size)
         size = size[]
-        @show oldtype size
+        @show :oldtype size
+
+        count = 2
+        array_of_blocklengths = Cint[1, 1]
+        array_of_displacements = Int[0, 8]
+        array_of_types = [API.MPI_DOUBLE[], API.MPI_DOUBLE[]]
+        @show count array_of_blocklengths array_of_displacements array_of_types
+        newtype = Ref{MPI_Datatype}()
+        API.MPI_Type_dup(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
+        @show newtype
+        size = Ref{Cint}()
+        API.MPI_Type_size(newtype, size)
+        size = size[]
+        @show :newtype size
+
         newtype = Ref{MPI_Datatype}()
         API.MPI_Type_dup(oldtype, newtype)
         newtype = newtype[]
@@ -176,7 +191,8 @@ function Datatype(::Type{T}) where {T}
         size = Ref{Cint}()
         API.MPI_Type_size(newtype, size)
         size = size[]
-        @show newtype size
+        @show :newtype size
+
         # TODO ^^^
         Types.create!(datatype, T)
         @show :Datatype :init1 datatype.val datatype
