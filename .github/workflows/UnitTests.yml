@@ -96,8 +96,14 @@ jobs:
             os: "ubuntu-24.04"
             julia_version: "1"
           # Something is wrong on this architecture (CI fails).
-          # `MPI_Type_dup` and other type-related functions do not work.
           # I could not reproduce this outside of this CI environment.
+          # The errors are raised by MPICH and look like
+          #     ERROR: LoadError: MPIError(403384067): Invalid datatype, error stack:
+          #     internal_Type_get_attr(2148): MPI_Type_get_attr(INVALID DATATYPE, type_keyval=..., attribute_val=..., flag=...) failed
+          # This is caused by MPI.jl calling `MPI_Type_dup`, and the resulting type is somehow invalid.
+          # Other functions (e.g. `MPI_Type_create_struct`) also create invalid types.
+          # I can reproduce this (in CI) by directly calling the low-level `API.MPI_*` functions,
+          # and thus the convenience layer of MPI.jl (`mutable struct Datatype` etc.) are not at fault.
           # - julia_arch: "x86"
           #   os: "ubuntu-24.04"
           #   julia_version: "1"
