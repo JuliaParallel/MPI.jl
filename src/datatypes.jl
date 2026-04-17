@@ -154,9 +154,9 @@ function Datatype(::Type{T}) where {T}
         # lazily initialize so that it can be safely precompiled
         function init()
             Types.create!(datatype, T)
-            @show :Datatype :init1 datatype.val
+            @show :Datatype :init1 datatype datatype.val
             Types.commit!(datatype)
-            @show :Datatype :init2 datatype.val
+            @show :Datatype :init2 datatype datatype.val
             set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
         end
         # Initialized() ? init() : add_init_hook!(init)
@@ -457,7 +457,7 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
         disp = 0
         for (i,basetype) in (8 => Datatype(UInt64), 4 => Datatype(UInt32), 2 => Datatype(UInt16), 1 => Datatype(UInt8))
             if sz == i
-                @show :create! duplicate! basetype
+                @show :create! duplicate! basetype basetype.val
                 return MPI.Types.duplicate!(newtype, basetype)
             end
             blk, szrem = divrem(szrem, i)
