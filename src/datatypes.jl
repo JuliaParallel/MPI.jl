@@ -163,7 +163,7 @@ function Datatype(::Type{T}) where {T}
         @assert Initialized()
         # init()
         # TODO vvv
-        oldtype = API.MPI_UINT32_T
+        oldtype = API.MPI_UINT32_T[]
         @show oldtype
         newtype = Ref{MPI_Datatype}()
         API.MPI_Type_dup(oldtype, newtype)
