@@ -1,7 +1,7 @@
 module CUDAExt
 
 using CUDA: CUDA
-using MPI: MPIPtr, Buffer, Datatype
+using MPI: MPI, MPIPtr, Buffer, Datatype
 
 function Base.cconvert(::Type{MPIPtr}, buf::CUDA.CuArray{T}) where T
     Base.cconvert(CUDA.CuPtr{T}, buf) # returns DeviceBuffer
@@ -19,7 +19,7 @@ function Base.unsafe_convert(::Type{MPIPtr}, V::SubArray{T,N,P,I,true}) where {T
     return reinterpret(MPIPtr, pV)
 end
 
-function Buffer(arr::CUDA.CuArray)
+function MPI.Buffer(arr::CUDA.CuArray)
     Buffer(arr, Cint(length(arr)), Datatype(eltype(arr)))
 end
 
