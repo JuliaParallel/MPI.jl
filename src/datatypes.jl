@@ -162,6 +162,18 @@ function Datatype(::Type{T}) where {T}
         # # Initialized() ? init() : add_init_hook!(init)
         @assert Initialized()
         # init()
+        # TODO vvv
+        oldtype = API.MPI_UINT32_T
+        @show oldtype
+        newtype = Ref{MPI_Datatype}()
+        API.MPI_Type_dup(oldtype, newtype)
+        newtype = newtype[]
+        @show newtype
+        size = Ref{Cint}()
+        API.MPI_Type_size(newtype, size)
+        size = size[]
+        @show size
+        # TODO ^^^
         Types.create!(datatype, T)
         @show :Datatype :init1 datatype.val datatype
         Types.commit!(datatype)
