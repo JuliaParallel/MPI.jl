@@ -422,7 +422,12 @@ end
 function duplicate!(newtype::Datatype, oldtype::Datatype)
     # int MPI_Type_dup(MPI_Datatype oldtype, MPI_Datatype * newtype)
     @show :duplicate! oldtype.val oldtype
+    @show sizeof(oldtype.val) typeof(oldtype.val)
     API.MPI_Type_dup(oldtype, newtype)
+    @show :duplicate! newtype.val
+    sz = Ref{Cint}()
+    API.MPI_Type_size(newtype, sz);
+    @show sz
     @show :duplicate! newtype.val newtype
     return newtype
 end
