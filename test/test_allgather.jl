@@ -7,8 +7,6 @@ size = MPI.Comm_size(comm)
 rank = MPI.Comm_rank(comm)
 
 for T in MPITestTypes
-    @show :test_Allgather T   #TODO
-
     # test vector input
     A = ArrayType{T}([rank + 1])
     synchronize()

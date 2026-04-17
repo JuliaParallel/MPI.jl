@@ -23,93 +23,95 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 jobs:
-  #TODO test-default:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       os:
-  #TODO         - macos-15-intel
-  #TODO         - ubuntu-latest
-  #TODO         - windows-latest
-  #TODO       julia_version:
-  #TODO         - "min"
-  #TODO         - "1"
-  #TODO         - "nightly"
-  #TODO       julia_arch: [x64, x86]
-  #TODO       exclude:
-  #TODO         - os: macos-15-intel
-  #TODO           julia_arch: x86
-  #TODO       include:
-  #TODO         - os: macos-15
-  #TODO           julia_arch: "aarch64"
-  #TODO           julia_version: "1"
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO 
-  #TODO   runs-on: ${{ matrix.os }}
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       arch: ${{ matrix.julia_arch }}
-  #TODO       version: ${{ matrix.julia_version }}
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO 
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
-  #TODO   - uses: julia-actions/julia-processcoverage@v1
-  #TODO     # Allow CI to pass even if the `processcoverage` step fails:
-  #TODO     continue-on-error: true
-  #TODO   - uses: codecov/codecov-action@v6
-  #TODO     with:
-  #TODO       token: ${{ secrets.CODECOV_TOKEN }}
-  #TODO       fail_ci_if_error: false
-  #TODO       files: lcov.info
-  #TODO   - uses: julia-actions/julia-uploadcoveralls@v1
-  #TODO     continue-on-error: true
-  #TODO     env:
-  #TODO       COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+  test-default:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        os:
+          - macos-15-intel
+          - ubuntu-latest
+          - windows-latest
+        julia_version:
+          - "min"
+          - "1"
+          - "nightly"
+        julia_arch: [x64, x86]
+        exclude:
+          - os: macos-15-intel
+            julia_arch: x86
+        include:
+          - os: macos-15
+            julia_arch: "aarch64"
+            julia_version: "1"
+
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        arch: ${{ matrix.julia_arch }}
+        version: ${{ matrix.julia_version }}
+    - uses: julia-actions/cache@v3
+
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - uses: julia-actions/julia-runtest@v1
+    - uses: julia-actions/julia-processcoverage@v1
+      # Allow CI to pass even if the `processcoverage` step fails:
+      continue-on-error: true
+    - uses: codecov/codecov-action@v6
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false
+        files: lcov.info
+    - uses: julia-actions/julia-uploadcoveralls@v1
+      continue-on-error: true
+      env:
+        COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
 
   test-mpiabi-jll:
     timeout-minutes: 20
     strategy:
       matrix:
         include:
-          #TODO - julia_arch: "arm64"
-          #TODO   os: "macOS-26"
-          #TODO   julia_version: "1"
-          #TODO - julia_arch: "arm64"
-          #TODO   os: "ubuntu-24.04-arm"
-          #TODO   julia_version: "1"
-          #TODO - julia_arch: "x64"
-          #TODO   os: "macOS-15-intel"
-          #TODO   julia_version: "1"
+          - julia_arch: "arm64"
+            os: "macOS-26"
+            julia_version: "1"
+          - julia_arch: "arm64"
+            os: "ubuntu-24.04-arm"
+            julia_version: "1"
+          - julia_arch: "x64"
+            os: "macOS-15-intel"
+            julia_version: "1"
           - julia_arch: "x64"
             os: "ubuntu-24.04"
             julia_version: "1"
-          - julia_arch: "x86"
+          # Something is wrong on this architecture (CI fails).
+          # `MPI_Type_dup` and other type-related functions do not work.
+          # I could not reproduce this outside of this CI environment.
+          # - julia_arch: "x86"
+          #   os: "ubuntu-24.04"
+          #   julia_version: "1"
+          - julia_arch: "x64"
             os: "ubuntu-24.04"
-            julia_version: "1"
-          #TODO - julia_arch: "x64"
-          #TODO   os: "ubuntu-24.04"
-          #TODO   julia_version: "min"
-          #TODO - julia_arch: "x64"
-          #TODO   os: "ubuntu-24.04"
-          #TODO   julia_version: "nightly"
+            julia_version: "min"
+          - julia_arch: "x64"
+            os: "ubuntu-24.04"
+            julia_version: "nightly"
 
       fail-fast: false
     env:
       JULIA_MPI_TEST_BINARY: MPIABI_jll
       JULIA_MPI_TEST_ABI: MPIABI
-      JULIA_MPI_TEST_NPROCS: 1   #TODO
 
     runs-on: ${{ matrix.os }}
 
@@ -140,503 +142,503 @@ jobs:
 
     - uses: julia-actions/julia-runtest@v1
 
-  #TODO test-openmpi-jll:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       os:
-  #TODO         - macos-15-intel
-  #TODO         - ubuntu-latest
-  #TODO       julia_version:
-  #TODO         - "min"
-  #TODO         - "1"
-  #TODO         - "nightly"
-  #TODO       julia_arch: [x64]
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO   env:
-  #TODO     JULIA_MPI_TEST_BINARY: OpenMPI_jll
-  #TODO     JULIA_MPI_TEST_ABI: OpenMPI
-  #TODO     OMPI_MCA_btl_base_warn_component_unused: 0
-  #TODO     OMPI_MCA_rmaps_base_oversubscribe: true
-  #TODO     # Allow oversubscription
-  #TODO     PRTE_MCA_rmaps_default_mapping_policy: :oversubscribe
-  #TODO 
-  #TODO   runs-on: ${{ matrix.os }}
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       arch: ${{ matrix.julia_arch }}
-  #TODO       version: ${{ matrix.julia_version }}
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO 
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO 
-  #TODO   - name: use OpenMPI_jll
-  #TODO     shell: julia --color=yes --project=test {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO       using MPIPreferences
-  #TODO       MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
-  #TODO       rm("test/Manifest.toml")
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
-  #TODO 
-  #TODO test-system-brew:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       os:
-  #TODO         - macos-15
-  #TODO         - macos-15-intel
-  #TODO       mpi:
-  #TODO         - mpich
-  #TODO         - openmpi
-  #TODO       julia_version:
-  #TODO         - "1"
-  #TODO       julia_arch:
-  #TODO         - "x64"
-  #TODO         - "aarch64"
-  #TODO       exclude:
-  #TODO         - os: macos-15-intel
-  #TODO           julia_arch: "aarch64"
-  #TODO         - os: macos-15
-  #TODO           julia_arch: "x64"
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO 
-  #TODO   runs-on: ${{ matrix.os }}
-  #TODO   env:
-  #TODO     JULIA_MPI_TEST_BINARY: system
-  #TODO     ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - name: Install MPI via homebrew
-  #TODO     run: |
-  #TODO       brew install "${{ matrix.mpi }}"
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       version: ${{ matrix.julia_version }}
-  #TODO       arch: ${{ matrix.julia_arch }}
-  #TODO 
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO 
-  #TODO   - name: use system MPI
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using MPIPreferences
-  #TODO       mpi_prefix = readchomp(`brew --prefix ${{ matrix.mpi }}`)
-  #TODO       libdir = joinpath(mpi_prefix, "lib")
-  #TODO       MPIPreferences.use_system_binary(; extra_paths=[libdir])
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
-  #TODO     env:
-  #TODO       # TODO: Only disable this test for MPICH. OpenMPI works fine.
-  #TODO       JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
-  #TODO 
-  #TODO 
-  #TODO test-system-apt:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       mpi:
-  #TODO         # MPICH in Ubuntu is currently broken: https://github.com/pmodels/mpich/issues/7064
-  #TODO         # - libmpich-dev
-  #TODO         - libopenmpi-dev
-  #TODO       julia_version:
-  #TODO         - "1"
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO 
-  #TODO   runs-on: ubuntu-24.04
-  #TODO 
-  #TODO   env:
-  #TODO     JULIA_MPI_TEST_BINARY: system
-  #TODO     OMPI_MCA_btl_base_warn_component_unused: 0
-  #TODO     OMPI_MCA_rmaps_base_oversubscribe: true
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - name: Install MPI via apt
-  #TODO     run: |
-  #TODO       sudo apt-get update
-  #TODO       sudo apt-get install $MPI
-  #TODO     env:
-  #TODO       MPI: ${{ matrix.mpi }}
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       version: ${{ matrix.julia_version }}
-  #TODO 
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO 
-  #TODO   - name: use system MPI
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using MPIPreferences
-  #TODO       MPIPreferences.use_system_binary()
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
-  #TODO 
-  #TODO test-intel-linux:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       include:
-  #TODO         - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-jq
-  #TODO           name: "Intel MPI 2019.9.304"
-  #TODO         - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-jq
-  #TODO           name: "Intel oneAPI MPI 2021.11.0"
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO 
-  #TODO   runs-on: ubuntu-latest
-  #TODO   container: ${{ matrix.container }}
-  #TODO   name: "Test ${{ matrix.name }}"
-  #TODO 
-  #TODO   env:
-  #TODO     JULIA_MPI_TEST_BINARY: system
-  #TODO     JULIA_MPI_TEST_ABI: MPICH
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       version: "1"
-  #TODO 
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO 
-  #TODO   - name: use system MPI
-  #TODO     run: |
-  #TODO       julia --color=yes --project=. -e '
-  #TODO         using MPIPreferences
-  #TODO         MPIPreferences.use_system_binary()'
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
-  #TODO 
-  #TODO 
-  #TODO test-system-msmpi:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       julia_version:
-  #TODO         - "1"
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO 
-  #TODO   runs-on: windows-latest
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - name: Download Microsoft MPI
-  #TODO     run: (new-object net.webclient).DownloadFile("https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe", "msmpisetup.exe")
-  #TODO     shell: powershell
-  #TODO 
-  #TODO   - name: Install Microsoft MPI
-  #TODO     run: msmpisetup.exe -unattend -minimal
-  #TODO     shell: cmd
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       version: ${{ matrix.julia_version }}
-  #TODO 
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO 
-  #TODO   - name: add MPIPreferences, use system
-  #TODO     shell: julia --color=yes --project=test {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO       using MPIPreferences
-  #TODO       MPIPreferences.use_system_binary(;
-  #TODO         export_prefs=true,
-  #TODO         mpiexec="C:\\Program Files\\Microsoft MPI\\Bin\\mpiexec"
-  #TODO       )
-  #TODO       rm("test/Manifest.toml")
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
-  #TODO 
-  #TODO 
-  #TODO test-mpitrampoline-jll:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       os:
-  #TODO         - macos-15-intel
-  #TODO         - ubuntu-latest
-  #TODO       mpi: [mpitrampoline]
-  #TODO       julia_version:
-  #TODO         - "min"
-  #TODO         - "1"
-  #TODO         - "nightly"
-  #TODO       julia_arch:
-  #TODO         - x64
-  #TODO         - x86
-  #TODO       exclude:
-  #TODO         - os: macos-15-intel
-  #TODO           julia_arch: x86
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO 
-  #TODO   runs-on: ${{ matrix.os }}
-  #TODO   env:
-  #TODO     JULIA_MPI_TEST_BINARY: MPItrampoline_jll
-  #TODO     JULIA_MPI_TEST_ABI: MPItrampoline
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       version: ${{ matrix.julia_version }}
-  #TODO 
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO 
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO 
-  #TODO   - name: use MPItrampoline_jll
-  #TODO     shell: julia --color=yes --project=test {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO       using MPIPreferences
-  #TODO       MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
-  #TODO       rm("test/Manifest.toml")
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
-  #TODO 
-  #TODO 
-  #TODO test-mpitrampoline-system-apt:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       mpi:
-  #TODO         # MPICH in Ubuntu is currently broken: https://github.com/pmodels/mpich/issues/7064
-  #TODO         # - libmpich-dev
-  #TODO         - libopenmpi-dev
-  #TODO       julia_version:
-  #TODO         - "1"
-  #TODO         # We don't need to test all combinations
-  #TODO         # - "1.7"
-  #TODO         # - "nightly"
-  #TODO       MPIWrapper:
-  #TODO         - "2.11.0"
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO 
-  #TODO   runs-on: ubuntu-24.04
-  #TODO 
-  #TODO   env:
-  #TODO     JULIA_MPI_TEST_BINARY: MPItrampoline_jll
-  #TODO     JULIA_MPI_TEST_ABI: MPItrampoline
-  #TODO     MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
-  #TODO     MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
-  #TODO     OMPI_MCA_btl_base_warn_component_unused: 0
-  #TODO     OMPI_MCA_rmaps_base_oversubscribe: true
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - name: Install MPI via apt
-  #TODO     run: |
-  #TODO       sudo apt-get update
-  #TODO       sudo apt-get install $MPI
-  #TODO     env:
-  #TODO       MPI: ${{ matrix.mpi }}
-  #TODO 
-  #TODO   - name: Build MPIwrapper
-  #TODO     run: |
-  #TODO       wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
-  #TODO       tar xzf v${MPIWrapper}.tar.gz
-  #TODO       cd MPIwrapper-*
-  #TODO       cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
-  #TODO       cmake --build .
-  #TODO       sudo cmake --install .
-  #TODO     env:
-  #TODO       MPIWrapper: ${{matrix.MPIWrapper}}
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       version: ${{ matrix.julia_version }}
-  #TODO 
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO 
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO 
-  #TODO   - name: use MPItrampoline_jll
-  #TODO     shell: julia --color=yes --project=test {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO       using MPIPreferences
-  #TODO       MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
-  #TODO       rm("test/Manifest.toml")
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
-  #TODO 
-  #TODO 
-  #TODO test-mpitrampoline-oneapi-linux:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       julia_version:
-  #TODO         - "1"
-  #TODO       MPIWrapper:
-  #TODO         - "2.11.0"
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO 
-  #TODO   runs-on: ubuntu-latest
-  #TODO   container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-jq
-  #TODO 
-  #TODO   env:
-  #TODO     JULIA_MPI_TEST_BINARY: MPItrampoline_jll
-  #TODO     JULIA_MPI_TEST_ABI: MPItrampoline
-  #TODO     MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - name: Set MPITRAMPOLINE_MPIEXEC
-  #TODO     run: echo "MPITRAMPOLINE_MPIEXEC=$(which mpiexec)" >> "${GITHUB_ENV}"
-  #TODO 
-  #TODO   - name: Build MPIwrapper
-  #TODO     run: |
-  #TODO       apt-get update
-  #TODO       apt-get install -y wget cmake gcc g++ gfortran python3
-  #TODO       wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
-  #TODO       tar xzf v${MPIWrapper}.tar.gz
-  #TODO       cd MPIwrapper-*
-  #TODO       cmake \
-  #TODO           -DMPIEXEC_EXECUTABLE=mpiexec \
-  #TODO           -DCMAKE_BUILD_TYPE=Debug \
-  #TODO           -DCMAKE_INSTALL_PREFIX=/usr/local \
-  #TODO           .
-  #TODO       cmake --build .
-  #TODO       cmake --install .
-  #TODO     env:
-  #TODO       MPIWrapper: ${{matrix.MPIWrapper}}
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       version: ${{ matrix.julia_version }}
-  #TODO 
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO 
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO 
-  #TODO   - name: use MPItrampoline_jll
-  #TODO     shell: julia --color=yes --project=test {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO       using MPIPreferences
-  #TODO       MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
-  #TODO       rm("test/Manifest.toml")
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
-  #TODO 
-  #TODO 
-  #TODO test-spack-mvapich:
-  #TODO   timeout-minutes: 20
-  #TODO   strategy:
-  #TODO     matrix:
-  #TODO       include:
-  #TODO         - container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich2-jq
-  #TODO           name: "MVAPICH 2.3.7"
-  #TODO         - container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich3-jq
-  #TODO           name: "MVAPICH 3.0"
-  #TODO 
-  #TODO     fail-fast: false
-  #TODO 
-  #TODO   runs-on: ubuntu-22.04
-  #TODO   container: ${{ matrix.container }}
-  #TODO   name: "Test ${{ matrix.name }}"
-  #TODO 
-  #TODO   env:
-  #TODO     JULIA_MPI_TEST_BINARY: system
-  #TODO     JULIA_MPI_TEST_EXCLUDE: test_spawn.jl
-  #TODO     MV2_SMP_USE_CMA: 0
-  #TODO     # Work around issue with affinity not set.  Ref:
-  #TODO     # https://github.com/JuliaParallel/MPI.jl/pull/810#issuecomment-1920255386
-  #TODO     # MVAPICH 2 and 3 use different environment variables; set both.
-  #TODO     MV2_ENABLE_AFFINITY: 0
-  #TODO     MVP_ENABLE_AFFINITY: 0
-  #TODO 
-  #TODO   steps:
-  #TODO   - name: Checkout
-  #TODO     uses: actions/checkout@v6
-  #TODO 
-  #TODO   - uses: julia-actions/setup-julia@v2
-  #TODO     with:
-  #TODO       version: "1"
-  #TODO 
-  #TODO   - uses: julia-actions/cache@v3
-  #TODO   - name: add MPIPreferences
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using Pkg
-  #TODO       Pkg.develop(path="lib/MPIPreferences")
-  #TODO       Pkg.precompile()
-  #TODO 
-  #TODO   - name: use system MPI
-  #TODO     shell: julia --color=yes --project=. {0}
-  #TODO     run: |
-  #TODO       using MPIPreferences
-  #TODO       MPIPreferences.use_system_binary()
-  #TODO 
-  #TODO   - uses: julia-actions/julia-runtest@v1
+  test-openmpi-jll:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        os:
+          - macos-15-intel
+          - ubuntu-latest
+        julia_version:
+          - "min"
+          - "1"
+          - "nightly"
+        julia_arch: [x64]
+
+      fail-fast: false
+    env:
+      JULIA_MPI_TEST_BINARY: OpenMPI_jll
+      JULIA_MPI_TEST_ABI: OpenMPI
+      OMPI_MCA_btl_base_warn_component_unused: 0
+      OMPI_MCA_rmaps_base_oversubscribe: true
+      # Allow oversubscription
+      PRTE_MCA_rmaps_default_mapping_policy: :oversubscribe
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        arch: ${{ matrix.julia_arch }}
+        version: ${{ matrix.julia_version }}
+    - uses: julia-actions/cache@v3
+
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use OpenMPI_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("OpenMPI_jll", export_prefs=true)
+        rm("test/Manifest.toml")
+
+    - uses: julia-actions/julia-runtest@v1
+
+  test-system-brew:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        os:
+          - macos-15
+          - macos-15-intel
+        mpi:
+          - mpich
+          - openmpi
+        julia_version:
+          - "1"
+        julia_arch:
+          - "x64"
+          - "aarch64"
+        exclude:
+          - os: macos-15-intel
+            julia_arch: "aarch64"
+          - os: macos-15
+            julia_arch: "x64"
+
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      ZES_ENABLE_SYSMAN: 1  # https://github.com/open-mpi/ompi/issues/10142
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Install MPI via homebrew
+      run: |
+        brew install "${{ matrix.mpi }}"
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: ${{ matrix.julia_version }}
+        arch: ${{ matrix.julia_arch }}
+
+    - uses: julia-actions/cache@v3
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using MPIPreferences
+        mpi_prefix = readchomp(`brew --prefix ${{ matrix.mpi }}`)
+        libdir = joinpath(mpi_prefix, "lib")
+        MPIPreferences.use_system_binary(; extra_paths=[libdir])
+
+    - uses: julia-actions/julia-runtest@v1
+      env:
+        # TODO: Only disable this test for MPICH. OpenMPI works fine.
+        JULIA_MPI_TEST_DISABLE_REDUCE_ON_APPLE: 1
+
+
+  test-system-apt:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        mpi:
+          # MPICH in Ubuntu is currently broken: https://github.com/pmodels/mpich/issues/7064
+          # - libmpich-dev
+          - libopenmpi-dev
+        julia_version:
+          - "1"
+
+      fail-fast: false
+
+    runs-on: ubuntu-24.04
+
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      OMPI_MCA_btl_base_warn_component_unused: 0
+      OMPI_MCA_rmaps_base_oversubscribe: true
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Install MPI via apt
+      run: |
+        sudo apt-get update
+        sudo apt-get install $MPI
+      env:
+        MPI: ${{ matrix.mpi }}
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: ${{ matrix.julia_version }}
+
+    - uses: julia-actions/cache@v3
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using MPIPreferences
+        MPIPreferences.use_system_binary()
+
+    - uses: julia-actions/julia-runtest@v1
+
+  test-intel-linux:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        include:
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-mpi-jq
+            name: "Intel MPI 2019.9.304"
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-jq
+            name: "Intel oneAPI MPI 2021.11.0"
+
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    name: "Test ${{ matrix.name }}"
+
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_ABI: MPICH
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: "1"
+
+    - uses: julia-actions/cache@v3
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use system MPI
+      run: |
+        julia --color=yes --project=. -e '
+          using MPIPreferences
+          MPIPreferences.use_system_binary()'
+
+    - uses: julia-actions/julia-runtest@v1
+
+
+  test-system-msmpi:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        julia_version:
+          - "1"
+
+      fail-fast: false
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Download Microsoft MPI
+      run: (new-object net.webclient).DownloadFile("https://download.microsoft.com/download/a/5/2/a5207ca5-1203-491a-8fb8-906fd68ae623/msmpisetup.exe", "msmpisetup.exe")
+      shell: powershell
+
+    - name: Install Microsoft MPI
+      run: msmpisetup.exe -unattend -minimal
+      shell: cmd
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: ${{ matrix.julia_version }}
+
+    - uses: julia-actions/cache@v3
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: add MPIPreferences, use system
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_system_binary(;
+          export_prefs=true,
+          mpiexec="C:\\Program Files\\Microsoft MPI\\Bin\\mpiexec"
+        )
+        rm("test/Manifest.toml")
+
+    - uses: julia-actions/julia-runtest@v1
+
+
+  test-mpitrampoline-jll:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        os:
+          - macos-15-intel
+          - ubuntu-latest
+        mpi: [mpitrampoline]
+        julia_version:
+          - "min"
+          - "1"
+          - "nightly"
+        julia_arch:
+          - x64
+          - x86
+        exclude:
+          - os: macos-15-intel
+            julia_arch: x86
+
+      fail-fast: false
+
+    runs-on: ${{ matrix.os }}
+    env:
+      JULIA_MPI_TEST_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_ABI: MPItrampoline
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: ${{ matrix.julia_version }}
+
+    - uses: julia-actions/cache@v3
+
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use MPItrampoline_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        rm("test/Manifest.toml")
+
+    - uses: julia-actions/julia-runtest@v1
+
+
+  test-mpitrampoline-system-apt:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        mpi:
+          # MPICH in Ubuntu is currently broken: https://github.com/pmodels/mpich/issues/7064
+          # - libmpich-dev
+          - libopenmpi-dev
+        julia_version:
+          - "1"
+          # We don't need to test all combinations
+          # - "1.7"
+          # - "nightly"
+        MPIWrapper:
+          - "2.11.0"
+
+      fail-fast: false
+
+    runs-on: ubuntu-24.04
+
+    env:
+      JULIA_MPI_TEST_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_ABI: MPItrampoline
+      MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
+      MPITRAMPOLINE_MPIEXEC: /usr/bin/mpiexec
+      OMPI_MCA_btl_base_warn_component_unused: 0
+      OMPI_MCA_rmaps_base_oversubscribe: true
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Install MPI via apt
+      run: |
+        sudo apt-get update
+        sudo apt-get install $MPI
+      env:
+        MPI: ${{ matrix.mpi }}
+
+    - name: Build MPIwrapper
+      run: |
+        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
+        tar xzf v${MPIWrapper}.tar.gz
+        cd MPIwrapper-*
+        cmake -DMPIEXEC_EXECUTABLE=mpiexec -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local .
+        cmake --build .
+        sudo cmake --install .
+      env:
+        MPIWrapper: ${{matrix.MPIWrapper}}
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: ${{ matrix.julia_version }}
+
+    - uses: julia-actions/cache@v3
+
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use MPItrampoline_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        rm("test/Manifest.toml")
+
+    - uses: julia-actions/julia-runtest@v1
+
+
+  test-mpitrampoline-oneapi-linux:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        julia_version:
+          - "1"
+        MPIWrapper:
+          - "2.11.0"
+
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    container: ghcr.io/juliaparallel/github-actions-buildcache:intel-oneapi-mpi-jq
+
+    env:
+      JULIA_MPI_TEST_BINARY: MPItrampoline_jll
+      JULIA_MPI_TEST_ABI: MPItrampoline
+      MPITRAMPOLINE_LIB: /usr/local/lib/libmpiwrapper.so
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Set MPITRAMPOLINE_MPIEXEC
+      run: echo "MPITRAMPOLINE_MPIEXEC=$(which mpiexec)" >> "${GITHUB_ENV}"
+
+    - name: Build MPIwrapper
+      run: |
+        apt-get update
+        apt-get install -y wget cmake gcc g++ gfortran python3
+        wget https://github.com/eschnett/MPIwrapper/archive/refs/tags/v${MPIWrapper}.tar.gz
+        tar xzf v${MPIWrapper}.tar.gz
+        cd MPIwrapper-*
+        cmake \
+            -DMPIEXEC_EXECUTABLE=mpiexec \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            .
+        cmake --build .
+        cmake --install .
+      env:
+        MPIWrapper: ${{matrix.MPIWrapper}}
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: ${{ matrix.julia_version }}
+
+    - uses: julia-actions/cache@v3
+
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+
+    - name: use MPItrampoline_jll
+      shell: julia --color=yes --project=test {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        using MPIPreferences
+        MPIPreferences.use_jll_binary("MPItrampoline_jll", export_prefs=true)
+        rm("test/Manifest.toml")
+
+    - uses: julia-actions/julia-runtest@v1
+
+
+  test-spack-mvapich:
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        include:
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich2-jq
+            name: "MVAPICH 2.3.7"
+          - container: ghcr.io/juliaparallel/github-actions-buildcache:mvapich3-jq
+            name: "MVAPICH 3.0"
+
+      fail-fast: false
+
+    runs-on: ubuntu-22.04
+    container: ${{ matrix.container }}
+    name: "Test ${{ matrix.name }}"
+
+    env:
+      JULIA_MPI_TEST_BINARY: system
+      JULIA_MPI_TEST_EXCLUDE: test_spawn.jl
+      MV2_SMP_USE_CMA: 0
+      # Work around issue with affinity not set.  Ref:
+      # https://github.com/JuliaParallel/MPI.jl/pull/810#issuecomment-1920255386
+      # MVAPICH 2 and 3 use different environment variables; set both.
+      MV2_ENABLE_AFFINITY: 0
+      MVP_ENABLE_AFFINITY: 0
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - uses: julia-actions/setup-julia@v2
+      with:
+        version: "1"
+
+    - uses: julia-actions/cache@v3
+    - name: add MPIPreferences
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using Pkg
+        Pkg.develop(path="lib/MPIPreferences")
+        Pkg.precompile()
+
+    - name: use system MPI
+      shell: julia --color=yes --project=. {0}
+      run: |
+        using MPIPreferences
+        MPIPreferences.use_system_binary()
+
+    - uses: julia-actions/julia-runtest@v1

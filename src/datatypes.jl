@@ -151,56 +151,10 @@ function Datatype(::Type{T}) where {T}
     global created_datatypes
     datatype = get!(created_datatypes, T) do
         datatype = Datatype()
-        # # lazily initialize so that it can be safely precompiled
-        # function init()
-        #     Types.create!(datatype, T)
-        #     @show :Datatype :init1 datatype datatype.val
-        #     Types.commit!(datatype)
-        #     @show :Datatype :init2 datatype datatype.val
-        #     set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
-        # end
-        # # Initialized() ? init() : add_init_hook!(init)
         @assert Initialized()
-        # init()
-        # TODO vvv
-
-        oldtype = API.MPI_UINT32_T[]
-        @show oldtype sizeof(oldtype) sizeof(MPI_Aint) sizeof(MPI_Offset) sizeof(MPI_Count) sizeof(API.MPI_Fint) sizeof(Ptr{Cvoid}()) sizeof(Int) sizeof(UInt) API.MPI_ABI_VERSION
-        size = Ref{Cint}()
-        API.MPI_Type_size(oldtype, size)
-        size = size[]
-        @show :oldtype size
-
-        count = 2
-        array_of_blocklengths = Cint[1, 1]
-        array_of_displacements = Int[0, 8]
-        array_of_types = [API.MPI_DOUBLE[], API.MPI_DOUBLE[]]
-        @show count array_of_blocklengths array_of_displacements array_of_types
-        newtype = Ref{MPI_Datatype}()
-        API.MPI_Type_create_struct(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
-        newtype = newtype[]
-        @show newtype
-        size = Ref{Cint}()
-        API.MPI_Type_size(newtype, size)
-        size = size[]
-        @show :newtype size
-
-        newtype = Ref{MPI_Datatype}()
-        API.MPI_Type_dup(oldtype, newtype)
-        newtype = newtype[]
-        @show newtype
-        size = Ref{Cint}()
-        API.MPI_Type_size(newtype, size)
-        size = size[]
-        @show :newtype size
-
-        # TODO ^^^
         Types.create!(datatype, T)
-        @show :Datatype :init1 datatype.val datatype
         Types.commit!(datatype)
-        @show :Datatype :init2 datatype.val datatype
         set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
-        @show :Datatype :init3 datatype.val datatype
         datatype
     end
 
@@ -407,7 +361,6 @@ function create_struct(blocklengths, displacements, types)
     finalizer(free, create_struct!(Datatype(), blocklengths, displacements, types))
 end
 function create_struct!(newtype::Datatype, blocklengths, displacements, types)
-    @show :create_struct! blocklengths displacements types
     @assert (N = length(blocklengths)) == length(displacements) == length(types)
     blocklengths = blocklengths isa Vector{Cint} ? blocklengths : Cint[s for s in blocklengths]
     displacements = displacements isa Vector{MPI_Aint} ? displacements : MPI_Aint[s for s in displacements]
@@ -420,7 +373,6 @@ function create_struct!(newtype::Datatype, blocklengths, displacements, types)
         mpi_types = [t.val for t in types]
         API.MPI_Type_create_struct(N, blocklengths, displacements, mpi_types, newtype)
     end
-    @show :create_struct! newtype
     return newtype
 end
 
@@ -454,14 +406,7 @@ end
 
 function duplicate!(newtype::Datatype, oldtype::Datatype)
     # int MPI_Type_dup(MPI_Datatype oldtype, MPI_Datatype * newtype)
-    @show :duplicate! oldtype.val oldtype
-    @show sizeof(oldtype.val) typeof(oldtype.val)
     API.MPI_Type_dup(oldtype, newtype)
-    @show :duplicate! newtype.val
-    sz = Ref{Cint}()
-    API.MPI_Type_size(newtype, sz);
-    @show sz
-    @show :duplicate! newtype.val newtype
     return newtype
 end
 """
@@ -503,7 +448,6 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
         disp = 0
         for (i,basetype) in (8 => Datatype(UInt64), 4 => Datatype(UInt32), 2 => Datatype(UInt16), 1 => Datatype(UInt8))
             if sz == i
-                @show :create! duplicate! basetype.val basetype
                 return MPI.Types.duplicate!(newtype, basetype)
             end
             blk, szrem = divrem(szrem, i)
@@ -514,7 +458,6 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
                 disp += i * blk
             end
         end
-        @show :create! :isprimitivetype blocklengths displacements types
     else
         # struct
         Fprev = nothing
@@ -532,7 +475,6 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
                 Fprev = F
             end
         end
-        @show :create! :notisprimitivetype blocklengths displacements types
     end
     create_struct!(newtype, blocklengths, displacements, types)
 end
