@@ -163,10 +163,11 @@ function Datatype(::Type{T}) where {T}
         @assert Initialized()
         # init()
         Types.create!(datatype, T)
-        @show :Datatype :init1 datatype datatype.val
+        @show :Datatype :init1 datatype.val datatype
         Types.commit!(datatype)
-        @show :Datatype :init2 datatype datatype.val
+        @show :Datatype :init2 datatype.val datatype
         set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
+        @show :Datatype :init3 datatype.val datatype
         datatype
     end
 
