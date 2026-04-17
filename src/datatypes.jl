@@ -165,7 +165,7 @@ function Datatype(::Type{T}) where {T}
         # TODO vvv
 
         oldtype = API.MPI_UINT32_T[]
-        @show oldtype
+        @show oldtype sizeof(oldtype) sizeof(MPI_Aint) sizeof(MPI_Offset) sizeof(MPI_Count) sizeof(MPI_Fint) sizeof(Ptr{Cvoid}()) sizeof(Int) MPI_ABI_VERSION
         size = Ref{Cint}()
         API.MPI_Type_size(oldtype, size)
         size = size[]
