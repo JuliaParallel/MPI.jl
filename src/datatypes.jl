@@ -421,7 +421,9 @@ end
 
 function duplicate!(newtype::Datatype, oldtype::Datatype)
     # int MPI_Type_dup(MPI_Datatype oldtype, MPI_Datatype * newtype)
+    @show :duplicate! oldtype.val oldtype
     API.MPI_Type_dup(oldtype, newtype)
+    @show :duplicate! newtype.val newtype
     return newtype
 end
 """
@@ -463,7 +465,7 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
         disp = 0
         for (i,basetype) in (8 => Datatype(UInt64), 4 => Datatype(UInt32), 2 => Datatype(UInt16), 1 => Datatype(UInt8))
             if sz == i
-                @show :create! duplicate! basetype basetype.val
+                @show :create! duplicate! basetype.val basetype
                 return MPI.Types.duplicate!(newtype, basetype)
             end
             blk, szrem = divrem(szrem, i)
