@@ -178,6 +178,7 @@ function Datatype(::Type{T}) where {T}
         @show count array_of_blocklengths array_of_displacements array_of_types
         newtype = Ref{MPI_Datatype}()
         API.MPI_Type_create_struct(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
+        newtype = newtype[]
         @show newtype
         size = Ref{Cint}()
         API.MPI_Type_size(newtype, size)
