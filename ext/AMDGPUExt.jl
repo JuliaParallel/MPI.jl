@@ -1,7 +1,7 @@
 module AMDGPUExt
 
 using AMDGPU: AMDGPU
-using MPI: MPIPtr, Buffer, Datatype
+using MPI: MPI, MPIPtr, Buffer, Datatype
 
 function Base.cconvert(::Type{MPIPtr}, A::AMDGPU.ROCArray{T}) where T
     A
@@ -19,7 +19,7 @@ function Base.unsafe_convert(::Type{MPIPtr}, V::SubArray{T,N,P,I,true}) where {T
     return reinterpret(MPIPtr, pV)
 end
 
-function Buffer(arr::AMDGPU.ROCArray)
+function MPI.Buffer(arr::AMDGPU.ROCArray)
     Buffer(arr, Cint(length(arr)), Datatype(eltype(arr)))
 end
 
