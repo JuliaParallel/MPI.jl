@@ -209,6 +209,7 @@ UBuffer(data, count::Integer, nchunks::Union{Integer, Nothing}, datatype::Dataty
 
 function UBuffer(arr::AbstractArray, count::Integer)
     @assert stride(arr, 1) == 1
+    @show :UBuffer eltype(arr)   #TODO
     UBuffer(arr, count, div(length(arr), count), Datatype(eltype(arr)))
 end
 Base.similar(buf::UBuffer) =

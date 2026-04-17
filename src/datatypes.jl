@@ -154,7 +154,9 @@ function Datatype(::Type{T}) where {T}
         # lazily initialize so that it can be safely precompiled
         function init()
             Types.create!(datatype, T)
+            @show :Datatype :init1 datatype.val
             Types.commit!(datatype)
+            @show :Datatype :init2 datatype.val
             set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
         end
         # Initialized() ? init() : add_init_hook!(init)
@@ -366,6 +368,7 @@ function create_struct(blocklengths, displacements, types)
     finalizer(free, create_struct!(Datatype(), blocklengths, displacements, types))
 end
 function create_struct!(newtype::Datatype, blocklengths, displacements, types)
+    @show :create_struct! blocklengths displacements types
     @assert (N = length(blocklengths)) == length(displacements) == length(types)
     blocklengths = blocklengths isa Vector{Cint} ? blocklengths : Cint[s for s in blocklengths]
     displacements = displacements isa Vector{MPI_Aint} ? displacements : MPI_Aint[s for s in displacements]
@@ -378,6 +381,7 @@ function create_struct!(newtype::Datatype, blocklengths, displacements, types)
         mpi_types = [t.val for t in types]
         API.MPI_Type_create_struct(N, blocklengths, displacements, mpi_types, newtype)
     end
+    @show :create_struct! newtype
     return newtype
 end
 
@@ -453,6 +457,7 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
         disp = 0
         for (i,basetype) in (8 => Datatype(UInt64), 4 => Datatype(UInt32), 2 => Datatype(UInt16), 1 => Datatype(UInt8))
             if sz == i
+                @show :create! duplicate! basetype
                 return MPI.Types.duplicate!(newtype, basetype)
             end
             blk, szrem = divrem(szrem, i)
@@ -463,6 +468,7 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
                 disp += i * blk
             end
         end
+        @show :create! :isprimitivetype blocklengths displacements types
     else
         # struct
         Fprev = nothing
@@ -480,6 +486,7 @@ function create!(newtype::Datatype, ::Type{T}) where {T}
                 Fprev = F
             end
         end
+        @show :create! :notisprimitivetype blocklengths displacements types
     end
     create_struct!(newtype, blocklengths, displacements, types)
 end
