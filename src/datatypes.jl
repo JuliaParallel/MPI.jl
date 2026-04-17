@@ -165,6 +165,10 @@ function Datatype(::Type{T}) where {T}
         # TODO vvv
         oldtype = API.MPI_UINT32_T[]
         @show oldtype
+        size = Ref{Cint}()
+        API.MPI_Type_size(oldtype, size)
+        size = size[]
+        @show oldtype size
         newtype = Ref{MPI_Datatype}()
         API.MPI_Type_dup(oldtype, newtype)
         newtype = newtype[]
@@ -172,7 +176,7 @@ function Datatype(::Type{T}) where {T}
         size = Ref{Cint}()
         API.MPI_Type_size(newtype, size)
         size = size[]
-        @show size
+        @show newtype size
         # TODO ^^^
         Types.create!(datatype, T)
         @show :Datatype :init1 datatype.val datatype
