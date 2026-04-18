@@ -82,35 +82,24 @@ jobs:
     timeout-minutes: 20
     strategy:
       matrix:
+        os:
+        - "macos-26"
+        - "ubuntu-24.04-arm"
+        - "macOS-15-intel"
+        - "ubuntu-24.04"
+        julia_arch:
+        - "default"
+        julia_version:
+        - "1"
         include:
-          - julia_arch: "arm64"
-            os: "macOS-26"
-            julia_version: "1"
-          - julia_arch: "arm64"
-            os: "ubuntu-24.04-arm"
-            julia_version: "1"
-          - julia_arch: "x64"
-            os: "macOS-15-intel"
-            julia_version: "1"
-          - julia_arch: "x64"
-            os: "ubuntu-24.04"
-            julia_version: "1"
-          # Something is wrong on this architecture (CI fails).
-          # I could not reproduce this outside of this CI environment.
-          # The errors are raised by MPICH and look like
-          #     ERROR: LoadError: MPIError(403384067): Invalid datatype, error stack:
-          #     internal_Type_get_attr(2148): MPI_Type_get_attr(INVALID DATATYPE, type_keyval=..., attribute_val=..., flag=...) failed
-          # This is caused by MPI.jl calling `MPI_Type_dup`, and the resulting type is somehow invalid.
-          # Other functions (e.g. `MPI_Type_create_struct`) also create invalid types.
-          # I can reproduce this (in CI) by directly calling the low-level `API.MPI_*` functions,
-          # and thus the convenience layer of MPI.jl (`mutable struct Datatype` etc.) are not at fault.
+          # MPICH with MPI ABI is broken on i686: <https://github.com/pmodels/mpich/issues/7770>.
           # - julia_arch: "x86"
           #   os: "ubuntu-24.04"
           #   julia_version: "1"
-          - julia_arch: "x64"
+          - julia_arch: "default"
             os: "ubuntu-24.04"
             julia_version: "min"
-          - julia_arch: "x64"
+          - julia_arch: "default"
             os: "ubuntu-24.04"
             julia_version: "nightly"
 
