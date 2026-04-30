@@ -116,7 +116,7 @@ If using OpenMPI, the status of ROCm support can be checked via the
 [`MPI.has_rocm()`](@ref) function.
 
 ### Safe MPI communication
-When using GPU-aware MPI (CUDA or ROCm), it is recommended to synchronize the device before initiating MPI communication. Because GPU operations are asynchronous with respect to the host, GPU buffers may not be fully updated when a MPI call is issued. This can lead to race conditions and incorrect results.
+When using GPU-aware MPI (CUDA or ROCm), it is required to synchronize the (task-local) stream, before initiating MPI communication. Because GPU operations are asynchronous with respect to the host, GPU buffers may not be fully updated when a MPI call is issued. This can lead to race conditions and incorrect results.
 
 With CUDA:
 ```
