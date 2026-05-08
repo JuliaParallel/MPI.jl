@@ -245,6 +245,40 @@ function Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::In
     return data, status[]
 end
 
+"""
+    req = Isendrecv!(sendbuf, recvbuf, comm::Comm[, req::AbstractRequest = Request()];
+            dest::Integer, sendtag::Integer=0, source::Integer=MPI.ANY_SOURCE, recvtag::Integer=MPI.ANY_TAG)
+
+Starts a nonblocking combined send-receive over the MPI communicator `comm`. Sends `sendbuf` to the
+MPI rank `dest` using message tag `sendtag`, and receive from MPI rank `source` into the buffer `recvbuf`
+using message tag `recvtag`.
+
+`sendbuf` can be a [`Buffer`](@ref), or any object for which `Buffer(sendbuf)` is defined (similarly for `recvbuf`).
+
+Returns an [`AbstractRequest`](@ref) for the combined non-blocking operation.
+
+# External links
+$(_doc_external("MPI_Isendrecv"))
+"""
+Isendrecv!(sendbuf, recvbuf, comm::Comm, req::AbstractRequest=Request(); dest::Integer, sendtag::Integer=0, source::Integer=API.MPI_ANY_SOURCE[], recvtag::Integer=API.MPI_ANY_TAG[]) =
+    Isendrecv!(sendbuf, dest, sendtag, recvbuf, source, recvtag, comm, req)
+
+function Isendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
+                    recvbuf::Buffer, source::Integer, recvtag::Integer,
+                    comm::Comm, req::AbstractRequest=Request())
+    @assert isnull(req)
+    # int MPI_Isendrecv(const void* sendbuf, int sendcount, MPI_Datatype sendtype, int dest,   int sendtag
+    #                   const void* recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
+    #                   MPI_Comm comm, MPI_Request *request)
+    API.MPI_Isendrecv(sendbuf.data, sendbuf.count, sendbuf.datatype, dest, sendtag,
+                      recvbuf.data, recvbuf.count, recvbuf.datatype, source, recvtag,
+                      comm, req)
+    setbuffer!(req, (sendbuf, recvbuf))
+    return req
+end
+Isendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm, req::AbstractRequest=Request()) =
+    Isendrecv!(Buffer(sendbuf), dest, sendtag, Buffer(recvbuf), source, recvtag, comm, req)
+
 # persistent requests
 """
     Send_init(buf, comm::MPI.Comm[, req::AbstractRequest = Request()];
