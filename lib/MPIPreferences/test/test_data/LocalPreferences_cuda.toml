@@ -1,0 +1,9 @@
+[MPIPreferences]
+_format = "1.1"
+abi = "MPICH"
+binary = "system"
+cclibs = ["cupti", "cudart", "cuda", "sci_gnu_82_mpi", "sci_gnu_82", "dl", "dsmml", "xpmem"]
+libmpi = "libmpi_gnu_91.so"
+mpiexec = "srun"
+preloads = ["libmpi_gtl_cuda.so"]
+preloads_env_switch = "MPICH_GPU_SUPPORT_ENABLED"
