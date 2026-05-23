@@ -256,18 +256,18 @@ const      MPI_C_COMPLEX                  = MPI_C_FLOAT_COMPLEX
 @const_ref MPI_WEIGHTS_EMPTY              Ptr{Cint} 11
 
 # Maximum Sizes for Strings
-@const_ref MPI_MAX_DATAREP_STRING         Cint  128
-@const_ref MPI_MAX_ERROR_STRING           Cint  512
-@const_ref MPI_MAX_INFO_KEY               Cint  256
-@const_ref MPI_MAX_INFO_VAL               Cint 1024
-@const_ref MPI_MAX_LIBRARY_VERSION_STRING Cint 8192
-@const_ref MPI_MAX_OBJECT_NAME            Cint  128
-@const_ref MPI_MAX_PORT_NAME              Cint 1024
-@const_ref MPI_MAX_PROCESSOR_NAME         Cint  256
-@const_ref MPI_MAX_STRINGTAG_LEN          Cint 1024
-@const_ref MPI_MAX_PSET_NAME_LEN          Cint 1024
+const MPI_MAX_DATAREP_STRING         = Cint( 128)
+const MPI_MAX_ERROR_STRING           = Cint( 512)
+const MPI_MAX_INFO_KEY               = Cint( 256)
+const MPI_MAX_INFO_VAL               = Cint(1024)
+const MPI_MAX_LIBRARY_VERSION_STRING = Cint(8192)
+const MPI_MAX_OBJECT_NAME            = Cint( 128)
+const MPI_MAX_PORT_NAME              = Cint(1024)
+const MPI_MAX_PROCESSOR_NAME         = Cint( 256)
+const MPI_MAX_STRINGTAG_LEN          = Cint(1024)
+const MPI_MAX_PSET_NAME_LEN          = Cint(1024)
 # Assorted Constants
-@const_ref MPI_BSEND_OVERHEAD             Cint  512
+const MPI_BSEND_OVERHEAD             = Cint( 512)
 
 # Mode Constants - must be powers-of-2 to support OR-ing
 # File Open Modes

@@ -151,15 +151,10 @@ function Datatype(::Type{T}) where {T}
     global created_datatypes
     datatype = get!(created_datatypes, T) do
         datatype = Datatype()
-        # lazily initialize so that it can be safely precompiled
-        function init()
-            Types.create!(datatype, T)
-            Types.commit!(datatype)
-            set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
-        end
-        # Initialized() ? init() : add_init_hook!(init)
         @assert Initialized()
-        init()
+        Types.create!(datatype, T)
+        Types.commit!(datatype)
+        set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
         datatype
     end
 
