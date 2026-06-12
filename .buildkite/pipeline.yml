@@ -4,8 +4,7 @@
     - label: "Build OpenMPI"
       key: "cuda-build-openmpi"
       agents:
-        queue: "juliagpu"
-        cuda: "*"
+        queue: "cuda"
       env:
         # This is broken for OpenMPI 5 and Julia 1.12, so we stick with OpenMPI 4
         OPENMPI_VER: "4.1"
@@ -60,8 +59,7 @@
             version: "{{matrix.version}}"
             persist_depot_dirs: packages,artifacts,compiled
       agents:
-        queue: "juliagpu"
-        cuda: "*"
+        queue: "cuda"
       if: build.message !~ /\[skip tests\]/
       timeout_in_minutes: 90
       env:
@@ -105,8 +103,7 @@
     - label: "Build OpenMPI"
       key: "rocm-build-openmpi"
       agents:
-        queue: "juliagpu"
-        rocm: "*"
+        queue: "rocm"
       env:
         # This is broken for OpenMPI 5 and Julia 1.12.
         # It is broken for OpenMPI 4 for all versions of Julia. So we use OpenMPI 5 and skip Julia 1.12
@@ -170,8 +167,7 @@
             version: "{{matrix.version}}"
             persist_depot_dirs: packages,artifacts,compiled
       agents:
-        queue: "juliagpu"
-        rocm: "*"
+        queue: "rocm"
       if: build.message !~ /\[skip tests\]/
       timeout_in_minutes: 90
       env:
