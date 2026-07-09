@@ -122,6 +122,11 @@ function Base.show(io::IO, err::FeatureLevelError)
     print(io, "FeatureLevelError($(err.function_name)): Minimum MPI version is $(err.min_version)")
 end
 
+@noinline function mpi_error(err)
+    throw(MPIError(err))
+end
+
+
 macro mpichk(expr, min_version=nothing)
     if !isnothing(min_version) && expr.args[2].head == :tuple
         fn = expr.args[2].args[1].value
@@ -134,7 +139,13 @@ macro mpichk(expr, min_version=nothing)
 
     expr = macroexpand(@__MODULE__, :(@mpicall($expr)))
     # MPI_SUCCESS is defined to be 0
-    :((errcode = $(esc(expr))) == 0 || throw(MPIError(errcode)))
+    quote
+        errcode = $(esc(expr))
+        if errcode != 0
+            $mpi_error(errcode)
+        end
+        nothing
+    end
 end
 
 
