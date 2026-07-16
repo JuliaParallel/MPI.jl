@@ -13,6 +13,7 @@ MPI.Ibarrier
 MPI.Bcast!
 MPI.Bcast
 MPI.bcast
+MPI.Ibcast!
 ```
 
 ## Gather/Scatter
@@ -57,6 +58,7 @@ MPI.Reduce!
 MPI.Reduce
 MPI.Allreduce!
 MPI.Allreduce
+MPI.Iallreduce!
 MPI.Scan!
 MPI.Scan
 MPI.Exscan!
