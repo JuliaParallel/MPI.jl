@@ -23,8 +23,12 @@ end
         convention = MPI.API.use_stdcall ? :stdcall : :ccall
         @test MPIcallTestExpansion.gc_safe_true.args[3] ==
             Expr(:cconv, (convention, UInt16(0), true), 0)
-        @test deleteat!(copy(MPIcallTestExpansion.gc_safe_true.args), 3) ==
-            MPIcallTestExpansion.plain.args
+        # with Microsoft MPI the plain form carries the `:stdcall` calling convention in
+        # the same slot as the `Expr(:cconv, ...)` marker of the `gc_safe=true` form,
+        # remove the convention from both before comparing the rest of the expression
+        plain_args = copy(MPIcallTestExpansion.plain.args)
+        MPI.API.use_stdcall && deleteat!(plain_args, 3)
+        @test deleteat!(copy(MPIcallTestExpansion.gc_safe_true.args), 3) == plain_args
     else
         # `gc_safe=true` is a no-op on older Julia versions
         @test MPIcallTestExpansion.gc_safe_true == MPIcallTestExpansion.plain
