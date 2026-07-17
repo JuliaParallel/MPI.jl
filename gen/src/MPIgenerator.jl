@@ -50,6 +50,13 @@ module MPIgenerator
             :MPI_Wtick,
         )
 
+        # these methods are called with `gc_safe=true`, to allow the garbage
+        # collector to run concurrently with the (potentially blocking) MPI call
+        gc_safe = (
+            :MPI_Wait,
+            :MPI_Allreduce,
+        )
+
         versioned = Dict(
             :MPI_Dist_graph_create_adjacent => v"2.2",
             :MPI_Dist_graph_neighbors_count => v"2.2",
@@ -66,7 +73,8 @@ module MPIgenerator
         for line in readlines(src)
             if (m = match(r"^ccall.*:([\w_]+)", lstrip(line))) ≢ nothing
                 sym = first(m.captures) |> Symbol
-                repl = sym ∈ mpicall ? "@mpicall ccall" : "@mpichk ccall"
+                repl = (sym ∈ mpicall ? "@mpicall" : "@mpichk") *
+                    (sym ∈ gc_safe ? " gc_safe=true" : "") * " ccall"
                 line = replace(line, "Ptr{Cvoid}" => "MPIPtr", "ccall" => repl)
                 if (ver = get(versioned, sym, nothing)) ≢ nothing
                     line *= " $(repr(ver))"
