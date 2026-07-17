@@ -69,7 +69,7 @@ module MPIgenerator
         )
 
         src, fn = joinpath(out, "api.jl"), joinpath("MPI.jl", relpath(@__FILE__, normpath(@__DIR__, "..", "..")))
-        lines = String["# WARNING: this signature file for $(MPIPreferences.binary) has been auto-generated, please edit $fn instead !\n"]
+        lines = String[]
         for line in readlines(src)
             if (m = match(r"^ccall.*:([\w_]+)", lstrip(line))) ≢ nothing
                 sym = first(m.captures) |> Symbol
@@ -81,6 +81,31 @@ module MPIgenerator
                 end
             end
             push!(lines, replace(line, raw"\$" => '$'))
+        end
+
+        # group the lines into blocks (docstring + function definition) and sort them by
+        # name of the function, to make the output stable: the order in which the
+        # functions are declared in the headers may change between releases of the MPI
+        # implementations
+        blocks = Vector{Vector{String}}()
+        block = String[]
+        for line in lines
+            # drop the blank lines separating the blocks, they are re-added below
+            isempty(block) && isempty(line) && continue
+            push!(block, line)
+            if line == "end"  # end of a function definition
+                push!(blocks, block)
+                block = String[]
+            end
+        end
+        isempty(block) || error("malformed generated file $src, trailing lines: $block")
+        function_name(block) = match(r"^function (\w+)", block[findfirst(startswith("function "), block)]).captures[1]
+        sort!(blocks; by=function_name)
+
+        lines = String["# WARNING: this signature file for $(MPIPreferences.binary) has been auto-generated, please edit $fn instead !\n"]
+        for block in blocks
+            append!(lines, block)
+            push!(lines, "")
         end
         write(src, join(lines, "\n"))
 
