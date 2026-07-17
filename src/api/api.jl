@@ -89,7 +89,19 @@ end
 
 const use_stdcall = startswith(basename(libmpi), "msmpi")
 
-macro mpicall(expr)
+# Parse an optional leading `gc_safe=(true|false)` argument (as in `@ccall`).
+# Returns (gc_safe::Bool, remaining_args).
+function parse_gc_safe(args)
+    if !isempty(args) && Meta.isexpr(args[1], :(=), 2) && args[1].args[1] === :gc_safe
+        val = args[1].args[2]
+        val === true || val === false ||
+            throw(ArgumentError("`gc_safe` must be literally `true` or `false`"))
+        return val, args[2:end]
+    end
+    return false, args
+end
+
+function mpicall_lower(expr, gc_safe::Bool)
     @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
 
     # On unix systems we call the global symbols to allow for LD_PRELOAD interception
@@ -103,10 +115,37 @@ macro mpicall(expr)
     # this only affects 32-bit Windows
     # unfortunately we need to use ccall to call Get_library_version
     # so check using library name instead
-    if use_stdcall
+    if gc_safe && VERSION >= v"1.12"
+        # same lowering as Base's `@ccall gc_safe=true` (`ccall_macro_lower` in
+        # `base/c.jl`); the `gc_safe` flag is only supported by Julia 1.12+
+        convention = use_stdcall ? :stdcall : :ccall
+        insert!(expr.args, 3, Expr(:cconv, (convention, UInt16(0), true), 0))
+    elseif use_stdcall
         insert!(expr.args, 3, :stdcall)
     end
-    return esc(expr)
+    return expr
+end
+
+"""
+    @mpicall [gc_safe=false] ccall((:MPI_Fn, libmpi), rettype, (argtypes...), args...)
+
+Wrapper around `ccall` for calling MPI library functions, handling the
+platform-specific calling convention (`stdcall` for Microsoft MPI on 32-bit
+Windows) and symbol lookup.
+
+Setting `gc_safe=true` allows the garbage collector to run concurrently with
+the call, which is useful for MPI functions which may block.  It is ignored on
+Julia versions older than v1.12, which don't support this option.
+
+!!! warning
+    `gc_safe=true` can lead to undefined behavior if the MPI function calls
+    back into the Julia runtime, see the documentation of `@ccall`.
+"""
+macro mpicall(args...)
+    gc_safe, args = parse_gc_safe(args)
+    length(args) == 1 ||
+        throw(ArgumentError("@mpicall takes a `ccall(...)` expression and an optional leading `gc_safe=(true|false)` argument"))
+    esc(mpicall_lower(args[1], gc_safe))
 end
 
 """
@@ -122,7 +161,22 @@ function Base.show(io::IO, err::FeatureLevelError)
     print(io, "FeatureLevelError($(err.function_name)): Minimum MPI version is $(err.min_version)")
 end
 
-macro mpichk(expr, min_version=nothing)
+"""
+    @mpichk [gc_safe=false] ccall((:MPI_Fn, libmpi), Cint, (argtypes...), args...) [min_version]
+
+Like [`@mpicall`](@ref), but checks the returned error code and throws an
+[`MPIError`](@ref) if the call was not successful.
+
+If the minimal MPI version `min_version` required for `MPI_Fn` to be available
+is provided and the function is not found in the MPI library, a
+[`FeatureLevelError`](@ref) is thrown instead of performing the call.
+"""
+macro mpichk(args...)
+    gc_safe, args = parse_gc_safe(args)
+    1 <= length(args) <= 2 ||
+        throw(ArgumentError("@mpichk takes a `ccall(...)` expression, an optional leading `gc_safe=(true|false)` argument, and an optional trailing minimum MPI version"))
+    expr = args[1]
+    min_version = length(args) == 2 ? args[2] : nothing
     if !isnothing(min_version) && expr.args[2].head == :tuple
         fn = expr.args[2].args[1].value
         if isnothing(dlsym(libmpi_handle, fn; throw_error=false))
@@ -132,7 +186,7 @@ macro mpichk(expr, min_version=nothing)
         end
     end
 
-    expr = macroexpand(@__MODULE__, :(@mpicall($expr)))
+    expr = mpicall_lower(expr, gc_safe)
     # MPI_SUCCESS is defined to be 0
     :((errcode = $(esc(expr))) == 0 || throw(MPIError(errcode)))
 end
