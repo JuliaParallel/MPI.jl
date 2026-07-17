@@ -1,93 +1,219 @@
 # WARNING: this signature file for MPICH_jll has been auto-generated, please edit MPI.jl/gen/src/MPIgenerator.jl instead !
 
 """
-    MPI_Wait(request, status)
+    MPI_Abi_get_fortran_booleans(logical_size, logical_true, logical_false, is_set)
 
-$(_doc_external(:MPI_Wait))
+$(_doc_external(:MPI_Abi_get_fortran_booleans))
 """
-function MPI_Wait(request, status)
-    @mpichk ccall((:MPI_Wait, libmpi), Cint, (Ptr{MPI_Request}, Ptr{MPI_Status}), request, status)
+function MPI_Abi_get_fortran_booleans(logical_size, logical_true, logical_false, is_set)
+    @mpichk ccall((:MPI_Abi_get_fortran_booleans, libmpi), Cint, (Cint, MPIPtr, MPIPtr, Ptr{Cint}), logical_size, logical_true, logical_false, is_set)
 end
 
 """
-    MPI_Test(request, flag, status)
+    MPI_Abi_get_fortran_info(info)
 
-$(_doc_external(:MPI_Test))
+$(_doc_external(:MPI_Abi_get_fortran_info))
 """
-function MPI_Test(request, flag, status)
-    @mpichk ccall((:MPI_Test, libmpi), Cint, (Ptr{MPI_Request}, Ptr{Cint}, Ptr{MPI_Status}), request, flag, status)
+function MPI_Abi_get_fortran_info(info)
+    @mpichk ccall((:MPI_Abi_get_fortran_info, libmpi), Cint, (Ptr{MPI_Info},), info)
 end
 
 """
-    MPI_Status_c2f(c_status, f_status)
+    MPI_Abi_get_info(info)
 
-$(_doc_external(:MPI_Status_c2f))
+$(_doc_external(:MPI_Abi_get_info))
 """
-function MPI_Status_c2f(c_status, f_status)
-    @mpichk ccall((:MPI_Status_c2f, libmpi), Cint, (Ptr{MPI_Status}, Ptr{MPI_Fint}), c_status, f_status)
+function MPI_Abi_get_info(info)
+    @mpichk ccall((:MPI_Abi_get_info, libmpi), Cint, (Ptr{MPI_Info},), info)
 end
 
 """
-    MPI_Status_f2c(f_status, c_status)
+    MPI_Abi_get_version(abi_major, abi_minor)
 
-$(_doc_external(:MPI_Status_f2c))
+$(_doc_external(:MPI_Abi_get_version))
 """
-function MPI_Status_f2c(f_status, c_status)
-    @mpichk ccall((:MPI_Status_f2c, libmpi), Cint, (Ptr{MPI_Fint}, Ptr{MPI_Status}), f_status, c_status)
+function MPI_Abi_get_version(abi_major, abi_minor)
+    @mpichk ccall((:MPI_Abi_get_version, libmpi), Cint, (Ptr{Cint}, Ptr{Cint}), abi_major, abi_minor)
 end
 
 """
-    MPI_Type_create_f90_integer(r, newtype)
+    MPI_Abi_set_fortran_booleans(logical_size, logical_true, logical_false)
 
-$(_doc_external(:MPI_Type_create_f90_integer))
+$(_doc_external(:MPI_Abi_set_fortran_booleans))
 """
-function MPI_Type_create_f90_integer(r, newtype)
-    @mpichk ccall((:MPI_Type_create_f90_integer, libmpi), Cint, (Cint, Ptr{MPI_Datatype}), r, newtype)
+function MPI_Abi_set_fortran_booleans(logical_size, logical_true, logical_false)
+    @mpichk ccall((:MPI_Abi_set_fortran_booleans, libmpi), Cint, (Cint, MPIPtr, MPIPtr), logical_size, logical_true, logical_false)
 end
 
 """
-    MPI_Type_create_f90_real(p, r, newtype)
+    MPI_Abi_set_fortran_info(info)
 
-$(_doc_external(:MPI_Type_create_f90_real))
+$(_doc_external(:MPI_Abi_set_fortran_info))
 """
-function MPI_Type_create_f90_real(p, r, newtype)
-    @mpichk ccall((:MPI_Type_create_f90_real, libmpi), Cint, (Cint, Cint, Ptr{MPI_Datatype}), p, r, newtype)
+function MPI_Abi_set_fortran_info(info)
+    @mpichk ccall((:MPI_Abi_set_fortran_info, libmpi), Cint, (MPI_Info,), info)
 end
 
 """
-    MPI_Type_create_f90_complex(p, r, newtype)
+    MPI_Comm_toint(comm)
 
-$(_doc_external(:MPI_Type_create_f90_complex))
+$(_doc_external(:MPI_Comm_toint))
 """
-function MPI_Type_create_f90_complex(p, r, newtype)
-    @mpichk ccall((:MPI_Type_create_f90_complex, libmpi), Cint, (Cint, Cint, Ptr{MPI_Datatype}), p, r, newtype)
+function MPI_Comm_toint(comm)
+    @mpichk ccall((:MPI_Comm_toint, libmpi), Cint, (MPI_Comm,), comm)
 end
 
 """
-    MPI_Attr_delete(comm, keyval)
+    MPI_Comm_fromint(comm)
 
-$(_doc_external(:MPI_Attr_delete))
+$(_doc_external(:MPI_Comm_fromint))
 """
-function MPI_Attr_delete(comm, keyval)
-    @mpichk ccall((:MPI_Attr_delete, libmpi), Cint, (MPI_Comm, Cint), comm, keyval)
+function MPI_Comm_fromint(comm)
+    @mpichk ccall((:MPI_Comm_fromint, libmpi), MPI_Comm, (Cint,), comm)
 end
 
 """
-    MPI_Attr_get(comm, keyval, attribute_val, flag)
+    MPI_Errhandler_toint(errhandler)
 
-$(_doc_external(:MPI_Attr_get))
+$(_doc_external(:MPI_Errhandler_toint))
 """
-function MPI_Attr_get(comm, keyval, attribute_val, flag)
-    @mpichk ccall((:MPI_Attr_get, libmpi), Cint, (MPI_Comm, Cint, MPIPtr, Ptr{Cint}), comm, keyval, attribute_val, flag)
+function MPI_Errhandler_toint(errhandler)
+    @mpichk ccall((:MPI_Errhandler_toint, libmpi), Cint, (MPI_Errhandler,), errhandler)
 end
 
 """
-    MPI_Attr_put(comm, keyval, attribute_val)
+    MPI_Errhandler_fromint(errhandler)
 
-$(_doc_external(:MPI_Attr_put))
+$(_doc_external(:MPI_Errhandler_fromint))
 """
-function MPI_Attr_put(comm, keyval, attribute_val)
-    @mpichk ccall((:MPI_Attr_put, libmpi), Cint, (MPI_Comm, Cint, MPIPtr), comm, keyval, attribute_val)
+function MPI_Errhandler_fromint(errhandler)
+    @mpichk ccall((:MPI_Errhandler_fromint, libmpi), MPI_Errhandler, (Cint,), errhandler)
+end
+
+"""
+    MPI_Group_toint(group)
+
+$(_doc_external(:MPI_Group_toint))
+"""
+function MPI_Group_toint(group)
+    @mpichk ccall((:MPI_Group_toint, libmpi), Cint, (MPI_Group,), group)
+end
+
+"""
+    MPI_Group_fromint(group)
+
+$(_doc_external(:MPI_Group_fromint))
+"""
+function MPI_Group_fromint(group)
+    @mpichk ccall((:MPI_Group_fromint, libmpi), MPI_Group, (Cint,), group)
+end
+
+"""
+    MPI_Info_toint(info)
+
+$(_doc_external(:MPI_Info_toint))
+"""
+function MPI_Info_toint(info)
+    @mpichk ccall((:MPI_Info_toint, libmpi), Cint, (MPI_Info,), info)
+end
+
+"""
+    MPI_Info_fromint(info)
+
+$(_doc_external(:MPI_Info_fromint))
+"""
+function MPI_Info_fromint(info)
+    @mpichk ccall((:MPI_Info_fromint, libmpi), MPI_Info, (Cint,), info)
+end
+
+"""
+    MPI_Message_toint(message)
+
+$(_doc_external(:MPI_Message_toint))
+"""
+function MPI_Message_toint(message)
+    @mpichk ccall((:MPI_Message_toint, libmpi), Cint, (MPI_Message,), message)
+end
+
+"""
+    MPI_Message_fromint(message)
+
+$(_doc_external(:MPI_Message_fromint))
+"""
+function MPI_Message_fromint(message)
+    @mpichk ccall((:MPI_Message_fromint, libmpi), MPI_Message, (Cint,), message)
+end
+
+"""
+    MPI_Op_toint(op)
+
+$(_doc_external(:MPI_Op_toint))
+"""
+function MPI_Op_toint(op)
+    @mpichk ccall((:MPI_Op_toint, libmpi), Cint, (MPI_Op,), op)
+end
+
+"""
+    MPI_Op_fromint(op)
+
+$(_doc_external(:MPI_Op_fromint))
+"""
+function MPI_Op_fromint(op)
+    @mpichk ccall((:MPI_Op_fromint, libmpi), MPI_Op, (Cint,), op)
+end
+
+"""
+    MPI_Request_toint(request)
+
+$(_doc_external(:MPI_Request_toint))
+"""
+function MPI_Request_toint(request)
+    @mpichk ccall((:MPI_Request_toint, libmpi), Cint, (MPI_Request,), request)
+end
+
+"""
+    MPI_Request_fromint(request)
+
+$(_doc_external(:MPI_Request_fromint))
+"""
+function MPI_Request_fromint(request)
+    @mpichk ccall((:MPI_Request_fromint, libmpi), MPI_Request, (Cint,), request)
+end
+
+"""
+    MPI_Type_toint(datatype)
+
+$(_doc_external(:MPI_Type_toint))
+"""
+function MPI_Type_toint(datatype)
+    @mpichk ccall((:MPI_Type_toint, libmpi), Cint, (MPI_Datatype,), datatype)
+end
+
+"""
+    MPI_Type_fromint(datatype)
+
+$(_doc_external(:MPI_Type_fromint))
+"""
+function MPI_Type_fromint(datatype)
+    @mpichk ccall((:MPI_Type_fromint, libmpi), MPI_Datatype, (Cint,), datatype)
+end
+
+"""
+    MPI_Win_toint(win)
+
+$(_doc_external(:MPI_Win_toint))
+"""
+function MPI_Win_toint(win)
+    @mpichk ccall((:MPI_Win_toint, libmpi), Cint, (MPI_Win,), win)
+end
+
+"""
+    MPI_Win_fromint(win)
+
+$(_doc_external(:MPI_Win_fromint))
+"""
+function MPI_Win_fromint(win)
+    @mpichk ccall((:MPI_Win_fromint, libmpi), MPI_Win, (Cint,), win)
 end
 
 """
@@ -100,12 +226,30 @@ function MPI_Comm_create_keyval(comm_copy_attr_fn, comm_delete_attr_fn, comm_key
 end
 
 """
+    MPI_Keyval_create(copy_fn, delete_fn, keyval, extra_state)
+
+$(_doc_external(:MPI_Keyval_create))
+"""
+function MPI_Keyval_create(copy_fn, delete_fn, keyval, extra_state)
+    @mpichk ccall((:MPI_Keyval_create, libmpi), Cint, (Ptr{MPI_Copy_function}, Ptr{MPI_Delete_function}, Ptr{Cint}, MPIPtr), copy_fn, delete_fn, keyval, extra_state)
+end
+
+"""
     MPI_Comm_delete_attr(comm, comm_keyval)
 
 $(_doc_external(:MPI_Comm_delete_attr))
 """
 function MPI_Comm_delete_attr(comm, comm_keyval)
     @mpichk ccall((:MPI_Comm_delete_attr, libmpi), Cint, (MPI_Comm, Cint), comm, comm_keyval)
+end
+
+"""
+    MPI_Attr_delete(comm, keyval)
+
+$(_doc_external(:MPI_Attr_delete))
+"""
+function MPI_Attr_delete(comm, keyval)
+    @mpichk ccall((:MPI_Attr_delete, libmpi), Cint, (MPI_Comm, Cint), comm, keyval)
 end
 
 """
@@ -118,12 +262,30 @@ function MPI_Comm_free_keyval(comm_keyval)
 end
 
 """
+    MPI_Keyval_free(keyval)
+
+$(_doc_external(:MPI_Keyval_free))
+"""
+function MPI_Keyval_free(keyval)
+    @mpichk ccall((:MPI_Keyval_free, libmpi), Cint, (Ptr{Cint},), keyval)
+end
+
+"""
     MPI_Comm_get_attr(comm, comm_keyval, attribute_val, flag)
 
 $(_doc_external(:MPI_Comm_get_attr))
 """
 function MPI_Comm_get_attr(comm, comm_keyval, attribute_val, flag)
     @mpichk ccall((:MPI_Comm_get_attr, libmpi), Cint, (MPI_Comm, Cint, MPIPtr, Ptr{Cint}), comm, comm_keyval, attribute_val, flag)
+end
+
+"""
+    MPI_Attr_get(comm, keyval, attribute_val, flag)
+
+$(_doc_external(:MPI_Attr_get))
+"""
+function MPI_Attr_get(comm, keyval, attribute_val, flag)
+    @mpichk ccall((:MPI_Attr_get, libmpi), Cint, (MPI_Comm, Cint, MPIPtr, Ptr{Cint}), comm, keyval, attribute_val, flag)
 end
 
 """
@@ -136,21 +298,12 @@ function MPI_Comm_set_attr(comm, comm_keyval, attribute_val)
 end
 
 """
-    MPI_Keyval_create(copy_fn, delete_fn, keyval, extra_state)
+    MPI_Attr_put(comm, keyval, attribute_val)
 
-$(_doc_external(:MPI_Keyval_create))
+$(_doc_external(:MPI_Attr_put))
 """
-function MPI_Keyval_create(copy_fn, delete_fn, keyval, extra_state)
-    @mpichk ccall((:MPI_Keyval_create, libmpi), Cint, (Ptr{MPI_Copy_function}, Ptr{MPI_Delete_function}, Ptr{Cint}, MPIPtr), copy_fn, delete_fn, keyval, extra_state)
-end
-
-"""
-    MPI_Keyval_free(keyval)
-
-$(_doc_external(:MPI_Keyval_free))
-"""
-function MPI_Keyval_free(keyval)
-    @mpichk ccall((:MPI_Keyval_free, libmpi), Cint, (Ptr{Cint},), keyval)
+function MPI_Attr_put(comm, keyval, attribute_val)
+    @mpichk ccall((:MPI_Attr_put, libmpi), Cint, (MPI_Comm, Cint, MPIPtr), comm, keyval, attribute_val)
 end
 
 """
@@ -285,7 +438,7 @@ end
 $(_doc_external(:MPI_Allreduce))
 """
 function MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm)
-    @mpichk ccall((:MPI_Allreduce, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
+    @mpichk gc_safe=true ccall((:MPI_Allreduce, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm)
 end
 
 """
@@ -1063,6 +1216,15 @@ function MPI_Get_address(location, address)
 end
 
 """
+    MPI_Address(location, address)
+
+$(_doc_external(:MPI_Address))
+"""
+function MPI_Address(location, address)
+    @mpichk ccall((:MPI_Address, libmpi), Cint, (MPIPtr, Ptr{MPI_Aint}), location, address)
+end
+
+"""
     MPI_Get_count(status, datatype, count)
 
 $(_doc_external(:MPI_Get_count))
@@ -1171,12 +1333,48 @@ function MPI_Type_create_darray(size, rank, ndims, array_of_gsizes, array_of_dis
 end
 
 """
+    MPI_Type_create_f90_complex(p, r, newtype)
+
+$(_doc_external(:MPI_Type_create_f90_complex))
+"""
+function MPI_Type_create_f90_complex(p, r, newtype)
+    @mpichk ccall((:MPI_Type_create_f90_complex, libmpi), Cint, (Cint, Cint, Ptr{MPI_Datatype}), p, r, newtype)
+end
+
+"""
+    MPI_Type_create_f90_integer(r, newtype)
+
+$(_doc_external(:MPI_Type_create_f90_integer))
+"""
+function MPI_Type_create_f90_integer(r, newtype)
+    @mpichk ccall((:MPI_Type_create_f90_integer, libmpi), Cint, (Cint, Ptr{MPI_Datatype}), r, newtype)
+end
+
+"""
+    MPI_Type_create_f90_real(p, r, newtype)
+
+$(_doc_external(:MPI_Type_create_f90_real))
+"""
+function MPI_Type_create_f90_real(p, r, newtype)
+    @mpichk ccall((:MPI_Type_create_f90_real, libmpi), Cint, (Cint, Cint, Ptr{MPI_Datatype}), p, r, newtype)
+end
+
+"""
     MPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
 
 $(_doc_external(:MPI_Type_create_hindexed))
 """
 function MPI_Type_create_hindexed(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
     @mpichk ccall((:MPI_Type_create_hindexed, libmpi), Cint, (Cint, Ptr{Cint}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{MPI_Datatype}), count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
+end
+
+"""
+    MPI_Type_hindexed(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
+
+$(_doc_external(:MPI_Type_hindexed))
+"""
+function MPI_Type_hindexed(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
+    @mpichk ccall((:MPI_Type_hindexed, libmpi), Cint, (Cint, Ptr{Cint}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{MPI_Datatype}), count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
 end
 
 """
@@ -1195,6 +1393,15 @@ $(_doc_external(:MPI_Type_create_hvector))
 """
 function MPI_Type_create_hvector(count, blocklength, stride, oldtype, newtype)
     @mpichk ccall((:MPI_Type_create_hvector, libmpi), Cint, (Cint, Cint, MPI_Aint, MPI_Datatype, Ptr{MPI_Datatype}), count, blocklength, stride, oldtype, newtype)
+end
+
+"""
+    MPI_Type_hvector(count, blocklength, stride, oldtype, newtype)
+
+$(_doc_external(:MPI_Type_hvector))
+"""
+function MPI_Type_hvector(count, blocklength, stride, oldtype, newtype)
+    @mpichk ccall((:MPI_Type_hvector, libmpi), Cint, (Cint, Cint, MPI_Aint, MPI_Datatype, Ptr{MPI_Datatype}), count, blocklength, stride, oldtype, newtype)
 end
 
 """
@@ -1222,6 +1429,15 @@ $(_doc_external(:MPI_Type_create_struct))
 """
 function MPI_Type_create_struct(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
     @mpichk ccall((:MPI_Type_create_struct, libmpi), Cint, (Cint, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}), count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
+end
+
+"""
+    MPI_Type_struct(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
+
+$(_doc_external(:MPI_Type_struct))
+"""
+function MPI_Type_struct(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
+    @mpichk ccall((:MPI_Type_struct, libmpi), Cint, (Cint, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}), count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
 end
 
 """
@@ -1315,6 +1531,15 @@ function MPI_Type_get_true_extent_x(datatype, true_lb, true_extent)
 end
 
 """
+    MPI_Type_get_value_index(value_type, index_type, pair_type)
+
+$(_doc_external(:MPI_Type_get_value_index))
+"""
+function MPI_Type_get_value_index(value_type, index_type, pair_type)
+    @mpichk ccall((:MPI_Type_get_value_index, libmpi), Cint, (MPI_Datatype, MPI_Datatype, Ptr{MPI_Datatype}), value_type, index_type, pair_type)
+end
+
+"""
     MPI_Type_indexed(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
 
 $(_doc_external(:MPI_Type_indexed))
@@ -1387,15 +1612,6 @@ function MPI_Unpack_external(datarep, inbuf, insize, position, outbuf, outcount,
 end
 
 """
-    MPI_Address(location, address)
-
-$(_doc_external(:MPI_Address))
-"""
-function MPI_Address(location, address)
-    @mpichk ccall((:MPI_Address, libmpi), Cint, (MPIPtr, Ptr{MPI_Aint}), location, address)
-end
-
-"""
     MPI_Type_extent(datatype, extent)
 
 $(_doc_external(:MPI_Type_extent))
@@ -1420,33 +1636,6 @@ $(_doc_external(:MPI_Type_ub))
 """
 function MPI_Type_ub(datatype, displacement)
     @mpichk ccall((:MPI_Type_ub, libmpi), Cint, (MPI_Datatype, Ptr{MPI_Aint}), datatype, displacement)
-end
-
-"""
-    MPI_Type_hindexed(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
-
-$(_doc_external(:MPI_Type_hindexed))
-"""
-function MPI_Type_hindexed(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
-    @mpichk ccall((:MPI_Type_hindexed, libmpi), Cint, (Cint, Ptr{Cint}, Ptr{MPI_Aint}, MPI_Datatype, Ptr{MPI_Datatype}), count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
-end
-
-"""
-    MPI_Type_hvector(count, blocklength, stride, oldtype, newtype)
-
-$(_doc_external(:MPI_Type_hvector))
-"""
-function MPI_Type_hvector(count, blocklength, stride, oldtype, newtype)
-    @mpichk ccall((:MPI_Type_hvector, libmpi), Cint, (Cint, Cint, MPI_Aint, MPI_Datatype, Ptr{MPI_Datatype}), count, blocklength, stride, oldtype, newtype)
-end
-
-"""
-    MPI_Type_struct(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
-
-$(_doc_external(:MPI_Type_struct))
-"""
-function MPI_Type_struct(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
-    @mpichk ccall((:MPI_Type_struct, libmpi), Cint, (Cint, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}), count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
 end
 
 """
@@ -1495,6 +1684,15 @@ function MPI_Comm_create_errhandler(comm_errhandler_fn, errhandler)
 end
 
 """
+    MPI_Errhandler_create(comm_errhandler_fn, errhandler)
+
+$(_doc_external(:MPI_Errhandler_create))
+"""
+function MPI_Errhandler_create(comm_errhandler_fn, errhandler)
+    @mpichk ccall((:MPI_Errhandler_create, libmpi), Cint, (Ptr{MPI_Comm_errhandler_function}, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
+end
+
+"""
     MPI_Comm_get_errhandler(comm, errhandler)
 
 $(_doc_external(:MPI_Comm_get_errhandler))
@@ -1504,12 +1702,30 @@ function MPI_Comm_get_errhandler(comm, errhandler)
 end
 
 """
+    MPI_Errhandler_get(comm, errhandler)
+
+$(_doc_external(:MPI_Errhandler_get))
+"""
+function MPI_Errhandler_get(comm, errhandler)
+    @mpichk ccall((:MPI_Errhandler_get, libmpi), Cint, (MPI_Comm, Ptr{MPI_Errhandler}), comm, errhandler)
+end
+
+"""
     MPI_Comm_set_errhandler(comm, errhandler)
 
 $(_doc_external(:MPI_Comm_set_errhandler))
 """
 function MPI_Comm_set_errhandler(comm, errhandler)
     @mpichk ccall((:MPI_Comm_set_errhandler, libmpi), Cint, (MPI_Comm, MPI_Errhandler), comm, errhandler)
+end
+
+"""
+    MPI_Errhandler_set(comm, errhandler)
+
+$(_doc_external(:MPI_Errhandler_set))
+"""
+function MPI_Errhandler_set(comm, errhandler)
+    @mpichk ccall((:MPI_Errhandler_set, libmpi), Cint, (MPI_Comm, MPI_Errhandler), comm, errhandler)
 end
 
 """
@@ -1576,6 +1792,33 @@ function MPI_File_set_errhandler(file, errhandler)
 end
 
 """
+    MPI_Remove_error_class(errorclass)
+
+$(_doc_external(:MPI_Remove_error_class))
+"""
+function MPI_Remove_error_class(errorclass)
+    @mpichk ccall((:MPI_Remove_error_class, libmpi), Cint, (Cint,), errorclass)
+end
+
+"""
+    MPI_Remove_error_code(errorcode)
+
+$(_doc_external(:MPI_Remove_error_code))
+"""
+function MPI_Remove_error_code(errorcode)
+    @mpichk ccall((:MPI_Remove_error_code, libmpi), Cint, (Cint,), errorcode)
+end
+
+"""
+    MPI_Remove_error_string(errorcode)
+
+$(_doc_external(:MPI_Remove_error_string))
+"""
+function MPI_Remove_error_string(errorcode)
+    @mpichk ccall((:MPI_Remove_error_string, libmpi), Cint, (Cint,), errorcode)
+end
+
+"""
     MPI_Win_call_errhandler(win, errorcode)
 
 $(_doc_external(:MPI_Win_call_errhandler))
@@ -1612,30 +1855,21 @@ function MPI_Win_set_errhandler(win, errhandler)
 end
 
 """
-    MPI_Errhandler_create(comm_errhandler_fn, errhandler)
+    MPI_Status_c2f(c_status, f_status)
 
-$(_doc_external(:MPI_Errhandler_create))
+$(_doc_external(:MPI_Status_c2f))
 """
-function MPI_Errhandler_create(comm_errhandler_fn, errhandler)
-    @mpichk ccall((:MPI_Errhandler_create, libmpi), Cint, (Ptr{MPI_Comm_errhandler_function}, Ptr{MPI_Errhandler}), comm_errhandler_fn, errhandler)
+function MPI_Status_c2f(c_status, f_status)
+    @mpichk ccall((:MPI_Status_c2f, libmpi), Cint, (Ptr{MPI_Status}, Ptr{MPI_Fint}), c_status, f_status)
 end
 
 """
-    MPI_Errhandler_get(comm, errhandler)
+    MPI_Status_f2c(f_status, c_status)
 
-$(_doc_external(:MPI_Errhandler_get))
+$(_doc_external(:MPI_Status_f2c))
 """
-function MPI_Errhandler_get(comm, errhandler)
-    @mpichk ccall((:MPI_Errhandler_get, libmpi), Cint, (MPI_Comm, Ptr{MPI_Errhandler}), comm, errhandler)
-end
-
-"""
-    MPI_Errhandler_set(comm, errhandler)
-
-$(_doc_external(:MPI_Errhandler_set))
-"""
-function MPI_Errhandler_set(comm, errhandler)
-    @mpichk ccall((:MPI_Errhandler_set, libmpi), Cint, (MPI_Comm, MPI_Errhandler), comm, errhandler)
+function MPI_Status_f2c(f_status, c_status)
+    @mpichk ccall((:MPI_Status_f2c, libmpi), Cint, (Ptr{MPI_Fint}, Ptr{MPI_Status}), f_status, c_status)
 end
 
 """
@@ -2089,6 +2323,60 @@ function MPI_Buffer_detach(buffer_addr, size)
 end
 
 """
+    MPI_Buffer_flush()
+
+$(_doc_external(:MPI_Buffer_flush))
+"""
+function MPI_Buffer_flush()
+    @mpichk ccall((:MPI_Buffer_flush, libmpi), Cint, ())
+end
+
+"""
+    MPI_Buffer_iflush(request)
+
+$(_doc_external(:MPI_Buffer_iflush))
+"""
+function MPI_Buffer_iflush(request)
+    @mpichk ccall((:MPI_Buffer_iflush, libmpi), Cint, (Ptr{MPI_Request},), request)
+end
+
+"""
+    MPI_Comm_attach_buffer(comm, buffer, size)
+
+$(_doc_external(:MPI_Comm_attach_buffer))
+"""
+function MPI_Comm_attach_buffer(comm, buffer, size)
+    @mpichk ccall((:MPI_Comm_attach_buffer, libmpi), Cint, (MPI_Comm, MPIPtr, Cint), comm, buffer, size)
+end
+
+"""
+    MPI_Comm_detach_buffer(comm, buffer_addr, size)
+
+$(_doc_external(:MPI_Comm_detach_buffer))
+"""
+function MPI_Comm_detach_buffer(comm, buffer_addr, size)
+    @mpichk ccall((:MPI_Comm_detach_buffer, libmpi), Cint, (MPI_Comm, MPIPtr, Ptr{Cint}), comm, buffer_addr, size)
+end
+
+"""
+    MPI_Comm_flush_buffer(comm)
+
+$(_doc_external(:MPI_Comm_flush_buffer))
+"""
+function MPI_Comm_flush_buffer(comm)
+    @mpichk ccall((:MPI_Comm_flush_buffer, libmpi), Cint, (MPI_Comm,), comm)
+end
+
+"""
+    MPI_Comm_iflush_buffer(comm, request)
+
+$(_doc_external(:MPI_Comm_iflush_buffer))
+"""
+function MPI_Comm_iflush_buffer(comm, request)
+    @mpichk ccall((:MPI_Comm_iflush_buffer, libmpi), Cint, (MPI_Comm, Ptr{MPI_Request}), comm, request)
+end
+
+"""
     MPI_Ibsend(buf, count, datatype, dest, tag, comm, request)
 
 $(_doc_external(:MPI_Ibsend))
@@ -2341,6 +2629,33 @@ function MPI_Request_get_status(request, flag, status)
 end
 
 """
+    MPI_Request_get_status_all(count, array_of_requests, flag, array_of_statuses)
+
+$(_doc_external(:MPI_Request_get_status_all))
+"""
+function MPI_Request_get_status_all(count, array_of_requests, flag, array_of_statuses)
+    @mpichk ccall((:MPI_Request_get_status_all, libmpi), Cint, (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{MPI_Status}), count, array_of_requests, flag, array_of_statuses)
+end
+
+"""
+    MPI_Request_get_status_any(count, array_of_requests, indx, flag, status)
+
+$(_doc_external(:MPI_Request_get_status_any))
+"""
+function MPI_Request_get_status_any(count, array_of_requests, indx, flag, status)
+    @mpichk ccall((:MPI_Request_get_status_any, libmpi), Cint, (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Status}), count, array_of_requests, indx, flag, status)
+end
+
+"""
+    MPI_Request_get_status_some(incount, array_of_requests, outcount, array_of_indices, array_of_statuses)
+
+$(_doc_external(:MPI_Request_get_status_some))
+"""
+function MPI_Request_get_status_some(incount, array_of_requests, outcount, array_of_indices, array_of_statuses)
+    @mpichk ccall((:MPI_Request_get_status_some, libmpi), Cint, (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Status}), incount, array_of_requests, outcount, array_of_indices, array_of_statuses)
+end
+
+"""
     MPI_Start(request)
 
 $(_doc_external(:MPI_Start))
@@ -2359,12 +2674,75 @@ function MPI_Startall(count, array_of_requests)
 end
 
 """
+    MPI_Status_get_error(status, error)
+
+$(_doc_external(:MPI_Status_get_error))
+"""
+function MPI_Status_get_error(status, error)
+    @mpichk ccall((:MPI_Status_get_error, libmpi), Cint, (Ptr{MPI_Status}, Ptr{Cint}), status, error)
+end
+
+"""
+    MPI_Status_get_source(status, source)
+
+$(_doc_external(:MPI_Status_get_source))
+"""
+function MPI_Status_get_source(status, source)
+    @mpichk ccall((:MPI_Status_get_source, libmpi), Cint, (Ptr{MPI_Status}, Ptr{Cint}), status, source)
+end
+
+"""
+    MPI_Status_get_tag(status, tag)
+
+$(_doc_external(:MPI_Status_get_tag))
+"""
+function MPI_Status_get_tag(status, tag)
+    @mpichk ccall((:MPI_Status_get_tag, libmpi), Cint, (Ptr{MPI_Status}, Ptr{Cint}), status, tag)
+end
+
+"""
+    MPI_Status_set_error(status, error)
+
+$(_doc_external(:MPI_Status_set_error))
+"""
+function MPI_Status_set_error(status, error)
+    @mpichk ccall((:MPI_Status_set_error, libmpi), Cint, (Ptr{MPI_Status}, Cint), status, error)
+end
+
+"""
+    MPI_Status_set_source(status, source)
+
+$(_doc_external(:MPI_Status_set_source))
+"""
+function MPI_Status_set_source(status, source)
+    @mpichk ccall((:MPI_Status_set_source, libmpi), Cint, (Ptr{MPI_Status}, Cint), status, source)
+end
+
+"""
+    MPI_Status_set_tag(status, tag)
+
+$(_doc_external(:MPI_Status_set_tag))
+"""
+function MPI_Status_set_tag(status, tag)
+    @mpichk ccall((:MPI_Status_set_tag, libmpi), Cint, (Ptr{MPI_Status}, Cint), status, tag)
+end
+
+"""
     MPI_Status_set_cancelled(status, flag)
 
 $(_doc_external(:MPI_Status_set_cancelled))
 """
 function MPI_Status_set_cancelled(status, flag)
     @mpichk ccall((:MPI_Status_set_cancelled, libmpi), Cint, (Ptr{MPI_Status}, Cint), status, flag)
+end
+
+"""
+    MPI_Test(request, flag, status)
+
+$(_doc_external(:MPI_Test))
+"""
+function MPI_Test(request, flag, status)
+    @mpichk ccall((:MPI_Test, libmpi), Cint, (Ptr{MPI_Request}, Ptr{Cint}, Ptr{MPI_Status}), request, flag, status)
 end
 
 """
@@ -2401,6 +2779,15 @@ $(_doc_external(:MPI_Testsome))
 """
 function MPI_Testsome(incount, array_of_requests, outcount, array_of_indices, array_of_statuses)
     @mpichk ccall((:MPI_Testsome, libmpi), Cint, (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Status}), incount, array_of_requests, outcount, array_of_indices, array_of_statuses)
+end
+
+"""
+    MPI_Wait(request, status)
+
+$(_doc_external(:MPI_Wait))
+"""
+function MPI_Wait(request, status)
+    @mpichk gc_safe=true ccall((:MPI_Wait, libmpi), Cint, (Ptr{MPI_Request}, Ptr{MPI_Status}), request, status)
 end
 
 """
@@ -3034,6 +3421,15 @@ function MPI_Dist_graph_neighbors_count(comm, indegree, outdegree, weighted)
 end
 
 """
+    MPI_Get_hw_resource_info(hw_info)
+
+$(_doc_external(:MPI_Get_hw_resource_info))
+"""
+function MPI_Get_hw_resource_info(hw_info)
+    @mpichk ccall((:MPI_Get_hw_resource_info, libmpi), Cint, (Ptr{MPI_Info},), hw_info)
+end
+
+"""
     MPI_Graph_create(comm_old, nnodes, indx, edges, reorder, comm_graph)
 
 $(_doc_external(:MPI_Graph_create))
@@ -3094,6 +3490,546 @@ $(_doc_external(:MPI_Topo_test))
 """
 function MPI_Topo_test(comm, status)
     @mpichk ccall((:MPI_Topo_test, libmpi), Cint, (MPI_Comm, Ptr{Cint}), comm, status)
+end
+
+"""
+    MPI_File_c2f(file)
+
+$(_doc_external(:MPI_File_c2f))
+"""
+function MPI_File_c2f(file)
+    @mpichk ccall((:MPI_File_c2f, libmpi), MPI_Fint, (MPI_File,), file)
+end
+
+"""
+    MPI_File_close(fh)
+
+$(_doc_external(:MPI_File_close))
+"""
+function MPI_File_close(fh)
+    @mpichk ccall((:MPI_File_close, libmpi), Cint, (Ptr{MPI_File},), fh)
+end
+
+"""
+    MPI_File_delete(filename, info)
+
+$(_doc_external(:MPI_File_delete))
+"""
+function MPI_File_delete(filename, info)
+    @mpichk ccall((:MPI_File_delete, libmpi), Cint, (Ptr{Cchar}, MPI_Info), filename, info)
+end
+
+"""
+    MPI_File_f2c(file)
+
+$(_doc_external(:MPI_File_f2c))
+"""
+function MPI_File_f2c(file)
+    @mpichk ccall((:MPI_File_f2c, libmpi), MPI_File, (MPI_Fint,), file)
+end
+
+"""
+    MPI_File_get_amode(fh, amode)
+
+$(_doc_external(:MPI_File_get_amode))
+"""
+function MPI_File_get_amode(fh, amode)
+    @mpichk ccall((:MPI_File_get_amode, libmpi), Cint, (MPI_File, Ptr{Cint}), fh, amode)
+end
+
+"""
+    MPI_File_get_atomicity(fh, flag)
+
+$(_doc_external(:MPI_File_get_atomicity))
+"""
+function MPI_File_get_atomicity(fh, flag)
+    @mpichk ccall((:MPI_File_get_atomicity, libmpi), Cint, (MPI_File, Ptr{Cint}), fh, flag)
+end
+
+"""
+    MPI_File_get_byte_offset(fh, offset, disp)
+
+$(_doc_external(:MPI_File_get_byte_offset))
+"""
+function MPI_File_get_byte_offset(fh, offset, disp)
+    @mpichk ccall((:MPI_File_get_byte_offset, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{MPI_Offset}), fh, offset, disp)
+end
+
+"""
+    MPI_File_get_group(fh, group)
+
+$(_doc_external(:MPI_File_get_group))
+"""
+function MPI_File_get_group(fh, group)
+    @mpichk ccall((:MPI_File_get_group, libmpi), Cint, (MPI_File, Ptr{MPI_Group}), fh, group)
+end
+
+"""
+    MPI_File_get_info(fh, info_used)
+
+$(_doc_external(:MPI_File_get_info))
+"""
+function MPI_File_get_info(fh, info_used)
+    @mpichk ccall((:MPI_File_get_info, libmpi), Cint, (MPI_File, Ptr{MPI_Info}), fh, info_used)
+end
+
+"""
+    MPI_File_get_position(fh, offset)
+
+$(_doc_external(:MPI_File_get_position))
+"""
+function MPI_File_get_position(fh, offset)
+    @mpichk ccall((:MPI_File_get_position, libmpi), Cint, (MPI_File, Ptr{MPI_Offset}), fh, offset)
+end
+
+"""
+    MPI_File_get_position_shared(fh, offset)
+
+$(_doc_external(:MPI_File_get_position_shared))
+"""
+function MPI_File_get_position_shared(fh, offset)
+    @mpichk ccall((:MPI_File_get_position_shared, libmpi), Cint, (MPI_File, Ptr{MPI_Offset}), fh, offset)
+end
+
+"""
+    MPI_File_get_size(fh, size)
+
+$(_doc_external(:MPI_File_get_size))
+"""
+function MPI_File_get_size(fh, size)
+    @mpichk ccall((:MPI_File_get_size, libmpi), Cint, (MPI_File, Ptr{MPI_Offset}), fh, size)
+end
+
+"""
+    MPI_File_get_type_extent(fh, datatype, extent)
+
+$(_doc_external(:MPI_File_get_type_extent))
+"""
+function MPI_File_get_type_extent(fh, datatype, extent)
+    @mpichk ccall((:MPI_File_get_type_extent, libmpi), Cint, (MPI_File, MPI_Datatype, Ptr{MPI_Aint}), fh, datatype, extent)
+end
+
+"""
+    MPI_File_get_view(fh, disp, etype, filetype, datarep)
+
+$(_doc_external(:MPI_File_get_view))
+"""
+function MPI_File_get_view(fh, disp, etype, filetype, datarep)
+    @mpichk ccall((:MPI_File_get_view, libmpi), Cint, (MPI_File, Ptr{MPI_Offset}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}, Ptr{Cchar}), fh, disp, etype, filetype, datarep)
+end
+
+"""
+    MPI_File_iread(fh, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iread))
+"""
+function MPI_File_iread(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_iread_all(fh, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iread_all))
+"""
+function MPI_File_iread_all(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_iread_at(fh, offset, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iread_at))
+"""
+function MPI_File_iread_at(fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_iread_at_all(fh, offset, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iread_at_all))
+"""
+function MPI_File_iread_at_all(fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_iread_shared(fh, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iread_shared))
+"""
+function MPI_File_iread_shared(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_iwrite(fh, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iwrite))
+"""
+function MPI_File_iwrite(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_iwrite_all(fh, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iwrite_all))
+"""
+function MPI_File_iwrite_all(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_iwrite_at(fh, offset, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iwrite_at))
+"""
+function MPI_File_iwrite_at(fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_iwrite_at_all(fh, offset, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iwrite_at_all))
+"""
+function MPI_File_iwrite_at_all(fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_iwrite_shared(fh, buf, count, datatype, request)
+
+$(_doc_external(:MPI_File_iwrite_shared))
+"""
+function MPI_File_iwrite_shared(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+end
+
+"""
+    MPI_File_open(comm, filename, amode, info, fh)
+
+$(_doc_external(:MPI_File_open))
+"""
+function MPI_File_open(comm, filename, amode, info, fh)
+    @mpichk ccall((:MPI_File_open, libmpi), Cint, (MPI_Comm, Ptr{Cchar}, Cint, MPI_Info, Ptr{MPI_File}), comm, filename, amode, info, fh)
+end
+
+"""
+    MPI_File_preallocate(fh, size)
+
+$(_doc_external(:MPI_File_preallocate))
+"""
+function MPI_File_preallocate(fh, size)
+    @mpichk ccall((:MPI_File_preallocate, libmpi), Cint, (MPI_File, MPI_Offset), fh, size)
+end
+
+"""
+    MPI_File_read(fh, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_read))
+"""
+function MPI_File_read(fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_read_all(fh, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_read_all))
+"""
+function MPI_File_read_all(fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_read_all_begin(fh, buf, count, datatype)
+
+$(_doc_external(:MPI_File_read_all_begin))
+"""
+function MPI_File_read_all_begin(fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_read_all_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
+end
+
+"""
+    MPI_File_read_all_end(fh, buf, status)
+
+$(_doc_external(:MPI_File_read_all_end))
+"""
+function MPI_File_read_all_end(fh, buf, status)
+    @mpichk ccall((:MPI_File_read_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
+end
+
+"""
+    MPI_File_read_at(fh, offset, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_read_at))
+"""
+function MPI_File_read_at(fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_read_at_all(fh, offset, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_read_at_all))
+"""
+function MPI_File_read_at_all(fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_read_at_all_begin(fh, offset, buf, count, datatype)
+
+$(_doc_external(:MPI_File_read_at_all_begin))
+"""
+function MPI_File_read_at_all_begin(fh, offset, buf, count, datatype)
+    @mpichk ccall((:MPI_File_read_at_all_begin, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype), fh, offset, buf, count, datatype)
+end
+
+"""
+    MPI_File_read_at_all_end(fh, buf, status)
+
+$(_doc_external(:MPI_File_read_at_all_end))
+"""
+function MPI_File_read_at_all_end(fh, buf, status)
+    @mpichk ccall((:MPI_File_read_at_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
+end
+
+"""
+    MPI_File_read_ordered(fh, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_read_ordered))
+"""
+function MPI_File_read_ordered(fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_ordered, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_read_ordered_begin(fh, buf, count, datatype)
+
+$(_doc_external(:MPI_File_read_ordered_begin))
+"""
+function MPI_File_read_ordered_begin(fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_read_ordered_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
+end
+
+"""
+    MPI_File_read_ordered_end(fh, buf, status)
+
+$(_doc_external(:MPI_File_read_ordered_end))
+"""
+function MPI_File_read_ordered_end(fh, buf, status)
+    @mpichk ccall((:MPI_File_read_ordered_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
+end
+
+"""
+    MPI_File_read_shared(fh, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_read_shared))
+"""
+function MPI_File_read_shared(fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_read_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_seek(fh, offset, whence)
+
+$(_doc_external(:MPI_File_seek))
+"""
+function MPI_File_seek(fh, offset, whence)
+    @mpichk ccall((:MPI_File_seek, libmpi), Cint, (MPI_File, MPI_Offset, Cint), fh, offset, whence)
+end
+
+"""
+    MPI_File_seek_shared(fh, offset, whence)
+
+$(_doc_external(:MPI_File_seek_shared))
+"""
+function MPI_File_seek_shared(fh, offset, whence)
+    @mpichk ccall((:MPI_File_seek_shared, libmpi), Cint, (MPI_File, MPI_Offset, Cint), fh, offset, whence)
+end
+
+"""
+    MPI_File_set_atomicity(fh, flag)
+
+$(_doc_external(:MPI_File_set_atomicity))
+"""
+function MPI_File_set_atomicity(fh, flag)
+    @mpichk ccall((:MPI_File_set_atomicity, libmpi), Cint, (MPI_File, Cint), fh, flag)
+end
+
+"""
+    MPI_File_set_info(fh, info)
+
+$(_doc_external(:MPI_File_set_info))
+"""
+function MPI_File_set_info(fh, info)
+    @mpichk ccall((:MPI_File_set_info, libmpi), Cint, (MPI_File, MPI_Info), fh, info)
+end
+
+"""
+    MPI_File_set_size(fh, size)
+
+$(_doc_external(:MPI_File_set_size))
+"""
+function MPI_File_set_size(fh, size)
+    @mpichk ccall((:MPI_File_set_size, libmpi), Cint, (MPI_File, MPI_Offset), fh, size)
+end
+
+"""
+    MPI_File_set_view(fh, disp, etype, filetype, datarep, info)
+
+$(_doc_external(:MPI_File_set_view))
+"""
+function MPI_File_set_view(fh, disp, etype, filetype, datarep, info)
+    @mpichk ccall((:MPI_File_set_view, libmpi), Cint, (MPI_File, MPI_Offset, MPI_Datatype, MPI_Datatype, Ptr{Cchar}, MPI_Info), fh, disp, etype, filetype, datarep, info)
+end
+
+"""
+    MPI_File_sync(fh)
+
+$(_doc_external(:MPI_File_sync))
+"""
+function MPI_File_sync(fh)
+    @mpichk ccall((:MPI_File_sync, libmpi), Cint, (MPI_File,), fh)
+end
+
+"""
+    MPI_File_write(fh, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_write))
+"""
+function MPI_File_write(fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_write_all(fh, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_write_all))
+"""
+function MPI_File_write_all(fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_write_all_begin(fh, buf, count, datatype)
+
+$(_doc_external(:MPI_File_write_all_begin))
+"""
+function MPI_File_write_all_begin(fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_write_all_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
+end
+
+"""
+    MPI_File_write_all_end(fh, buf, status)
+
+$(_doc_external(:MPI_File_write_all_end))
+"""
+function MPI_File_write_all_end(fh, buf, status)
+    @mpichk ccall((:MPI_File_write_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
+end
+
+"""
+    MPI_File_write_at(fh, offset, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_write_at))
+"""
+function MPI_File_write_at(fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_write_at_all(fh, offset, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_write_at_all))
+"""
+function MPI_File_write_at_all(fh, offset, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_write_at_all_begin(fh, offset, buf, count, datatype)
+
+$(_doc_external(:MPI_File_write_at_all_begin))
+"""
+function MPI_File_write_at_all_begin(fh, offset, buf, count, datatype)
+    @mpichk ccall((:MPI_File_write_at_all_begin, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype), fh, offset, buf, count, datatype)
+end
+
+"""
+    MPI_File_write_at_all_end(fh, buf, status)
+
+$(_doc_external(:MPI_File_write_at_all_end))
+"""
+function MPI_File_write_at_all_end(fh, buf, status)
+    @mpichk ccall((:MPI_File_write_at_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
+end
+
+"""
+    MPI_File_write_ordered(fh, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_write_ordered))
+"""
+function MPI_File_write_ordered(fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+end
+
+"""
+    MPI_File_write_ordered_begin(fh, buf, count, datatype)
+
+$(_doc_external(:MPI_File_write_ordered_begin))
+"""
+function MPI_File_write_ordered_begin(fh, buf, count, datatype)
+    @mpichk ccall((:MPI_File_write_ordered_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
+end
+
+"""
+    MPI_File_write_ordered_end(fh, buf, status)
+
+$(_doc_external(:MPI_File_write_ordered_end))
+"""
+function MPI_File_write_ordered_end(fh, buf, status)
+    @mpichk ccall((:MPI_File_write_ordered_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
+end
+
+"""
+    MPI_File_write_shared(fh, buf, count, datatype, status)
+
+$(_doc_external(:MPI_File_write_shared))
+"""
+function MPI_File_write_shared(fh, buf, count, datatype, status)
+    @mpichk ccall((:MPI_File_write_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
+end
+
+"""
+    MPI_Register_datarep(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
+
+$(_doc_external(:MPI_Register_datarep))
+"""
+function MPI_Register_datarep(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
+    @mpichk ccall((:MPI_Register_datarep, libmpi), Cint, (Ptr{Cchar}, Ptr{MPI_Datarep_conversion_function}, Ptr{MPI_Datarep_conversion_function}, Ptr{MPI_Datarep_extent_function}, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
+end
+
+"""
+    MPI_File_toint(file)
+
+$(_doc_external(:MPI_File_toint))
+"""
+function MPI_File_toint(file)
+    @mpichk ccall((:MPI_File_toint, libmpi), Cint, (MPI_File,), file)
+end
+
+"""
+    MPI_File_fromint(file)
+
+$(_doc_external(:MPI_File_fromint))
+"""
+function MPI_File_fromint(file)
+    @mpichk ccall((:MPI_File_fromint, libmpi), MPI_File, (Cint,), file)
 end
 
 """
@@ -3727,6 +4663,15 @@ function MPI_Pack_size_c(incount, datatype, comm, size)
 end
 
 """
+    MPI_Status_set_elements_c(status, datatype, count)
+
+$(_doc_external(:MPI_Status_set_elements_c))
+"""
+function MPI_Status_set_elements_c(status, datatype, count)
+    @mpichk ccall((:MPI_Status_set_elements_c, libmpi), Cint, (Ptr{MPI_Status}, MPI_Datatype, MPI_Count), status, datatype, count)
+end
+
+"""
     MPI_Type_contiguous_c(count, oldtype, newtype)
 
 $(_doc_external(:MPI_Type_contiguous_c))
@@ -3931,6 +4876,24 @@ $(_doc_external(:MPI_Buffer_detach_c))
 """
 function MPI_Buffer_detach_c(buffer_addr, size)
     @mpichk ccall((:MPI_Buffer_detach_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}), buffer_addr, size)
+end
+
+"""
+    MPI_Comm_attach_buffer_c(comm, buffer, size)
+
+$(_doc_external(:MPI_Comm_attach_buffer_c))
+"""
+function MPI_Comm_attach_buffer_c(comm, buffer, size)
+    @mpichk ccall((:MPI_Comm_attach_buffer_c, libmpi), Cint, (MPI_Comm, MPIPtr, MPI_Count), comm, buffer, size)
+end
+
+"""
+    MPI_Comm_detach_buffer_c(comm, buffer_addr, size)
+
+$(_doc_external(:MPI_Comm_detach_buffer_c))
+"""
+function MPI_Comm_detach_buffer_c(comm, buffer_addr, size)
+    @mpichk ccall((:MPI_Comm_detach_buffer_c, libmpi), Cint, (MPI_Comm, MPIPtr, Ptr{MPI_Count}), comm, buffer_addr, size)
 end
 
 """
@@ -4213,507 +5176,102 @@ function MPI_Win_shared_query_c(win, rank, size, disp_unit, baseptr)
 end
 
 """
-    MPI_File_open(comm, filename, amode, info, fh)
+    MPI_File_get_type_extent_c(fh, datatype, extent)
 
-$(_doc_external(:MPI_File_open))
+$(_doc_external(:MPI_File_get_type_extent_c))
 """
-function MPI_File_open(comm, filename, amode, info, fh)
-    @mpichk ccall((:MPI_File_open, libmpi), Cint, (MPI_Comm, Ptr{Cchar}, Cint, MPI_Info, Ptr{MPI_File}), comm, filename, amode, info, fh)
+function MPI_File_get_type_extent_c(fh, datatype, extent)
+    @mpichk ccall((:MPI_File_get_type_extent_c, libmpi), Cint, (MPI_File, MPI_Datatype, Ptr{MPI_Count}), fh, datatype, extent)
 end
 
 """
-    MPI_File_close(fh)
+    MPI_File_iread_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_close))
+$(_doc_external(:MPI_File_iread_c))
 """
-function MPI_File_close(fh)
-    @mpichk ccall((:MPI_File_close, libmpi), Cint, (Ptr{MPI_File},), fh)
+function MPI_File_iread_c(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 """
-    MPI_File_delete(filename, info)
+    MPI_File_iread_all_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_delete))
+$(_doc_external(:MPI_File_iread_all_c))
 """
-function MPI_File_delete(filename, info)
-    @mpichk ccall((:MPI_File_delete, libmpi), Cint, (Ptr{Cchar}, MPI_Info), filename, info)
+function MPI_File_iread_all_c(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 """
-    MPI_File_set_size(fh, size)
+    MPI_File_iread_at_c(fh, offset, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_set_size))
+$(_doc_external(:MPI_File_iread_at_c))
 """
-function MPI_File_set_size(fh, size)
-    @mpichk ccall((:MPI_File_set_size, libmpi), Cint, (MPI_File, MPI_Offset), fh, size)
+function MPI_File_iread_at_c(fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 """
-    MPI_File_preallocate(fh, size)
+    MPI_File_iread_at_all_c(fh, offset, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_preallocate))
+$(_doc_external(:MPI_File_iread_at_all_c))
 """
-function MPI_File_preallocate(fh, size)
-    @mpichk ccall((:MPI_File_preallocate, libmpi), Cint, (MPI_File, MPI_Offset), fh, size)
+function MPI_File_iread_at_all_c(fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 """
-    MPI_File_get_size(fh, size)
+    MPI_File_iread_shared_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_get_size))
+$(_doc_external(:MPI_File_iread_shared_c))
 """
-function MPI_File_get_size(fh, size)
-    @mpichk ccall((:MPI_File_get_size, libmpi), Cint, (MPI_File, Ptr{MPI_Offset}), fh, size)
+function MPI_File_iread_shared_c(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iread_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 """
-    MPI_File_get_group(fh, group)
+    MPI_File_iwrite_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_get_group))
+$(_doc_external(:MPI_File_iwrite_c))
 """
-function MPI_File_get_group(fh, group)
-    @mpichk ccall((:MPI_File_get_group, libmpi), Cint, (MPI_File, Ptr{MPI_Group}), fh, group)
+function MPI_File_iwrite_c(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 """
-    MPI_File_get_amode(fh, amode)
+    MPI_File_iwrite_all_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_get_amode))
+$(_doc_external(:MPI_File_iwrite_all_c))
 """
-function MPI_File_get_amode(fh, amode)
-    @mpichk ccall((:MPI_File_get_amode, libmpi), Cint, (MPI_File, Ptr{Cint}), fh, amode)
+function MPI_File_iwrite_all_c(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 """
-    MPI_File_set_info(fh, info)
+    MPI_File_iwrite_at_c(fh, offset, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_set_info))
+$(_doc_external(:MPI_File_iwrite_at_c))
 """
-function MPI_File_set_info(fh, info)
-    @mpichk ccall((:MPI_File_set_info, libmpi), Cint, (MPI_File, MPI_Info), fh, info)
+function MPI_File_iwrite_at_c(fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 """
-    MPI_File_get_info(fh, info_used)
+    MPI_File_iwrite_at_all_c(fh, offset, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_get_info))
+$(_doc_external(:MPI_File_iwrite_at_all_c))
 """
-function MPI_File_get_info(fh, info_used)
-    @mpichk ccall((:MPI_File_get_info, libmpi), Cint, (MPI_File, Ptr{MPI_Info}), fh, info_used)
+function MPI_File_iwrite_at_all_c(fh, offset, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
 end
 
 """
-    MPI_File_set_view(fh, disp, etype, filetype, datarep, info)
+    MPI_File_iwrite_shared_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_set_view))
+$(_doc_external(:MPI_File_iwrite_shared_c))
 """
-function MPI_File_set_view(fh, disp, etype, filetype, datarep, info)
-    @mpichk ccall((:MPI_File_set_view, libmpi), Cint, (MPI_File, MPI_Offset, MPI_Datatype, MPI_Datatype, Ptr{Cchar}, MPI_Info), fh, disp, etype, filetype, datarep, info)
-end
-
-"""
-    MPI_File_get_view(fh, disp, etype, filetype, datarep)
-
-$(_doc_external(:MPI_File_get_view))
-"""
-function MPI_File_get_view(fh, disp, etype, filetype, datarep)
-    @mpichk ccall((:MPI_File_get_view, libmpi), Cint, (MPI_File, Ptr{MPI_Offset}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}, Ptr{Cchar}), fh, disp, etype, filetype, datarep)
-end
-
-"""
-    MPI_File_read_at(fh, offset, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_read_at))
-"""
-function MPI_File_read_at(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_read_at_all(fh, offset, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_read_at_all))
-"""
-function MPI_File_read_at_all(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_write_at(fh, offset, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_write_at))
-"""
-function MPI_File_write_at(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_write_at_all(fh, offset, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_write_at_all))
-"""
-function MPI_File_write_at_all(fh, offset, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_iread_at(fh, offset, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread_at))
-"""
-function MPI_File_iread_at(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite_at(fh, offset, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite_at))
-"""
-function MPI_File_iwrite_at(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_at, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_read(fh, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_read))
-"""
-function MPI_File_read(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_read_all(fh, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_read_all))
-"""
-function MPI_File_read_all(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_write(fh, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_write))
-"""
-function MPI_File_write(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_write_all(fh, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_write_all))
-"""
-function MPI_File_write_all(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_iread(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread))
-"""
-function MPI_File_iread(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite))
-"""
-function MPI_File_iwrite(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_seek(fh, offset, whence)
-
-$(_doc_external(:MPI_File_seek))
-"""
-function MPI_File_seek(fh, offset, whence)
-    @mpichk ccall((:MPI_File_seek, libmpi), Cint, (MPI_File, MPI_Offset, Cint), fh, offset, whence)
-end
-
-"""
-    MPI_File_get_position(fh, offset)
-
-$(_doc_external(:MPI_File_get_position))
-"""
-function MPI_File_get_position(fh, offset)
-    @mpichk ccall((:MPI_File_get_position, libmpi), Cint, (MPI_File, Ptr{MPI_Offset}), fh, offset)
-end
-
-"""
-    MPI_File_get_byte_offset(fh, offset, disp)
-
-$(_doc_external(:MPI_File_get_byte_offset))
-"""
-function MPI_File_get_byte_offset(fh, offset, disp)
-    @mpichk ccall((:MPI_File_get_byte_offset, libmpi), Cint, (MPI_File, MPI_Offset, Ptr{MPI_Offset}), fh, offset, disp)
-end
-
-"""
-    MPI_File_read_shared(fh, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_read_shared))
-"""
-function MPI_File_read_shared(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_write_shared(fh, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_write_shared))
-"""
-function MPI_File_write_shared(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_iread_shared(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread_shared))
-"""
-function MPI_File_iread_shared(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite_shared(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite_shared))
-"""
-function MPI_File_iwrite_shared(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_shared, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_read_ordered(fh, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_read_ordered))
-"""
-function MPI_File_read_ordered(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_read_ordered, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_write_ordered(fh, buf, count, datatype, status)
-
-$(_doc_external(:MPI_File_write_ordered))
-"""
-function MPI_File_write_ordered(fh, buf, count, datatype, status)
-    @mpichk ccall((:MPI_File_write_ordered, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status)
-end
-
-"""
-    MPI_File_seek_shared(fh, offset, whence)
-
-$(_doc_external(:MPI_File_seek_shared))
-"""
-function MPI_File_seek_shared(fh, offset, whence)
-    @mpichk ccall((:MPI_File_seek_shared, libmpi), Cint, (MPI_File, MPI_Offset, Cint), fh, offset, whence)
-end
-
-"""
-    MPI_File_get_position_shared(fh, offset)
-
-$(_doc_external(:MPI_File_get_position_shared))
-"""
-function MPI_File_get_position_shared(fh, offset)
-    @mpichk ccall((:MPI_File_get_position_shared, libmpi), Cint, (MPI_File, Ptr{MPI_Offset}), fh, offset)
-end
-
-"""
-    MPI_File_read_at_all_begin(fh, offset, buf, count, datatype)
-
-$(_doc_external(:MPI_File_read_at_all_begin))
-"""
-function MPI_File_read_at_all_begin(fh, offset, buf, count, datatype)
-    @mpichk ccall((:MPI_File_read_at_all_begin, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype), fh, offset, buf, count, datatype)
-end
-
-"""
-    MPI_File_read_at_all_end(fh, buf, status)
-
-$(_doc_external(:MPI_File_read_at_all_end))
-"""
-function MPI_File_read_at_all_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_read_at_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
-end
-
-"""
-    MPI_File_write_at_all_begin(fh, offset, buf, count, datatype)
-
-$(_doc_external(:MPI_File_write_at_all_begin))
-"""
-function MPI_File_write_at_all_begin(fh, offset, buf, count, datatype)
-    @mpichk ccall((:MPI_File_write_at_all_begin, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype), fh, offset, buf, count, datatype)
-end
-
-"""
-    MPI_File_write_at_all_end(fh, buf, status)
-
-$(_doc_external(:MPI_File_write_at_all_end))
-"""
-function MPI_File_write_at_all_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_write_at_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
-end
-
-"""
-    MPI_File_read_all_begin(fh, buf, count, datatype)
-
-$(_doc_external(:MPI_File_read_all_begin))
-"""
-function MPI_File_read_all_begin(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_read_all_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
-end
-
-"""
-    MPI_File_read_all_end(fh, buf, status)
-
-$(_doc_external(:MPI_File_read_all_end))
-"""
-function MPI_File_read_all_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_read_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
-end
-
-"""
-    MPI_File_write_all_begin(fh, buf, count, datatype)
-
-$(_doc_external(:MPI_File_write_all_begin))
-"""
-function MPI_File_write_all_begin(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_write_all_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
-end
-
-"""
-    MPI_File_write_all_end(fh, buf, status)
-
-$(_doc_external(:MPI_File_write_all_end))
-"""
-function MPI_File_write_all_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_write_all_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
-end
-
-"""
-    MPI_File_read_ordered_begin(fh, buf, count, datatype)
-
-$(_doc_external(:MPI_File_read_ordered_begin))
-"""
-function MPI_File_read_ordered_begin(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_read_ordered_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
-end
-
-"""
-    MPI_File_read_ordered_end(fh, buf, status)
-
-$(_doc_external(:MPI_File_read_ordered_end))
-"""
-function MPI_File_read_ordered_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_read_ordered_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
-end
-
-"""
-    MPI_File_write_ordered_begin(fh, buf, count, datatype)
-
-$(_doc_external(:MPI_File_write_ordered_begin))
-"""
-function MPI_File_write_ordered_begin(fh, buf, count, datatype)
-    @mpichk ccall((:MPI_File_write_ordered_begin, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype), fh, buf, count, datatype)
-end
-
-"""
-    MPI_File_write_ordered_end(fh, buf, status)
-
-$(_doc_external(:MPI_File_write_ordered_end))
-"""
-function MPI_File_write_ordered_end(fh, buf, status)
-    @mpichk ccall((:MPI_File_write_ordered_end, libmpi), Cint, (MPI_File, MPIPtr, Ptr{MPI_Status}), fh, buf, status)
-end
-
-"""
-    MPI_File_get_type_extent(fh, datatype, extent)
-
-$(_doc_external(:MPI_File_get_type_extent))
-"""
-function MPI_File_get_type_extent(fh, datatype, extent)
-    @mpichk ccall((:MPI_File_get_type_extent, libmpi), Cint, (MPI_File, MPI_Datatype, Ptr{MPI_Aint}), fh, datatype, extent)
-end
-
-"""
-    MPI_Register_datarep(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
-
-$(_doc_external(:MPI_Register_datarep))
-"""
-function MPI_Register_datarep(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
-    @mpichk ccall((:MPI_Register_datarep, libmpi), Cint, (Ptr{Cchar}, Ptr{MPI_Datarep_conversion_function}, Ptr{MPI_Datarep_conversion_function}, Ptr{MPI_Datarep_extent_function}, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
-end
-
-"""
-    MPI_File_set_atomicity(fh, flag)
-
-$(_doc_external(:MPI_File_set_atomicity))
-"""
-function MPI_File_set_atomicity(fh, flag)
-    @mpichk ccall((:MPI_File_set_atomicity, libmpi), Cint, (MPI_File, Cint), fh, flag)
-end
-
-"""
-    MPI_File_get_atomicity(fh, flag)
-
-$(_doc_external(:MPI_File_get_atomicity))
-"""
-function MPI_File_get_atomicity(fh, flag)
-    @mpichk ccall((:MPI_File_get_atomicity, libmpi), Cint, (MPI_File, Ptr{Cint}), fh, flag)
-end
-
-"""
-    MPI_File_sync(fh)
-
-$(_doc_external(:MPI_File_sync))
-"""
-function MPI_File_sync(fh)
-    @mpichk ccall((:MPI_File_sync, libmpi), Cint, (MPI_File,), fh)
-end
-
-"""
-    MPI_File_iread_at_all(fh, offset, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread_at_all))
-"""
-function MPI_File_iread_at_all(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite_at_all(fh, offset, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite_at_all))
-"""
-function MPI_File_iwrite_at_all(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_at_all, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iread_all(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread_all))
-"""
-function MPI_File_iread_all(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite_all(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite_all))
-"""
-function MPI_File_iwrite_all(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_all, libmpi), Cint, (MPI_File, MPIPtr, Cint, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
+function MPI_File_iwrite_shared_c(fh, buf, count, datatype, request)
+    @mpichk ccall((:MPI_File_iwrite_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
 end
 
 """
@@ -4879,127 +5437,10 @@ function MPI_File_write_shared_c(fh, buf, count, datatype, status)
 end
 
 """
-    MPI_File_iread_c(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread_c))
-"""
-function MPI_File_iread_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iread_all_c(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread_all_c))
-"""
-function MPI_File_iread_all_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iread_at_c(fh, offset, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread_at_c))
-"""
-function MPI_File_iread_at_c(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iread_at_all_c(fh, offset, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread_at_all_c))
-"""
-function MPI_File_iread_at_all_c(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iread_shared_c(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iread_shared_c))
-"""
-function MPI_File_iread_shared_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iread_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite_c(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite_c))
-"""
-function MPI_File_iwrite_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite_all_c(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite_all_c))
-"""
-function MPI_File_iwrite_all_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite_at_c(fh, offset, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite_at_c))
-"""
-function MPI_File_iwrite_at_c(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite_at_all_c(fh, offset, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite_at_all_c))
-"""
-function MPI_File_iwrite_at_all_c(fh, offset, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_iwrite_shared_c(fh, buf, count, datatype, request)
-
-$(_doc_external(:MPI_File_iwrite_shared_c))
-"""
-function MPI_File_iwrite_shared_c(fh, buf, count, datatype, request)
-    @mpichk ccall((:MPI_File_iwrite_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request)
-end
-
-"""
-    MPI_File_get_type_extent_c(fh, datatype, extent)
-
-$(_doc_external(:MPI_File_get_type_extent_c))
-"""
-function MPI_File_get_type_extent_c(fh, datatype, extent)
-    @mpichk ccall((:MPI_File_get_type_extent_c, libmpi), Cint, (MPI_File, MPI_Datatype, Ptr{MPI_Count}), fh, datatype, extent)
-end
-
-"""
     MPI_Register_datarep_c(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
 
 $(_doc_external(:MPI_Register_datarep_c))
 """
 function MPI_Register_datarep_c(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
     @mpichk ccall((:MPI_Register_datarep_c, libmpi), Cint, (Ptr{Cchar}, Ptr{MPI_Datarep_conversion_function_c}, Ptr{MPI_Datarep_conversion_function_c}, Ptr{MPI_Datarep_extent_function}, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
-end
-
-"""
-    MPI_File_f2c(file)
-
-$(_doc_external(:MPI_File_f2c))
-"""
-function MPI_File_f2c(file)
-    @mpichk ccall((:MPI_File_f2c, libmpi), MPI_File, (MPI_Fint,), file)
-end
-
-"""
-    MPI_File_c2f(file)
-
-$(_doc_external(:MPI_File_c2f))
-"""
-function MPI_File_c2f(file)
-    @mpichk ccall((:MPI_File_c2f, libmpi), MPI_Fint, (MPI_File,), file)
 end
