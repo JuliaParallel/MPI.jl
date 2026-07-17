@@ -18,7 +18,9 @@ module MPIgenerator
         mkpath(out)
 
         options = load_options(joinpath(@__DIR__, "generator.toml"))  # wrapper generator options
-        options["general"]["callback_documentation"] = node -> [string('$', "(_doc_external(:", node.id, "))")]
+        # NOTE: in Clang.jl v0.19+ the callback takes also the docstring extracted from the
+        # C comments as second argument, which we ignore
+        options["general"]["callback_documentation"] = (node, doc) -> [string('$', "(_doc_external(:", node.id, "))")]
 
         include_dir = normpath(artifact_dir, "include")
 
@@ -59,7 +61,7 @@ module MPIgenerator
             :MPI_Neighbor_alltoall => v"3.0",
         )
 
-        src, fn = joinpath(out, "api.jl"), replace(@__FILE__, r".*MPI.jl" => "MPI.jl")
+        src, fn = joinpath(out, "api.jl"), joinpath("MPI.jl", relpath(@__FILE__, normpath(@__DIR__, "..", "..")))
         lines = String["# WARNING: this signature file for $(MPIPreferences.binary) has been auto-generated, please edit $fn instead !\n"]
         for line in readlines(src)
             if (m = match(r"^ccall.*:([\w_]+)", lstrip(line))) ≢ nothing
