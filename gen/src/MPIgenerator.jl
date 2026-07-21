@@ -58,13 +58,11 @@ module MPIgenerator
         # through `@cfunction` callbacks (e.g. custom reduction operators), which
         # are safe in `gc_safe` regions
         gc_safe = (
-            # request completion and probes
+            # request completion
             :MPI_Wait,
             :MPI_Waitall,
             :MPI_Waitany,
             :MPI_Waitsome,
-            :MPI_Probe,
-            :MPI_Mprobe,
             :MPI_Mrecv,
             # blocking point-to-point
             :MPI_Send,

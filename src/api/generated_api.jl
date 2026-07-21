@@ -3228,7 +3228,7 @@ end
 $(_doc_external(:MPI_Mprobe))
 """
 function MPI_Mprobe(source, tag, comm, message, status)
-    @mpichk gc_safe=true ccall((:MPI_Mprobe, libmpi), Cint, (Cint, Cint, MPI_Comm, Ptr{MPI_Message}, Ptr{MPI_Status}), source, tag, comm, message, status)
+    @mpichk ccall((:MPI_Mprobe, libmpi), Cint, (Cint, Cint, MPI_Comm, Ptr{MPI_Message}, Ptr{MPI_Status}), source, tag, comm, message, status)
 end
 
 """
@@ -3615,7 +3615,7 @@ end
 $(_doc_external(:MPI_Probe))
 """
 function MPI_Probe(source, tag, comm, status)
-    @mpichk gc_safe=true ccall((:MPI_Probe, libmpi), Cint, (Cint, Cint, MPI_Comm, Ptr{MPI_Status}), source, tag, comm, status)
+    @mpichk ccall((:MPI_Probe, libmpi), Cint, (Cint, Cint, MPI_Comm, Ptr{MPI_Status}), source, tag, comm, status)
 end
 
 """
