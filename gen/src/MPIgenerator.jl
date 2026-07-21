@@ -51,10 +51,51 @@ module MPIgenerator
         )
 
         # these methods are called with `gc_safe=true`, to allow the garbage
-        # collector to run concurrently with the (potentially blocking) MPI call
+        # collector to run concurrently with the (potentially blocking) MPI call.
+        # The criterion for inclusion is that the worst-case duration of the call
+        # is unbounded because it waits on the progress of peer ranks, rather than
+        # being bounded by local work, and that the call can only re-enter Julia
+        # through `@cfunction` callbacks (e.g. custom reduction operators), which
+        # are safe in `gc_safe` regions
         gc_safe = (
+            # request completion and probes
             :MPI_Wait,
+            :MPI_Waitall,
+            :MPI_Waitany,
+            :MPI_Waitsome,
+            :MPI_Probe,
+            :MPI_Mprobe,
+            :MPI_Mrecv,
+            # blocking point-to-point
+            :MPI_Send,
+            :MPI_Ssend,
+            :MPI_Recv,
+            :MPI_Sendrecv,
+            :MPI_Sendrecv_replace,
+            # blocking collectives
+            :MPI_Barrier,
+            :MPI_Bcast,
+            :MPI_Gather,
+            :MPI_Gatherv,
+            :MPI_Scatter,
+            :MPI_Scatterv,
+            :MPI_Allgather,
+            :MPI_Allgatherv,
+            :MPI_Alltoall,
+            :MPI_Alltoallv,
+            :MPI_Alltoallw,
+            :MPI_Reduce,
             :MPI_Allreduce,
+            :MPI_Reduce_scatter,
+            :MPI_Reduce_scatter_block,
+            :MPI_Scan,
+            :MPI_Exscan,
+            # blocking neighborhood collectives
+            :MPI_Neighbor_allgather,
+            :MPI_Neighbor_allgatherv,
+            :MPI_Neighbor_alltoall,
+            :MPI_Neighbor_alltoallv,
+            :MPI_Neighbor_alltoallw,
         )
 
         versioned = Dict(
