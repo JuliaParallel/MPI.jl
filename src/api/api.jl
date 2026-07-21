@@ -87,7 +87,7 @@ Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
     $(Expr(:block, initexprs...))
 end
 
-const use_stdcall = startswith(basename(libmpi), "msmpi")
+const use_stdcall = startswith(basename(libmpi), "msmpi") && Sys.WORD_SIZE == 32
 
 macro mpicall(expr)
     @assert expr isa Expr && expr.head == :call && expr.args[1] == :ccall
