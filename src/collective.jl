@@ -912,7 +912,7 @@ end
 Neighbor_alltoall!(sendbuf::InPlace, recvbuf::UBuffer, graph_comm::Comm) =
     Neighbor_alltoall!(UBuffer(IN_PLACE), recvbuf, graph_comm)
 Neighbor_alltoall!(sendrecvbuf::UBuffer, graph_comm::Comm) =
-    Neighbor_alltoall!(IN_PLACE, sendrecvbuf, comm)
+    Neighbor_alltoall!(IN_PLACE, sendrecvbuf, graph_comm)
 Neighbor_alltoall(sendbuf::UBuffer, graph_comm::Comm) =
     Neighbor_alltoall!(sendbuf, similar(sendbuf), graph_comm)
 
