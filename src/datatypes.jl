@@ -91,8 +91,7 @@ const MPIComplex = Union{ComplexF32, ComplexF64}
 const MPILogical = Union{Bool}
 
 # predefined
-_defined_datatype_methods = Set{Type}()
-for (mpiname, T) in [
+const _predefined_datatypes = [
     :INT8_T             => Int8
     :UINT8_T            => UInt8
     :INT16_T            => Int16
@@ -121,20 +120,22 @@ for (mpiname, T) in [
     :C_BOOL             => Bool
 ]
 
+for (mpiname, T) in _predefined_datatypes
     @eval begin
         const $mpiname = Datatype(API.$(Symbol(:MPI_,mpiname))[])
         add_load_time_hook!(LoadTimeHookSetVal($mpiname, API.$(Symbol(:MPI_,mpiname))))
-        if $T ∉ _defined_datatype_methods
-            push!(_defined_datatype_methods, $T)
-            Datatype(::Type{$T}) = $mpiname
-            add_init_hook!(function()
-                @assert Types.size($mpiname) == sizeof($T)
-                set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T))
-                end)
-        end
     end
 end
-_defined_datatype_methods = nothing
+
+for (mpiname, T) in unique(last, _predefined_datatypes)
+    @eval begin
+        Datatype(::Type{$T}) = $mpiname
+        add_init_hook!(function()
+            @assert Types.size($mpiname) == sizeof($T)
+            set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T))
+            end)
+    end
+end
 
 # Cache the created datatypes. The datatype constructor is often
 # called for the same type, e.g. when the Buffer object is implicitly
