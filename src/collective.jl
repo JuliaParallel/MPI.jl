@@ -182,6 +182,10 @@ function scatter(objs::Union{AbstractVector, Nothing}, comm::Comm; root::Integer
     isroot = Comm_rank(comm) == root
 
     if isroot
+        if isnothing(objs)
+            throw(ArgumentError("Argument objs must not be `nothing` on the root rank."))
+        end
+
         if length(objs) != Comm_size(comm)
             throw(ArgumentError("Length of argument objs ($(length(objs))) != number of ranks in comm ($(Comm_size(comm)))."))
         end

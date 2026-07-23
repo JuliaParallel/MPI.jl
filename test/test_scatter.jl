@@ -52,5 +52,9 @@ if isroot
     @test objs_gathered == objs_sized
 end
 
+if isroot
+    @test_throws ArgumentError MPI.scatter(nothing, comm; root)
+end
+
 MPI.Finalize()
 @test MPI.Finalized()
