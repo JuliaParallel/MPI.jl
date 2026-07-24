@@ -18,6 +18,11 @@ try
     MPI.Neighbor_allgather!(send, recv, graph_comm)
 
     @test sort(recv) == collect(0:rank).^2
+
+    # The MPI standard does not allow `MPI_IN_PLACE` in neighborhood
+    # collectives, so the wrapper rejects it.
+    @test_throws ArgumentError MPI.Neighbor_allgather!(UBuffer(recv, 1), graph_comm)
+    @test_throws ArgumentError MPI.Neighbor_allgather!(MPI.IN_PLACE, UBuffer(recv, 1), graph_comm)
 catch e
     if isa(e, MPI.FeatureLevelError)
         @test_broken e.min_version <= MPI.Get_version()

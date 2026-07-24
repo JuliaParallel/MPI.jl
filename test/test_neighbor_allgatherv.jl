@@ -21,6 +21,11 @@ try
     MPI.Neighbor_allgatherv!(send, VBuffer(recv, recv_count), graph_comm)
 
     @test sort(recv) == [j for j ∈ 0:rank for i ∈ 0:j]
+
+    # The MPI standard does not allow `MPI_IN_PLACE` in neighborhood
+    # collectives, so the wrapper rejects it.
+    @test_throws ArgumentError MPI.Neighbor_allgatherv!(VBuffer(recv, recv_count), graph_comm)
+    @test_throws ArgumentError MPI.Neighbor_allgatherv!(MPI.IN_PLACE, VBuffer(recv, recv_count), graph_comm)
 catch e
     if isa(e, MPI.FeatureLevelError)
         @test_broken e.min_version <= MPI.Get_version()
