@@ -91,7 +91,12 @@ end
 Initialize MPI in the current process. The keyword options:
 
 - `threadlevel`: either `:single`, `:funneled`, `:serialized` (default),
-  `:multiple`, or an instance of [`ThreadLevel`](@ref).
+  `:multiple`, or an instance of [`ThreadLevel`](@ref).  Multi-threaded
+  programs should use `:multiple`: on Julia v1.12 and later the garbage
+  collector can run concurrently with blocking MPI calls and free MPI handles
+  while another thread is inside MPI, which constitutes concurrent MPI calls
+  from different threads.  See the section on
+  [Multi-threading and garbage collection](@ref) in the documentation.
 - `finalize_atexit`: if `true` (default), adds an `atexit` hook to call
   [`MPI.Finalize`](@ref) if it hasn't already been called.
 - `errors_return`: if `true` (default), will set the default error handlers for
