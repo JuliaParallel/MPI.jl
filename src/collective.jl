@@ -182,6 +182,10 @@ function scatter(objs::Union{AbstractVector, Nothing}, comm::Comm; root::Integer
     isroot = Comm_rank(comm) == root
 
     if isroot
+        if isnothing(objs)
+            throw(ArgumentError("Argument objs must not be `nothing` on the root rank."))
+        end
+
         if length(objs) != Comm_size(comm)
             throw(ArgumentError("Length of argument objs ($(length(objs))) != number of ranks in comm ($(Comm_size(comm)))."))
         end
@@ -905,10 +909,13 @@ function Neighbor_alltoall!(sendbuf::UBuffer, recvbuf::UBuffer, graph_comm::Comm
     return recvbuf.data
 end
 
+# The MPI standard does not allow `MPI_IN_PLACE` in neighborhood collectives,
+# and implementations are not required to detect the error (e.g. MPICH
+# crashes), so reject it in the wrapper.
 Neighbor_alltoall!(sendbuf::InPlace, recvbuf::UBuffer, graph_comm::Comm) =
-    Neighbor_alltoall!(UBuffer(IN_PLACE), recvbuf, graph_comm)
+    throw(ArgumentError("MPI_IN_PLACE is not allowed in neighborhood collectives"))
 Neighbor_alltoall!(sendrecvbuf::UBuffer, graph_comm::Comm) =
-    Neighbor_alltoall!(IN_PLACE, sendrecvbuf, comm)
+    Neighbor_alltoall!(IN_PLACE, sendrecvbuf, graph_comm)
 Neighbor_alltoall(sendbuf::UBuffer, graph_comm::Comm) =
     Neighbor_alltoall!(sendbuf, similar(sendbuf), graph_comm)
 
@@ -958,6 +965,11 @@ Neighbor_allgather!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, g
     Neighbor_allgather!(sendbuf, UBuffer(recvbuf, length(sendbuf)), graph_comm)
 
 
+# The MPI standard does not allow `MPI_IN_PLACE` in neighborhood collectives,
+# and implementations are not required to detect the error (e.g. MPICH
+# crashes), so reject it in the wrapper.
+Neighbor_allgather!(sendbuf::InPlace, recvbuf::UBuffer, graph_comm::Comm) =
+    throw(ArgumentError("MPI_IN_PLACE is not allowed in neighborhood collectives"))
 Neighbor_allgather!(sendrecvbuf::UBuffer, graph_comm::Comm) =
     Neighbor_allgather!(IN_PLACE, sendrecvbuf, graph_comm)
 
@@ -986,5 +998,10 @@ Neighbor_allgatherv!(sendbuf::Union{Ref,AbstractArray}, recvbuf::AbstractArray, 
     Neighbor_allgatherv!(sendbuf, VBuffer(recvbuf, length(sendbuf)), graph_comm)
 
 
+# The MPI standard does not allow `MPI_IN_PLACE` in neighborhood collectives,
+# and implementations are not required to detect the error (e.g. MPICH
+# crashes), so reject it in the wrapper.
+Neighbor_allgatherv!(sendbuf::InPlace, recvbuf::VBuffer, graph_comm::Comm) =
+    throw(ArgumentError("MPI_IN_PLACE is not allowed in neighborhood collectives"))
 Neighbor_allgatherv!(sendrecvbuf::VBuffer, graph_comm::Comm) =
     Neighbor_allgatherv!(IN_PLACE, sendrecvbuf, graph_comm)

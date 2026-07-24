@@ -19,6 +19,16 @@ try
     MPI.Neighbor_alltoall!(UBuffer(send,1), UBuffer(recv,1), graph_comm);
 
     @test sort(recv) == collect(0:rank).^2
+
+    # Allocating variant
+    recv2 = MPI.Neighbor_alltoall(UBuffer(send, 1), graph_comm)
+    @test sort(recv2[1:(rank + 1)]) == collect(0:rank).^2
+
+    # The MPI standard does not allow `MPI_IN_PLACE` in neighborhood
+    # collectives, and implementations are not required to detect the error
+    # (MPICH crashes with a segfault), so the wrapper rejects it.
+    @test_throws ArgumentError MPI.Neighbor_alltoall!(UBuffer(fill(-1, rank + 1), 1), graph_comm)
+    @test_throws ArgumentError MPI.Neighbor_alltoall!(MPI.IN_PLACE, UBuffer(fill(-1, rank + 1), 1), graph_comm)
 catch e
     if isa(e, MPI.FeatureLevelError)
         @test_broken e.min_version <= MPI.Get_version()
