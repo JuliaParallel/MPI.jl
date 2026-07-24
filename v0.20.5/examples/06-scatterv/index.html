@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Scatterv and Gatherv · MPI.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="MPI.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">MPI.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">MPI.jl</a></li><li><a class="tocitem" href="../../configuration/">Configuration</a></li><li><a class="tocitem" href="../../usage/">Usage</a></li><li><a class="tocitem" href="../../knownissues/">Known issues</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../01-hello/">Hello world</a></li><li><a class="tocitem" href="../02-broadcast/">Broadcast</a></li><li><a class="tocitem" href="../03-reduce/">Reduce</a></li><li><a class="tocitem" href="../04-sendrecv/">Send/receive</a></li><li><a class="tocitem" href="../05-job_schedule/">Job Scheduling</a></li><li class="is-active"><a class="tocitem" href>Scatterv and Gatherv</a></li><li><a class="tocitem" href="../07-rma_active/">Active RMA</a></li><li><a class="tocitem" href="../08-rma_passive/">Passive RMA</a></li><li><a class="tocitem" href="../09-graph_communication/">Graph Communication</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../../reference/mpipreferences/">MPIPreferences.jl</a></li><li><a class="tocitem" href="../../reference/library/">Library information</a></li><li><a class="tocitem" href="../../reference/environment/">Environment</a></li><li><a class="tocitem" href="../../reference/misc/">Miscellanea</a></li><li><a class="tocitem" href="../../reference/comm/">Communicators</a></li><li><a class="tocitem" href="../../reference/buffers/">Buffers</a></li><li><a class="tocitem" href="../../reference/pointtopoint/">Point-to-point communication</a></li><li><a class="tocitem" href="../../reference/collective/">Collective communication</a></li><li><a class="tocitem" href="../../reference/onesided/">One-sided communication</a></li><li><a class="tocitem" href="../../reference/topology/">Topology</a></li><li><a class="tocitem" href="../../reference/io/">I/O</a></li><li><a class="tocitem" href="../../reference/advanced/">Advanced</a></li><li><a class="tocitem" href="../../reference/api/">Low-level API</a></li></ul></li><li><a class="tocitem" href="../../refindex/">Index</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Scatterv and Gatherv</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Scatterv and Gatherv</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaParallel/MPI.jl/blob/master/docs/examples/06-scatterv.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Scatterv-and-Gatherv"><a class="docs-heading-anchor" href="#Scatterv-and-Gatherv">Scatterv and Gatherv</a><a id="Scatterv-and-Gatherv-1"></a><a class="docs-heading-anchor-permalink" href="#Scatterv-and-Gatherv" title="Permalink"></a></h1><pre><code class="language-julia hljs"># examples/06-scatterv.jl
+# This example shows how to use MPI.Scatterv! and MPI.Gatherv!
+# roughly based on the example from
+# https://stackoverflow.com/a/36082684/392585
+
+using MPI
+
+&quot;&quot;&quot;
+    split_count(N::Integer, n::Integer)
+
+Return a vector of `n` integers which are approximately equally sized and sum to `N`.
+&quot;&quot;&quot;
+function split_count(N::Integer, n::Integer)
+    q,r = divrem(N, n)
+    return [i &lt;= r ? q+1 : q for i = 1:n]
+end
+
+
+MPI.Init()
+
+comm = MPI.COMM_WORLD
+rank = MPI.Comm_rank(comm)
+comm_size = MPI.Comm_size(comm)
+
+root = 0
+
+if rank == root
+    M, N = 4, 7
+
+    test = Float64[i for i = 1:M, j = 1:N]
+    output = similar(test)
+    
+    # Julia arrays are stored in column-major order, so we need to split along the last dimension
+    # dimension
+    M_counts = [M for i = 1:comm_size]
+    N_counts = split_count(N, comm_size)
+
+    # store sizes in 2 * comm_size Array
+    sizes = vcat(M_counts&#39;, N_counts&#39;)
+    size_ubuf = UBuffer(sizes, 2)
+
+    # store number of values to send to each rank in comm_size length Vector
+    counts = vec(prod(sizes, dims=1))
+
+    test_vbuf = VBuffer(test, counts) # VBuffer for scatter
+    output_vbuf = VBuffer(output, counts) # VBuffer for gather
+else
+    # these variables can be set to `nothing` on non-root processes
+    size_ubuf = UBuffer(nothing)
+    output_vbuf = test_vbuf = VBuffer(nothing)
+end
+
+if rank == root
+    println(&quot;Original matrix&quot;)
+    println(&quot;================&quot;)
+    @show test sizes counts
+    println()
+    println(&quot;Each rank&quot;)
+    println(&quot;================&quot;)
+end 
+MPI.Barrier(comm)
+
+local_size = MPI.Scatter(size_ubuf, NTuple{2,Int}, root, comm)
+local_test = MPI.Scatterv!(test_vbuf, zeros(Float64, local_size), root, comm)
+
+for i = 0:comm_size-1
+    if rank == i
+        @show rank local_test
+    end
+    MPI.Barrier(comm)
+end
+
+MPI.Gatherv!(local_test, output_vbuf, root, comm)
+
+if rank == root
+    println()
+    println(&quot;Final matrix&quot;)
+    println(&quot;================&quot;)
+    @show output
+end </code></pre><pre><code class="nohighlight hljs">&gt; mpiexecjl -n 4 julia examples/06-scatterv.jl
+Original matrix
+================
+test = [1.0 1.0 1.0 1.0 1.0 1.0 1.0; 2.0 2.0 2.0 2.0 2.0 2.0 2.0; 3.0 3.0 3.0 3.0 3.0 3.0 3.0; 4.0 4.0 4.0 4.0 4.0 4.0 4.0]
+sizes = [4 4 4 4; 2 2 2 1]
+counts = [8, 8, 8, 4]
+
+Each rank
+================
+rank = 0
+local_test = [1.0 1.0; 2.0 2.0; 3.0 3.0; 4.0 4.0]
+rank = 1
+local_test = [1.0 1.0; 2.0 2.0; 3.0 3.0; 4.0 4.0]
+rank = 2
+local_test = [1.0 1.0; 2.0 2.0; 3.0 3.0; 4.0 4.0]
+rank = 3
+local_test = [1.0; 2.0; 3.0; 4.0;;]
+
+Final matrix
+================
+output = [1.0 1.0 1.0 1.0 1.0 1.0 1.0; 2.0 2.0 2.0 2.0 2.0 2.0 2.0; 3.0 3.0 3.0 3.0 3.0 3.0 3.0; 4.0 4.0 4.0 4.0 4.0 4.0 4.0]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../05-job_schedule/">« Job Scheduling</a><a class="docs-footer-nextpage" href="../07-rma_active/">Active RMA »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Thursday 8 December 2022 01:04">Thursday 8 December 2022</span>. Using Julia version 1.8.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
