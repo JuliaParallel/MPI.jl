@@ -109,6 +109,73 @@ macro mpicall(expr)
     return esc(expr)
 end
 
+# Queue of pending `MPI_*_free` calls enqueued by finalizers of MPI handle objects.
+#
+# Finalizers must not call MPI functions directly: a finalizer can run at any point of
+# the program where the garbage collector is invoked, including concurrently with an
+# MPI call made by another thread (which is permitted only when MPI was initialized
+# with `MPI_THREAD_MULTIPLE`), or in the middle of an MPI call which runs a Julia
+# callback (calling MPI functions inside such callbacks is erroneous).  Instead,
+# finalizers capture the handle to be freed in a closure and enqueue it with
+# `defer_free!`, and the queue is drained by `drain_deferred_frees` before the next
+# MPI call made with `@mpichk`.
+const deferred_frees = Any[]
+const deferred_frees_lock = Base.Threads.SpinLock()
+# Number of enqueued closures, for a race-free fast emptiness check in
+# `drain_deferred_frees` without taking the lock.
+const deferred_frees_count = Base.Threads.Atomic{Int}(0)
+
+"""
+    API.defer_free!(f) -> Bool
+
+Enqueue the closure `f` to be called before the next MPI call made with `@mpichk`.
+Returns whether `f` was enqueued: this function is meant to be called from finalizers,
+which must never block on a lock potentially held by the interrupted task, so when the
+queue lock is contended the closure is not enqueued and the caller should re-register
+its finalizer to retry at the next garbage collection.
+"""
+function defer_free!(@nospecialize(f))
+    trylock(deferred_frees_lock) || return false
+    try
+        push!(deferred_frees, f)
+        Base.Threads.atomic_add!(deferred_frees_count, 1)
+    finally
+        unlock(deferred_frees_lock)
+    end
+    return true
+end
+
+"""
+    API.drain_deferred_frees()
+
+Run all the closures enqueued with [`API.defer_free!`](@ref).  Called before each MPI
+call made with `@mpichk`.
+"""
+function drain_deferred_frees()
+    # fast path, keep it cheap: this runs before every MPI call
+    deferred_frees_count[] == 0 && return nothing
+    # if the lock is contended, another task is already draining the queue
+    trylock(deferred_frees_lock) || return nothing
+    frees = try
+        frees = copy(deferred_frees)
+        empty!(deferred_frees)
+        Base.Threads.atomic_sub!(deferred_frees_count, length(frees))
+        frees
+    finally
+        unlock(deferred_frees_lock)
+    end
+    # Run the closures outside of the lock.  The MPI calls inside the closures
+    # re-enter this function, which terminates quickly because the queue has already
+    # been emptied.  Don't call MPI functions after `MPI_Finalize`: freeing handles is
+    # unnecessary at that point.
+    flag = Ref{Cint}()
+    MPI_Finalized(flag)
+    if flag[] == 0
+        foreach(f -> f(), frees)
+    end
+    return nothing
+end
+
 """
     FeatureLevelError
 
@@ -134,7 +201,10 @@ macro mpichk(expr, min_version=nothing)
 
     expr = macroexpand(@__MODULE__, :(@mpicall($expr)))
     # MPI_SUCCESS is defined to be 0
-    :((errcode = $(esc(expr))) == 0 || throw(MPIError(errcode)))
+    quote
+        drain_deferred_frees()
+        (errcode = $(esc(expr))) == 0 || throw(MPIError(errcode))
+    end
 end
 
 

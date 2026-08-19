@@ -76,6 +76,19 @@ function free(op::Op)
     return nothing
 end
 
+function deferred_free_fn(op::Op)
+    op == OP_NULL && return nothing
+    val, fptr = op.val, op.fptr
+    return () -> begin
+        # int MPI_Op_free(MPI_Op *op)
+        API.MPI_Op_free(Ref(val))
+        # the closure keeps `fptr` (the `@cfunction` of a user-defined operator) alive
+        # until the operator has been freed
+        identity(fptr)
+        return nothing
+    end
+end
+
 struct OpWrapper{F,T}
     f::F
 end
@@ -120,7 +133,7 @@ function Op(f, T=Any; iscommutative=false)
     # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
     API.MPI_Op_create(fptr, iscommutative, op)
 
-    finalizer(free, op)
+    finalizer(deferred_free, op)
     return op
 end
 
@@ -175,7 +188,7 @@ macro RegisterOp(f, T)
                 # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
                 $API.MPI_Op_create($(name_fptr)[], iscommutative, op)
 
-                finalizer($free, op)
+                finalizer($deferred_free, op)
             end
         end
     end

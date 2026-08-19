@@ -34,6 +34,13 @@ function free(dt::Datatype)
     return nothing
 end
 
+function deferred_free_fn(dt::Datatype)
+    dt == DATATYPE_NULL && return nothing
+    val = dt.val
+    # int MPI_Type_free(MPI_Type *type)
+    return () -> API.MPI_Type_free(Ref(val))
+end
+
 # attributes
 function create_keyval(::Type{Datatype})
     ref = Ref(Cint(0))
@@ -189,7 +196,7 @@ end
 module Types
 
 import MPI
-import MPI: API, _doc_external, Datatype, MPI_Datatype, MPI_Aint, free
+import MPI: API, _doc_external, Datatype, MPI_Datatype, MPI_Aint, free, deferred_free
 
 function size(dt::Datatype)
     dtsize = Ref{Cint}()
@@ -226,7 +233,7 @@ communication.
 $(_doc_external("MPI_Type_contiguous"))
 """
 function create_contiguous(count::Integer, oldtype::Datatype)
-    finalizer(free, create_contiguous!(Datatype(), count, oldtype))
+    finalizer(deferred_free, create_contiguous!(Datatype(), count, oldtype))
 end
 
 function create_contiguous!(newtype::Datatype, count::Integer, oldtype::Datatype)
@@ -269,7 +276,7 @@ where each segment represents an `Int64`.
 $(_doc_external("MPI_Type_vector"))
 """
 function create_vector(count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
-    finalizer(free, create_vector!(Datatype(), count, blocklength, stride, oldtype))
+    finalizer(deferred_free, create_vector!(Datatype(), count, blocklength, stride, oldtype))
 end
 function create_vector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
     # int MPI_Type_vector(int count, int blocklength, int stride,
@@ -298,7 +305,7 @@ MPI.Types.commit!(datatype)
 $(_doc_external("MPI_Type_create_hvector"))
 """
 function create_hvector(count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
-    finalizer(free, create_hvector!(Datatype(), count, blocklength, stride, oldtype))
+    finalizer(deferred_free, create_hvector!(Datatype(), count, blocklength, stride, oldtype))
 end
 function create_hvector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
     # int MPI_Type_create_hvector(int count, int blocklength, MPI_Aint stride,
@@ -326,7 +333,7 @@ $(_doc_external("MPI_Type_create_subarray"))
 """
 function create_subarray(sizes, subsizes, offset, oldtype::Datatype;
                          rowmajor=false)
-    finalizer(free, create_subarray!(Datatype(), sizes, subsizes, offset, oldtype; rowmajor=rowmajor))
+    finalizer(deferred_free, create_subarray!(Datatype(), sizes, subsizes, offset, oldtype; rowmajor=rowmajor))
 end
 function create_subarray!(newtype::Datatype, sizes, subsizes, offset, oldtype::Datatype;
                           rowmajor=false)
@@ -359,7 +366,7 @@ communication.
 $(_doc_external("MPI_Type_create_struct"))
 """
 function create_struct(blocklengths, displacements, types)
-    finalizer(free, create_struct!(Datatype(), blocklengths, displacements, types))
+    finalizer(deferred_free, create_struct!(Datatype(), blocklengths, displacements, types))
 end
 function create_struct!(newtype::Datatype, blocklengths, displacements, types)
     @assert (N = length(blocklengths)) == length(displacements) == length(types)
@@ -396,7 +403,7 @@ communication.
 $(_doc_external("MPI_Type_create_resized"))
 """
 function create_resized(oldtype::Datatype, lb::Integer, extent::Integer)
-    finalizer(free, create_resized!(Datatype(), oldtype, lb, extent))
+    finalizer(deferred_free, create_resized!(Datatype(), oldtype, lb, extent))
 end
 function create_resized!(newtype::Datatype, oldtype::Datatype, lb::Integer, extent::Integer)
     # int MPI_Type_create_resized(MPI_Datatype oldtype, MPI_Aint lb,

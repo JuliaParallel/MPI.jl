@@ -42,6 +42,13 @@ function free(comm::Comm)
     return nothing
 end
 
+function deferred_free_fn(comm::Comm)
+    comm == COMM_NULL && return nothing
+    val = comm.val
+    # int MPI_Comm_free(MPI_Comm *comm)
+    return () -> API.MPI_Comm_free(Ref(val))
+end
+
 
 """
     Comm_rank(comm::Comm)
@@ -90,7 +97,7 @@ $(_doc_external("MPI_Comm_group"))
 function Comm_group(comm::Comm)
     newgroup = Group()
     API.MPI_Comm_group(comm, newgroup)
-    finalizer(free, newgroup)
+    finalizer(deferred_free, newgroup)
     newgroup
 end
 
@@ -105,7 +112,7 @@ $(_doc_external("MPI_Comm_remote_group"))
 function Comm_remote_group(comm::Comm)
     newgroup = Group()
     API.MPI_Comm_remote_group(comm, newgroup)
-    finalizer(free, newgroup)
+    finalizer(deferred_free, newgroup)
     newgroup
 end
 
@@ -123,7 +130,7 @@ $(_doc_external("MPI_Comm_create"))
 function Comm_create(comm::Comm, group::Group)
     newcomm = Comm()
     API.MPI_Comm_create(comm, group, newcomm)
-    finalizer(free, newcomm)
+    finalizer(deferred_free, newcomm)
     newcomm
 end
 
@@ -141,7 +148,7 @@ $(_doc_external("MPI_Comm_create_group"))
 function Comm_create_group(comm::Comm, group::Group, tag::Integer)
     newcomm = Comm()
     API.MPI_Comm_create_group(comm, group, tag, newcomm)
-    finalizer(free, newcomm)
+    finalizer(deferred_free, newcomm)
     newcomm
 end
 
@@ -154,7 +161,7 @@ $(_doc_external("MPI_Comm_dup"))
 function Comm_dup(comm::Comm)
     newcomm = Comm()
     API.MPI_Comm_dup(comm, newcomm)
-    finalizer(free, newcomm)
+    finalizer(deferred_free, newcomm)
     newcomm
 end
 
@@ -177,7 +184,7 @@ function Comm_split(comm::Comm, color::Union{Integer, Nothing}, key::Integer)
     end
     newcomm = Comm()
     API.MPI_Comm_split(comm, color, key, newcomm)
-    finalizer(free, newcomm)
+    finalizer(deferred_free, newcomm)
     newcomm
 end
 
@@ -211,7 +218,7 @@ function Comm_split_type(comm::Comm, split_type, key::Integer; kwargs...)
     end
     newcomm = Comm()
     API.MPI_Comm_split_type(comm, split_type, key, Info(kwargs...), newcomm)
-    finalizer(free, newcomm)
+    finalizer(deferred_free, newcomm)
     newcomm
 end
 
@@ -240,7 +247,7 @@ function Comm_spawn(command::String, argv::Vector{String}, nprocs::Integer,
     #                    MPI_Info info, int root, MPI_Comm comm, MPI_Comm *intercomm,
     #                    int array_of_errcodes[])
     API.MPI_Comm_spawn(command, argv, nprocs, Info(kwargs...), 0, comm, intercomm, errors)
-    finalizer(free, intercomm)
+    finalizer(deferred_free, intercomm)
     return intercomm
 end
 
@@ -253,7 +260,7 @@ $(_doc_external("MPI_Intercomm_merge"))
 function Intercomm_merge(intercomm::Comm, flag::Bool)
     newcomm = Comm()
     API.MPI_Intercomm_merge(intercomm, Cint(flag), newcomm)
-    finalizer(free, newcomm)
+    finalizer(deferred_free, newcomm)
     return newcomm
 end
 

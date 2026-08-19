@@ -116,6 +116,8 @@ functions:
     `Base.unsafe_convert(::Type{Ptr{MPI_Request}}, req::R)``
 - setbuffer!(req::R, val)`: keep a reference to the communication buffer `val`.
   If `val == nothing`, then clear the reference.
+- `getbuffer(req::R)`: return the current reference to the communication buffer,
+  or `nothing` if the type does not maintain one.
 """
 abstract type AbstractRequest end
 
@@ -164,6 +166,19 @@ function free(req::AbstractRequest)
     return nothing
 end
 
+function deferred_free_fn(req::AbstractRequest)
+    isnull(req) && return nothing
+    val, buf = req.val, getbuffer(req)
+    return () -> begin
+        # int MPI_Request_free(MPI_Request *req)
+        API.MPI_Request_free(Ref(val))
+        # the closure keeps the communication buffer alive until the request has been
+        # freed
+        identity(buf)
+        return nothing
+    end
+end
+
 
 """
     MPI.Request()
@@ -180,10 +195,11 @@ mutable struct Request <: AbstractRequest
 end
 function Request()
     req = Request(API.MPI_REQUEST_NULL[], nothing)
-    return finalizer(free, req)
+    return finalizer(deferred_free, req)
 end
 
 setbuffer!(req::Request, val) = req.buffer = val
+getbuffer(req::Request) = req.buffer
 
 Base.cconvert(::Type{MPI_Request}, request::Request) = request
 Base.unsafe_convert(::Type{MPI_Request}, request::Request) = request.val
@@ -221,9 +237,10 @@ end
 
 function UnsafeRequest()
     req = UnsafeRequest(API.MPI_REQUEST_NULL[])
-    return finalizer(free, req)
+    return finalizer(deferred_free, req)
 end
 setbuffer!(req::UnsafeRequest, val) = nothing
+getbuffer(req::UnsafeRequest) = nothing
 
 Base.cconvert(::Type{MPI_Request}, request::UnsafeRequest) = request
 Base.unsafe_convert(::Type{MPI_Request}, request::UnsafeRequest) = request.val
