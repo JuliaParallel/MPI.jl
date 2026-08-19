@@ -21,7 +21,7 @@ end
 function _doc_external(fname)
     # Ideally we'd like to use the "latest" version of the docs, but MPICH v4.0
     # at the moment seems to be the last version with all the docstrings.
-    mpich = "[MPICH](https://www.mpich.org/static/docs/v4.0/www3/$(fname).html)"
+    mpich = "[MPICH](https://www.mpich.org/static/docs/v5.0.1/www3/$(fname).html)"
     # All the *_c functions are undocumented in OpenMPI website
     if !endswith(string(fname), "_c")
         openmpi = "[OpenMPI](https://docs.open-mpi.org/en/main/man-openmpi/man3/$(fname).3.html)"

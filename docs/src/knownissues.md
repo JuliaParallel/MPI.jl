@@ -143,6 +143,21 @@ export UCX_ERROR_SIGNALS="SIGILL,SIGBUS,SIGFPE"
 ```
 before calling `mpiexec`.
 
+## Multi-threading and garbage collection
+
+On Julia v1.12 and later, blocking MPI calls (e.g. `MPI_Wait`, `MPI_Barrier`, blocking point-to-point communications and collectives) are marked as *GC-safe*: the Julia garbage collector running on one thread does not have to wait for other threads which are inside one of these MPI calls.
+This prevents the whole process from stalling — or deadlocking outright — when a thread blocks in MPI while waiting on the progress of other ranks and another thread needs to run a garbage collection.
+
+A consequence of this is that in a multi-threaded program the garbage collector can now run *concurrently* with a blocking MPI call, and its finalizers can free MPI handles (communicators, requests, datatypes, operators, etc.) by calling functions like `MPI_Comm_free` while another thread is still inside MPI.
+Concurrent MPI calls from different threads are only permitted when MPI is initialized with the `MPI.THREAD_MULTIPLE` [`MPI.ThreadLevel`](@ref), whereas [`MPI.Init`](@ref) defaults to `:serialized`.
+Multi-threaded programs should therefore initialize MPI with
+
+```julia
+MPI.Init(; threadlevel=:multiple)
+```
+
+Single-threaded programs are unaffected.
+
 ## CUDA-aware MPI
 
 ### Memory pool

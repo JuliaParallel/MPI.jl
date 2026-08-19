@@ -42,3 +42,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: julia --color=yes --project=docs/ docs/make.jl
+      - name: "Upload docs build as artifact"
+        uses: actions/upload-artifact@v7
+        with:
+          name: documentation-build
+          path: docs/build
+          retention-days: 30

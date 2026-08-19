@@ -1,4 +1,5 @@
 *.cov
 *.mem
 Manifest.toml
+Manifest-v*.toml
 LocalPreferences.toml
