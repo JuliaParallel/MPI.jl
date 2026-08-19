@@ -13,6 +13,7 @@ CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 
 [sources]
 MPI = {path = ".."}
+MPIPreferences = {path = "../lib/MPIPreferences"}
 
 [compat]
 AMDGPU = "0.6, 0.7, 0.8, 0.9, 1, 2"
