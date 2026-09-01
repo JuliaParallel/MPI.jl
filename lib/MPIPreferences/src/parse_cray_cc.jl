@@ -64,7 +64,14 @@ function other_libs(libs)
 end
 
 function analyze_cray_cc()
-    cray_opts = readchomp(Cmd(["cc", "--cray-print-opts=all"]))
+    opts_file = get(ENV, "JULIA_MPI_CC_OPTS_FILE", "")
+    cray_opts = ""
+    if ! isempty(opts_file)
+        @warn "Loading Cray parameters from file at: JULIA_MPI_CC_OPTS_FILE=$(opts_file)"
+        cray_opts = readchomp(opts_file)
+    else
+        cray_opts = readchomp(Cmd(["cc", "--cray-print-opts=all"]))
+    end
 
     ld_paths = SubString{String}[]
     libs = SubString{String}[]
