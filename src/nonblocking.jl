@@ -190,8 +190,17 @@ Base.unsafe_convert(::Type{MPI_Request}, request::Request) = request.val
 Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MPI_Request}, pointer_from_objref(request))
 
 
-const REQUEST_NULL = Request(API.MPI_REQUEST_NULL[], nothing)
-add_load_time_hook!(LoadTimeHookSetVal(REQUEST_NULL, API.MPI_REQUEST_NULL))
+struct NullRequest <: AbstractRequest end
+const REQUEST_NULL = NullRequest()
+
+Base.convert(::Type{Request}, ::NullRequest) =
+    Request(API.MPI_REQUEST_NULL[], nothing)
+
+isnull(::NullRequest) = true
+setbuffer!(::NullRequest, ::Any) = throw(ArgumentError("Cannot set buffer on NullRequest"))
+
+# const REQUEST_NULL = Request(API.MPI_REQUEST_NULL[], nothing)
+# add_load_time_hook!(LoadTimeHookSetVal(REQUEST_NULL, API.MPI_REQUEST_NULL))
 
 """
     MPI.UnsafeRequest()
