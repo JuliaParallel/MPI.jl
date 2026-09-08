@@ -1,13 +1,15 @@
 include("common.jl")
 
-# Closures might not be supported by cfunction
+# Closures might not be supported by cfunction, unless the MPI library provides
+# `MPIX_Op_create_x` (MPICH ≥ 4.3), in which case no closure cfunction is needed.
 const can_do_closures =
     ArrayType === Array &&
-    !(MPI.MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32) &&
-    Sys.ARCH !== :powerpc64le &&
-    Sys.ARCH !== :ppc64le &&
-    Sys.ARCH !== :aarch64 &&
-    !startswith(string(Sys.ARCH), "arm")
+    (MPI.API.HAS_MPIX_Op_create_x ||
+     (!(MPI.MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32) &&
+      Sys.ARCH !== :powerpc64le &&
+      Sys.ARCH !== :ppc64le &&
+      Sys.ARCH !== :aarch64 &&
+      !startswith(string(Sys.ARCH), "arm")))
 
 # a non-builtin isbits type to test generic MPI.reduce
 struct TestSum
@@ -126,6 +128,18 @@ for T = [Int]
 end
 
 MPI.Barrier( MPI.COMM_WORLD )
+
+if can_do_closures
+    # closure capturing state: modular addition is associative and commutative
+    m = 5
+    modsum = (x, y) -> mod(x + y, m)
+    result = MPI.Reduce(rank, MPI.Op(modsum, Int; iscommutative=true), MPI.COMM_WORLD; root=root)
+    if isroot
+        @test result == mod(sum(0:sz-1), m)
+    else
+        @test result === nothing
+    end
+end
 
 send_arr = [TestSum(i, i/4) for i = 1:10]
 

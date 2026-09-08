@@ -140,6 +140,40 @@ end
 
 include("generated_api.jl")
 
+# MPICH extension (MPICH ≥ 4.3): user-defined reduction operators with an `extra_state`
+# context pointer and an optional destructor. This is the implementation of the MPI Forum
+# proposal https://github.com/mpi-forum/mpi-issues/issues/839 and is not (yet) part of the
+# MPI standard.
+#
+#   typedef void (MPIX_User_function_x)(void *invec, void *inoutvec, MPI_Count len,
+#                                       MPI_Datatype datatype, void *extra_state);
+#   typedef void (MPIX_Destructor_function)(void *extra_state);
+const MPIX_User_function_x = Cvoid
+const MPIX_Destructor_function = Cvoid
+
+"""
+    HAS_MPIX_Op_create_x :: Bool
+
+Whether the MPI library provides the experimental `MPIX_Op_create_x` function (MPICH ≥ 4.3).
+This is determined when MPI.jl is precompiled.
+"""
+const HAS_MPIX_Op_create_x = !isnothing(dlsym(libmpi_handle, :MPIX_Op_create_x; throw_error=false))
+
+"""
+    MPIX_Op_create_x(user_fn_x, destructor_fn, commute, extra_state, op)
+
+Experimental MPICH extension of `MPI_Op_create` which additionally passes `extra_state` as the
+last argument to `user_fn_x` and calls `destructor_fn(extra_state)` (if not `C_NULL`) when the
+operator is freed. Only available if `MPI.API.HAS_MPIX_Op_create_x` is `true`.
+"""
+function MPIX_Op_create_x(user_fn_x, destructor_fn, commute, extra_state, op)
+    # int MPIX_Op_create_x(MPIX_User_function_x *user_fn_x, MPIX_Destructor_function *destructor_fn,
+    #                      int commute, void *extra_state, MPI_Op *op)
+    @mpichk ccall((:MPIX_Op_create_x, libmpi), Cint,
+                  (Ptr{MPIX_User_function_x}, Ptr{MPIX_Destructor_function}, Cint, Ptr{Cvoid}, Ptr{MPI_Op}),
+                  user_fn_x, destructor_fn, commute, extra_state, op)
+end
+
 for handle in [
     :MPI_Comm,
     :MPI_Datatype,
