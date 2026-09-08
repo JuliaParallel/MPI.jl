@@ -142,21 +142,30 @@ end
 # constructed in MPI.Get. Without the cache, each Get would commit the
 # same datatype over and over again.
 const created_datatypes = IdDict{Type, Datatype}()
+# `IdDict` is not thread-safe, and `Datatype(T)` is on the hot path of most
+# user-facing calls, so all accesses to `created_datatypes` are guarded by this
+# lock. It must be reentrant: `Types.create!` recursively calls `Datatype` on
+# the field types of a struct.
+const created_datatypes_lock = ReentrantLock()
 add_finalize_hook!() do
-    for datatype in values(created_datatypes)
-        free(datatype)
+    @lock created_datatypes_lock begin
+        for datatype in values(created_datatypes)
+            free(datatype)
+        end
     end
 end
 
 function Datatype(::Type{T}) where {T}
     global created_datatypes
-    datatype = get!(created_datatypes, T) do
-        datatype = Datatype()
-        @assert Initialized()
-        Types.create!(datatype, T)
-        Types.commit!(datatype)
-        set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
-        datatype
+    datatype = @lock created_datatypes_lock begin
+        get!(created_datatypes, T) do
+            datatype = Datatype()
+            @assert Initialized()
+            Types.create!(datatype, T)
+            Types.commit!(datatype)
+            set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
+            datatype
+        end
     end
 
     # Make sure the "aligned" size of the type matches the MPI "extent".
