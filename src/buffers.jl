@@ -1,7 +1,7 @@
 MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
 
-"""
+#=
     mpi_ptr_type(x)
 
 Return the pointer type that should be used when converting `x` to an [`MPIPtr`](@ref).
@@ -9,7 +9,7 @@ Return the pointer type that should be used when converting `x` to an [`MPIPtr`]
 For `AbstractArray{T}` and `Ref{T}` this defaults to `Ptr{T}`.
 For `SubArray` this defaults to `mpi_ptr_type(parent(x))`.
 For `CUDA.CuArray{T}` this is `CUDA.CuPtr{T}`.
-"""
+=#
 mpi_ptr_type(::Union{AbstractArray{T}, Ref{T}}) where T = Ptr{T}
 mpi_ptr_type(::String) = Ptr{UInt8}
 mpi_ptr_type(x::SubArray) = mpi_ptr_type(parent(x))
