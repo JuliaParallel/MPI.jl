@@ -34,3 +34,10 @@ const MPITestTypes = setdiff([
     UInt8, UInt16, UInt32, UInt64,
     Float32, Float64, ComplexF32, ComplexF64
 ], skip_eltypes)
+
+# Custom reduction operators are wrapped in a C callback. That is not possible for 32-bit
+# Microsoft MPI, which expects the `stdcall` calling convention, and the callback runs on
+# the host, so it is only meaningful for host arrays.
+const can_do_closures =
+    ArrayType === Array &&
+    !(MPI.MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32)

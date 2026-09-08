@@ -4,13 +4,10 @@ MPI.Init()
 
 comm_size = MPI.Comm_size(MPI.COMM_WORLD)
 
-if ArrayType != Array ||
-   MPI.MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32 ||
-   Sys.ARCH === :powerpc64le || Sys.ARCH === :ppc64le ||
-   Sys.ARCH === :aarch64 || startswith(string(Sys.ARCH), "arm")
-    operators = [MPI.SUM, +]
-else
+if can_do_closures
     operators = [MPI.SUM, +, (x,y) -> 2x+y-x]
+else
+    operators = [MPI.SUM, +]
 end
 
 for T = [Int]
