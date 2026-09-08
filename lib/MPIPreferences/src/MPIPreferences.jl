@@ -374,6 +374,8 @@ function identify_implementation_version_abi(version_string::AbstractString)
         # https://www.mpich.org/abi/
         impl == "HPE HMPT")
         abi = "MPICH"
+    elseif impl == "MPIABI"
+        abi = "MPIABI"
     elseif impl == "OpenMPI" || impl == "IBMSpectrumMPI" || impl == "FujitsuMPI"
         abi = "OpenMPI"
     elseif impl == "MicrosoftMPI"
