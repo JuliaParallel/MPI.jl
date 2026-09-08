@@ -10,6 +10,14 @@ An MPI reduction operator, for use with [Reduce/Scan collective operations](@ref
 Wrap the Julia reduction function `op` for arguments of type `T`. `op` is assumed to be
 associative, and if `iscommutative` is true, assumed to be commutative as well.
 
+## Implementation
+
+With MPICH ≥ 4.3 the operator is registered via the experimental `MPIX_Op_create_x`, which
+passes a context pointer to the callback. This works on all architectures. With other MPI
+libraries a [closure cfunction](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/#Closure-cfunctions)
+is used, which is not supported on all platforms; see [`@RegisterOp`](@ref) for an
+alternative.
+
 ## See also
 
 - [`Reduce!`](@ref)/[`Reduce`](@ref)
@@ -20,7 +28,7 @@ associative, and if `iscommutative` is true, assumed to be commutative as well.
 """
 mutable struct Op
     val::MPI_Op
-    fptr
+    fptr # object that has to be kept alive while the operator is in use (cfunction closure or OpWrapper)
     Op(val::MPI_Op, fptr) = new(val, fptr)
 end
 Base.:(==)(a::Op, b::Op) = a.val == b.val
@@ -76,14 +84,31 @@ function free(op::Op)
     return nothing
 end
 
-struct OpWrapper{F,T}
+# mutable so that a pointer to it can be passed as `extra_state` to `MPIX_Op_create_x`
+mutable struct OpWrapper{F,T}
     f::F
 end
 
-function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype}) where {F,T}
-    len = unsafe_load(_len)
+# MPI_User_function: `len` and `datatype` are passed by reference
+function (w::OpWrapper)(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype})
+    _reduce!(w, _a, _b, unsafe_load(_len), unsafe_load(t))
+    return nothing
+end
+
+# MPIX_User_function_x: `len` and `datatype` are passed by value, `extra_state` points to the OpWrapper
+function _op_user_fn_x(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, len::MPI_Count, t::MPI_Datatype, extra_state::Ptr{Cvoid})
+    w = unsafe_pointer_to_objref(extra_state)::OpWrapper
+    _reduce!(w, _a, _b, len, t)
+    return nothing
+end
+
+# MPIX_Destructor_function: MPICH rejects a NULL destructor, but there is nothing to do here since
+# the lifetime of the OpWrapper is managed by the `Op` object.
+_op_destructor_noop(extra_state::Ptr{Cvoid}) = nothing
+
+function _reduce!(w::OpWrapper{F,T}, _a::Ptr{Cvoid}, _b::Ptr{Cvoid}, len::Integer, t::MPI_Datatype) where {F,T}
     if !isconcretetype(T)
-        concrete_T = to_type(Datatype(unsafe_load(t))) # Ptr might actually point to a Julia object so we could unsafe_pointer_to_objref?
+        concrete_T = to_type(Datatype(t)) # Ptr might actually point to a Julia object so we could unsafe_pointer_to_objref?
     else
         concrete_T = T
     end
@@ -100,25 +125,38 @@ function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t:
 end
 
 function Op(f, T=Any; iscommutative=false)
-    @static if MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32
-        error("""
-            User-defined reduction operators are not supported on 32-bit Windows.
-            See https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.
-        """)
-    elseif Sys.ARCH ∈ (:aarch64, :ppc64le, :powerpc64le) || startswith(lowercase(String(Sys.ARCH)), "arm")
-        error("""
-            User-defined reduction operators are currently not supported on non-Intel architectures.
-            See https://github.com/JuliaParallel/MPI.jl/issues/404 for more details.
-
-            You may want to use `@RegisterOp` to statically register `f`.
-            """)
-    end
     w = OpWrapper{typeof(f),T}(f)
-    fptr = @cfunction($w, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype}))
+    @static if API.HAS_MPIX_Op_create_x
+        # MPICH ≥ 4.3: the wrapper is passed as `extra_state`, so a plain (non-closure)
+        # cfunction suffices. This works on all architectures.
+        fptr = @cfunction(_op_user_fn_x, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, MPI_Count, MPI_Datatype, Ptr{Cvoid}))
+        dptr = @cfunction(_op_destructor_noop, Cvoid, (Ptr{Cvoid},))
 
-    op = Op(OP_NULL.val, fptr)
-    # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
-    API.MPI_Op_create(fptr, iscommutative, op)
+        # `op` keeps `w` alive for as long as the operator exists
+        op = Op(OP_NULL.val, w)
+        # int MPIX_Op_create_x(MPIX_User_function_x *user_fn_x, MPIX_Destructor_function *destructor_fn,
+        #                      int commute, void *extra_state, MPI_Op *op)
+        API.MPIX_Op_create_x(fptr, dptr, iscommutative, pointer_from_objref(w), op)
+    else
+        @static if MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32
+            error("""
+                User-defined reduction operators are not supported on 32-bit Windows.
+                See https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.
+            """)
+        elseif Sys.ARCH ∈ (:aarch64, :ppc64le, :powerpc64le) || startswith(lowercase(String(Sys.ARCH)), "arm")
+            error("""
+                User-defined reduction operators are currently not supported on non-Intel architectures.
+                See https://github.com/JuliaParallel/MPI.jl/issues/404 for more details.
+
+                You may want to use `@RegisterOp` to statically register `f`.
+                """)
+        end
+        fptr = @cfunction($w, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype}))
+
+        op = Op(OP_NULL.val, fptr)
+        # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
+        API.MPI_Op_create(fptr, iscommutative, op)
+    end
 
     finalizer(free, op)
     return op

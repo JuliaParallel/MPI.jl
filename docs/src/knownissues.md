@@ -212,3 +212,7 @@ However they have two limitations:
 * closure cfunctions in Julia are based on LLVM trampolines, which are not supported on ARM architecture.
 
 As an alternative [`MPI.@RegisterOp`](@ref) may be used to statically register reduction operations.
+
+With MPICH ≥ 4.3 neither limitation applies: MPI.jl uses the experimental [`MPIX_Op_create_x`](https://github.com/mpi-forum/mpi-issues/issues/839)
+extension, which passes a context pointer to the callback so that no closure cfunction is needed.
+Whether this is used can be checked with `MPI.API.HAS_MPIX_Op_create_x`.
