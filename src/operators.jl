@@ -83,7 +83,11 @@ end
 function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype}) where {F,T}
     len = unsafe_load(_len)
     if !isconcretetype(T)
-        concrete_T = to_type(Datatype(unsafe_load(t))) # Ptr might actually point to a Julia object so we could unsafe_pointer_to_objref?
+        # `to_type_raw` rather than `to_type(Datatype(unsafe_load(t)))`: the
+        # latter builds a `Datatype` on every single invocation of this
+        # callback, and an allocation here is a GC safepoint from inside a live
+        # reduction.
+        concrete_T = to_type_raw(unsafe_load(t))
     else
         concrete_T = T
     end
