@@ -198,6 +198,8 @@ const WEIGHTS_EMPTY = WeightsEmpty()
 
 Create a new communicator from a given directed graph topology, described by local incoming and outgoing edges on an existing communicator.
 
+[`MPI.free`](@ref) may be called on the returned communicator once it is no longer needed; otherwise it is freed at finalization.
+
 # Arguments
 - `comm::Comm`: The communicator on which the distributed graph topology should be induced.
 - `sources::Vector{Cint}`: The local, incoming edges on the rank of the calling process.
@@ -229,6 +231,7 @@ function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinati
                                        length(sources), sources, source_weights,
                                        length(destinations), destinations, destination_weights,
                                        Info(infokws...), reorder, graph_comm)
+    graph_comm != COMM_NULL && finalizer(free, graph_comm)
     return graph_comm
 end
 
@@ -236,6 +239,8 @@ end
     graph_comm = Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Cint}, destinations::Vector{Cint}; weights::Union{Vector{Cint}, Unweighted, WeightsEmpty}=UNWEIGHTED, reorder=false, infokws...)
 
 Create a new communicator from a given directed graph topology, described by incoming and outgoing edges on an existing communicator.
+
+[`MPI.free`](@ref) may be called on the returned communicator once it is no longer needed; otherwise it is freed at finalization.
 
 # Arguments
 - `comm::Comm`: The communicator on which the distributed graph topology should be induced.
@@ -266,7 +271,7 @@ function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Ci
     #                           MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
     API.MPI_Dist_graph_create(comm, length(sources), sources, degrees, destinations, weights,
                               Info(infokws...), reorder, graph_comm)
-
+    graph_comm != COMM_NULL && finalizer(free, graph_comm)
     return graph_comm
 end
 
