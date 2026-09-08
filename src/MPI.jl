@@ -100,8 +100,7 @@ function _string_from_buffer(buf::Vector{UInt8}, len::Integer)
     # Never grow: a `len` beyond what the library was handed would pad the
     # string with uninitialized bytes. Also tolerates an unset `resultlen`.
     resize!(buf, clamp(len, 0, length(buf)))
-    resize!(buf, something(findlast(!=(0x00), buf), 0))
-    return String(buf)
+    return chopsuffix(String(buf), "\0")
 end
 
 include("implementations.jl")
