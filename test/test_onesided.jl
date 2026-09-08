@@ -132,7 +132,7 @@ MPI.free(address_win)
 # arrays with equal contents must each be kept alive on their own.
 let win = MPI.Win_create_dynamic(comm)
     a = zeros(10)
-    b = zeros(10)                       # equal to `a`, but a different object
+    b = copy(a)
     MPI.Win_attach!(win, a)
     MPI.Win_attach!(win, b)
     @test length(win.object) == 2
