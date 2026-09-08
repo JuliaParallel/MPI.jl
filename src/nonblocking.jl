@@ -416,7 +416,9 @@ end
 
 The number of entries received. `T` should match the argument provided by the receive call that set the status variable.
 
-If the number of entries received exceeds the limits of the count parameter, then it returns `MPI_UNDEFINED`.
+Returns `nothing` if there is no meaningful count to report, which MPI signals as
+`MPI_UNDEFINED`: either the number of entries received exceeds the limits of the count
+parameter, or the number of bytes received is not a whole multiple of the size of `T`.
 
 # External links
 $(_doc_external("MPI_Get_count"))
@@ -424,6 +426,9 @@ $(_doc_external("MPI_Get_count"))
 function Get_count(stat::Status, datatype::Datatype)
     count = Ref{Cint}()
     API.MPI_Get_count(Ref(stat), datatype, count)
+    # `MPI_UNDEFINED` is not a count; return `nothing` rather than let the
+    # sentinel escape as an ordinary integer (as `Waitany` and friends do).
+    count[] == API.MPI_UNDEFINED[] && return nothing
     Int(count[])
 end
 Get_count(stat::Status, ::Type{T}) where {T} = Get_count(stat, Datatype(T))

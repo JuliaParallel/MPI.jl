@@ -32,6 +32,18 @@ stats = MPI.Waitall(reqs, MPI.Status)
 @test MPI.Get_count(stats[2], Float64) == N
 @test recv_mesg == recv_mesg_expected
 
+# `Get_count` must report `MPI_UNDEFINED` as `nothing` rather than let the
+# sentinel escape as an ordinary integer.  The message is N Float64s, and that
+# many bytes is not a whole multiple of the size of a three-byte struct, so
+# there is no integral count to report.
+struct ThreeBytes
+    a::UInt8
+    b::UInt8
+    c::UInt8
+end
+@test sizeof(Float64) * N % sizeof(ThreeBytes) != 0   # the premise of the test below
+@test MPI.Get_count(stats[2], ThreeBytes) === nothing
+
 @test MPI.Testall(reqs)
 
 
