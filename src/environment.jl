@@ -326,7 +326,7 @@ This can be overridden by setting the `JULIA_MPI_HAS_CUDA` environment variable 
 or `false`.
 
 !!! note
-    For OpenMPI or OpenMPI-based implementations you first need to call [Init()](@ref).
+    For OpenMPI or OpenMPI-based implementations you first need to call [`MPI.Init`](@ref).
 
 See also [`MPI.has_rocm`](@ref) for ROCm support.
 """
