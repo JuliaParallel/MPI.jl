@@ -11,5 +11,5 @@ function Get_processor_name()
     name_len = Ref{Cint}(0)
     API.MPI_Get_processor_name(proc_name, name_len)
     @assert name_len[] <= API.MPI_MAX_PROCESSOR_NAME
-    GC.@preserve proc_name unsafe_string(pointer(proc_name))
+    return _string_from_buffer(proc_name, name_len[])
 end

@@ -86,6 +86,24 @@ function (hook::LoadTimeHookSetVal)()
 end
 call(hook) = hook()
 
+"""
+    _string_from_buffer(buf::Vector{UInt8}, len::Integer) :: String
+
+Build a `String` from the first `len` bytes of `buf`, dropping any trailing NUL
+bytes. Consumes `buf`.
+
+MPI's string-returning functions set `resultlen` to the number of characters
+written, *excluding* the terminating NUL. Open MPI's `MPI_Get_library_version`
+includes it, so trim instead of letting a NUL into the string.
+"""
+function _string_from_buffer(buf::Vector{UInt8}, len::Integer)
+    # Never grow: a `len` beyond what the library was handed would pad the
+    # string with uninitialized bytes. Also tolerates an unset `resultlen`.
+    resize!(buf, clamp(len, 0, length(buf)))
+    resize!(buf, something(findlast(!=(0x00), buf), 0))
+    return String(buf)
+end
+
 include("implementations.jl")
 include("error.jl")
 include("info.jl")
