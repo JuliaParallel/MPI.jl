@@ -271,12 +271,18 @@ function identify_implementation_version_abi(version_string::AbstractString)
     impl = "unknown"
     version = v"0"
 
-    if startswith(version_string, "MPICH")
+    if startswith(version_string, "MPICH") && !contains(version_string, "--enable-mpi-abi")
         impl = "MPICH"
         # "MPICH Version:\t%s\n" /  "MPICH2 Version:\t%s\n"
         if (m = match(r"^MPICH2? Version:\s+(\d+.\d+(?:.\d+)?\w*)\n", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+
+    elseif startswith(version_string, "MPICH") && contains(version_string, "--enable-mpi-abi")
+        impl = "MPIABI"
+        # This should be the ABI version, not the MPICH version.
+        # MPICH doesn't output the ABI version, but we know it implements v5 (the only ABI version currently specified).
+        version = v"5"
 
     elseif startswith(version_string, "Open MPI")
         # Open MPI / Spectrum MPI
