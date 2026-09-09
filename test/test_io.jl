@@ -15,6 +15,14 @@ fh = MPI.File.open(comm, filename, read=true, write=true, create=true)
 MPI.File.set_view!(fh, 0, MPI.Datatype(Int64), MPI.Datatype(Int64))
 MPI.File.write_at_all(fh, rank*2, ArrayType([Int64(rank+1) for i = 1:2]))
 
+# The file is in the default non-atomic mode, in which data written by one
+# process becomes visible to another only after the writer has called
+# `File.sync`, the two have synchronized, and the reader has called `File.sync`
+# as well (MPI standard, "File Consistency").  `File.sync` is collective, so all
+# ranks call it on both sides of the barrier.  Without the barrier, rank 0 can
+# read before the other ranks' writes have landed.
+MPI.File.sync(fh)
+MPI.Barrier(comm)
 MPI.File.sync(fh)
 
 # Noncollective read
@@ -31,6 +39,9 @@ if rank == sz-1
     MPI.File.write_at(fh, 0, ArrayType([Int64(-1) for i = 1:2]))
 end
 
+# Same sync/barrier/sync sequence as above before reading the overwritten data.
+MPI.File.sync(fh)
+MPI.Barrier(comm)
 MPI.File.sync(fh)
 
 # Collective read
