@@ -59,30 +59,30 @@ end
 
 Get the current [`Errhandler`](@ref) for the relevant MPI object.
 
-The MPI standard specifies that these behave as if a new error handler object were
-created, so the returned handler is owned by the caller: it is freed at finalization, and
-[`MPI.free`](@ref) may be called on it explicitly once it is no longer needed. If the
-implementation hands back one of the predefined handlers
-(`MPI.ERRORS_ARE_FATAL`, `MPI.ERRORS_RETURN`) then nothing is owned and nothing is freed.
-
 # See also
 - [`set_errorhandler!`](@ref)
 """
 function get_errorhandler(comm::Comm)
     errh = Errhandler()
     API.MPI_Comm_get_errhandler(comm, errh)
+    # The MPI standard specifies that these behave as if a new error handler object were
+    # created, so the returned handler needs to be finalized
     is_predefined(errh) || finalizer(free, errh)
     return errh
 end
 function get_errorhandler(win::Win)
     errh = Errhandler()
     API.MPI_Win_get_errhandler(win, errh)
+    # The MPI standard specifies that these behave as if a new error handler object were
+    # created, so the returned handler needs to be finalized
     is_predefined(errh) || finalizer(free, errh)
     return errh
 end
 function get_errorhandler(file::File.FileHandle)
     errh = Errhandler()
     API.MPI_File_get_errhandler(file, errh)
+    # The MPI standard specifies that these behave as if a new error handler object were
+    # created, so the returned handler needs to be finalized
     is_predefined(errh) || finalizer(free, errh)
     return errh
 end
