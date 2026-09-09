@@ -99,14 +99,6 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         force=force
     )
 
-    if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
-        @warn """
-        Due to a bug in Julia (until 1.6.5 and 1.7.1), setting preferences in transitive dependencies
-        is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24). To fix this either update
-        your version of Julia, or add MPIPreferences as a direct dependency to your project.
-        """
-    end
-
     if binary == MPIPreferences.binary
         @info "MPIPreferences unchanged" binary
     else
@@ -229,14 +221,6 @@ function use_system_binary(;
         force=force
     )
 
-    if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
-        @warn """
-        Due to a bug in Julia (until 1.6.5 and 1.7.1), setting preferences in transitive dependencies
-        is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24). To fix this either update
-        your version of Julia, or add MPIPreferences as a direct dependency to your project.
-        """
-    end
-
     if binary == MPIPreferences.binary && abi == MPIPreferences.abi && libmpi == System.libmpi && mpiexec == System.mpiexec_path
         @info "MPIPreferences unchanged" binary libmpi abi mpiexec preloads preloads_env_switch
     else
@@ -271,12 +255,18 @@ function identify_implementation_version_abi(version_string::AbstractString)
     impl = "unknown"
     version = v"0"
 
-    if startswith(version_string, "MPICH")
+    if startswith(version_string, "MPICH") && !contains(version_string, "--enable-mpi-abi")
         impl = "MPICH"
         # "MPICH Version:\t%s\n" /  "MPICH2 Version:\t%s\n"
         if (m = match(r"^MPICH2? Version:\s+(\d+.\d+(?:.\d+)?\w*)\n", version_string)) !== nothing
             version = VersionNumber(m.captures[1])
         end
+
+    elseif startswith(version_string, "MPICH") && contains(version_string, "--enable-mpi-abi")
+        impl = "MPIABI"
+        # This should be the ABI version, not the MPICH version.
+        # MPICH doesn't output the ABI version, but we know it implements v5 (the only ABI version currently specified).
+        version = v"5"
 
     elseif startswith(version_string, "Open MPI")
         # Open MPI / Spectrum MPI

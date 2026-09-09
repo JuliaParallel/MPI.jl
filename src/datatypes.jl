@@ -78,10 +78,22 @@ if it doesn't correspond directly.
 """
 function to_type(datatype::Datatype)
     if MPI.Initialized() && !MPI.Finalized()
-        ptr = get_attr(datatype, JULIA_TYPE_PTR_ATTR[])
-        isnothing(ptr) || return unsafe_pointer_to_objref(ptr)
+        return to_type_raw(datatype.val)
     end
     return nothing
+end
+
+# As `to_type`, but taking a raw `MPI_Datatype` handle.  This is called from
+# inside user-defined reduction callbacks, which run on MPI's stack while a
+# reduction is in progress. We avoid creating a `Datatype` object to avoid
+# allocating memory, and also avoid the unnecessary `Initialized`/`Finalized`
+# queries of `to_type`.
+@inline function to_type_raw(handle::MPI_Datatype)
+    flagref = Ref(Cint(0))
+    attrref = Ref{Ptr{Cvoid}}(C_NULL)
+    API.MPI_Type_get_attr(handle, JULIA_TYPE_PTR_ATTR[], attrref, flagref)
+    flagref[] == 0 && return nothing
+    return unsafe_pointer_to_objref(attrref[])
 end
 
 # "native" MPI datatypes
@@ -142,21 +154,30 @@ end
 # constructed in MPI.Get. Without the cache, each Get would commit the
 # same datatype over and over again.
 const created_datatypes = IdDict{Type, Datatype}()
+# `IdDict` is not thread-safe, and `Datatype(T)` is on the hot path of most
+# user-facing calls, so all accesses to `created_datatypes` are guarded by this
+# lock. It must be reentrant: `Types.create!` recursively calls `Datatype` on
+# the field types of a struct.
+const created_datatypes_lock = ReentrantLock()
 add_finalize_hook!() do
-    for datatype in values(created_datatypes)
-        free(datatype)
+    @lock created_datatypes_lock begin
+        for datatype in values(created_datatypes)
+            free(datatype)
+        end
     end
 end
 
 function Datatype(::Type{T}) where {T}
     global created_datatypes
-    datatype = get!(created_datatypes, T) do
-        datatype = Datatype()
-        @assert Initialized()
-        Types.create!(datatype, T)
-        Types.commit!(datatype)
-        set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
-        datatype
+    datatype = @lock created_datatypes_lock begin
+        get!(created_datatypes, T) do
+            datatype = Datatype()
+            @assert Initialized()
+            Types.create!(datatype, T)
+            Types.commit!(datatype)
+            set_attr!(datatype, JULIA_TYPE_PTR_ATTR[], pointer_from_objref(T))
+            datatype
+        end
     end
 
     # Make sure the "aligned" size of the type matches the MPI "extent".
