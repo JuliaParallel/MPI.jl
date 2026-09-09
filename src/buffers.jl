@@ -1,16 +1,79 @@
 MPIBuffertype{T} = Union{Ptr{T}, Array{T}, SubArray{T}, Ref{T}}
 MPIBuffertypeOrConst{T} = Union{MPIBuffertype{T}, SentinelPtr}
 
-Base.cconvert(::Type{MPIPtr}, x::Union{Ptr{T}, Array{T}, Ref{T}}) where T = Base.cconvert(Ptr{T}, x)
-Base.cconvert(::Type{MPIPtr}, x::SubArray{T}) where T = Base.cconvert(Ptr{T}, x)
-function Base.unsafe_convert(::Type{MPIPtr}, x::MPIBuffertype{T}) where T
-    ptr = Base.unsafe_convert(Ptr{T}, x)
+#=
+    mpi_ptr_type(x)
+
+Return the pointer type that should be used when converting `x` to an [`MPIPtr`](@ref).
+
+For `AbstractArray{T}` and `Ref{T}` this defaults to `Ptr{T}`.
+For `SubArray` this defaults to `mpi_ptr_type(parent(x))`.
+For `CUDA.CuArray{T}` this is `CUDA.CuPtr{T}`.
+=#
+mpi_ptr_type(::Union{AbstractArray{T}, Ref{T}}) where T = Ptr{T}
+mpi_ptr_type(::String) = Ptr{UInt8}
+mpi_ptr_type(x::SubArray) = mpi_ptr_type(parent(x))
+
+# CConvWrapper: GC-safe adapter for converting Julia objects to MPIPtr in ccall.
+#
+# Background: ccall's argument conversion protocol works in two steps:
+#   1. cconvert(T, x) — called before the ccall. Its return value is GC-rooted
+#      by ccall for the duration of the foreign call, keeping the underlying
+#      Julia object alive while a pointer to it is in use.
+#   2. unsafe_convert(T, result_of_cconvert) — called on the GC-rooted result
+#      to extract the raw pointer. Crucially, dispatch is on the *return type*
+#      of cconvert, not the original argument type.
+#
+# Problem: because unsafe_convert dispatches on the cconvert return type, the
+# unsafe_convert(::Type{MPIPtr}, ...) method must match whatever cconvert
+# returned. If cconvert delegates to e.g. Base.cconvert(Ptr{T}, x), the return
+# type depends on the Base implementation, so an unsafe_convert method written
+# for the original type will never be called.
+#
+# Solution: CConvWrapper provides a single, predictable return type from
+# cconvert(MPIPtr, x). The conversion proceeds as:
+#
+#   ccall argument x::Array{Float64}
+#     │
+#     ▼
+#   cconvert(MPIPtr, x)
+#     calls mpi_ptr_type(x) — returns Ptr{Float64}
+#     calls Base.cconvert(Ptr{Float64}, x) — returns x's memory ref (kept alive)
+#     wraps it in CConvWrapper{Ptr{Float64}}(x's memory ref)
+#     ◄── ccall GC-roots this CConvWrapper, which holds x's memory ref
+#     │
+#     ▼
+#   unsafe_convert(MPIPtr, wrapper::CConvWrapper{Ptr{Float64}, MemoryRef{Float64}})
+#     calls Base.unsafe_convert(Ptr{Float64}, wrapper.cconv) — extracts raw ptr
+#     reinterprets to MPIPtr
+#     ◄── only called while ccall holds the GC root on the wrapper
+#
+# Types that don't need GC protection (Ptr, Nothing, InPlace, SentinelPtr) skip
+# the wrapper and return an MPIPtr directly from cconvert, since they are plain
+# bit types with no GC-managed backing memory.
+struct CConvWrapper{T, C}
+    # T: the intermediate pointer type from `mpi_ptr_type` (e.g. Ptr{Float64}, CuPtr{Float64})
+    # C: the type of the GC-rooted cconvert result (e.g. MemoryRef{Float64})
+    cconv::C  # the GC-rooted object — kept alive by ccall holding the wrapper
+end
+
+function Base.cconvert(::Type{MPIPtr}, x::Union{AbstractArray, String, Ref})
+    CConvWrapper(mpi_ptr_type(x), x)
+end
+
+function CConvWrapper(::Type{T}, x) where T
+    cconv = Base.cconvert(T, x)
+    CConvWrapper{T, typeof(cconv)}(cconv)
+end
+
+function Base.unsafe_convert(::Type{MPIPtr}, x::CConvWrapper{T}) where T
+    ptr = Base.unsafe_convert(T, x.cconv)
     reinterpret(MPIPtr, ptr)
 end
 
+# --- cconvert methods for plain bit types (no GC protection needed) ---
 
-Base.cconvert(::Type{MPIPtr}, x::String) = x
-Base.unsafe_convert(::Type{MPIPtr}, x::String) = reinterpret(MPIPtr, pointer(x))
+Base.cconvert(::Type{MPIPtr}, ptr::Ptr) = reinterpret(MPIPtr, ptr)
 
 Base.cconvert(::Type{MPIPtr}, ::Nothing) = reinterpret(MPIPtr, C_NULL)
 
@@ -36,6 +99,7 @@ Currently supported are:
  - `SubArray`
  - `CUDA.CuArray` if CUDA.jl is loaded.
  - `AMDGPU.ROCArray` if AMDGPU.jl is loaded.
+ - `oneAPI.oneArray` if oneAPI.jl is loaded.
 
 Additionally, certain sentinel values can be used, e.g. `MPI_IN_PLACE` or `MPI_BOTTOM`.
 """
@@ -45,7 +109,7 @@ MPIPtr
 
 struct InPlace
 end
-Base.cconvert(::Type{MPIPtr}, ::InPlace) = API.MPI_IN_PLACE[]
+Base.cconvert(::Type{MPIPtr}, ::InPlace) = reinterpret(MPIPtr, API.MPI_IN_PLACE[])
 
 
 """
@@ -96,8 +160,9 @@ and `datatype`. Methods are provided for
  - `Array`
  - `CUDA.CuArray` if CUDA.jl is loaded.
  - `AMDGPU.ROCArray` if AMDGPU.jl is loaded.
- - `SubArray`s of an `Array`, `CUDA.CuArray` or `AMDGPU.ROCArray` where the layout is contiguous, sequential or
-   blocked.
+ - `oneAPI.oneArray` if oneAPI.jl is loaded.
+ - `SubArray`s of an `Array`, `CUDA.CuArray`, `AMDGPU.ROCArray` or `oneAPI.oneArray` where
+   the layout is contiguous, sequential or blocked.
 
 # See also
 
