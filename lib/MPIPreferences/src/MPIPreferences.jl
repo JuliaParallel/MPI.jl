@@ -99,14 +99,6 @@ function use_jll_binary(binary = Sys.iswindows() ? "MicrosoftMPI_jll" : "MPICH_j
         force=force
     )
 
-    if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
-        @warn """
-        Due to a bug in Julia (until 1.6.5 and 1.7.1), setting preferences in transitive dependencies
-        is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24). To fix this either update
-        your version of Julia, or add MPIPreferences as a direct dependency to your project.
-        """
-    end
-
     if binary == MPIPreferences.binary
         @info "MPIPreferences unchanged" binary
     else
@@ -228,14 +220,6 @@ function use_system_binary(;
         export_prefs=export_prefs,
         force=force
     )
-
-    if VERSION <= v"1.6.5" || VERSION == v"1.7.0"
-        @warn """
-        Due to a bug in Julia (until 1.6.5 and 1.7.1), setting preferences in transitive dependencies
-        is broken (https://github.com/JuliaPackaging/Preferences.jl/issues/24). To fix this either update
-        your version of Julia, or add MPIPreferences as a direct dependency to your project.
-        """
-    end
 
     if binary == MPIPreferences.binary && abi == MPIPreferences.abi && libmpi == System.libmpi && mpiexec == System.mpiexec_path
         @info "MPIPreferences unchanged" binary libmpi abi mpiexec preloads preloads_env_switch
