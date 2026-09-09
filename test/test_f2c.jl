@@ -5,13 +5,13 @@ MPI.Init()
 
 const API = MPI.API
 
-comm = MPI.COMM_WORLD
-
-# On most ABIs (MPICH, MPItrampoline, MicrosoftMPI, HPE MPT, MPI-ABI) the C and
-# Fortran handles share a representation and these conversions are the
-# identity, so the round-trips below are trivially true.  They only exercise the
-# `ccall`s -- and hence the C symbol names -- on ABIs with pointer-valued
-# handles, such as Open MPI.
+# The conversions call the library's `MPI_*_f2c`/`MPI_*_c2f` functions wherever
+# it exports them.  MPICH before 4.2 and its derivatives (Microsoft MPI, MVAPICH,
+# Intel MPI, Cray MPICH, HPE MPT) export only the `MPI_File` and `MPI_Status`
+# ones and define the others as header macros casting the integer handle, which
+# `src/api/api.jl` reproduces.  The round-trips below therefore exercise the C
+# symbol names wherever they exist; they are only non-trivial where handles are
+# pointers, such as Open MPI.
 
 @testset "MPI_Comm" begin
     for h in (MPI.COMM_WORLD.val, MPI.COMM_SELF.val)
@@ -50,7 +50,7 @@ end
 end
 
 @testset "MPI_Group" begin
-    group = MPI.Comm_group(comm)
+    group = MPI.Comm_group(MPI.COMM_WORLD)
     for h in (group.val, MPI.GROUP_EMPTY.val)
         @test API.MPI_Group_f2c(API.MPI_Group_c2f(h)) == h
     end
@@ -96,8 +96,11 @@ end
 end
 
 @testset "MPI_Win" begin
+    # Note: On our Debian CI setup, Open MPI 4.1 has no one-sided
+    # component that can serve a window on a single-process
+    # communicator. We thus use `COMM_WORLD` instead.
     buf = zeros(Cint, 4)
-    win = MPI.Win_create(buf, MPI.COMM_SELF)
+    win = MPI.Win_create(buf, MPI.COMM_WORLD)
     h = win.val
     @test API.MPI_Win_f2c(API.MPI_Win_c2f(h)) == h
     MPI.free(win)

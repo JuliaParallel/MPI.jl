@@ -100,7 +100,6 @@ function Win_allocate_shared(::Type{Array{T}}, dims, comm::Comm; kwargs...) wher
     win, ptr = Win_allocate_shared(Ptr{T}, prod(dims), comm; kwargs...)
     array = unsafe_wrap(Array, ptr, dims)
     win.object = array
-    finalizer(free, win)
     return win, array
 end
 
