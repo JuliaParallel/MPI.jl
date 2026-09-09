@@ -76,9 +76,7 @@ end
 primitive type MPIPtr Sys.WORD_SIZE
 end
 @assert sizeof(MPIPtr) == sizeof(Ptr{Cvoid})
-Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
-Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
-
+Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
 
 # Initialize the ref constants from the library.
 # This is not `API.__init__`, as it should be called _after_
@@ -152,8 +150,12 @@ for handle in [
     :MPI_Request,
     :MPI_Win,
 ]
-    handle_f2c = Symbol(handle,:_f2c)
-    handle_c2f = Symbol(handle,:_c2f)
+    # The C conversion functions are named after the handle type, except for
+    # `MPI_Datatype`, for which the standard specifies `MPI_Type_f2c` and
+    # `MPI_Type_c2f`.
+    cname = handle === :MPI_Datatype ? :MPI_Type : handle
+    handle_f2c = Symbol(cname,:_f2c)
+    handle_c2f = Symbol(cname,:_c2f)
     @eval begin
         if $handle == Cint
             $handle_f2c(fcomm::Cint) = fcomm
@@ -165,6 +167,15 @@ for handle in [
             function $handle_c2f(comm::$handle)
                 ccall(($(Meta.quot(handle_c2f)), libmpi), Cint, ($handle,), comm)
             end
+        end
+    end
+    if cname !== handle
+        # `MPI_Datatype_f2c`/`MPI_Datatype_c2f` are kept as aliases for
+        # backwards compatibility; they never worked on ABIs with
+        # pointer-valued datatype handles, since no such C symbols exist.
+        @eval begin
+            const $(Symbol(handle,:_f2c)) = $handle_f2c
+            const $(Symbol(handle,:_c2f)) = $handle_c2f
         end
     end
 end

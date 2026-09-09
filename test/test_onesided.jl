@@ -128,5 +128,31 @@ MPI.Win_detach!(win, buf)
 MPI.free(win)
 MPI.free(address_win)
 
+# Attached buffers must be rooted by identity, not by value: two distinct
+# arrays with equal contents must each be kept alive on their own.
+let win = MPI.Win_create_dynamic(comm)
+    a = zeros(10)
+    b = copy(a)
+    MPI.Win_attach!(win, a)
+    MPI.Win_attach!(win, b)
+    @test length(win.object) == 2
+    @test any(x -> x === a, win.object)
+    @test any(x -> x === b, win.object)
+
+    # Detaching `b` must not un-root `a`, which is still attached.
+    MPI.Win_detach!(win, b)
+    @test length(win.object) == 1
+    @test any(x -> x === a, win.object)
+
+    weak_a = WeakRef(a)
+    a = nothing
+    GC.gc(); GC.gc()
+    @test weak_a.value !== nothing       # still attached, must not be collected
+
+    MPI.Win_detach!(win, weak_a.value)
+    @test isempty(win.object)
+    MPI.free(win)
+end
+
 MPI.Finalize()
 @test MPI.Finalized()

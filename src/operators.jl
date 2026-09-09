@@ -82,11 +82,8 @@ end
 
 function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype}) where {F,T}
     len = unsafe_load(_len)
-    if !isconcretetype(T)
-        concrete_T = to_type(Datatype(unsafe_load(t))) # Ptr might actually point to a Julia object so we could unsafe_pointer_to_objref?
-    else
-        concrete_T = T
-    end
+    # use `to_type_raw` rather than `to_type(Datatype(unsafe_load(t)))` to avoid allocating
+    concrete_T = isconcretetype(T) ? T : to_type_raw(unsafe_load(t))
     function copy(::Type{T}) where T
         @assert isconcretetype(T)
         a = Ptr{T}(_a)
