@@ -176,30 +176,30 @@ struct Buffer{A}
 
     """the number of elements of `datatype` in the buffer. Note that this may not
     correspond to the number of elements in the array if derived types are used."""
-    count::Cint
+    count::API.Count
 
     """the [`MPI.Datatype`](@ref) stored in the buffer."""
     datatype::Datatype
 end
 Buffer(buf::Buffer) = buf
-Buffer(data, count::Integer, datatype::Datatype) = Buffer(data, Cint(count), datatype)
+Buffer(data, count::Integer, datatype::Datatype) = Buffer(data, API.Count(count), datatype)
 
 function Buffer(arr::Array)
-    Buffer(arr, Cint(length(arr)), Datatype(eltype(arr)))
+    Buffer(arr, API.Count(length(arr)), Datatype(eltype(arr)))
 end
 function Buffer(ref::Ref)
-    Buffer(ref, Cint(1), Datatype(eltype(ref)))
+    Buffer(ref, API.Count(1), Datatype(eltype(ref)))
 end
 
 # SubArray
 function Buffer(sub::Base.FastContiguousSubArray)
-    Buffer(sub, Cint(length(sub)), Datatype(eltype(sub)))
+    Buffer(sub, API.Count(length(sub)), Datatype(eltype(sub)))
 end
 function Buffer(sub::Base.FastSubArray)
     datatype = Types.create_vector(length(sub), 1, sub.stride1,
                                    Datatype(eltype(sub)))
     Types.commit!(datatype)
-    Buffer(sub, Cint(1), datatype)
+    Buffer(sub, API.Count(1), datatype)
 end
 function Buffer(sub::SubArray{T,N,P,I,false}) where {T,N,P,I<:Tuple{Vararg{Union{Base.ScalarIndex, Base.Slice, AbstractUnitRange}}}}
     datatype = Types.create_subarray(size(parent(sub)),
@@ -207,12 +207,12 @@ function Buffer(sub::SubArray{T,N,P,I,false}) where {T,N,P,I<:Tuple{Vararg{Union
                                      map(i -> first(i)-1, sub.indices),
                                      Datatype(eltype(sub)))
     Types.commit!(datatype)
-    Buffer(parent(sub), Cint(1), datatype)
+    Buffer(parent(sub), API.Count(1), datatype)
 end
 
 # NTuple: avoid creating a new datatype if possible
 function Buffer(data::Ref{NTuple{N,T}}) where {N,T}
-    Buffer(data, Cint(N), Datatype(T))
+    Buffer(data, API.Count(N), Datatype(T))
 end
 
 
@@ -260,17 +260,18 @@ struct UBuffer{A}
     data::A
 
     """The number of elements of `datatype` in each chunk."""
-    count::Cint
+    count::API.Count
 
     """The maximum number of chunks stored in the buffer. This is used only for
-    validation, and can be set to `nothing` to disable checks."""
-    nchunks::Union{Nothing,Cint}
+    validation, and can be set to `nothing` to disable checks. It is never passed to MPI,
+    so it is a plain `Int` rather than an MPI count type."""
+    nchunks::Union{Nothing,Int}
 
     """The [`MPI.Datatype`](@ref) stored in the buffer."""
     datatype::Datatype
 end
 UBuffer(data, count::Integer, nchunks::Union{Integer, Nothing}, datatype::Datatype) =
-    UBuffer(data, Cint(count), nchunks isa Integer ? Cint(nchunks) : nothing, datatype)
+    UBuffer(data, API.Count(count), nchunks isa Integer ? Int(nchunks) : nothing, datatype)
 
 function UBuffer(arr::AbstractArray, count::Integer)
     @assert stride(arr, 1) == 1
@@ -312,25 +313,26 @@ struct VBuffer{A}
     data::A
 
     """An array containing the length of each chunk."""
-    counts::Vector{Cint}
+    counts::Vector{API.Count}
 
-    """An array containing the (0-based) displacements of each chunk."""
-    displs::Vector{Cint}
+    """An array containing the (0-based) displacements of each chunk. Note the element
+    type: MPI widens counts and displacements differently, see [`MPI.API.Displ`](@ref)."""
+    displs::Vector{API.Displ}
 
     """The [`MPI.Datatype`](@ref) stored in the buffer."""
     datatype::Datatype
 end
 VBuffer(data, counts, displs, datatype::Datatype) =
-    VBuffer(data, convert(Vector{Cint}, counts),
-                 convert(Vector{Cint}, displs), datatype)
+    VBuffer(data, convert(Vector{API.Count}, counts),
+                 convert(Vector{API.Displ}, displs), datatype)
 VBuffer(data, counts, displs) =
     VBuffer(data, counts, displs, Datatype(eltype(data)))
 
 function VBuffer(arr::AbstractArray, counts)
     @assert stride(arr,1) == 1
-    counts = convert(Vector{Cint}, counts)
-    displs = similar(counts)
-    d = zero(Cint)
+    counts = convert(Vector{API.Count}, counts)
+    displs = Vector{API.Displ}(undef, length(counts))
+    d = zero(API.Displ)
     for i in eachindex(displs)
         displs[i] = d
         d += counts[i]
@@ -339,8 +341,8 @@ function VBuffer(arr::AbstractArray, counts)
     VBuffer(arr, counts, displs, Datatype(eltype(arr)))
 end
 
-VBuffer(::Nothing) = VBuffer(nothing, Cint[], Cint[], DATATYPE_NULL)
-VBuffer(::InPlace) = VBuffer(IN_PLACE, Cint[], Cint[], DATATYPE_NULL)
+VBuffer(::Nothing) = VBuffer(nothing, API.Count[], API.Displ[], DATATYPE_NULL)
+VBuffer(::InPlace) = VBuffer(IN_PLACE, API.Count[], API.Displ[], DATATYPE_NULL)
 
 
 """
@@ -376,14 +378,14 @@ struct RBuffer{S,R}
 
     """the number of elements of `datatype` in the buffer. Note that this may not
     correspond to the number of elements in the array if derived types are used."""
-    count::Cint
+    count::API.Count
 
     """the [`MPI.Datatype`](@ref) stored in the buffer."""
     datatype::Datatype
 end
 
 RBuffer(senddata, recvdata, count::Integer, datatype::Datatype) =
-    RBuffer(senddata, recvdata, Cint(count), datatype)
+    RBuffer(senddata, recvdata, API.Count(count), datatype)
 
 function RBuffer(senddata::AbstractArray{T}, recvdata::AbstractArray{T}) where {T}
     count = length(senddata)
