@@ -15,12 +15,28 @@ fh = MPI.File.open(comm, filename, read=true, write=true, create=true)
 MPI.File.set_view!(fh, 0, MPI.Datatype(Int64), MPI.Datatype(Int64))
 MPI.File.write_at_all(fh, rank*2, ArrayType([Int64(rank+1) for i = 1:2]))
 
-# The file is in the default non-atomic mode, in which data written by one
-# process becomes visible to another only after the writer has called
-# `File.sync`, the two have synchronized, and the reader has called `File.sync`
-# as well (MPI standard, "File Consistency").  `File.sync` is collective, so all
-# ranks call it on both sides of the barrier.  Without the barrier, rank 0 can
-# read before the other ranks' writes have landed.
+# Synchronizing parallel MPI writes/reads requires a bit of a dance.
+#
+# The file is in the default non-atomic mode, in which data written by
+# one process becomes visible to other processes only after *first*
+# the writer has called `File.sync`, and *then* (afterwards) the
+# reader has called `File.sync`. To ensure the "first" ... "then" bit,
+# i.e. to ensure that the writer's `File.sync` happens before the
+# reader's `File.sync`, the two processes need to use e.g. an MPI
+# barrier (MPI standard, "File Consistency").
+#
+# `File.sync` is a collective operation, so all ranks must call it
+# whenever it is called, in this case on both sides of the barrier.
+# Without the barrier, one rank could read before the other ranks'
+# writes have finished.
+#
+# Terminology isn't really helpful here. There is `File.sync`, which
+# synchronizes a process's view of the file with the actual content of
+# the file, and there is an MPI `Barrier`, which synchronizes the MPI
+# processes with each other. That's two different kinds of
+# synchronization. Tongue-in-cheek: We need to barrier-synchronize
+# between the two file-synchronizations.
+
 MPI.File.sync(fh)
 MPI.Barrier(comm)
 MPI.File.sync(fh)

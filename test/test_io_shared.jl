@@ -4,8 +4,7 @@ include("common.jl")
 # (write_shared, write_ordered, read_ordered, ...) and reset by set_view!
 # and seek_shared.  MPI_File_get_position_shared is *not* collective, so a
 # query on one rank races against the next pointer-modifying call on a
-# faster rank unless the two are ordered with a barrier.  MPI_File_sync
-# only flushes file data and plays no role here.
+# faster rank unless the two are ordered with a barrier.
 
 MPI.Init()
 
