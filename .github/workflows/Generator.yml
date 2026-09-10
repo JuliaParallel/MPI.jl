@@ -1,0 +1,44 @@
+name: Generator
+
+# src/api/generated_api.jl is produced by gen/ from an MPI implementation's headers.
+# Check that it is still what the generator produces, so the committed file cannot
+# drift away from gen/src/MPIgenerator.jl.
+
+on:
+  pull_request:
+    paths: &paths
+      - '.github/workflows/Generator.yml'
+      - 'gen/**'
+      - 'src/api/generated_api.jl'
+  push:
+    branches:
+      - master
+      - release-*
+    paths: *paths
+
+concurrency:
+  # Skip intermediate builds: always.
+  # Cancel intermediate builds: always.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: julia-actions/setup-julia@v3
+        with:
+          # The pinned Clang.jl needs an LLVM that only this Julia ships; see
+          # gen/Project.toml.
+          version: '1.10'
+      - uses: julia-actions/cache@v2
+      - name: Regenerate src/api/generated_api.jl
+        run: gen/gen.sh
+      - name: Check the committed file is up to date
+        run: |
+          if ! git diff --exit-code -- src/api/generated_api.jl; then
+            echo '::error::src/api/generated_api.jl is out of date. Run gen/gen.sh and commit the result.'
+            exit 1
+          fi

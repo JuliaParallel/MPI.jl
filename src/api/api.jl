@@ -3,7 +3,8 @@ module API
 export MPI_Aint, MPI_Count, MPI_Offset, MPI_Status,
     MPI_Comm, MPI_Datatype, MPI_Errhandler, MPI_File, MPI_Group,
     MPI_Info, MPI_Message, MPI_Op, MPI_Request, MPI_Win,
-    libmpi, mpiexec, @mpichk, @mpicall, MPIPtr, SentinelPtr, FeatureLevelError
+    libmpi, mpiexec, @mpichk, @mpicall, MPIPtr, SentinelPtr, FeatureLevelError,
+    HAS_LARGE_COUNT
 
 import MPIPreferences
 using Libdl
@@ -67,6 +68,17 @@ else
     error("Unknown MPI ABI $(MPIPreferences.abi)")
 end
 
+# Callback typedefs that the generated `ccall` signatures refer to. Every ABI file
+# defines the narrow ones as `Cvoid`; only src/api/mpiabi.jl also spells out the
+# large-count ones, so fill in the rest here (re-`const`ing to the same value elsewhere).
+#
+# The C signatures genuinely differ -- `MPI_User_function` takes `int *len` where
+# `MPI_User_function_c` takes `MPI_Count *len`, and likewise for the datarep conversion
+# functions -- so these aliases are *not* saying the two are interchangeable. They are
+# `Cvoid` because only an opaque pointer reaches `ccall`; what has to match the width is
+# the `@cfunction` implementing the callback (see `OpWrapper` in src/operators.jl). That
+# is why `MPI_Op_create_c` and `MPI_Register_datarep_c` get no fallback to their narrow
+# forms: handing one creator's callback to the other would read `len` at the wrong width.
 const MPI_User_function_c = MPI_User_function
 const MPI_Datarep_conversion_function_c = MPI_Datarep_conversion_function
 
@@ -111,19 +123,66 @@ end
     FeatureLevelError
 
 Error thrown if a feature is not implemented in the current MPI backend.
+
+`min_version` is the MPI version that introduced the feature, or `nothing` when it
+is not known. Procedures available since MPI 3.1 or earlier carry no version, since
+MPI.jl requires MPI 3.0 or later anyway; see `MPI.jl/gen/versions/README.md`.
 """
 struct FeatureLevelError <: Exception
     function_name::Symbol
-    min_version::VersionNumber # minimal MPI version required for this feature to be available
+    min_version::Union{Nothing,VersionNumber} # minimal MPI version required for this feature to be available
 end
 function Base.show(io::IO, err::FeatureLevelError)
-    print(io, "FeatureLevelError($(err.function_name)): Minimum MPI version is $(err.min_version)")
+    print(io, "FeatureLevelError($(err.function_name)): ")
+    if isnothing(err.min_version)
+        print(io, "not provided by the MPI library in use")
+    else
+        print(io, "Minimum MPI version is $(err.min_version)")
+    end
 end
 
-macro mpichk(expr, min_version=nothing)
-    if !isnothing(min_version) && expr.args[2].head == :tuple
+"""
+    @mpichk ccall(...) [min_version] [fallback=MPI_Foo]
+
+Wrap a `ccall` to an MPI procedure: call it via `@mpicall` and turn a nonzero return
+code into an `MPIError`.
+
+If the symbol is absent from the MPI library, the whole body is replaced at
+macro-expansion time — that is, when MPI.jl is precompiled — by one of
+
+  * a call to `fallback` with the same arguments, if given. This is how the
+    large-count `MPI_Foo_c` wrappers degrade to the narrow `MPI_Foo` entry point on a
+    pre-MPI-4.0 library: the two take the same arguments in the same order, and a
+    count too large for the narrow interface then fails in `ccall`'s conversion to
+    `Cint`.
+
+    Note the limit of that transparency: a count passed *by value* is converted by
+    `ccall`, but one passed through a pointer is not. Callers must therefore type
+    arrays and `Ref`s with [`Count`](@ref MPI.API.Count), [`Displ`](@ref MPI.API.Displ)
+    or [`TypeDispl`](@ref MPI.API.TypeDispl), which follow the entry point in use; a
+    `Ref{MPI_Count}` reaching a fallback that wants a `Ptr{Cint}` is a `MethodError`.
+  * otherwise, `throw(`[`FeatureLevelError`](@ref)`(name, min_version))`.
+
+`min_version` comes from the generator's `INTRODUCED` table.
+"""
+macro mpichk(expr, args...)
+    min_version = nothing
+    fallback = nothing
+    for arg in args
+        if arg isa Expr && arg.head === :(=) && arg.args[1] === :fallback
+            fallback = arg.args[2]
+        else
+            min_version = arg
+        end
+    end
+
+    if expr.args[2].head == :tuple
         fn = expr.args[2].args[1].value
         if isnothing(dlsym(libmpi_handle, fn; throw_error=false))
+            if !isnothing(fallback)
+                # ccall(target, returntype, argtypes, args...)
+                return esc(Expr(:call, fallback, expr.args[5:end]...))
+            end
             return quote
                 throw(FeatureLevelError($(QuoteNode(fn)), $min_version))
             end
@@ -137,6 +196,57 @@ end
 
 
 include("generated_api.jl")
+
+"""
+    MPI.API.HAS_LARGE_COUNT
+
+Whether the MPI library provides the MPI 4.0 large-count (`MPI_*_c`) entry points, as
+determined when MPI.jl is precompiled.
+
+The `MPI_*_c` wrappers can be called either way: where this is `false` they fall back to
+the corresponding narrow entry point, and a count that does not fit in an `int` then
+raises an `InexactError`.
+"""
+const HAS_LARGE_COUNT = !isnothing(dlsym(libmpi_handle, :MPI_Send_c; throw_error=false))
+
+"""
+    MPI.API.Count
+
+The integer type the high-level interface uses for element counts: `MPI_Count` where the
+library provides the MPI 4.0 large-count entry points, and `Cint` otherwise. See
+[`MPI.API.HAS_LARGE_COUNT`](@ref).
+"""
+const Count = HAS_LARGE_COUNT ? MPI_Count : Cint
+
+"""
+    MPI.API.Displ
+
+The integer type the high-level interface uses for the displacements of the "v"
+collectives ([`MPI.VBuffer`](@ref)): `MPI_Aint` where the library provides the MPI 4.0
+large-count entry points, and `Cint` otherwise.
+
+This is deliberately separate from [`MPI.API.Count`](@ref): `MPI_Alltoallv_c` and friends
+widen their counts to `MPI_Count` but their displacements only to `MPI_Aint`, and the two
+are not the same type on every ABI — under 32-bit MPICH, for instance, `MPI_Count` is
+`Int64` while `MPI_Aint` is `Int32`. Note that the derived-datatype constructors go the
+other way: `MPI_Type_create_struct_c` widens its byte displacements to `MPI_Count`.
+"""
+const Displ = HAS_LARGE_COUNT ? MPI_Aint : Cint
+
+"""
+    MPI.API.TypeDispl
+
+The integer type the high-level interface uses for the byte displacements of the
+derived-datatype constructors (`MPI.Types.create_struct` and friends): `MPI_Count` where
+the library provides the MPI 4.0 large-count entry points, and `MPI_Aint` otherwise.
+
+A third type is needed because the datatype constructors widen byte displacements from
+`MPI_Aint` all the way to `MPI_Count`, where the "v" collectives widen element
+displacements only from `int` to `MPI_Aint` — so neither [`MPI.API.Count`](@ref) nor
+[`MPI.API.Displ`](@ref) fits. The three coincide on 64-bit ABIs and come apart on 32-bit
+ones.
+"""
+const TypeDispl = HAS_LARGE_COUNT ? MPI_Count : MPI_Aint
 
 for handle in [
     :MPI_Comm,

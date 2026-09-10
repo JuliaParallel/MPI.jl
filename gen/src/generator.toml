@@ -2,4 +2,25 @@
 library_name = "libmpi"
 output_common_file_path = "./out/common.jl"
 output_api_file_path = "./out/api.jl"
-output_ignorelist = ["^[PQ]MPI[XR]?_.*", "^MPI[XR]_.*", "^MPI_T_.*", "^MPI_Session_.*", "^MPI_Status_[\\w_]*f08.*", "^MPI_Group_from_session_pset.*"]
+output_ignorelist = [
+    # Not part of the MPI standard, or not a C binding MPI.jl can call.
+    "^[PQ]MPI[XR]?_.*",
+    "^MPI[XR]_.*",
+    "^MPI_T_.*",
+    "^MPI_Session_.*",
+    "^MPI_Status_[\\w_]*f08.*",
+    "^MPI_Group_from_session_pset.*",
+    # Handle <-> Fortran/integer conversions. These return a handle rather than an error
+    # code, so `@mpichk` would mistake the handle for an errcode; `MPI_Comm_f2c` and
+    # friends are instead written by hand in src/api/api.jl, which also short-circuits
+    # them to the identity for ABIs whose handles are already `Cint`. `MPI_Status_f2c`
+    # and `MPI_Status_c2f` do return error codes, so they are deliberately not matched.
+    "^MPI_(Comm|Datatype|Errhandler|File|Group|Info|Message|Op|Request|Type|Win)_(f2c|c2f|toint|fromint)$",
+    # Predefined callbacks, not callable entry points. `MPI_DUP_FN` in particular is
+    # already a `@const_ref` in src/api/mpiabi.jl, so generating a function of that name
+    # is an invalid redefinition of a constant.
+    "^MPI_(DUP|NULL_COPY|NULL_DELETE)_FN$",
+    "^MPI_CONVERSION_FN_NULL.*",
+    # Variadic; Clang's rendering is not callable from Julia.
+    "^MPI_Pcontrol$",
+]
