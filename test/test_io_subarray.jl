@@ -31,6 +31,10 @@ disp = sizeof(data) * sz
 MPI.File.set_view!(fh, disp, etype, filetype)
 MPI.File.write(fh, data)
 
+# Unlike `test_io.jl`, every rank reads back only the bytes it wrote itself,
+# through the same file handle.  The MPI standard guarantees that such accesses
+# by a single process are sequentially consistent, so no barrier is needed
+# between the writes and the reads; the sync is not required for correctness.
 MPI.File.sync(fh)
 
 # Noncollective read
