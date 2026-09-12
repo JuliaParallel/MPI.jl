@@ -204,11 +204,15 @@ After that, [this script](https://gist.github.com/luraess/c228ec08629737888a18c6
 
 ## Custom reduction operators
 
-It is not possible to use custom reduction operators [with 32-bit Microsoft MPI](https://github.com/JuliaParallel/MPI.jl/issues/246) on Windows and on [ARM CPUs](https://github.com/JuliaParallel/MPI.jl/issues/404) with any operating system.
-These issues are due to due how custom operators are currently implemented in MPI.jl, that is by using [closure cfunctions](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/index.html#Closure-cfunctions).
-However they have two limitations:
+It is not possible to use custom reduction operators [with 32-bit Microsoft MPI](https://github.com/JuliaParallel/MPI.jl/issues/246) on Windows.
+Custom operators are passed to MPI as [C-compatible function pointers](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/index.html#Creating-C-Compatible-Julia-Function-Pointers-1), which Julia cannot produce for the `stdcall` calling convention that 32-bit Microsoft MPI expects.
+[`MPI.@RegisterOp`](@ref) does not help here either.
 
-* [Julia's C-compatible function pointers](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/index.html#Creating-C-Compatible-Julia-Function-Pointers-1) cannot be used where the `stdcall` calling convention is expected, which is the case for 32-bit Microsoft MPI,
-* closure cfunctions in Julia are based on LLVM trampolines, which are not supported on ARM architecture.
+Custom operators do work on ARM and other non-x86 CPUs, where they used to be unavailable ([#404](https://github.com/JuliaParallel/MPI.jl/issues/404)).
+There, Julia cannot build [closure cfunctions](https://docs.julialang.org/en/v1/manual/calling-c-and-fortran-code/index.html#Closure-cfunctions) — they are based on LLVM trampolines, which only exist on x86 and x86-64 — so MPI.jl instead draws from a pool of statically compiled callbacks.
+This has two consequences on those platforms:
 
-As an alternative [`MPI.@RegisterOp`](@ref) may be used to statically register reduction operations.
+* each invocation of the callback costs one additional dynamic dispatch. MPI passes many elements per invocation, so this is amortized and usually not measurable;
+* each *distinct* operator permanently occupies a pool slot. `MPI_Op_free` only marks an operation for deallocation, and MPI may keep calling the user function until every operation referencing it has completed, so the function cannot be released. Identical operators share a slot, so reducing repeatedly with the same function is fine.
+
+[`MPI.@RegisterOp`](@ref) may be used to register a reduction operation statically. This avoids both the dispatch and the pool slot, and is worth doing for operators used in hot loops.

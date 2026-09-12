@@ -10,6 +10,14 @@ An MPI reduction operator, for use with [Reduce/Scan collective operations](@ref
 Wrap the Julia reduction function `op` for arguments of type `T`. `op` is assumed to be
 associative, and if `iscommutative` is true, assumed to be commutative as well.
 
+!!! note
+    On architectures where Julia cannot build closure cfunctions (anything other than x86
+    and x86-64), each *distinct* operator permanently occupies a slot in an internal pool
+    of C callbacks: `MPI_Op_free` only marks an operation for deallocation, so the wrapped
+    function has to stay callable for the rest of the process. Identical operators share a
+    slot, so reducing repeatedly with the same function is fine; [`@RegisterOp`](@ref)
+    avoids the pool entirely.
+
 ## See also
 
 - [`Reduce!`](@ref)/[`Reduce`](@ref)
@@ -96,22 +104,137 @@ function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t:
     return nothing
 end
 
+# Closure cfunctions (`@cfunction($f, ...)`) are implemented with LLVM trampolines, which
+# only exist on x86 and x86-64. Everywhere else creating one does not throw, it aborts the
+# process, so this has to be an allowlist: an unknown architecture must take the
+# trampoline pool path below.
+const HAVE_CLOSURE_CFUNCTION = Sys.ARCH ∈ (:x86_64, :i686)
+
+@static if !HAVE_CLOSURE_CFUNCTION
+
+# Where closure cfunctions are unavailable, `Op` draws from a pool of statically defined
+# trampolines instead. A trampoline is an ordinary top-level function -- which `@cfunction`
+# accepts on every architecture -- forwarding to the `OpWrapper` held in its own `OpSlot`.
+# That forwarding call is a dynamic dispatch, but it happens once per invocation of the
+# callback rather than once per element, so it is amortized over the `len` elements MPI
+# passes each time.
+# See https://github.com/JuliaParallel/MPI.jl/issues/404
+mutable struct OpSlot
+    wrapper::Any
+    fptr::Ptr{Cvoid}
+end
+OpSlot() = OpSlot(nothing, C_NULL)
+
+const OP_POOL_SIZE = 128
+const OP_POOL = OpSlot[OpSlot() for _ in 1:OP_POOL_SIZE]
+# Number of slots handed out so far. Slots are never returned to the pool: `MPI_Op_free`
+# only marks an operation for deallocation, and MPI may go on calling the user function
+# until every operation referencing it has completed, so a wrapper handed to MPI has to
+# stay alive and callable for the rest of the process.
+const OP_POOL_USED = Ref(0)
+# Maps an `OpWrapper` to the trampoline already installed for it. `Reduce!` and friends
+# construct an `Op` on every call, so without this a loop reducing with the same operator
+# would consume a slot per iteration. Keyed by object identity: `OpWrapper` and Julia
+# closures are immutable, so `===` compares the captured values with `===`, which is
+# exactly the condition under which two wrappers are interchangeable.
+const OP_SLOT_CACHE = IdDict{Any,Ptr{Cvoid}}()
+const OP_POOL_LOCK = ReentrantLock()
+const OP_POOL_WARN_AT = 4 * OP_POOL_SIZE
+const OP_POOL_WARNED = Ref(false)
+
+# NOTE: each trampoline reaches its slot through the object interpolated into its body,
+# not through a global binding. `grow_op_pool!` builds trampolines the same way in an
+# already-running session, where defining a new global would be read in a world older than
+# the one that defines it.
+for i in 1:OP_POOL_SIZE
+    @eval function $(Symbol(:_op_trampoline_, i))(a::Ptr{Cvoid}, b::Ptr{Cvoid},
+                                                  len::Ptr{Cint}, t::Ptr{MPI_Datatype})
+        $(OP_POOL[i]).wrapper(a, b, len, t)
+        return nothing
+    end
+end
+
+# `@cfunction` pointers must not be taken from a precompiled image, so they are refreshed
+# at load time. This is idempotent, as it must be: load time hooks also run inside the
+# precompile workload.
+@eval function init_op_pool()
+    $([:($(OP_POOL[i]).fptr =
+             @cfunction($(Symbol(:_op_trampoline_, i)), Cvoid,
+                        (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype})))
+       for i in 1:OP_POOL_SIZE]...)
+    return nothing
+end
+add_load_time_hook!(init_op_pool)
+
+"""
+    grow_op_pool!()
+
+Add one trampoline to `OP_POOL` and return its slot. Compiling it costs on the
+order of 10ms, so this is a slow path, taken only once the static pool is exhausted.
+The caller must hold `OP_POOL_LOCK`.
+"""
+function grow_op_pool!()
+    slot = OpSlot()
+    tramp = Symbol(:_op_trampoline_, length(OP_POOL) + 1)
+    @eval function $tramp(a::Ptr{Cvoid}, b::Ptr{Cvoid}, len::Ptr{Cint}, t::Ptr{MPI_Datatype})
+        $(slot).wrapper(a, b, len, t)
+        return nothing
+    end
+    # A separate `eval`: a single `@eval begin ... end` is compiled as one thunk, so
+    # `$tramp` would not yet be defined when the `@cfunction` in it is resolved.
+    slot.fptr = @eval @cfunction($tramp, Cvoid,
+                                 (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype}))
+    push!(OP_POOL, slot)
+    return slot
+end
+
+"""
+    op_fptr(w::OpWrapper)
+
+Return a C function pointer to a trampoline that forwards to `w`, installing `w` in a
+fresh pool slot unless an identical wrapper already occupies one.
+"""
+function op_fptr(w)
+    @lock OP_POOL_LOCK begin
+        get!(OP_SLOT_CACHE, w) do
+            n = OP_POOL_USED[] + 1
+            slot = n <= length(OP_POOL) ? OP_POOL[n] : grow_op_pool!()
+            slot.wrapper = w
+            OP_POOL_USED[] = n
+            if n >= OP_POOL_WARN_AT && !OP_POOL_WARNED[]
+                OP_POOL_WARNED[] = true
+                @warn """
+                    $n distinct user-defined reduction operators have been created. On $(Sys.ARCH)
+                    each one permanently occupies a slot in MPI.jl's callback pool, and every slot
+                    past the first $OP_POOL_SIZE must be compiled at run time.
+
+                    Identical operators share a slot, so this usually means a loop is building a
+                    new operator each iteration. Hoist `op = MPI.Op(f, T)` out of the loop, or
+                    register the function once with `MPI.@RegisterOp(f, T)`.
+                    """
+            end
+            slot.fptr
+        end
+    end
+end
+
+end # @static if !HAVE_CLOSURE_CFUNCTION
+
 function Op(f, T=Any; iscommutative=false)
     @static if MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32
+        # Julia's C-compatible function pointers cannot use the `stdcall` calling
+        # convention that 32-bit Microsoft MPI expects.
         error("""
             User-defined reduction operators are not supported on 32-bit Windows.
             See https://github.com/JuliaParallel/MPI.jl/issues/246 for more details.
         """)
-    elseif Sys.ARCH ∈ (:aarch64, :ppc64le, :powerpc64le) || startswith(lowercase(String(Sys.ARCH)), "arm")
-        error("""
-            User-defined reduction operators are currently not supported on non-Intel architectures.
-            See https://github.com/JuliaParallel/MPI.jl/issues/404 for more details.
-
-            You may want to use `@RegisterOp` to statically register `f`.
-            """)
     end
     w = OpWrapper{typeof(f),T}(f)
-    fptr = @cfunction($w, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype}))
+    fptr = @static if HAVE_CLOSURE_CFUNCTION
+        @cfunction($w, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cint}, Ptr{MPI_Datatype}))
+    else
+        op_fptr(w)
+    end
 
     op = Op(OP_NULL.val, fptr)
     # int MPI_Op_create(MPI_User_function* user_fn, int commute, MPI_Op* op)
@@ -124,12 +247,14 @@ end
 """
     @RegisterOp(f, T)
 
-Register a custom operator [`Op`](@ref) using the function `f` statically.
-On platfroms like AArch64, Julia does not support runtime closures,
-being passed to C. The generic version of [`Op`](@ref) uses runtime closures
-to support arbitrary functions being passed as MPI reduction operators.
-`@RegisterOp` statically adds a function to the set of functions allowed as
-as an MPI operator.
+Statically register the function `f` as a reduction operator [`Op`](@ref) for arguments of
+type `T`.
+
+This is an optimization, not a requirement: [`Op`](@ref) accepts any function on any
+architecture. `@RegisterOp` builds the C callback for `f` when the enclosing module is
+compiled rather than at run time, which avoids a dynamic dispatch on each invocation of
+the callback and, on architectures without closure cfunctions, avoids permanently
+occupying a slot in MPI.jl's internal callback pool.
 
 ```julia
 function my_reduce(x, y)
