@@ -49,7 +49,8 @@ end
 
 The rank of the process in the particular group.
 
-Returns an integer in the range `0:MPI.Group_size()-1`.
+Returns an integer in the range `0:MPI.Group_size()-1`, or `nothing` if the calling process
+is not a member of `group`.
 
 # External links
 $(_doc_external("MPI_Group_rank"))
@@ -57,6 +58,9 @@ $(_doc_external("MPI_Group_rank"))
 function Group_rank(group::Group)
     rank = Ref{Cint}()
     API.MPI_Group_rank(group, rank)
+    # `MPI_UNDEFINED` is not a rank; return `nothing` rather than let the
+    # sentinel escape as an ordinary integer.
+    rank[] == API.MPI_UNDEFINED[] && return nothing
     Int(rank[])
 end
 
