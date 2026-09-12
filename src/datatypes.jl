@@ -61,7 +61,7 @@ function get_name(datatype::Datatype)
     buffer = Array{UInt8}(undef, API.MPI_MAX_OBJECT_NAME)
     lenref = Ref{Cint}()
     API.MPI_Type_get_name(datatype, buffer, lenref)
-    return String(resize!(buffer, lenref[]))
+    return _string_from_buffer(buffer, lenref[])
 end
 
 # datatype attribute to store Julia type

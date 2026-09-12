@@ -15,8 +15,7 @@ function Get_library_version()
 
     API.MPI_Get_library_version(buf, buflen)
     @assert buflen[] < 8192
-    resize!(buf, buflen[])
-    return String(buf)
+    return _string_from_buffer(buf, buflen[])
 end
 
 """
