@@ -30,6 +30,13 @@ function free(group::Group)
     return nothing
 end
 
+function deferred_free_fn(group::Group)
+    group == GROUP_NULL && return nothing
+    val = group.val
+    # int MPI_Group_free(MPI_Group *group)
+    return () -> API.MPI_Group_free(Ref(val))
+end
+
 """
     Group_size(group::Group)
 
@@ -95,34 +102,34 @@ end
 function Group_difference(group1::Group, group2::Group)
     newgroup = Group()
     API.MPI_Group_difference(group1, group2, newgroup)
-    finalizer(free, newgroup)
+    finalizer(deferred_free, newgroup)
     return newgroup
 end
 
 function Group_intersection(group1::Group, group2::Group)
     newgroup = Group()
     API.MPI_Group_intersection(group1, group2, newgroup)
-    finalizer(free, newgroup)
+    finalizer(deferred_free, newgroup)
     return newgroup
 end
 
 function Group_union(group1::Group, group2::Group)
     newgroup = Group()
     API.MPI_Group_union(group1, group2, newgroup)
-    finalizer(free, newgroup)
+    finalizer(deferred_free, newgroup)
     return newgroup
 end
 
 function Group_excl(group::Group, ranks::Vector{Cint})
     newgroup = Group()
     API.MPI_Group_excl(group, length(ranks), ranks, newgroup)
-    finalizer(free, newgroup)
+    finalizer(deferred_free, newgroup)
     return newgroup
 end
 
 function Group_incl(group::Group, ranks::Vector{Cint})
     newgroup = Group()
     API.MPI_Group_incl(group, length(ranks), ranks, newgroup)
-    finalizer(free, newgroup)
+    finalizer(deferred_free, newgroup)
     return newgroup
 end
