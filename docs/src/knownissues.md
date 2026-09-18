@@ -145,6 +145,26 @@ before calling `mpiexec`.
 
 ## CUDA-aware MPI
 
+[CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) starts its own internal threads, thus the notes in the section about [Multi-threading and signal handling](@ref) apply.
+In particular you may see an error like:
+
+```
+Caught signal 11 (Segmentation fault: invalid permissions for mapped object at address 0x151a22497008)
+==== backtrace (tid: 226485) ====
+ 0 0x000000000003e730 __GI___sigaction()  :0
+ 1 0x0000000001db5d4c julia_multiq_check_empty_75441()  ./partr.jl:186
+ 2 0x000000000045dab8 jfptr_multiq_check_empty_75442.1()  :0
+ 3 0x000000000004706e _jl_invoke()  /cache/build/builder-amdci5-6/julialang/julia-release-1-dot-10/src/gf.c:2895
+ 4 0x000000000009888e check_empty()  /cache/build/builder-amdci5-6/julialang/julia-release-1-dot-10/src/partr.c:348
+ 5 0x0000000002205ca8 julia_poptask_75610()  ./task.jl:999
+ 6 0x0000000002205ca8 julia_poptask_75610()  ./task.jl:1001
+ 7 0x0000000000b3b5c2 julia_wait_74913()  ./task.jl:1008
+ 8 0x0000000001be39e3 julia_#wait#645_74932()  ./condition.jl:130
+ 9 0x000000000004706e _jl_invoke()  /cache/build/builder-amdci5-6/julialang/julia-release-1-dot-10/src/gf.c:2895
+10 0x0000000000035ca1 jlcapi_synchronization_worker_11948()  text:0
+=================================
+```
+
 ### Memory pool
 
 Using CUDA-aware MPI on multi-GPU nodes with recent CUDA.jl may trigger (see [here](https://github.com/JuliaGPU/CUDA.jl/issues/1053#issue-946826096))
