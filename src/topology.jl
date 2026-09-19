@@ -51,7 +51,7 @@ function Cart_create(comm::Comm, dims; periodic = map(_->false, dims), reorder=f
     # int MPI_Cart_create(MPI_Comm comm_old, int ndims, const int dims[],
     #                     const int periods[], int reorder, MPI_Comm *comm_cart)
     API.MPI_Cart_create(comm, length(dims), dims, periodic, reorder, comm_cart)
-    comm_cart != COMM_NULL && finalizer(free, comm_cart)
+    comm_cart != COMM_NULL && finalizer(deferred_free, comm_cart)
     comm_cart
 end
 
@@ -168,7 +168,7 @@ function Cart_sub(comm::Comm, remain_dims)
     comm_sub = Comm()
     # int MPI_Cart_sub(MPI_Comm comm, const int remain_dims[], MPI_Comm *comm_new)
     API.MPI_Cart_sub(comm, remain_dims, comm_sub)
-    comm_sub != COMM_NULL && finalizer(free, comm_sub)
+    comm_sub != COMM_NULL && finalizer(deferred_free, comm_sub)
     comm_sub
 end
 
