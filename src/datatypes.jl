@@ -78,10 +78,22 @@ if it doesn't correspond directly.
 """
 function to_type(datatype::Datatype)
     if MPI.Initialized() && !MPI.Finalized()
-        ptr = get_attr(datatype, JULIA_TYPE_PTR_ATTR[])
-        isnothing(ptr) || return unsafe_pointer_to_objref(ptr)
+        return to_type_raw(datatype.val)
     end
     return nothing
+end
+
+# As `to_type`, but taking a raw `MPI_Datatype` handle.  This is called from
+# inside user-defined reduction callbacks, which run on MPI's stack while a
+# reduction is in progress. We avoid creating a `Datatype` object to avoid
+# allocating memory, and also avoid the unnecessary `Initialized`/`Finalized`
+# queries of `to_type`.
+@inline function to_type_raw(handle::MPI_Datatype)
+    flagref = Ref(Cint(0))
+    attrref = Ref{Ptr{Cvoid}}(C_NULL)
+    API.MPI_Type_get_attr(handle, JULIA_TYPE_PTR_ATTR[], attrref, flagref)
+    flagref[] == 0 && return nothing
+    return unsafe_pointer_to_objref(attrref[])
 end
 
 # "native" MPI datatypes

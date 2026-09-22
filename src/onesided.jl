@@ -100,7 +100,6 @@ function Win_allocate_shared(::Type{Array{T}}, dims, comm::Comm; kwargs...) wher
     win, ptr = Win_allocate_shared(Ptr{T}, prod(dims), comm; kwargs...)
     array = unsafe_wrap(Array, ptr, dims)
     win.object = array
-    finalizer(free, win)
     return win, array
 end
 
@@ -158,7 +157,7 @@ function Win_create_dynamic(comm::Comm; kwargs...)
     # int MPI_Win_create_dynamic(MPI_Info info, MPI_Comm comm, MPI_Win *win)
     API.MPI_Win_create_dynamic(Info(kwargs...), comm, win)
     finalizer(free, win)
-    win.object = Set()
+    win.object = Base.IdSet{Any}()
     return win
 end
 

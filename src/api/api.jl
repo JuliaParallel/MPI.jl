@@ -76,9 +76,7 @@ end
 primitive type MPIPtr Sys.WORD_SIZE
 end
 @assert sizeof(MPIPtr) == sizeof(Ptr{Cvoid})
-Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = x
-Base.unsafe_convert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
-
+Base.cconvert(::Type{MPIPtr}, x::SentinelPtr) = reinterpret(MPIPtr, x)
 
 # Initialize the ref constants from the library.
 # This is not `API.__init__`, as it should be called _after_
@@ -152,19 +150,46 @@ for handle in [
     :MPI_Request,
     :MPI_Win,
 ]
-    handle_f2c = Symbol(handle,:_f2c)
-    handle_c2f = Symbol(handle,:_c2f)
+    # The C conversion functions are named after the handle type, except for
+    # `MPI_Datatype`, for which the standard specifies `MPI_Type_f2c` and
+    # `MPI_Type_c2f`.
+    cname = handle === :MPI_Datatype ? :MPI_Type : handle
+    handle_f2c = Symbol(cname,:_f2c)
+    handle_c2f = Symbol(cname,:_c2f)
     @eval begin
-        if $handle == Cint
-            $handle_f2c(fcomm::Cint) = fcomm
-            $handle_c2f(comm::Cint) = comm
-        else
+        if !isnothing(dlsym(libmpi_handle, $(Meta.quot(handle_f2c)); throw_error=false)) &&
+           !isnothing(dlsym(libmpi_handle, $(Meta.quot(handle_c2f)); throw_error=false))
+            # Call the library's own conversion functions whenever it exports them
             function $handle_f2c(fcomm::Cint)
-                ccall(($(Meta.quot(handle_f2c)), libmpi), $handle, (Cint,), fcomm)
+                @mpicall ccall(($(Meta.quot(handle_f2c)), libmpi), $handle, (Cint,), fcomm)
             end
             function $handle_c2f(comm::$handle)
-                ccall(($(Meta.quot(handle_c2f)), libmpi), Cint, ($handle,), comm)
+                @mpicall ccall(($(Meta.quot(handle_c2f)), libmpi), Cint, ($handle,), comm)
             end
+        elseif $handle === Cint || $handle === Cuint
+            # The library has no such functions.  Before MPI 4.1 the standard
+            # allowed these conversions to be macros, and MPICH before 4.2 as
+            # well as its derivatives (Microsoft MPI, MVAPICH, Intel MPI, Cray
+            # MPICH, HPE MPT) did that.
+            #
+            # Luckily we know that MPICH uses the same internal
+            # representation for C and Fortran handles, so the
+            # conversion is a no-op.
+            $handle_f2c(fcomm::Cint) = fcomm % $handle
+            $handle_c2f(comm::$handle) = comm % Cint
+        else
+            $handle_f2c(fcomm::Cint) =
+                error($(string(handle_f2c)), " is not exported by this MPI library")
+            $handle_c2f(comm::$handle) =
+                error($(string(handle_c2f)), " is not exported by this MPI library")
+        end
+    end
+    if cname !== handle
+        # Keep `MPI_Datatype_f2c`/`MPI_Datatype_c2f` as aliases for
+        # backwards compatibility
+        @eval begin
+            const $(Symbol(handle,:_f2c)) = $handle_f2c
+            const $(Symbol(handle,:_c2f)) = $handle_c2f
         end
     end
 end

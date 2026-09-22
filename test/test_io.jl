@@ -15,6 +15,30 @@ fh = MPI.File.open(comm, filename, read=true, write=true, create=true)
 MPI.File.set_view!(fh, 0, MPI.Datatype(Int64), MPI.Datatype(Int64))
 MPI.File.write_at_all(fh, rank*2, ArrayType([Int64(rank+1) for i = 1:2]))
 
+# Synchronizing parallel MPI writes/reads requires a bit of a dance.
+#
+# The file is in the default non-atomic mode, in which data written by
+# one process becomes visible to other processes only after *first*
+# the writer has called `File.sync`, and *then* (afterwards) the
+# reader has called `File.sync`. To ensure the "first" ... "then" bit,
+# i.e. to ensure that the writer's `File.sync` happens before the
+# reader's `File.sync`, the two processes need to use e.g. an MPI
+# barrier (MPI standard, "File Consistency").
+#
+# `File.sync` is a collective operation, so all ranks must call it
+# whenever it is called, in this case on both sides of the barrier.
+# Without the barrier, one rank could read before the other ranks'
+# writes have finished.
+#
+# Terminology isn't really helpful here. There is `File.sync`, which
+# synchronizes a process's view of the file with the actual content of
+# the file, and there is an MPI `Barrier`, which synchronizes the MPI
+# processes with each other. That's two different kinds of
+# synchronization. Tongue-in-cheek: We need to barrier-synchronize
+# between the two file-synchronizations.
+
+MPI.File.sync(fh)
+MPI.Barrier(comm)
 MPI.File.sync(fh)
 
 # Noncollective read
@@ -31,6 +55,9 @@ if rank == sz-1
     MPI.File.write_at(fh, 0, ArrayType([Int64(-1) for i = 1:2]))
 end
 
+# Same sync/barrier/sync sequence as above before reading the overwritten data.
+MPI.File.sync(fh)
+MPI.Barrier(comm)
 MPI.File.sync(fh)
 
 # Collective read
@@ -38,3 +65,39 @@ data = zeros(Int64, 1)
 MPI.File.read_at_all!(fh, rank*2, data)
 @test data == [rank == 0 ? -1 : rank+1]
 close(fh)
+
+# `MPI_MODE_EXCL` must only ever be emitted alongside `MPI_MODE_CREATE`.
+
+# Opening an existing file for writing without creating it must work: it must
+# not silently become "fail if the file exists".
+let path = MPI.bcast(tempname(), 0, comm)
+    rank == 0 && Base.write(path, zeros(UInt8, 64))
+    MPI.Barrier(comm)
+    fh = MPI.File.open(comm, path; write=true, create=false)
+    close(fh)
+    MPI.Barrier(comm)
+    rank == 0 && rm(path; force=true)
+end
+
+# `exclusive=true` creates the file, and fails if it is already there.
+let path = MPI.bcast(tempname(), 0, comm)
+    fh = MPI.File.open(comm, path; write=true, exclusive=true)
+    close(fh)
+    MPI.Barrier(comm)
+    @test_throws MPI.MPIError MPI.File.open(comm, path; write=true, exclusive=true)
+    MPI.Barrier(comm)
+    # ... whereas the default is not exclusive.
+    fh = MPI.File.open(comm, path; write=true, create=true)
+    close(fh)
+    MPI.Barrier(comm)
+    rank == 0 && rm(path; force=true)
+end
+
+# `exclusive` is meaningless without creation, and must be rejected rather than
+# quietly emitting `MPI_MODE_EXCL` on its own.
+let path = MPI.bcast(tempname(), 0, comm)
+    @test_throws ArgumentError MPI.File.open(comm, path; write=true, create=false, exclusive=true)
+    @test_throws ArgumentError MPI.File.open(comm, path; read=true, exclusive=true)
+end
+MPI.Barrier(comm)
+

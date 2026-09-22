@@ -3,11 +3,10 @@ import Base: eltype
 
 const SUCCESS = Cint(0)
 
-@static if VERSION >= v"1.8"
-    PROC_NULL::Cint = typemin(Cint)
-    ANY_SOURCE::Cint = typemin(Cint)
-    ANY_TAG::Cint = typemin(Cint)
-end
+PROC_NULL::Cint = typemin(Cint)
+ANY_SOURCE::Cint = typemin(Cint)
+ANY_TAG::Cint = typemin(Cint)
+
 add_load_time_hook!() do
     global PROC_NULL = API.MPI_PROC_NULL[]
     global ANY_SOURCE = API.MPI_ANY_SOURCE[]

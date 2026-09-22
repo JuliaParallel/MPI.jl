@@ -33,18 +33,26 @@ Open the file identified by `filename`. This is a collective operation on `comm`
 
 Supported keywords are as follows:
  - `read`, `write`, `create`, `append` have the same behaviour and defaults as `Base.open`.
+ - `exclusive`: fail if the file already exists (default: `false`). Requires creating the
+   file, i.e. `write=true` and `create` not disabled.
  - `sequential`: file will only be accessed sequentially (default: `false`)
  - `uniqueopen`: file will not be concurrently opened elsewhere (default: `false`)
  - `deleteonclose`: delete file on close (default: `false`)
 
 Any additional keywords are passed via an [`Info`](@ref) object, and are implementation dependent.
 
+!!! note
+    Unlike `Base.open`, opening for writing does not truncate the file: MPI has no
+    truncate-on-open mode, so `truncate` is not among the supported keywords. Writing a
+    short record over a longer existing file leaves the tail in place; use
+    `MPI.API.MPI_File_set_size(file, 0)` after opening if you need the file truncated.
+
 # External links
 $(_doc_external("MPI_File_open"))
 """
 function open(comm::Comm, filename::AbstractString;
               read=nothing, write=nothing, create=nothing, append=nothing,
-              sequential=false, uniqueopen=false, deleteonclose=false,
+              exclusive=false, sequential=false, uniqueopen=false, deleteonclose=false,
               infokws...)
     flags = Base.open_flags(read=read, write=write, create=create, truncate=nothing, append=append)
     amode = if flags.read
@@ -52,7 +60,17 @@ function open(comm::Comm, filename::AbstractString;
     else
         flags.write ? MPI.API.MPI_MODE_WRONLY[] : zero(Cint)
     end
-    flags.write && (amode |= flags.create ? MPI.API.MPI_MODE_CREATE[] : MPI.API.MPI_MODE_EXCL[])
+    # `MPI_MODE_EXCL` means "error if creating a file that already exists", so it
+    # is only meaningful together with `MPI_MODE_CREATE`; on its own it is as
+    # undefined as POSIX `O_EXCL` without `O_CREAT`.  Both are erroneous in
+    # conjunction with `MPI_MODE_RDONLY` (MPI-5.0 §14.2.1), hence `flags.write`.
+    if flags.write && flags.create
+        amode |= MPI.API.MPI_MODE_CREATE[]
+        exclusive && (amode |= MPI.API.MPI_MODE_EXCL[])
+    elseif exclusive
+        throw(ArgumentError(
+            "`exclusive=true` only applies when the file is created; pass `write=true` and do not set `create=false`"))
+    end
     flags.append && (amode |= MPI.API.MPI_MODE_APPEND[])
     sequential && (amode |= MPI.API.MPI_MODE_SEQUENTIAL[])
     uniqueopen && (amode |= MPI.API.MPI_MODE_UNIQUE_OPEN[])

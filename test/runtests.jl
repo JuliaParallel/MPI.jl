@@ -75,6 +75,10 @@ if haskey(ENV,"JULIA_MPI_TEST_ABI")
     @test ENV["JULIA_MPI_TEST_ABI"] == MPIPreferences.abi
 end
 
+# Unit tests for MPIPreferences itself.  These don't need to be run with
+# mpiexec, and don't depend on the MPI implementation in use.
+include(joinpath(@__DIR__, "..", "lib", "MPIPreferences", "test", "runtests.jl"))
+
 if Sys.isunix()
     # This test doesn't need to be run with mpiexec.  `mpiexecjl` is currently
     # available only on Unix systems
