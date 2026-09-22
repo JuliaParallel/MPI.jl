@@ -9,6 +9,13 @@ nprocs = MPI.Comm_size(comm)
 
 const BIG = Int64(typemax(Cint)) + 1    # one past what the narrow interface can express
 
+# A large count is only *usable* where addresses are wide enough to describe the data.
+# `MPI_Aint` is pointer-sized, so on a 32-bit platform neither a 2 GiB datatype extent nor
+# a 2 GiB displacement can exist, whatever `MPI_Count` says -- MPICH rejects such a
+# datatype outright with "The input argument count is too big to fit for internal
+# routines". So `HAS_LARGE_COUNT` alone is not enough to reach for a count this size.
+const BIG_ADDRESSABLE = MPI.API.HAS_LARGE_COUNT && BIG <= typemax(MPI.API.MPI_Aint)
+
 # Our CI declares whether large counts are supported in the tested MPI library.
 # This allows us to test whether our auto-detection is working.
 if haskey(ENV, "JULIA_MPI_TEST_LARGE_COUNT")
@@ -47,12 +54,14 @@ end
 # Derived datatypes let us exercise a count larger than `typemax(Cint)` without allocating
 # anything: only the type's description is large, not a buffer.
 @testset "large-count datatypes" begin
-    if MPI.API.HAS_LARGE_COUNT
+    if BIG_ADDRESSABLE
         dt = MPI.Types.create_contiguous(BIG, MPI.BYTE)
         MPI.Types.commit!(dt)
         @test MPI.Types.size(dt) == BIG
         @test MPI.Types.extent(dt) == (0, BIG)
         MPI.free(dt)
+    elseif MPI.API.HAS_LARGE_COUNT
+        @test_throws MPI.MPIError MPI.Types.create_contiguous(BIG, MPI.BYTE)
     else
         # The narrow entry point cannot express this, and must throw an exception.
         @test_throws InexactError MPI.Types.create_contiguous(BIG, MPI.BYTE)
@@ -63,9 +72,14 @@ end
     if MPI.API.HAS_LARGE_COUNT
         buf = MPI.Buffer(Ptr{UInt8}(0), BIG, MPI.BYTE)
         @test buf.count == BIG
-        vbuf = MPI.VBuffer(Ptr{UInt8}(0), [BIG, BIG], [0, BIG], MPI.BYTE)
-        @test vbuf.counts == [BIG, BIG]
-        @test vbuf.displs == [0, BIG]
+        if BIG_ADDRESSABLE
+            vbuf = MPI.VBuffer(Ptr{UInt8}(0), [BIG, BIG], [0, BIG], MPI.BYTE)
+            @test vbuf.counts == [BIG, BIG]
+            @test vbuf.displs == [0, BIG]
+        else
+            # The displacements are `MPI_Aint`, which cannot hold this on a 32-bit build
+            @test_throws InexactError MPI.VBuffer(Ptr{UInt8}(0), [BIG, BIG], [0, BIG], MPI.BYTE)
+        end
     else
         @test_throws InexactError MPI.Buffer(Ptr{UInt8}(0), BIG, MPI.BYTE)
     end
@@ -87,8 +101,8 @@ end
 # Actually running a test that handles more than 2 GiB is opt-in:
 # This needs a couple of GiB of RAM per rank, which is more than a shared CI runner can handle.
 if get(ENV, "JULIA_MPI_TEST_LARGECOUNT", "") == "1"
-    if !MPI.API.HAS_LARGE_COUNT
-        @info "JULIA_MPI_TEST_LARGECOUNT set but this MPI has no large-count support; skipping"
+    if !BIG_ADDRESSABLE
+        @info "JULIA_MPI_TEST_LARGECOUNT set but this build cannot address a 2 GiB buffer; skipping"
     else
         @testset "2 GiB point-to-point" begin
             n = BIG + 1

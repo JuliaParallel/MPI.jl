@@ -19,6 +19,11 @@ leave a `Ref{MPI_Count}` reaching an entry point that wants a `Ptr{Cint}`. A cou
 instead of being silently truncated. [`MPI.API.HAS_LARGE_COUNT`](@ref) says which of the
 two is in use.
 
+Note that having them does not by itself make messages of more than `typemax(Cint)`
+elements possible. Displacements and datatype extents are `MPI_Aint`, which is
+pointer-sized, so on a 32-bit build neither can describe more than 2 GiB however wide
+`MPI_Count` is -- a 32-bit address space could not hold such a buffer anyway.
+
 The fallback is transparent for a count passed by value, since `ccall` converts it, but
 not for one passed through a pointer. Type arrays and `Ref`s with
 [`MPI.API.Count`](@ref), [`MPI.API.Displ`](@ref), or [`MPI.API.TypeDispl`](@ref) need to
