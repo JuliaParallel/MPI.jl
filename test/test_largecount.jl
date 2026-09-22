@@ -8,8 +8,8 @@ nprocs = MPI.Comm_size(comm)
 
 const BIG = Int64(typemax(Cint)) + 1    # one past what the narrow interface can express
 
-# If the expectation is declared, hold the build to it -- the CI matrix covers both
-# paths, and a silent switch between them would go unnoticed otherwise.
+# Our CI declares whether large counts are supported in the tested MPI library.
+# This allows us to test whether our auto-detection is working.
 if haskey(ENV, "JULIA_MPI_TEST_LARGE_COUNT")
     @test MPI.API.HAS_LARGE_COUNT == (ENV["JULIA_MPI_TEST_LARGE_COUNT"] == "true")
 end
@@ -33,7 +33,7 @@ end
     @test fieldtype(MPI.VBuffer{Vector{Int}}, :displs) === Vector{MPI.API.Displ}
 end
 
-# Derived datatypes let us exercise a count past `typemax(Cint)` without allocating
+# Derived datatypes let us exercise a count larger than `typemax(Cint)` without allocating
 # anything: only the type's description is large, not a buffer.
 @testset "large-count datatypes" begin
     if MPI.API.HAS_LARGE_COUNT
@@ -43,8 +43,7 @@ end
         @test MPI.Types.extent(dt) == (0, BIG)
         MPI.free(dt)
     else
-        # The narrow entry point cannot express this, and must say so rather than
-        # silently truncating the count.
+        # The narrow entry point cannot express this, and must throw an exception.
         @test_throws InexactError MPI.Types.create_contiguous(BIG, MPI.BYTE)
     end
 end
@@ -74,8 +73,8 @@ end
     @test vbuf.counts == [1, 2, 3]
 end
 
-# Actually moving more than 2 GiB is opt-in: it needs a couple of GiB of RAM per rank,
-# which is more than a shared CI runner should be asked for.
+# Actually running a test that handles more than 2 GiB is opt-in:
+# This needs a couple of GiB of RAM per rank, which is more than a shared CI runner can handle.
 if get(ENV, "JULIA_MPI_TEST_LARGECOUNT", "") == "1"
     if !MPI.API.HAS_LARGE_COUNT
         @info "JULIA_MPI_TEST_LARGECOUNT set but this MPI has no large-count support; skipping"
@@ -108,8 +107,8 @@ if get(ENV, "JULIA_MPI_TEST_LARGECOUNT", "") == "1"
         MPI.Barrier(comm)
 
         # A user-defined `Op` is created with the narrow `MPI_Op_create`, whose callback
-        # takes `int *len`. This checks the assumption that an implementation chunks a
-        # large-count reduction into calls the narrow callback can express, rather than
+        # takes `int *len`. This checks the assumption that an MPI library chunks a
+        # large-count reduction into calls which the narrow callback can express, rather than
         # handing it a length it cannot represent.
         @testset "2 GiB Allreduce! with a custom Op" begin
             n = BIG + 1

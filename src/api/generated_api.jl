@@ -1,4 +1,4 @@
-# WARNING: this signature file for MPICH_jll has been auto-generated, please edit MPI.jl/.claude/worktrees/mpi-wrappers-autogen-d64d7b/gen/src/MPIgenerator.jl instead !
+# WARNING: this signature file for MPICH_jll has been auto-generated, please edit MPI.jl/gen/src/MPIgenerator.jl instead!
 
 """
     MPI_Abi_get_fortran_booleans(logical_size, logical_true, logical_false, is_set)

@@ -10,10 +10,10 @@ nprocs = MPI.Comm_size(comm)
 has_symbol(fname) =
     !isnothing(Libdl.dlsym(MPI.API.libmpi_handle, fname; throw_error=false))
 
-# A procedure the MPI library does not provide must raise `FeatureLevelError` from
+# A procedure which the MPI library does not provide must raise `FeatureLevelError` from
 # `@mpichk`, rather than failing to resolve a symbol at run time. Each entry is a thunk
-# that calls the procedure with arguments valid enough to reach the `ccall`; whether the
-# call itself would succeed is not what is under test.
+# that calls the procedure with arguments valid enough to reach the `ccall`. Whether the
+# call itself would succeed is not what is tested.
 absent_must_throw = [
     (:MPI_Isendrecv, () -> begin
          send = [rank]
@@ -91,8 +91,9 @@ end
 MPI.Barrier(comm)
 
 # `MPI_Op_create_c` deliberately gets no fallback: its callback takes `MPI_Count *len`
-# where `MPI_Op_create`'s takes `int *len`, so silently swapping the creators would make
-# the callback read the wrong width. On a library without it, it must raise instead.
+# while `MPI_Op_create`'s takes `int *len`, so swapping the creators would make
+# the callback read the wrong width. On a library without `MPI_Op_create_c`,
+# it must throw an exception.
 if isdefined(MPI.API, :MPI_Op_create_c) && !has_symbol(:MPI_Op_create_c)
     @test_throws MPI.FeatureLevelError MPI.API.MPI_Op_create_c(
         C_NULL, Cint(1), Ref(MPI.OP_NULL.val))

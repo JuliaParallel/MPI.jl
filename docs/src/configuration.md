@@ -177,7 +177,7 @@ that does not rely on MPItrampoline.
 ### Requirements
 
 MPI.jl requires a shared library installation of a C MPI library, supporting the MPI 3.0
-standard or later. An implementation of MPI 4.0 or later additionally gives messages of
+standard or later. An implementation of MPI 4.0 or later can additionally handle messages of
 more than `typemax(Cint)` elements, via the large-count entry points; see
 [`MPI.API.HAS_LARGE_COUNT`](@ref). The following MPI implementations should work
 out-of-the-box with MPI.jl:
@@ -191,6 +191,8 @@ out-of-the-box with MPI.jl:
 - [Cray MPICH](https://docs.nersc.gov/development/compilers/wrappers/)
 - [Fujitsu MPI](https://www.fujitsu.com/global/about/resources/publications/technicalreview/2020-03/article07.html#cap-03)
 - [HPE MPT/HMPT](https://support.hpe.com/hpesc/public/docDisplay?docLocale=en_US&docId=a00105727en_us)
+
+Additionally, any MPI library implementing the MPI 5.0 **MPI ABI** is supported.
 
 ### [Configuration](@id configure_system_binary)
 

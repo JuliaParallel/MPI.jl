@@ -14,8 +14,7 @@ MPICH_jll = "5"
 OpenMPI_jll = "5"
 MPIPreferences = "0.1.8"
 # Clang 0.17 needs Clang_jll <= 15, hence an LLVM 15 Julia, hence Julia 1.10.
-# Pinned to one minor version because Clang.jl drives the formatting of the whole
-# generated file: bump it deliberately, in its own commit, so that any reformatting
-# is reviewable separately from a change of MPI version.
+# Pinned to its minor version because Clang.jl formats the whole generated file:
+# be careful with version bumps, don't mix them with changes of the MPI version.
 Clang = "~0.17"
 julia = "~1.10"
