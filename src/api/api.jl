@@ -174,11 +174,17 @@ macro mpichk(expr, args...)
 
     if expr.args[2].head == :tuple
         fn = expr.args[2].args[1].value
-        if isnothing(dlsym(libmpi_handle, fn; throw_error=false))
-            if !isnothing(fallback)
+        if !isnothing(fallback)
+            # All the large-count entry points fall back together, rather than each one
+            # on its own availability: `Count` and its companions are a single choice for
+            # the whole package, so a per-function decision would let a `Ref{MPI_Count}`
+            # reach an entry point wanting a `Ptr{Cint}`. `HAS_LARGE_COUNT` is true only
+            # when the library provides every one of them.
+            if !HAS_LARGE_COUNT
                 # ccall(target, returntype, argtypes, args...)
                 return esc(Expr(:call, fallback, expr.args[5:end]...))
             end
+        elseif isnothing(dlsym(libmpi_handle, fn; throw_error=false))
             return quote
                 throw(FeatureLevelError($(QuoteNode(fn)), $min_version))
             end
@@ -193,17 +199,22 @@ end
 
 include("generated_api.jl")
 
-"""
+@doc """
     MPI.API.HAS_LARGE_COUNT
 
 Whether the MPI library provides the MPI 4.0 large-count (`MPI_*_c`) entry points, as
 determined when MPI.jl is precompiled.
 
+It is true only if the library provides *every* one of them, listed in
+`MPI.API.LARGE_COUNT_SYMBOLS`. An implementation may ship only some -- Intel MPI 2021.11
+has `MPI_Send_c` but not `MPI_Type_size_c` -- and since [`MPI.API.Count`](@ref) and its
+companions are a single choice for the whole package, the entry points have to be used
+all together or not at all.
+
 The `MPI_*_c` wrappers can be called either way: where this is `false` they fall back to
 the corresponding narrow entry point, and a count that does not fit in a `Cint` then
 raises an `InexactError`.
-"""
-const HAS_LARGE_COUNT = !isnothing(dlsym(libmpi_handle, :MPI_Send_c; throw_error=false))
+""" HAS_LARGE_COUNT
 
 """
     MPI.API.Count

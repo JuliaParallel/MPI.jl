@@ -87,6 +87,12 @@ module MPIgenerator
         src = joinpath(out, "api.jl")
         fn = "MPI.jl/" * replace(relpath(@__FILE__, normpath(@__DIR__, "..", "..")), '\\' => '/')
         lines = String["# WARNING: this signature file for $(MPIPreferences.binary) has been auto-generated, please edit $fn instead!\n"]
+
+        # Collected below, then spliced in at the top: `@mpichk` reads HAS_LARGE_COUNT
+        # while expanding the wrappers in this file, so it has to be defined before them.
+        largecount = Symbol[]
+        body = String[]
+
         for line in readlines(src)
             if (m = match(r"^ccall\(\(:([\w_]+), libmpi\), ([^,]+),", lstrip(line))) ≢ nothing
                 sym, returntype = Symbol(m.captures[1]), strip(m.captures[2])
@@ -99,11 +105,29 @@ module MPIgenerator
                     end
                     if (base = embiggened_base(sym, line)) ≢ nothing
                         line *= " fallback=$base"
+                        push!(largecount, sym)
                     end
                 end
             end
-            push!(lines, replace(line, raw"\$" => '$'))
+            push!(body, replace(line, raw"\$" => '$'))
         end
+
+        # An implementation may provide only some of the large-count entry points: Intel
+        # MPI 2021.11 has `MPI_Send_c` but not `MPI_Type_size_c`. Since `API.Count` and
+        # its companions are one choice for the whole package, falling back per function
+        # would let a `Ref{MPI_Count}` reach an entry point wanting a `Ptr{Cint}`. So the
+        # fallback is all-or-nothing, decided here over every one of them.
+        append!(lines, [
+            "",
+            "const LARGE_COUNT_SYMBOLS = (",
+            join(("    :$sym," for sym in largecount), "\n"),
+            ")",
+            "",
+            "const HAS_LARGE_COUNT =",
+            "    all(sym -> !isnothing(dlsym(libmpi_handle, sym; throw_error=false)), LARGE_COUNT_SYMBOLS)",
+            "",
+        ])
+        append!(lines, body)
         write(src, join(lines, "\n"))
 
         dst = normpath(@__DIR__, "..", "..", "src", "api", "generated_api.jl")

@@ -10,9 +10,12 @@ The methods suffixed with `_c` are the MPI 4.0 large-count entry points: they ta
 on the implementation, but usually allows 64-bit integer counts, so these are the methods
 to use for messages of more than `typemax(Cint)` elements.
 
-They can be called against any supported MPI library. Where the library predates MPI 4.0
-and does not provide them, each `MPI_Foo_c` falls back to the narrow `MPI_Foo` at
-precompilation time. A count that does not fit in an `int` then raises an `InexactError`
+They can be called against any supported MPI library. Where the library does not provide
+them, each `MPI_Foo_c` falls back to the narrow `MPI_Foo` at precompilation time. That is
+all-or-nothing: an implementation may ship only part of the set -- Intel MPI 2021.11 has
+`MPI_Send_c` but not `MPI_Type_size_c` -- and because the count types below are one choice
+for the whole package, using the large-count entry points that happen to be present would
+leave a `Ref{MPI_Count}` reaching an entry point that wants a `Ptr{Cint}`. A count that does not fit in an `int` then raises an `InexactError`
 instead of being silently truncated. [`MPI.API.HAS_LARGE_COUNT`](@ref) says which of the
 two is in use.
 

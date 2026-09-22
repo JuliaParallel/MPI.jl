@@ -1,4 +1,5 @@
 include("common.jl")
+using Libdl
 
 MPI.Init()
 
@@ -12,6 +13,16 @@ const BIG = Int64(typemax(Cint)) + 1    # one past what the narrow interface can
 # This allows us to test whether our auto-detection is working.
 if haskey(ENV, "JULIA_MPI_TEST_LARGE_COUNT")
     @test MPI.API.HAS_LARGE_COUNT == (ENV["JULIA_MPI_TEST_LARGE_COUNT"] == "true")
+end
+
+# Large-count support has to be all-or-nothing. Intel MPI 2021.11 provides `MPI_Send_c`
+# but not `MPI_Type_size_c`, and since the count types are one choice for the whole
+# package, deciding per function let a `Ref{MPI_Count}` reach a `Ptr{Cint}`.
+@testset "large-count support is all-or-nothing" begin
+    absent = filter(collect(MPI.API.LARGE_COUNT_SYMBOLS)) do sym
+        isnothing(Libdl.dlsym(MPI.API.libmpi_handle, sym; throw_error=false))
+    end
+    @test MPI.API.HAS_LARGE_COUNT == isempty(absent)
 end
 
 @testset "count types" begin
