@@ -165,7 +165,7 @@ const HAS_LARGE_COUNT =
 """
     MPI_Abi_get_fortran_booleans(logical_size, logical_true, logical_false, is_set)
 
-$(_doc_external(:MPI_Abi_get_fortran_booleans))
+$(_doc_external(:MPI_Abi_get_fortran_booleans, v"5.0.0"))
 """
 function MPI_Abi_get_fortran_booleans(logical_size, logical_true, logical_false, is_set)
     @mpichk ccall((:MPI_Abi_get_fortran_booleans, libmpi), Cint, (Cint, MPIPtr, MPIPtr, Ptr{Cint}), logical_size, logical_true, logical_false, is_set) v"5.0.0"
@@ -174,7 +174,7 @@ end
 """
     MPI_Abi_get_fortran_info(info)
 
-$(_doc_external(:MPI_Abi_get_fortran_info))
+$(_doc_external(:MPI_Abi_get_fortran_info, v"5.0.0"))
 """
 function MPI_Abi_get_fortran_info(info)
     @mpichk ccall((:MPI_Abi_get_fortran_info, libmpi), Cint, (Ptr{MPI_Info},), info) v"5.0.0"
@@ -183,7 +183,7 @@ end
 """
     MPI_Abi_get_info(info)
 
-$(_doc_external(:MPI_Abi_get_info))
+$(_doc_external(:MPI_Abi_get_info, v"5.0.0"))
 """
 function MPI_Abi_get_info(info)
     @mpichk ccall((:MPI_Abi_get_info, libmpi), Cint, (Ptr{MPI_Info},), info) v"5.0.0"
@@ -192,7 +192,7 @@ end
 """
     MPI_Abi_get_version(abi_major, abi_minor)
 
-$(_doc_external(:MPI_Abi_get_version))
+$(_doc_external(:MPI_Abi_get_version, v"5.0.0"))
 """
 function MPI_Abi_get_version(abi_major, abi_minor)
     @mpichk ccall((:MPI_Abi_get_version, libmpi), Cint, (Ptr{Cint}, Ptr{Cint}), abi_major, abi_minor) v"5.0.0"
@@ -201,7 +201,7 @@ end
 """
     MPI_Abi_set_fortran_booleans(logical_size, logical_true, logical_false)
 
-$(_doc_external(:MPI_Abi_set_fortran_booleans))
+$(_doc_external(:MPI_Abi_set_fortran_booleans, v"5.0.0"))
 """
 function MPI_Abi_set_fortran_booleans(logical_size, logical_true, logical_false)
     @mpichk ccall((:MPI_Abi_set_fortran_booleans, libmpi), Cint, (Cint, MPIPtr, MPIPtr), logical_size, logical_true, logical_false) v"5.0.0"
@@ -210,7 +210,7 @@ end
 """
     MPI_Abi_set_fortran_info(info)
 
-$(_doc_external(:MPI_Abi_set_fortran_info))
+$(_doc_external(:MPI_Abi_set_fortran_info, v"5.0.0"))
 """
 function MPI_Abi_set_fortran_info(info)
     @mpichk ccall((:MPI_Abi_set_fortran_info, libmpi), Cint, (MPI_Info,), info) v"5.0.0"
@@ -408,7 +408,7 @@ end
 """
     MPI_Allgather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Allgather_init))
+$(_doc_external(:MPI_Allgather_init, v"4.0.0"))
 """
 function MPI_Allgather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Allgather_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request) v"4.0.0"
@@ -426,7 +426,7 @@ end
 """
     MPI_Allgatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Allgatherv_init))
+$(_doc_external(:MPI_Allgatherv_init, v"4.0.0"))
 """
 function MPI_Allgatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Allgatherv_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request) v"4.0.0"
@@ -444,7 +444,7 @@ end
 """
     MPI_Allreduce_init(sendbuf, recvbuf, count, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Allreduce_init))
+$(_doc_external(:MPI_Allreduce_init, v"4.0.0"))
 """
 function MPI_Allreduce_init(sendbuf, recvbuf, count, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Allreduce_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request) v"4.0.0"
@@ -462,7 +462,7 @@ end
 """
     MPI_Alltoall_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Alltoall_init))
+$(_doc_external(:MPI_Alltoall_init, v"4.0.0"))
 """
 function MPI_Alltoall_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Alltoall_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request) v"4.0.0"
@@ -480,7 +480,7 @@ end
 """
     MPI_Alltoallv_init(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Alltoallv_init))
+$(_doc_external(:MPI_Alltoallv_init, v"4.0.0"))
 """
 function MPI_Alltoallv_init(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Alltoallv_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request) v"4.0.0"
@@ -498,7 +498,7 @@ end
 """
     MPI_Alltoallw_init(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
 
-$(_doc_external(:MPI_Alltoallw_init))
+$(_doc_external(:MPI_Alltoallw_init, v"4.0.0"))
 """
 function MPI_Alltoallw_init(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
     @mpichk ccall((:MPI_Alltoallw_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request) v"4.0.0"
@@ -516,7 +516,7 @@ end
 """
     MPI_Barrier_init(comm, info, request)
 
-$(_doc_external(:MPI_Barrier_init))
+$(_doc_external(:MPI_Barrier_init, v"4.0.0"))
 """
 function MPI_Barrier_init(comm, info, request)
     @mpichk ccall((:MPI_Barrier_init, libmpi), Cint, (MPI_Comm, MPI_Info, Ptr{MPI_Request}), comm, info, request) v"4.0.0"
@@ -534,7 +534,7 @@ end
 """
     MPI_Bcast_init(buffer, count, datatype, root, comm, info, request)
 
-$(_doc_external(:MPI_Bcast_init))
+$(_doc_external(:MPI_Bcast_init, v"4.0.0"))
 """
 function MPI_Bcast_init(buffer, count, datatype, root, comm, info, request)
     @mpichk ccall((:MPI_Bcast_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buffer, count, datatype, root, comm, info, request) v"4.0.0"
@@ -552,7 +552,7 @@ end
 """
     MPI_Exscan_init(sendbuf, recvbuf, count, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Exscan_init))
+$(_doc_external(:MPI_Exscan_init, v"4.0.0"))
 """
 function MPI_Exscan_init(sendbuf, recvbuf, count, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Exscan_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request) v"4.0.0"
@@ -570,7 +570,7 @@ end
 """
     MPI_Gather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 
-$(_doc_external(:MPI_Gather_init))
+$(_doc_external(:MPI_Gather_init, v"4.0.0"))
 """
 function MPI_Gather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
     @mpichk ccall((:MPI_Gather_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request) v"4.0.0"
@@ -588,7 +588,7 @@ end
 """
     MPI_Gatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
 
-$(_doc_external(:MPI_Gatherv_init))
+$(_doc_external(:MPI_Gatherv_init, v"4.0.0"))
 """
 function MPI_Gatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
     @mpichk ccall((:MPI_Gatherv_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request) v"4.0.0"
@@ -795,7 +795,7 @@ end
 """
     MPI_Neighbor_allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 
-$(_doc_external(:MPI_Neighbor_allgather))
+$(_doc_external(:MPI_Neighbor_allgather, v"3.0.0"))
 """
 function MPI_Neighbor_allgather(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
     @mpichk ccall((:MPI_Neighbor_allgather, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm) v"3.0.0"
@@ -804,7 +804,7 @@ end
 """
     MPI_Neighbor_allgather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_allgather_init))
+$(_doc_external(:MPI_Neighbor_allgather_init, v"4.0.0"))
 """
 function MPI_Neighbor_allgather_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_allgather_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request) v"4.0.0"
@@ -813,7 +813,7 @@ end
 """
     MPI_Neighbor_allgatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
 
-$(_doc_external(:MPI_Neighbor_allgatherv))
+$(_doc_external(:MPI_Neighbor_allgatherv, v"3.0.0"))
 """
 function MPI_Neighbor_allgatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
     @mpichk ccall((:MPI_Neighbor_allgatherv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm) v"3.0.0"
@@ -822,7 +822,7 @@ end
 """
     MPI_Neighbor_allgatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_allgatherv_init))
+$(_doc_external(:MPI_Neighbor_allgatherv_init, v"4.0.0"))
 """
 function MPI_Neighbor_allgatherv_init(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_allgatherv_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request) v"4.0.0"
@@ -831,7 +831,7 @@ end
 """
     MPI_Neighbor_alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 
-$(_doc_external(:MPI_Neighbor_alltoall))
+$(_doc_external(:MPI_Neighbor_alltoall, v"3.0.0"))
 """
 function MPI_Neighbor_alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
     @mpichk ccall((:MPI_Neighbor_alltoall, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm) v"3.0.0"
@@ -840,7 +840,7 @@ end
 """
     MPI_Neighbor_alltoall_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_alltoall_init))
+$(_doc_external(:MPI_Neighbor_alltoall_init, v"4.0.0"))
 """
 function MPI_Neighbor_alltoall_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_alltoall_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request) v"4.0.0"
@@ -849,7 +849,7 @@ end
 """
     MPI_Neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
 
-$(_doc_external(:MPI_Neighbor_alltoallv))
+$(_doc_external(:MPI_Neighbor_alltoallv, v"3.0.0"))
 """
 function MPI_Neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
     @mpichk ccall((:MPI_Neighbor_alltoallv, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm) v"3.0.0"
@@ -858,7 +858,7 @@ end
 """
     MPI_Neighbor_alltoallv_init(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_alltoallv_init))
+$(_doc_external(:MPI_Neighbor_alltoallv_init, v"4.0.0"))
 """
 function MPI_Neighbor_alltoallv_init(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_alltoallv_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request) v"4.0.0"
@@ -876,7 +876,7 @@ end
 """
     MPI_Neighbor_alltoallw_init(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_alltoallw_init))
+$(_doc_external(:MPI_Neighbor_alltoallw_init, v"4.0.0"))
 """
 function MPI_Neighbor_alltoallw_init(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_alltoallw_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request) v"4.0.0"
@@ -894,7 +894,7 @@ end
 """
     MPI_Reduce_init(sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
 
-$(_doc_external(:MPI_Reduce_init))
+$(_doc_external(:MPI_Reduce_init, v"4.0.0"))
 """
 function MPI_Reduce_init(sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
     @mpichk ccall((:MPI_Reduce_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, info, request) v"4.0.0"
@@ -930,7 +930,7 @@ end
 """
     MPI_Reduce_scatter_block_init(sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Reduce_scatter_block_init))
+$(_doc_external(:MPI_Reduce_scatter_block_init, v"4.0.0"))
 """
 function MPI_Reduce_scatter_block_init(sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Reduce_scatter_block_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, info, request) v"4.0.0"
@@ -939,7 +939,7 @@ end
 """
     MPI_Reduce_scatter_init(sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Reduce_scatter_init))
+$(_doc_external(:MPI_Reduce_scatter_init, v"4.0.0"))
 """
 function MPI_Reduce_scatter_init(sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Reduce_scatter_init, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{Cint}, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request) v"4.0.0"
@@ -957,7 +957,7 @@ end
 """
     MPI_Scan_init(sendbuf, recvbuf, count, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Scan_init))
+$(_doc_external(:MPI_Scan_init, v"4.0.0"))
 """
 function MPI_Scan_init(sendbuf, recvbuf, count, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Scan_init, libmpi), Cint, (MPIPtr, MPIPtr, Cint, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request) v"4.0.0"
@@ -975,7 +975,7 @@ end
 """
     MPI_Scatter_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 
-$(_doc_external(:MPI_Scatter_init))
+$(_doc_external(:MPI_Scatter_init, v"4.0.0"))
 """
 function MPI_Scatter_init(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
     @mpichk ccall((:MPI_Scatter_init, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request) v"4.0.0"
@@ -993,7 +993,7 @@ end
 """
     MPI_Scatterv_init(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 
-$(_doc_external(:MPI_Scatterv_init))
+$(_doc_external(:MPI_Scatterv_init, v"4.0.0"))
 """
 function MPI_Scatterv_init(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
     @mpichk ccall((:MPI_Scatterv_init, libmpi), Cint, (MPIPtr, Ptr{Cint}, Ptr{Cint}, MPI_Datatype, MPIPtr, Cint, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request) v"4.0.0"
@@ -1092,7 +1092,7 @@ end
 """
     MPI_Comm_idup_with_info(comm, info, newcomm, request)
 
-$(_doc_external(:MPI_Comm_idup_with_info))
+$(_doc_external(:MPI_Comm_idup_with_info, v"4.0.0"))
 """
 function MPI_Comm_idup_with_info(comm, info, newcomm, request)
     @mpichk ccall((:MPI_Comm_idup_with_info, libmpi), Cint, (MPI_Comm, MPI_Info, Ptr{MPI_Comm}, Ptr{MPI_Request}), comm, info, newcomm, request) v"4.0.0"
@@ -1191,7 +1191,7 @@ end
 """
     MPI_Intercomm_create_from_groups(local_group, local_leader, remote_group, remote_leader, stringtag, info, errhandler, newintercomm)
 
-$(_doc_external(:MPI_Intercomm_create_from_groups))
+$(_doc_external(:MPI_Intercomm_create_from_groups, v"4.0.0"))
 """
 function MPI_Intercomm_create_from_groups(local_group, local_leader, remote_group, remote_leader, stringtag, info, errhandler, newintercomm)
     @mpichk ccall((:MPI_Intercomm_create_from_groups, libmpi), Cint, (MPI_Group, Cint, MPI_Group, Cint, Ptr{Cchar}, MPI_Info, MPI_Errhandler, Ptr{MPI_Comm}), local_group, local_leader, remote_group, remote_leader, stringtag, info, errhandler, newintercomm) v"4.0.0"
@@ -1533,7 +1533,7 @@ end
 """
     MPI_Type_get_value_index(value_type, index_type, pair_type)
 
-$(_doc_external(:MPI_Type_get_value_index))
+$(_doc_external(:MPI_Type_get_value_index, v"4.1.0"))
 """
 function MPI_Type_get_value_index(value_type, index_type, pair_type)
     @mpichk ccall((:MPI_Type_get_value_index, libmpi), Cint, (MPI_Datatype, MPI_Datatype, Ptr{MPI_Datatype}), value_type, index_type, pair_type) v"4.1.0"
@@ -1794,7 +1794,7 @@ end
 """
     MPI_Remove_error_class(errorclass)
 
-$(_doc_external(:MPI_Remove_error_class))
+$(_doc_external(:MPI_Remove_error_class, v"4.1.0"))
 """
 function MPI_Remove_error_class(errorclass)
     @mpichk ccall((:MPI_Remove_error_class, libmpi), Cint, (Cint,), errorclass) v"4.1.0"
@@ -1803,7 +1803,7 @@ end
 """
     MPI_Remove_error_code(errorcode)
 
-$(_doc_external(:MPI_Remove_error_code))
+$(_doc_external(:MPI_Remove_error_code, v"4.1.0"))
 """
 function MPI_Remove_error_code(errorcode)
     @mpichk ccall((:MPI_Remove_error_code, libmpi), Cint, (Cint,), errorcode) v"4.1.0"
@@ -1812,7 +1812,7 @@ end
 """
     MPI_Remove_error_string(errorcode)
 
-$(_doc_external(:MPI_Remove_error_string))
+$(_doc_external(:MPI_Remove_error_string, v"4.1.0"))
 """
 function MPI_Remove_error_string(errorcode)
     @mpichk ccall((:MPI_Remove_error_string, libmpi), Cint, (Cint,), errorcode) v"4.1.0"
@@ -1992,7 +1992,7 @@ end
 """
     MPI_Info_create_env(argc, argv, info)
 
-$(_doc_external(:MPI_Info_create_env))
+$(_doc_external(:MPI_Info_create_env, v"4.0.0"))
 """
 function MPI_Info_create_env(argc, argv, info)
     @mpichk ccall((:MPI_Info_create_env, libmpi), Cint, (Cint, Ptr{Ptr{Cchar}}, Ptr{MPI_Info}), argc, argv, info) v"4.0.0"
@@ -2055,7 +2055,7 @@ end
 """
     MPI_Info_get_string(info, key, buflen, value, flag)
 
-$(_doc_external(:MPI_Info_get_string))
+$(_doc_external(:MPI_Info_get_string, v"4.0.0"))
 """
 function MPI_Info_get_string(info, key, buflen, value, flag)
     @mpichk ccall((:MPI_Info_get_string, libmpi), Cint, (MPI_Info, Ptr{Cchar}, Ptr{Cint}, Ptr{Cchar}, Ptr{Cint}), info, key, buflen, value, flag) v"4.0.0"
@@ -2091,7 +2091,7 @@ end
 """
     MPI_Comm_create_from_group(group, stringtag, info, errhandler, newcomm)
 
-$(_doc_external(:MPI_Comm_create_from_group))
+$(_doc_external(:MPI_Comm_create_from_group, v"4.0.0"))
 """
 function MPI_Comm_create_from_group(group, stringtag, info, errhandler, newcomm)
     @mpichk ccall((:MPI_Comm_create_from_group, libmpi), Cint, (MPI_Group, Ptr{Cchar}, MPI_Info, MPI_Errhandler, Ptr{MPI_Comm}), group, stringtag, info, errhandler, newcomm) v"4.0.0"
@@ -2235,7 +2235,7 @@ end
 """
     MPI_Parrived(request, partition, flag)
 
-$(_doc_external(:MPI_Parrived))
+$(_doc_external(:MPI_Parrived, v"4.0.0"))
 """
 function MPI_Parrived(request, partition, flag)
     @mpichk ccall((:MPI_Parrived, libmpi), Cint, (MPI_Request, Cint, Ptr{Cint}), request, partition, flag) v"4.0.0"
@@ -2244,7 +2244,7 @@ end
 """
     MPI_Pready(partition, request)
 
-$(_doc_external(:MPI_Pready))
+$(_doc_external(:MPI_Pready, v"4.0.0"))
 """
 function MPI_Pready(partition, request)
     @mpichk ccall((:MPI_Pready, libmpi), Cint, (Cint, MPI_Request), partition, request) v"4.0.0"
@@ -2253,7 +2253,7 @@ end
 """
     MPI_Pready_list(length, array_of_partitions, request)
 
-$(_doc_external(:MPI_Pready_list))
+$(_doc_external(:MPI_Pready_list, v"4.0.0"))
 """
 function MPI_Pready_list(length, array_of_partitions, request)
     @mpichk ccall((:MPI_Pready_list, libmpi), Cint, (Cint, Ptr{Cint}, MPI_Request), length, array_of_partitions, request) v"4.0.0"
@@ -2262,7 +2262,7 @@ end
 """
     MPI_Pready_range(partition_low, partition_high, request)
 
-$(_doc_external(:MPI_Pready_range))
+$(_doc_external(:MPI_Pready_range, v"4.0.0"))
 """
 function MPI_Pready_range(partition_low, partition_high, request)
     @mpichk ccall((:MPI_Pready_range, libmpi), Cint, (Cint, Cint, MPI_Request), partition_low, partition_high, request) v"4.0.0"
@@ -2271,7 +2271,7 @@ end
 """
     MPI_Precv_init(buf, partitions, count, datatype, dest, tag, comm, info, request)
 
-$(_doc_external(:MPI_Precv_init))
+$(_doc_external(:MPI_Precv_init, v"4.0.0"))
 """
 function MPI_Precv_init(buf, partitions, count, datatype, dest, tag, comm, info, request)
     @mpichk ccall((:MPI_Precv_init, libmpi), Cint, (MPIPtr, Cint, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buf, partitions, count, datatype, dest, tag, comm, info, request) v"4.0.0"
@@ -2280,7 +2280,7 @@ end
 """
     MPI_Psend_init(buf, partitions, count, datatype, dest, tag, comm, info, request)
 
-$(_doc_external(:MPI_Psend_init))
+$(_doc_external(:MPI_Psend_init, v"4.0.0"))
 """
 function MPI_Psend_init(buf, partitions, count, datatype, dest, tag, comm, info, request)
     @mpichk ccall((:MPI_Psend_init, libmpi), Cint, (MPIPtr, Cint, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buf, partitions, count, datatype, dest, tag, comm, info, request) v"4.0.0"
@@ -2325,7 +2325,7 @@ end
 """
     MPI_Buffer_flush()
 
-$(_doc_external(:MPI_Buffer_flush))
+$(_doc_external(:MPI_Buffer_flush, v"4.1.0"))
 """
 function MPI_Buffer_flush()
     @mpichk ccall((:MPI_Buffer_flush, libmpi), Cint, ()) v"4.1.0"
@@ -2334,7 +2334,7 @@ end
 """
     MPI_Buffer_iflush(request)
 
-$(_doc_external(:MPI_Buffer_iflush))
+$(_doc_external(:MPI_Buffer_iflush, v"4.1.0"))
 """
 function MPI_Buffer_iflush(request)
     @mpichk ccall((:MPI_Buffer_iflush, libmpi), Cint, (Ptr{MPI_Request},), request) v"4.1.0"
@@ -2343,7 +2343,7 @@ end
 """
     MPI_Comm_attach_buffer(comm, buffer, size)
 
-$(_doc_external(:MPI_Comm_attach_buffer))
+$(_doc_external(:MPI_Comm_attach_buffer, v"4.1.0"))
 """
 function MPI_Comm_attach_buffer(comm, buffer, size)
     @mpichk ccall((:MPI_Comm_attach_buffer, libmpi), Cint, (MPI_Comm, MPIPtr, Cint), comm, buffer, size) v"4.1.0"
@@ -2352,7 +2352,7 @@ end
 """
     MPI_Comm_detach_buffer(comm, buffer_addr, size)
 
-$(_doc_external(:MPI_Comm_detach_buffer))
+$(_doc_external(:MPI_Comm_detach_buffer, v"4.1.0"))
 """
 function MPI_Comm_detach_buffer(comm, buffer_addr, size)
     @mpichk ccall((:MPI_Comm_detach_buffer, libmpi), Cint, (MPI_Comm, MPIPtr, Ptr{Cint}), comm, buffer_addr, size) v"4.1.0"
@@ -2361,7 +2361,7 @@ end
 """
     MPI_Comm_flush_buffer(comm)
 
-$(_doc_external(:MPI_Comm_flush_buffer))
+$(_doc_external(:MPI_Comm_flush_buffer, v"4.1.0"))
 """
 function MPI_Comm_flush_buffer(comm)
     @mpichk ccall((:MPI_Comm_flush_buffer, libmpi), Cint, (MPI_Comm,), comm) v"4.1.0"
@@ -2370,7 +2370,7 @@ end
 """
     MPI_Comm_iflush_buffer(comm, request)
 
-$(_doc_external(:MPI_Comm_iflush_buffer))
+$(_doc_external(:MPI_Comm_iflush_buffer, v"4.1.0"))
 """
 function MPI_Comm_iflush_buffer(comm, request)
     @mpichk ccall((:MPI_Comm_iflush_buffer, libmpi), Cint, (MPI_Comm, Ptr{MPI_Request}), comm, request) v"4.1.0"
@@ -2442,7 +2442,7 @@ end
 """
     MPI_Isendrecv(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
 
-$(_doc_external(:MPI_Isendrecv))
+$(_doc_external(:MPI_Isendrecv, v"4.0.0"))
 """
 function MPI_Isendrecv(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
     @mpichk ccall((:MPI_Isendrecv, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPIPtr, Cint, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request) v"4.0.0"
@@ -2451,7 +2451,7 @@ end
 """
     MPI_Isendrecv_replace(buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
 
-$(_doc_external(:MPI_Isendrecv_replace))
+$(_doc_external(:MPI_Isendrecv_replace, v"4.0.0"))
 """
 function MPI_Isendrecv_replace(buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
     @mpichk ccall((:MPI_Isendrecv_replace, libmpi), Cint, (MPIPtr, Cint, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, sendtag, source, recvtag, comm, request) v"4.0.0"
@@ -2631,7 +2631,7 @@ end
 """
     MPI_Request_get_status_all(count, array_of_requests, flag, array_of_statuses)
 
-$(_doc_external(:MPI_Request_get_status_all))
+$(_doc_external(:MPI_Request_get_status_all, v"4.1.0"))
 """
 function MPI_Request_get_status_all(count, array_of_requests, flag, array_of_statuses)
     @mpichk ccall((:MPI_Request_get_status_all, libmpi), Cint, (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{MPI_Status}), count, array_of_requests, flag, array_of_statuses) v"4.1.0"
@@ -2640,7 +2640,7 @@ end
 """
     MPI_Request_get_status_any(count, array_of_requests, indx, flag, status)
 
-$(_doc_external(:MPI_Request_get_status_any))
+$(_doc_external(:MPI_Request_get_status_any, v"4.1.0"))
 """
 function MPI_Request_get_status_any(count, array_of_requests, indx, flag, status)
     @mpichk ccall((:MPI_Request_get_status_any, libmpi), Cint, (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Status}), count, array_of_requests, indx, flag, status) v"4.1.0"
@@ -2649,7 +2649,7 @@ end
 """
     MPI_Request_get_status_some(incount, array_of_requests, outcount, array_of_indices, array_of_statuses)
 
-$(_doc_external(:MPI_Request_get_status_some))
+$(_doc_external(:MPI_Request_get_status_some, v"4.1.0"))
 """
 function MPI_Request_get_status_some(incount, array_of_requests, outcount, array_of_indices, array_of_statuses)
     @mpichk ccall((:MPI_Request_get_status_some, libmpi), Cint, (Cint, Ptr{MPI_Request}, Ptr{Cint}, Ptr{Cint}, Ptr{MPI_Status}), incount, array_of_requests, outcount, array_of_indices, array_of_statuses) v"4.1.0"
@@ -2676,7 +2676,7 @@ end
 """
     MPI_Status_get_error(status, error)
 
-$(_doc_external(:MPI_Status_get_error))
+$(_doc_external(:MPI_Status_get_error, v"4.1.0"))
 """
 function MPI_Status_get_error(status, error)
     @mpichk ccall((:MPI_Status_get_error, libmpi), Cint, (Ptr{MPI_Status}, Ptr{Cint}), status, error) v"4.1.0"
@@ -2685,7 +2685,7 @@ end
 """
     MPI_Status_get_source(status, source)
 
-$(_doc_external(:MPI_Status_get_source))
+$(_doc_external(:MPI_Status_get_source, v"4.1.0"))
 """
 function MPI_Status_get_source(status, source)
     @mpichk ccall((:MPI_Status_get_source, libmpi), Cint, (Ptr{MPI_Status}, Ptr{Cint}), status, source) v"4.1.0"
@@ -2694,7 +2694,7 @@ end
 """
     MPI_Status_get_tag(status, tag)
 
-$(_doc_external(:MPI_Status_get_tag))
+$(_doc_external(:MPI_Status_get_tag, v"4.1.0"))
 """
 function MPI_Status_get_tag(status, tag)
     @mpichk ccall((:MPI_Status_get_tag, libmpi), Cint, (Ptr{MPI_Status}, Ptr{Cint}), status, tag) v"4.1.0"
@@ -2703,7 +2703,7 @@ end
 """
     MPI_Status_set_error(status, error)
 
-$(_doc_external(:MPI_Status_set_error))
+$(_doc_external(:MPI_Status_set_error, v"4.1.0"))
 """
 function MPI_Status_set_error(status, error)
     @mpichk ccall((:MPI_Status_set_error, libmpi), Cint, (Ptr{MPI_Status}, Cint), status, error) v"4.1.0"
@@ -2712,7 +2712,7 @@ end
 """
     MPI_Status_set_source(status, source)
 
-$(_doc_external(:MPI_Status_set_source))
+$(_doc_external(:MPI_Status_set_source, v"4.1.0"))
 """
 function MPI_Status_set_source(status, source)
     @mpichk ccall((:MPI_Status_set_source, libmpi), Cint, (Ptr{MPI_Status}, Cint), status, source) v"4.1.0"
@@ -2721,7 +2721,7 @@ end
 """
     MPI_Status_set_tag(status, tag)
 
-$(_doc_external(:MPI_Status_set_tag))
+$(_doc_external(:MPI_Status_set_tag, v"4.1.0"))
 """
 function MPI_Status_set_tag(status, tag)
     @mpichk ccall((:MPI_Status_set_tag, libmpi), Cint, (Ptr{MPI_Status}, Cint), status, tag) v"4.1.0"
@@ -3387,7 +3387,7 @@ end
 """
     MPI_Dist_graph_create(comm_old, n, sources, degrees, destinations, weights, info, reorder, comm_dist_graph)
 
-$(_doc_external(:MPI_Dist_graph_create))
+$(_doc_external(:MPI_Dist_graph_create, v"2.2.0"))
 """
 function MPI_Dist_graph_create(comm_old, n, sources, degrees, destinations, weights, info, reorder, comm_dist_graph)
     @mpichk ccall((:MPI_Dist_graph_create, libmpi), Cint, (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}), comm_old, n, sources, degrees, destinations, weights, info, reorder, comm_dist_graph) v"2.2.0"
@@ -3396,7 +3396,7 @@ end
 """
     MPI_Dist_graph_create_adjacent(comm_old, indegree, sources, sourceweights, outdegree, destinations, destweights, info, reorder, comm_dist_graph)
 
-$(_doc_external(:MPI_Dist_graph_create_adjacent))
+$(_doc_external(:MPI_Dist_graph_create_adjacent, v"2.2.0"))
 """
 function MPI_Dist_graph_create_adjacent(comm_old, indegree, sources, sourceweights, outdegree, destinations, destweights, info, reorder, comm_dist_graph)
     @mpichk ccall((:MPI_Dist_graph_create_adjacent, libmpi), Cint, (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}, MPI_Info, Cint, Ptr{MPI_Comm}), comm_old, indegree, sources, sourceweights, outdegree, destinations, destweights, info, reorder, comm_dist_graph) v"2.2.0"
@@ -3405,7 +3405,7 @@ end
 """
     MPI_Dist_graph_neighbors(comm, maxindegree, sources, sourceweights, maxoutdegree, destinations, destweights)
 
-$(_doc_external(:MPI_Dist_graph_neighbors))
+$(_doc_external(:MPI_Dist_graph_neighbors, v"2.2.0"))
 """
 function MPI_Dist_graph_neighbors(comm, maxindegree, sources, sourceweights, maxoutdegree, destinations, destweights)
     @mpichk ccall((:MPI_Dist_graph_neighbors, libmpi), Cint, (MPI_Comm, Cint, Ptr{Cint}, Ptr{Cint}, Cint, Ptr{Cint}, Ptr{Cint}), comm, maxindegree, sources, sourceweights, maxoutdegree, destinations, destweights) v"2.2.0"
@@ -3414,7 +3414,7 @@ end
 """
     MPI_Dist_graph_neighbors_count(comm, indegree, outdegree, weighted)
 
-$(_doc_external(:MPI_Dist_graph_neighbors_count))
+$(_doc_external(:MPI_Dist_graph_neighbors_count, v"2.2.0"))
 """
 function MPI_Dist_graph_neighbors_count(comm, indegree, outdegree, weighted)
     @mpichk ccall((:MPI_Dist_graph_neighbors_count, libmpi), Cint, (MPI_Comm, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), comm, indegree, outdegree, weighted) v"2.2.0"
@@ -3423,7 +3423,7 @@ end
 """
     MPI_Get_hw_resource_info(hw_info)
 
-$(_doc_external(:MPI_Get_hw_resource_info))
+$(_doc_external(:MPI_Get_hw_resource_info, v"4.1.0"))
 """
 function MPI_Get_hw_resource_info(hw_info)
     @mpichk ccall((:MPI_Get_hw_resource_info, libmpi), Cint, (Ptr{MPI_Info},), hw_info) v"4.1.0"
@@ -3999,7 +3999,7 @@ end
 """
     MPI_Allgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 
-$(_doc_external(:MPI_Allgather_c))
+$(_doc_external(:MPI_Allgather_c, v"4.0.0"))
 """
 function MPI_Allgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
     @mpichk ccall((:MPI_Allgather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm) v"4.0.0" fallback=MPI_Allgather
@@ -4008,7 +4008,7 @@ end
 """
     MPI_Allgather_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Allgather_init_c))
+$(_doc_external(:MPI_Allgather_init_c, v"4.0.0"))
 """
 function MPI_Allgather_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Allgather_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request) v"4.0.0" fallback=MPI_Allgather_init
@@ -4017,7 +4017,7 @@ end
 """
     MPI_Allgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
 
-$(_doc_external(:MPI_Allgatherv_c))
+$(_doc_external(:MPI_Allgatherv_c, v"4.0.0"))
 """
 function MPI_Allgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
     @mpichk ccall((:MPI_Allgatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm) v"4.0.0" fallback=MPI_Allgatherv
@@ -4026,7 +4026,7 @@ end
 """
     MPI_Allgatherv_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Allgatherv_init_c))
+$(_doc_external(:MPI_Allgatherv_init_c, v"4.0.0"))
 """
 function MPI_Allgatherv_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Allgatherv_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request) v"4.0.0" fallback=MPI_Allgatherv_init
@@ -4035,7 +4035,7 @@ end
 """
     MPI_Allreduce_c(sendbuf, recvbuf, count, datatype, op, comm)
 
-$(_doc_external(:MPI_Allreduce_c))
+$(_doc_external(:MPI_Allreduce_c, v"4.0.0"))
 """
 function MPI_Allreduce_c(sendbuf, recvbuf, count, datatype, op, comm)
     @mpichk ccall((:MPI_Allreduce_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm) v"4.0.0" fallback=MPI_Allreduce
@@ -4044,7 +4044,7 @@ end
 """
     MPI_Allreduce_init_c(sendbuf, recvbuf, count, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Allreduce_init_c))
+$(_doc_external(:MPI_Allreduce_init_c, v"4.0.0"))
 """
 function MPI_Allreduce_init_c(sendbuf, recvbuf, count, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Allreduce_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request) v"4.0.0" fallback=MPI_Allreduce_init
@@ -4053,7 +4053,7 @@ end
 """
     MPI_Alltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 
-$(_doc_external(:MPI_Alltoall_c))
+$(_doc_external(:MPI_Alltoall_c, v"4.0.0"))
 """
 function MPI_Alltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
     @mpichk ccall((:MPI_Alltoall_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm) v"4.0.0" fallback=MPI_Alltoall
@@ -4062,7 +4062,7 @@ end
 """
     MPI_Alltoall_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Alltoall_init_c))
+$(_doc_external(:MPI_Alltoall_init_c, v"4.0.0"))
 """
 function MPI_Alltoall_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Alltoall_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request) v"4.0.0" fallback=MPI_Alltoall_init
@@ -4071,7 +4071,7 @@ end
 """
     MPI_Alltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
 
-$(_doc_external(:MPI_Alltoallv_c))
+$(_doc_external(:MPI_Alltoallv_c, v"4.0.0"))
 """
 function MPI_Alltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
     @mpichk ccall((:MPI_Alltoallv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm) v"4.0.0" fallback=MPI_Alltoallv
@@ -4080,7 +4080,7 @@ end
 """
     MPI_Alltoallv_init_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Alltoallv_init_c))
+$(_doc_external(:MPI_Alltoallv_init_c, v"4.0.0"))
 """
 function MPI_Alltoallv_init_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Alltoallv_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request) v"4.0.0" fallback=MPI_Alltoallv_init
@@ -4089,7 +4089,7 @@ end
 """
     MPI_Alltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
 
-$(_doc_external(:MPI_Alltoallw_c))
+$(_doc_external(:MPI_Alltoallw_c, v"4.0.0"))
 """
 function MPI_Alltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
     @mpichk ccall((:MPI_Alltoallw_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm) v"4.0.0" fallback=MPI_Alltoallw
@@ -4098,7 +4098,7 @@ end
 """
     MPI_Alltoallw_init_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
 
-$(_doc_external(:MPI_Alltoallw_init_c))
+$(_doc_external(:MPI_Alltoallw_init_c, v"4.0.0"))
 """
 function MPI_Alltoallw_init_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
     @mpichk ccall((:MPI_Alltoallw_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request) v"4.0.0" fallback=MPI_Alltoallw_init
@@ -4107,7 +4107,7 @@ end
 """
     MPI_Bcast_c(buffer, count, datatype, root, comm)
 
-$(_doc_external(:MPI_Bcast_c))
+$(_doc_external(:MPI_Bcast_c, v"4.0.0"))
 """
 function MPI_Bcast_c(buffer, count, datatype, root, comm)
     @mpichk ccall((:MPI_Bcast_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm), buffer, count, datatype, root, comm) v"4.0.0" fallback=MPI_Bcast
@@ -4116,7 +4116,7 @@ end
 """
     MPI_Bcast_init_c(buffer, count, datatype, root, comm, info, request)
 
-$(_doc_external(:MPI_Bcast_init_c))
+$(_doc_external(:MPI_Bcast_init_c, v"4.0.0"))
 """
 function MPI_Bcast_init_c(buffer, count, datatype, root, comm, info, request)
     @mpichk ccall((:MPI_Bcast_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), buffer, count, datatype, root, comm, info, request) v"4.0.0" fallback=MPI_Bcast_init
@@ -4125,7 +4125,7 @@ end
 """
     MPI_Exscan_c(sendbuf, recvbuf, count, datatype, op, comm)
 
-$(_doc_external(:MPI_Exscan_c))
+$(_doc_external(:MPI_Exscan_c, v"4.0.0"))
 """
 function MPI_Exscan_c(sendbuf, recvbuf, count, datatype, op, comm)
     @mpichk ccall((:MPI_Exscan_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm) v"4.0.0" fallback=MPI_Exscan
@@ -4134,7 +4134,7 @@ end
 """
     MPI_Exscan_init_c(sendbuf, recvbuf, count, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Exscan_init_c))
+$(_doc_external(:MPI_Exscan_init_c, v"4.0.0"))
 """
 function MPI_Exscan_init_c(sendbuf, recvbuf, count, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Exscan_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request) v"4.0.0" fallback=MPI_Exscan_init
@@ -4143,7 +4143,7 @@ end
 """
     MPI_Gather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
 
-$(_doc_external(:MPI_Gather_c))
+$(_doc_external(:MPI_Gather_c, v"4.0.0"))
 """
 function MPI_Gather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
     @mpichk ccall((:MPI_Gather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm) v"4.0.0" fallback=MPI_Gather
@@ -4152,7 +4152,7 @@ end
 """
     MPI_Gather_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 
-$(_doc_external(:MPI_Gather_init_c))
+$(_doc_external(:MPI_Gather_init_c, v"4.0.0"))
 """
 function MPI_Gather_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
     @mpichk ccall((:MPI_Gather_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request) v"4.0.0" fallback=MPI_Gather_init
@@ -4161,7 +4161,7 @@ end
 """
     MPI_Gatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm)
 
-$(_doc_external(:MPI_Gatherv_c))
+$(_doc_external(:MPI_Gatherv_c, v"4.0.0"))
 """
 function MPI_Gatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm)
     @mpichk ccall((:MPI_Gatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm) v"4.0.0" fallback=MPI_Gatherv
@@ -4170,7 +4170,7 @@ end
 """
     MPI_Gatherv_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
 
-$(_doc_external(:MPI_Gatherv_init_c))
+$(_doc_external(:MPI_Gatherv_init_c, v"4.0.0"))
 """
 function MPI_Gatherv_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request)
     @mpichk ccall((:MPI_Gatherv_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, info, request) v"4.0.0" fallback=MPI_Gatherv_init
@@ -4179,7 +4179,7 @@ end
 """
     MPI_Iallgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 
-$(_doc_external(:MPI_Iallgather_c))
+$(_doc_external(:MPI_Iallgather_c, v"4.0.0"))
 """
 function MPI_Iallgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
     @mpichk ccall((:MPI_Iallgather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request) v"4.0.0" fallback=MPI_Iallgather
@@ -4188,7 +4188,7 @@ end
 """
     MPI_Iallgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
 
-$(_doc_external(:MPI_Iallgatherv_c))
+$(_doc_external(:MPI_Iallgatherv_c, v"4.0.0"))
 """
 function MPI_Iallgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
     @mpichk ccall((:MPI_Iallgatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request) v"4.0.0" fallback=MPI_Iallgatherv
@@ -4197,7 +4197,7 @@ end
 """
     MPI_Iallreduce_c(sendbuf, recvbuf, count, datatype, op, comm, request)
 
-$(_doc_external(:MPI_Iallreduce_c))
+$(_doc_external(:MPI_Iallreduce_c, v"4.0.0"))
 """
 function MPI_Iallreduce_c(sendbuf, recvbuf, count, datatype, op, comm, request)
     @mpichk ccall((:MPI_Iallreduce_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request) v"4.0.0" fallback=MPI_Iallreduce
@@ -4206,7 +4206,7 @@ end
 """
     MPI_Ialltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 
-$(_doc_external(:MPI_Ialltoall_c))
+$(_doc_external(:MPI_Ialltoall_c, v"4.0.0"))
 """
 function MPI_Ialltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
     @mpichk ccall((:MPI_Ialltoall_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request) v"4.0.0" fallback=MPI_Ialltoall
@@ -4215,7 +4215,7 @@ end
 """
     MPI_Ialltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
 
-$(_doc_external(:MPI_Ialltoallv_c))
+$(_doc_external(:MPI_Ialltoallv_c, v"4.0.0"))
 """
 function MPI_Ialltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
     @mpichk ccall((:MPI_Ialltoallv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request) v"4.0.0" fallback=MPI_Ialltoallv
@@ -4224,7 +4224,7 @@ end
 """
     MPI_Ialltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
 
-$(_doc_external(:MPI_Ialltoallw_c))
+$(_doc_external(:MPI_Ialltoallw_c, v"4.0.0"))
 """
 function MPI_Ialltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
     @mpichk ccall((:MPI_Ialltoallw_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request) v"4.0.0" fallback=MPI_Ialltoallw
@@ -4233,7 +4233,7 @@ end
 """
     MPI_Ibcast_c(buffer, count, datatype, root, comm, request)
 
-$(_doc_external(:MPI_Ibcast_c))
+$(_doc_external(:MPI_Ibcast_c, v"4.0.0"))
 """
 function MPI_Ibcast_c(buffer, count, datatype, root, comm, request)
     @mpichk ccall((:MPI_Ibcast_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), buffer, count, datatype, root, comm, request) v"4.0.0" fallback=MPI_Ibcast
@@ -4242,7 +4242,7 @@ end
 """
     MPI_Iexscan_c(sendbuf, recvbuf, count, datatype, op, comm, request)
 
-$(_doc_external(:MPI_Iexscan_c))
+$(_doc_external(:MPI_Iexscan_c, v"4.0.0"))
 """
 function MPI_Iexscan_c(sendbuf, recvbuf, count, datatype, op, comm, request)
     @mpichk ccall((:MPI_Iexscan_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request) v"4.0.0" fallback=MPI_Iexscan
@@ -4251,7 +4251,7 @@ end
 """
     MPI_Igather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
 
-$(_doc_external(:MPI_Igather_c))
+$(_doc_external(:MPI_Igather_c, v"4.0.0"))
 """
 function MPI_Igather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
     @mpichk ccall((:MPI_Igather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request) v"4.0.0" fallback=MPI_Igather
@@ -4260,7 +4260,7 @@ end
 """
     MPI_Igatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, request)
 
-$(_doc_external(:MPI_Igatherv_c))
+$(_doc_external(:MPI_Igatherv_c, v"4.0.0"))
 """
 function MPI_Igatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, request)
     @mpichk ccall((:MPI_Igatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root, comm, request) v"4.0.0" fallback=MPI_Igatherv
@@ -4269,7 +4269,7 @@ end
 """
     MPI_Ineighbor_allgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 
-$(_doc_external(:MPI_Ineighbor_allgather_c))
+$(_doc_external(:MPI_Ineighbor_allgather_c, v"4.0.0"))
 """
 function MPI_Ineighbor_allgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
     @mpichk ccall((:MPI_Ineighbor_allgather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request) v"4.0.0" fallback=MPI_Ineighbor_allgather
@@ -4278,7 +4278,7 @@ end
 """
     MPI_Ineighbor_allgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
 
-$(_doc_external(:MPI_Ineighbor_allgatherv_c))
+$(_doc_external(:MPI_Ineighbor_allgatherv_c, v"4.0.0"))
 """
 function MPI_Ineighbor_allgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request)
     @mpichk ccall((:MPI_Ineighbor_allgatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, request) v"4.0.0" fallback=MPI_Ineighbor_allgatherv
@@ -4287,7 +4287,7 @@ end
 """
     MPI_Ineighbor_alltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
 
-$(_doc_external(:MPI_Ineighbor_alltoall_c))
+$(_doc_external(:MPI_Ineighbor_alltoall_c, v"4.0.0"))
 """
 function MPI_Ineighbor_alltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request)
     @mpichk ccall((:MPI_Ineighbor_alltoall_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, request) v"4.0.0" fallback=MPI_Ineighbor_alltoall
@@ -4296,7 +4296,7 @@ end
 """
     MPI_Ineighbor_alltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
 
-$(_doc_external(:MPI_Ineighbor_alltoallv_c))
+$(_doc_external(:MPI_Ineighbor_alltoallv_c, v"4.0.0"))
 """
 function MPI_Ineighbor_alltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request)
     @mpichk ccall((:MPI_Ineighbor_alltoallv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, request) v"4.0.0" fallback=MPI_Ineighbor_alltoallv
@@ -4305,7 +4305,7 @@ end
 """
     MPI_Ineighbor_alltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
 
-$(_doc_external(:MPI_Ineighbor_alltoallw_c))
+$(_doc_external(:MPI_Ineighbor_alltoallw_c, v"4.0.0"))
 """
 function MPI_Ineighbor_alltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request)
     @mpichk ccall((:MPI_Ineighbor_alltoallw_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, request) v"4.0.0" fallback=MPI_Ineighbor_alltoallw
@@ -4314,7 +4314,7 @@ end
 """
     MPI_Ireduce_c(sendbuf, recvbuf, count, datatype, op, root, comm, request)
 
-$(_doc_external(:MPI_Ireduce_c))
+$(_doc_external(:MPI_Ireduce_c, v"4.0.0"))
 """
 function MPI_Ireduce_c(sendbuf, recvbuf, count, datatype, op, root, comm, request)
     @mpichk ccall((:MPI_Ireduce_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, request) v"4.0.0" fallback=MPI_Ireduce
@@ -4323,7 +4323,7 @@ end
 """
     MPI_Ireduce_scatter_c(sendbuf, recvbuf, recvcounts, datatype, op, comm, request)
 
-$(_doc_external(:MPI_Ireduce_scatter_c))
+$(_doc_external(:MPI_Ireduce_scatter_c, v"4.0.0"))
 """
 function MPI_Ireduce_scatter_c(sendbuf, recvbuf, recvcounts, datatype, op, comm, request)
     @mpichk ccall((:MPI_Ireduce_scatter_c, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{MPI_Count}, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, request) v"4.0.0" fallback=MPI_Ireduce_scatter
@@ -4332,7 +4332,7 @@ end
 """
     MPI_Ireduce_scatter_block_c(sendbuf, recvbuf, recvcount, datatype, op, comm, request)
 
-$(_doc_external(:MPI_Ireduce_scatter_block_c))
+$(_doc_external(:MPI_Ireduce_scatter_block_c, v"4.0.0"))
 """
 function MPI_Ireduce_scatter_block_c(sendbuf, recvbuf, recvcount, datatype, op, comm, request)
     @mpichk ccall((:MPI_Ireduce_scatter_block_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, request) v"4.0.0" fallback=MPI_Ireduce_scatter_block
@@ -4341,7 +4341,7 @@ end
 """
     MPI_Iscan_c(sendbuf, recvbuf, count, datatype, op, comm, request)
 
-$(_doc_external(:MPI_Iscan_c))
+$(_doc_external(:MPI_Iscan_c, v"4.0.0"))
 """
 function MPI_Iscan_c(sendbuf, recvbuf, count, datatype, op, comm, request)
     @mpichk ccall((:MPI_Iscan_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, request) v"4.0.0" fallback=MPI_Iscan
@@ -4350,7 +4350,7 @@ end
 """
     MPI_Iscatter_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
 
-$(_doc_external(:MPI_Iscatter_c))
+$(_doc_external(:MPI_Iscatter_c, v"4.0.0"))
 """
 function MPI_Iscatter_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
     @mpichk ccall((:MPI_Iscatter_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, request) v"4.0.0" fallback=MPI_Iscatter
@@ -4359,7 +4359,7 @@ end
 """
     MPI_Iscatterv_c(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
 
-$(_doc_external(:MPI_Iscatterv_c))
+$(_doc_external(:MPI_Iscatterv_c, v"4.0.0"))
 """
 function MPI_Iscatterv_c(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request)
     @mpichk ccall((:MPI_Iscatterv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, request) v"4.0.0" fallback=MPI_Iscatterv
@@ -4368,7 +4368,7 @@ end
 """
     MPI_Neighbor_allgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 
-$(_doc_external(:MPI_Neighbor_allgather_c))
+$(_doc_external(:MPI_Neighbor_allgather_c, v"4.0.0"))
 """
 function MPI_Neighbor_allgather_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
     @mpichk ccall((:MPI_Neighbor_allgather_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm) v"4.0.0" fallback=MPI_Neighbor_allgather
@@ -4377,7 +4377,7 @@ end
 """
     MPI_Neighbor_allgather_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_allgather_init_c))
+$(_doc_external(:MPI_Neighbor_allgather_init_c, v"4.0.0"))
 """
 function MPI_Neighbor_allgather_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_allgather_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request) v"4.0.0" fallback=MPI_Neighbor_allgather_init
@@ -4386,7 +4386,7 @@ end
 """
     MPI_Neighbor_allgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
 
-$(_doc_external(:MPI_Neighbor_allgatherv_c))
+$(_doc_external(:MPI_Neighbor_allgatherv_c, v"4.0.0"))
 """
 function MPI_Neighbor_allgatherv_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm)
     @mpichk ccall((:MPI_Neighbor_allgatherv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm) v"4.0.0" fallback=MPI_Neighbor_allgatherv
@@ -4395,7 +4395,7 @@ end
 """
     MPI_Neighbor_allgatherv_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_allgatherv_init_c))
+$(_doc_external(:MPI_Neighbor_allgatherv_init_c, v"4.0.0"))
 """
 function MPI_Neighbor_allgatherv_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_allgatherv_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, comm, info, request) v"4.0.0" fallback=MPI_Neighbor_allgatherv_init
@@ -4404,7 +4404,7 @@ end
 """
     MPI_Neighbor_alltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
 
-$(_doc_external(:MPI_Neighbor_alltoall_c))
+$(_doc_external(:MPI_Neighbor_alltoall_c, v"4.0.0"))
 """
 function MPI_Neighbor_alltoall_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm)
     @mpichk ccall((:MPI_Neighbor_alltoall_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm) v"4.0.0" fallback=MPI_Neighbor_alltoall
@@ -4413,7 +4413,7 @@ end
 """
     MPI_Neighbor_alltoall_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_alltoall_init_c))
+$(_doc_external(:MPI_Neighbor_alltoall_init_c, v"4.0.0"))
 """
 function MPI_Neighbor_alltoall_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_alltoall_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm, info, request) v"4.0.0" fallback=MPI_Neighbor_alltoall_init
@@ -4422,7 +4422,7 @@ end
 """
     MPI_Neighbor_alltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
 
-$(_doc_external(:MPI_Neighbor_alltoallv_c))
+$(_doc_external(:MPI_Neighbor_alltoallv_c, v"4.0.0"))
 """
 function MPI_Neighbor_alltoallv_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm)
     @mpichk ccall((:MPI_Neighbor_alltoallv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm) v"4.0.0" fallback=MPI_Neighbor_alltoallv
@@ -4431,7 +4431,7 @@ end
 """
     MPI_Neighbor_alltoallv_init_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_alltoallv_init_c))
+$(_doc_external(:MPI_Neighbor_alltoallv_init_c, v"4.0.0"))
 """
 function MPI_Neighbor_alltoallv_init_c(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_alltoallv_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm, info, request) v"4.0.0" fallback=MPI_Neighbor_alltoallv_init
@@ -4440,7 +4440,7 @@ end
 """
     MPI_Neighbor_alltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
 
-$(_doc_external(:MPI_Neighbor_alltoallw_c))
+$(_doc_external(:MPI_Neighbor_alltoallw_c, v"4.0.0"))
 """
 function MPI_Neighbor_alltoallw_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm)
     @mpichk ccall((:MPI_Neighbor_alltoallw_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm) v"4.0.0" fallback=MPI_Neighbor_alltoallw
@@ -4449,7 +4449,7 @@ end
 """
     MPI_Neighbor_alltoallw_init_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
 
-$(_doc_external(:MPI_Neighbor_alltoallw_init_c))
+$(_doc_external(:MPI_Neighbor_alltoallw_init_c, v"4.0.0"))
 """
 function MPI_Neighbor_alltoallw_init_c(sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request)
     @mpichk ccall((:MPI_Neighbor_alltoallw_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, Ptr{MPI_Datatype}, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, sdispls, sendtypes, recvbuf, recvcounts, rdispls, recvtypes, comm, info, request) v"4.0.0" fallback=MPI_Neighbor_alltoallw_init
@@ -4458,7 +4458,7 @@ end
 """
     MPI_Reduce_c(sendbuf, recvbuf, count, datatype, op, root, comm)
 
-$(_doc_external(:MPI_Reduce_c))
+$(_doc_external(:MPI_Reduce_c, v"4.0.0"))
 """
 function MPI_Reduce_c(sendbuf, recvbuf, count, datatype, op, root, comm)
     @mpichk ccall((:MPI_Reduce_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, Cint, MPI_Comm), sendbuf, recvbuf, count, datatype, op, root, comm) v"4.0.0" fallback=MPI_Reduce
@@ -4467,7 +4467,7 @@ end
 """
     MPI_Reduce_init_c(sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
 
-$(_doc_external(:MPI_Reduce_init_c))
+$(_doc_external(:MPI_Reduce_init_c, v"4.0.0"))
 """
 function MPI_Reduce_init_c(sendbuf, recvbuf, count, datatype, op, root, comm, info, request)
     @mpichk ccall((:MPI_Reduce_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, root, comm, info, request) v"4.0.0" fallback=MPI_Reduce_init
@@ -4476,7 +4476,7 @@ end
 """
     MPI_Reduce_local_c(inbuf, inoutbuf, count, datatype, op)
 
-$(_doc_external(:MPI_Reduce_local_c))
+$(_doc_external(:MPI_Reduce_local_c, v"4.0.0"))
 """
 function MPI_Reduce_local_c(inbuf, inoutbuf, count, datatype, op)
     @mpichk ccall((:MPI_Reduce_local_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op), inbuf, inoutbuf, count, datatype, op) v"4.0.0" fallback=MPI_Reduce_local
@@ -4485,7 +4485,7 @@ end
 """
     MPI_Reduce_scatter_c(sendbuf, recvbuf, recvcounts, datatype, op, comm)
 
-$(_doc_external(:MPI_Reduce_scatter_c))
+$(_doc_external(:MPI_Reduce_scatter_c, v"4.0.0"))
 """
 function MPI_Reduce_scatter_c(sendbuf, recvbuf, recvcounts, datatype, op, comm)
     @mpichk ccall((:MPI_Reduce_scatter_c, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{MPI_Count}, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcounts, datatype, op, comm) v"4.0.0" fallback=MPI_Reduce_scatter
@@ -4494,7 +4494,7 @@ end
 """
     MPI_Reduce_scatter_block_c(sendbuf, recvbuf, recvcount, datatype, op, comm)
 
-$(_doc_external(:MPI_Reduce_scatter_block_c))
+$(_doc_external(:MPI_Reduce_scatter_block_c, v"4.0.0"))
 """
 function MPI_Reduce_scatter_block_c(sendbuf, recvbuf, recvcount, datatype, op, comm)
     @mpichk ccall((:MPI_Reduce_scatter_block_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, recvcount, datatype, op, comm) v"4.0.0" fallback=MPI_Reduce_scatter_block
@@ -4503,7 +4503,7 @@ end
 """
     MPI_Reduce_scatter_block_init_c(sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Reduce_scatter_block_init_c))
+$(_doc_external(:MPI_Reduce_scatter_block_init_c, v"4.0.0"))
 """
 function MPI_Reduce_scatter_block_init_c(sendbuf, recvbuf, recvcount, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Reduce_scatter_block_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcount, datatype, op, comm, info, request) v"4.0.0" fallback=MPI_Reduce_scatter_block_init
@@ -4512,7 +4512,7 @@ end
 """
     MPI_Reduce_scatter_init_c(sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Reduce_scatter_init_c))
+$(_doc_external(:MPI_Reduce_scatter_init_c, v"4.0.0"))
 """
 function MPI_Reduce_scatter_init_c(sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Reduce_scatter_init_c, libmpi), Cint, (MPIPtr, MPIPtr, Ptr{MPI_Count}, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, recvcounts, datatype, op, comm, info, request) v"4.0.0" fallback=MPI_Reduce_scatter_init
@@ -4521,7 +4521,7 @@ end
 """
     MPI_Scan_c(sendbuf, recvbuf, count, datatype, op, comm)
 
-$(_doc_external(:MPI_Scan_c))
+$(_doc_external(:MPI_Scan_c, v"4.0.0"))
 """
 function MPI_Scan_c(sendbuf, recvbuf, count, datatype, op, comm)
     @mpichk ccall((:MPI_Scan_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm), sendbuf, recvbuf, count, datatype, op, comm) v"4.0.0" fallback=MPI_Scan
@@ -4530,7 +4530,7 @@ end
 """
     MPI_Scan_init_c(sendbuf, recvbuf, count, datatype, op, comm, info, request)
 
-$(_doc_external(:MPI_Scan_init_c))
+$(_doc_external(:MPI_Scan_init_c, v"4.0.0"))
 """
 function MPI_Scan_init_c(sendbuf, recvbuf, count, datatype, op, comm, info, request)
     @mpichk ccall((:MPI_Scan_init_c, libmpi), Cint, (MPIPtr, MPIPtr, MPI_Count, MPI_Datatype, MPI_Op, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, recvbuf, count, datatype, op, comm, info, request) v"4.0.0" fallback=MPI_Scan_init
@@ -4539,7 +4539,7 @@ end
 """
     MPI_Scatter_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
 
-$(_doc_external(:MPI_Scatter_c))
+$(_doc_external(:MPI_Scatter_c, v"4.0.0"))
 """
 function MPI_Scatter_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm)
     @mpichk ccall((:MPI_Scatter_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm) v"4.0.0" fallback=MPI_Scatter
@@ -4548,7 +4548,7 @@ end
 """
     MPI_Scatter_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 
-$(_doc_external(:MPI_Scatter_init_c))
+$(_doc_external(:MPI_Scatter_init_c, v"4.0.0"))
 """
 function MPI_Scatter_init_c(sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
     @mpichk ccall((:MPI_Scatter_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request) v"4.0.0" fallback=MPI_Scatter_init
@@ -4557,7 +4557,7 @@ end
 """
     MPI_Scatterv_c(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm)
 
-$(_doc_external(:MPI_Scatterv_c))
+$(_doc_external(:MPI_Scatterv_c, v"4.0.0"))
 """
 function MPI_Scatterv_c(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm)
     @mpichk ccall((:MPI_Scatterv_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm) v"4.0.0" fallback=MPI_Scatterv
@@ -4566,7 +4566,7 @@ end
 """
     MPI_Scatterv_init_c(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
 
-$(_doc_external(:MPI_Scatterv_init_c))
+$(_doc_external(:MPI_Scatterv_init_c, v"4.0.0"))
 """
 function MPI_Scatterv_init_c(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request)
     @mpichk ccall((:MPI_Scatterv_init_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}, Ptr{MPI_Aint}, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Comm, MPI_Info, Ptr{MPI_Request}), sendbuf, sendcounts, displs, sendtype, recvbuf, recvcount, recvtype, root, comm, info, request) v"4.0.0" fallback=MPI_Scatterv_init
@@ -4575,7 +4575,7 @@ end
 """
     MPI_Get_count_c(status, datatype, count)
 
-$(_doc_external(:MPI_Get_count_c))
+$(_doc_external(:MPI_Get_count_c, v"4.0.0"))
 """
 function MPI_Get_count_c(status, datatype, count)
     @mpichk ccall((:MPI_Get_count_c, libmpi), Cint, (Ptr{MPI_Status}, MPI_Datatype, Ptr{MPI_Count}), status, datatype, count) v"4.0.0" fallback=MPI_Get_count
@@ -4584,7 +4584,7 @@ end
 """
     MPI_Get_elements_c(status, datatype, count)
 
-$(_doc_external(:MPI_Get_elements_c))
+$(_doc_external(:MPI_Get_elements_c, v"4.0.0"))
 """
 function MPI_Get_elements_c(status, datatype, count)
     @mpichk ccall((:MPI_Get_elements_c, libmpi), Cint, (Ptr{MPI_Status}, MPI_Datatype, Ptr{MPI_Count}), status, datatype, count) v"4.0.0" fallback=MPI_Get_elements
@@ -4593,7 +4593,7 @@ end
 """
     MPI_Pack_c(inbuf, incount, datatype, outbuf, outsize, position, comm)
 
-$(_doc_external(:MPI_Pack_c))
+$(_doc_external(:MPI_Pack_c, v"4.0.0"))
 """
 function MPI_Pack_c(inbuf, incount, datatype, outbuf, outsize, position, comm)
     @mpichk ccall((:MPI_Pack_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, Ptr{MPI_Count}, MPI_Comm), inbuf, incount, datatype, outbuf, outsize, position, comm) v"4.0.0" fallback=MPI_Pack
@@ -4602,7 +4602,7 @@ end
 """
     MPI_Pack_external_c(datarep, inbuf, incount, datatype, outbuf, outsize, position)
 
-$(_doc_external(:MPI_Pack_external_c))
+$(_doc_external(:MPI_Pack_external_c, v"4.0.0"))
 """
 function MPI_Pack_external_c(datarep, inbuf, incount, datatype, outbuf, outsize, position)
     @mpichk ccall((:MPI_Pack_external_c, libmpi), Cint, (Ptr{Cchar}, MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, Ptr{MPI_Count}), datarep, inbuf, incount, datatype, outbuf, outsize, position) v"4.0.0" fallback=MPI_Pack_external
@@ -4611,7 +4611,7 @@ end
 """
     MPI_Pack_external_size_c(datarep, incount, datatype, size)
 
-$(_doc_external(:MPI_Pack_external_size_c))
+$(_doc_external(:MPI_Pack_external_size_c, v"4.0.0"))
 """
 function MPI_Pack_external_size_c(datarep, incount, datatype, size)
     @mpichk ccall((:MPI_Pack_external_size_c, libmpi), Cint, (Ptr{Cchar}, MPI_Count, MPI_Datatype, Ptr{MPI_Count}), datarep, incount, datatype, size) v"4.0.0" fallback=MPI_Pack_external_size
@@ -4620,7 +4620,7 @@ end
 """
     MPI_Pack_size_c(incount, datatype, comm, size)
 
-$(_doc_external(:MPI_Pack_size_c))
+$(_doc_external(:MPI_Pack_size_c, v"4.0.0"))
 """
 function MPI_Pack_size_c(incount, datatype, comm, size)
     @mpichk ccall((:MPI_Pack_size_c, libmpi), Cint, (MPI_Count, MPI_Datatype, MPI_Comm, Ptr{MPI_Count}), incount, datatype, comm, size) v"4.0.0" fallback=MPI_Pack_size
@@ -4629,7 +4629,7 @@ end
 """
     MPI_Status_set_elements_c(status, datatype, count)
 
-$(_doc_external(:MPI_Status_set_elements_c))
+$(_doc_external(:MPI_Status_set_elements_c, v"4.0.0"))
 """
 function MPI_Status_set_elements_c(status, datatype, count)
     @mpichk ccall((:MPI_Status_set_elements_c, libmpi), Cint, (Ptr{MPI_Status}, MPI_Datatype, MPI_Count), status, datatype, count) v"4.0.0" fallback=MPI_Status_set_elements
@@ -4638,7 +4638,7 @@ end
 """
     MPI_Type_contiguous_c(count, oldtype, newtype)
 
-$(_doc_external(:MPI_Type_contiguous_c))
+$(_doc_external(:MPI_Type_contiguous_c, v"4.0.0"))
 """
 function MPI_Type_contiguous_c(count, oldtype, newtype)
     @mpichk ccall((:MPI_Type_contiguous_c, libmpi), Cint, (MPI_Count, MPI_Datatype, Ptr{MPI_Datatype}), count, oldtype, newtype) v"4.0.0" fallback=MPI_Type_contiguous
@@ -4647,7 +4647,7 @@ end
 """
     MPI_Type_create_darray_c(size, rank, ndims, array_of_gsizes, array_of_distribs, array_of_dargs, array_of_psizes, order, oldtype, newtype)
 
-$(_doc_external(:MPI_Type_create_darray_c))
+$(_doc_external(:MPI_Type_create_darray_c, v"4.0.0"))
 """
 function MPI_Type_create_darray_c(size, rank, ndims, array_of_gsizes, array_of_distribs, array_of_dargs, array_of_psizes, order, oldtype, newtype)
     @mpichk ccall((:MPI_Type_create_darray_c, libmpi), Cint, (Cint, Cint, Cint, Ptr{MPI_Count}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}, Cint, MPI_Datatype, Ptr{MPI_Datatype}), size, rank, ndims, array_of_gsizes, array_of_distribs, array_of_dargs, array_of_psizes, order, oldtype, newtype) v"4.0.0" fallback=MPI_Type_create_darray
@@ -4656,7 +4656,7 @@ end
 """
     MPI_Type_create_hindexed_c(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
 
-$(_doc_external(:MPI_Type_create_hindexed_c))
+$(_doc_external(:MPI_Type_create_hindexed_c, v"4.0.0"))
 """
 function MPI_Type_create_hindexed_c(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
     @mpichk ccall((:MPI_Type_create_hindexed_c, libmpi), Cint, (MPI_Count, Ptr{MPI_Count}, Ptr{MPI_Count}, MPI_Datatype, Ptr{MPI_Datatype}), count, array_of_blocklengths, array_of_displacements, oldtype, newtype) v"4.0.0" fallback=MPI_Type_create_hindexed
@@ -4665,7 +4665,7 @@ end
 """
     MPI_Type_create_hindexed_block_c(count, blocklength, array_of_displacements, oldtype, newtype)
 
-$(_doc_external(:MPI_Type_create_hindexed_block_c))
+$(_doc_external(:MPI_Type_create_hindexed_block_c, v"4.0.0"))
 """
 function MPI_Type_create_hindexed_block_c(count, blocklength, array_of_displacements, oldtype, newtype)
     @mpichk ccall((:MPI_Type_create_hindexed_block_c, libmpi), Cint, (MPI_Count, MPI_Count, Ptr{MPI_Count}, MPI_Datatype, Ptr{MPI_Datatype}), count, blocklength, array_of_displacements, oldtype, newtype) v"4.0.0" fallback=MPI_Type_create_hindexed_block
@@ -4674,7 +4674,7 @@ end
 """
     MPI_Type_create_hvector_c(count, blocklength, stride, oldtype, newtype)
 
-$(_doc_external(:MPI_Type_create_hvector_c))
+$(_doc_external(:MPI_Type_create_hvector_c, v"4.0.0"))
 """
 function MPI_Type_create_hvector_c(count, blocklength, stride, oldtype, newtype)
     @mpichk ccall((:MPI_Type_create_hvector_c, libmpi), Cint, (MPI_Count, MPI_Count, MPI_Count, MPI_Datatype, Ptr{MPI_Datatype}), count, blocklength, stride, oldtype, newtype) v"4.0.0" fallback=MPI_Type_create_hvector
@@ -4683,7 +4683,7 @@ end
 """
     MPI_Type_create_indexed_block_c(count, blocklength, array_of_displacements, oldtype, newtype)
 
-$(_doc_external(:MPI_Type_create_indexed_block_c))
+$(_doc_external(:MPI_Type_create_indexed_block_c, v"4.0.0"))
 """
 function MPI_Type_create_indexed_block_c(count, blocklength, array_of_displacements, oldtype, newtype)
     @mpichk ccall((:MPI_Type_create_indexed_block_c, libmpi), Cint, (MPI_Count, MPI_Count, Ptr{MPI_Count}, MPI_Datatype, Ptr{MPI_Datatype}), count, blocklength, array_of_displacements, oldtype, newtype) v"4.0.0" fallback=MPI_Type_create_indexed_block
@@ -4692,7 +4692,7 @@ end
 """
     MPI_Type_create_resized_c(oldtype, lb, extent, newtype)
 
-$(_doc_external(:MPI_Type_create_resized_c))
+$(_doc_external(:MPI_Type_create_resized_c, v"4.0.0"))
 """
 function MPI_Type_create_resized_c(oldtype, lb, extent, newtype)
     @mpichk ccall((:MPI_Type_create_resized_c, libmpi), Cint, (MPI_Datatype, MPI_Count, MPI_Count, Ptr{MPI_Datatype}), oldtype, lb, extent, newtype) v"4.0.0" fallback=MPI_Type_create_resized
@@ -4701,7 +4701,7 @@ end
 """
     MPI_Type_create_struct_c(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
 
-$(_doc_external(:MPI_Type_create_struct_c))
+$(_doc_external(:MPI_Type_create_struct_c, v"4.0.0"))
 """
 function MPI_Type_create_struct_c(count, array_of_blocklengths, array_of_displacements, array_of_types, newtype)
     @mpichk ccall((:MPI_Type_create_struct_c, libmpi), Cint, (MPI_Count, Ptr{MPI_Count}, Ptr{MPI_Count}, Ptr{MPI_Datatype}, Ptr{MPI_Datatype}), count, array_of_blocklengths, array_of_displacements, array_of_types, newtype) v"4.0.0" fallback=MPI_Type_create_struct
@@ -4710,7 +4710,7 @@ end
 """
     MPI_Type_create_subarray_c(ndims, array_of_sizes, array_of_subsizes, array_of_starts, order, oldtype, newtype)
 
-$(_doc_external(:MPI_Type_create_subarray_c))
+$(_doc_external(:MPI_Type_create_subarray_c, v"4.0.0"))
 """
 function MPI_Type_create_subarray_c(ndims, array_of_sizes, array_of_subsizes, array_of_starts, order, oldtype, newtype)
     @mpichk ccall((:MPI_Type_create_subarray_c, libmpi), Cint, (Cint, Ptr{MPI_Count}, Ptr{MPI_Count}, Ptr{MPI_Count}, Cint, MPI_Datatype, Ptr{MPI_Datatype}), ndims, array_of_sizes, array_of_subsizes, array_of_starts, order, oldtype, newtype) v"4.0.0" fallback=MPI_Type_create_subarray
@@ -4719,7 +4719,7 @@ end
 """
     MPI_Type_get_contents_c(datatype, max_integers, max_addresses, max_large_counts, max_datatypes, array_of_integers, array_of_addresses, array_of_large_counts, array_of_datatypes)
 
-$(_doc_external(:MPI_Type_get_contents_c))
+$(_doc_external(:MPI_Type_get_contents_c, v"4.0.0"))
 """
 function MPI_Type_get_contents_c(datatype, max_integers, max_addresses, max_large_counts, max_datatypes, array_of_integers, array_of_addresses, array_of_large_counts, array_of_datatypes)
     @mpichk ccall((:MPI_Type_get_contents_c, libmpi), Cint, (MPI_Datatype, MPI_Count, MPI_Count, MPI_Count, MPI_Count, Ptr{Cint}, Ptr{MPI_Aint}, Ptr{MPI_Count}, Ptr{MPI_Datatype}), datatype, max_integers, max_addresses, max_large_counts, max_datatypes, array_of_integers, array_of_addresses, array_of_large_counts, array_of_datatypes) v"4.0.0" fallback=MPI_Type_get_contents
@@ -4728,7 +4728,7 @@ end
 """
     MPI_Type_get_envelope_c(datatype, num_integers, num_addresses, num_large_counts, num_datatypes, combiner)
 
-$(_doc_external(:MPI_Type_get_envelope_c))
+$(_doc_external(:MPI_Type_get_envelope_c, v"4.0.0"))
 """
 function MPI_Type_get_envelope_c(datatype, num_integers, num_addresses, num_large_counts, num_datatypes, combiner)
     @mpichk ccall((:MPI_Type_get_envelope_c, libmpi), Cint, (MPI_Datatype, Ptr{MPI_Count}, Ptr{MPI_Count}, Ptr{MPI_Count}, Ptr{MPI_Count}, Ptr{Cint}), datatype, num_integers, num_addresses, num_large_counts, num_datatypes, combiner) v"4.0.0" fallback=MPI_Type_get_envelope
@@ -4737,7 +4737,7 @@ end
 """
     MPI_Type_get_extent_c(datatype, lb, extent)
 
-$(_doc_external(:MPI_Type_get_extent_c))
+$(_doc_external(:MPI_Type_get_extent_c, v"4.0.0"))
 """
 function MPI_Type_get_extent_c(datatype, lb, extent)
     @mpichk ccall((:MPI_Type_get_extent_c, libmpi), Cint, (MPI_Datatype, Ptr{MPI_Count}, Ptr{MPI_Count}), datatype, lb, extent) v"4.0.0" fallback=MPI_Type_get_extent
@@ -4746,7 +4746,7 @@ end
 """
     MPI_Type_get_true_extent_c(datatype, true_lb, true_extent)
 
-$(_doc_external(:MPI_Type_get_true_extent_c))
+$(_doc_external(:MPI_Type_get_true_extent_c, v"4.0.0"))
 """
 function MPI_Type_get_true_extent_c(datatype, true_lb, true_extent)
     @mpichk ccall((:MPI_Type_get_true_extent_c, libmpi), Cint, (MPI_Datatype, Ptr{MPI_Count}, Ptr{MPI_Count}), datatype, true_lb, true_extent) v"4.0.0" fallback=MPI_Type_get_true_extent
@@ -4755,7 +4755,7 @@ end
 """
     MPI_Type_indexed_c(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
 
-$(_doc_external(:MPI_Type_indexed_c))
+$(_doc_external(:MPI_Type_indexed_c, v"4.0.0"))
 """
 function MPI_Type_indexed_c(count, array_of_blocklengths, array_of_displacements, oldtype, newtype)
     @mpichk ccall((:MPI_Type_indexed_c, libmpi), Cint, (MPI_Count, Ptr{MPI_Count}, Ptr{MPI_Count}, MPI_Datatype, Ptr{MPI_Datatype}), count, array_of_blocklengths, array_of_displacements, oldtype, newtype) v"4.0.0" fallback=MPI_Type_indexed
@@ -4764,7 +4764,7 @@ end
 """
     MPI_Type_size_c(datatype, size)
 
-$(_doc_external(:MPI_Type_size_c))
+$(_doc_external(:MPI_Type_size_c, v"4.0.0"))
 """
 function MPI_Type_size_c(datatype, size)
     @mpichk ccall((:MPI_Type_size_c, libmpi), Cint, (MPI_Datatype, Ptr{MPI_Count}), datatype, size) v"4.0.0" fallback=MPI_Type_size
@@ -4773,7 +4773,7 @@ end
 """
     MPI_Type_vector_c(count, blocklength, stride, oldtype, newtype)
 
-$(_doc_external(:MPI_Type_vector_c))
+$(_doc_external(:MPI_Type_vector_c, v"4.0.0"))
 """
 function MPI_Type_vector_c(count, blocklength, stride, oldtype, newtype)
     @mpichk ccall((:MPI_Type_vector_c, libmpi), Cint, (MPI_Count, MPI_Count, MPI_Count, MPI_Datatype, Ptr{MPI_Datatype}), count, blocklength, stride, oldtype, newtype) v"4.0.0" fallback=MPI_Type_vector
@@ -4782,7 +4782,7 @@ end
 """
     MPI_Unpack_c(inbuf, insize, position, outbuf, outcount, datatype, comm)
 
-$(_doc_external(:MPI_Unpack_c))
+$(_doc_external(:MPI_Unpack_c, v"4.0.0"))
 """
 function MPI_Unpack_c(inbuf, insize, position, outbuf, outcount, datatype, comm)
     @mpichk ccall((:MPI_Unpack_c, libmpi), Cint, (MPIPtr, MPI_Count, Ptr{MPI_Count}, MPIPtr, MPI_Count, MPI_Datatype, MPI_Comm), inbuf, insize, position, outbuf, outcount, datatype, comm) v"4.0.0" fallback=MPI_Unpack
@@ -4791,7 +4791,7 @@ end
 """
     MPI_Unpack_external_c(datarep, inbuf, insize, position, outbuf, outcount, datatype)
 
-$(_doc_external(:MPI_Unpack_external_c))
+$(_doc_external(:MPI_Unpack_external_c, v"4.0.0"))
 """
 function MPI_Unpack_external_c(datarep, inbuf, insize, position, outbuf, outcount, datatype)
     @mpichk ccall((:MPI_Unpack_external_c, libmpi), Cint, (Ptr{Cchar}, MPIPtr, MPI_Count, Ptr{MPI_Count}, MPIPtr, MPI_Count, MPI_Datatype), datarep, inbuf, insize, position, outbuf, outcount, datatype) v"4.0.0" fallback=MPI_Unpack_external
@@ -4800,7 +4800,7 @@ end
 """
     MPI_Op_create_c(user_fn, commute, op)
 
-$(_doc_external(:MPI_Op_create_c))
+$(_doc_external(:MPI_Op_create_c, v"4.0.0"))
 """
 function MPI_Op_create_c(user_fn, commute, op)
     @mpichk ccall((:MPI_Op_create_c, libmpi), Cint, (Ptr{MPI_User_function_c}, Cint, Ptr{MPI_Op}), user_fn, commute, op) v"4.0.0"
@@ -4809,7 +4809,7 @@ end
 """
     MPI_Bsend_c(buf, count, datatype, dest, tag, comm)
 
-$(_doc_external(:MPI_Bsend_c))
+$(_doc_external(:MPI_Bsend_c, v"4.0.0"))
 """
 function MPI_Bsend_c(buf, count, datatype, dest, tag, comm)
     @mpichk ccall((:MPI_Bsend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm) v"4.0.0" fallback=MPI_Bsend
@@ -4818,7 +4818,7 @@ end
 """
     MPI_Bsend_init_c(buf, count, datatype, dest, tag, comm, request)
 
-$(_doc_external(:MPI_Bsend_init_c))
+$(_doc_external(:MPI_Bsend_init_c, v"4.0.0"))
 """
 function MPI_Bsend_init_c(buf, count, datatype, dest, tag, comm, request)
     @mpichk ccall((:MPI_Bsend_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request) v"4.0.0" fallback=MPI_Bsend_init
@@ -4827,7 +4827,7 @@ end
 """
     MPI_Buffer_attach_c(buffer, size)
 
-$(_doc_external(:MPI_Buffer_attach_c))
+$(_doc_external(:MPI_Buffer_attach_c, v"4.0.0"))
 """
 function MPI_Buffer_attach_c(buffer, size)
     @mpichk ccall((:MPI_Buffer_attach_c, libmpi), Cint, (MPIPtr, MPI_Count), buffer, size) v"4.0.0" fallback=MPI_Buffer_attach
@@ -4836,7 +4836,7 @@ end
 """
     MPI_Buffer_detach_c(buffer_addr, size)
 
-$(_doc_external(:MPI_Buffer_detach_c))
+$(_doc_external(:MPI_Buffer_detach_c, v"4.0.0"))
 """
 function MPI_Buffer_detach_c(buffer_addr, size)
     @mpichk ccall((:MPI_Buffer_detach_c, libmpi), Cint, (MPIPtr, Ptr{MPI_Count}), buffer_addr, size) v"4.0.0" fallback=MPI_Buffer_detach
@@ -4845,7 +4845,7 @@ end
 """
     MPI_Comm_attach_buffer_c(comm, buffer, size)
 
-$(_doc_external(:MPI_Comm_attach_buffer_c))
+$(_doc_external(:MPI_Comm_attach_buffer_c, v"4.1.0"))
 """
 function MPI_Comm_attach_buffer_c(comm, buffer, size)
     @mpichk ccall((:MPI_Comm_attach_buffer_c, libmpi), Cint, (MPI_Comm, MPIPtr, MPI_Count), comm, buffer, size) v"4.1.0" fallback=MPI_Comm_attach_buffer
@@ -4854,7 +4854,7 @@ end
 """
     MPI_Comm_detach_buffer_c(comm, buffer_addr, size)
 
-$(_doc_external(:MPI_Comm_detach_buffer_c))
+$(_doc_external(:MPI_Comm_detach_buffer_c, v"4.1.0"))
 """
 function MPI_Comm_detach_buffer_c(comm, buffer_addr, size)
     @mpichk ccall((:MPI_Comm_detach_buffer_c, libmpi), Cint, (MPI_Comm, MPIPtr, Ptr{MPI_Count}), comm, buffer_addr, size) v"4.1.0" fallback=MPI_Comm_detach_buffer
@@ -4863,7 +4863,7 @@ end
 """
     MPI_Ibsend_c(buf, count, datatype, dest, tag, comm, request)
 
-$(_doc_external(:MPI_Ibsend_c))
+$(_doc_external(:MPI_Ibsend_c, v"4.0.0"))
 """
 function MPI_Ibsend_c(buf, count, datatype, dest, tag, comm, request)
     @mpichk ccall((:MPI_Ibsend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request) v"4.0.0" fallback=MPI_Ibsend
@@ -4872,7 +4872,7 @@ end
 """
     MPI_Imrecv_c(buf, count, datatype, message, request)
 
-$(_doc_external(:MPI_Imrecv_c))
+$(_doc_external(:MPI_Imrecv_c, v"4.0.0"))
 """
 function MPI_Imrecv_c(buf, count, datatype, message, request)
     @mpichk ccall((:MPI_Imrecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Request}), buf, count, datatype, message, request) v"4.0.0" fallback=MPI_Imrecv
@@ -4881,7 +4881,7 @@ end
 """
     MPI_Irecv_c(buf, count, datatype, source, tag, comm, request)
 
-$(_doc_external(:MPI_Irecv_c))
+$(_doc_external(:MPI_Irecv_c, v"4.0.0"))
 """
 function MPI_Irecv_c(buf, count, datatype, source, tag, comm, request)
     @mpichk ccall((:MPI_Irecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request) v"4.0.0" fallback=MPI_Irecv
@@ -4890,7 +4890,7 @@ end
 """
     MPI_Irsend_c(buf, count, datatype, dest, tag, comm, request)
 
-$(_doc_external(:MPI_Irsend_c))
+$(_doc_external(:MPI_Irsend_c, v"4.0.0"))
 """
 function MPI_Irsend_c(buf, count, datatype, dest, tag, comm, request)
     @mpichk ccall((:MPI_Irsend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request) v"4.0.0" fallback=MPI_Irsend
@@ -4899,7 +4899,7 @@ end
 """
     MPI_Isend_c(buf, count, datatype, dest, tag, comm, request)
 
-$(_doc_external(:MPI_Isend_c))
+$(_doc_external(:MPI_Isend_c, v"4.0.0"))
 """
 function MPI_Isend_c(buf, count, datatype, dest, tag, comm, request)
     @mpichk ccall((:MPI_Isend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request) v"4.0.0" fallback=MPI_Isend
@@ -4908,7 +4908,7 @@ end
 """
     MPI_Isendrecv_c(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
 
-$(_doc_external(:MPI_Isendrecv_c))
+$(_doc_external(:MPI_Isendrecv_c, v"4.0.0"))
 """
 function MPI_Isendrecv_c(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request)
     @mpichk ccall((:MPI_Isendrecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, request) v"4.0.0" fallback=MPI_Isendrecv
@@ -4917,7 +4917,7 @@ end
 """
     MPI_Isendrecv_replace_c(buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
 
-$(_doc_external(:MPI_Isendrecv_replace_c))
+$(_doc_external(:MPI_Isendrecv_replace_c, v"4.0.0"))
 """
 function MPI_Isendrecv_replace_c(buf, count, datatype, dest, sendtag, source, recvtag, comm, request)
     @mpichk ccall((:MPI_Isendrecv_replace_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, sendtag, source, recvtag, comm, request) v"4.0.0" fallback=MPI_Isendrecv_replace
@@ -4926,7 +4926,7 @@ end
 """
     MPI_Issend_c(buf, count, datatype, dest, tag, comm, request)
 
-$(_doc_external(:MPI_Issend_c))
+$(_doc_external(:MPI_Issend_c, v"4.0.0"))
 """
 function MPI_Issend_c(buf, count, datatype, dest, tag, comm, request)
     @mpichk ccall((:MPI_Issend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request) v"4.0.0" fallback=MPI_Issend
@@ -4935,7 +4935,7 @@ end
 """
     MPI_Mrecv_c(buf, count, datatype, message, status)
 
-$(_doc_external(:MPI_Mrecv_c))
+$(_doc_external(:MPI_Mrecv_c, v"4.0.0"))
 """
 function MPI_Mrecv_c(buf, count, datatype, message, status)
     @mpichk ccall((:MPI_Mrecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Message}, Ptr{MPI_Status}), buf, count, datatype, message, status) v"4.0.0" fallback=MPI_Mrecv
@@ -4944,7 +4944,7 @@ end
 """
     MPI_Recv_c(buf, count, datatype, source, tag, comm, status)
 
-$(_doc_external(:MPI_Recv_c))
+$(_doc_external(:MPI_Recv_c, v"4.0.0"))
 """
 function MPI_Recv_c(buf, count, datatype, source, tag, comm, status)
     @mpichk ccall((:MPI_Recv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, source, tag, comm, status) v"4.0.0" fallback=MPI_Recv
@@ -4953,7 +4953,7 @@ end
 """
     MPI_Recv_init_c(buf, count, datatype, source, tag, comm, request)
 
-$(_doc_external(:MPI_Recv_init_c))
+$(_doc_external(:MPI_Recv_init_c, v"4.0.0"))
 """
 function MPI_Recv_init_c(buf, count, datatype, source, tag, comm, request)
     @mpichk ccall((:MPI_Recv_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, source, tag, comm, request) v"4.0.0" fallback=MPI_Recv_init
@@ -4962,7 +4962,7 @@ end
 """
     MPI_Rsend_c(buf, count, datatype, dest, tag, comm)
 
-$(_doc_external(:MPI_Rsend_c))
+$(_doc_external(:MPI_Rsend_c, v"4.0.0"))
 """
 function MPI_Rsend_c(buf, count, datatype, dest, tag, comm)
     @mpichk ccall((:MPI_Rsend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm) v"4.0.0" fallback=MPI_Rsend
@@ -4971,7 +4971,7 @@ end
 """
     MPI_Rsend_init_c(buf, count, datatype, dest, tag, comm, request)
 
-$(_doc_external(:MPI_Rsend_init_c))
+$(_doc_external(:MPI_Rsend_init_c, v"4.0.0"))
 """
 function MPI_Rsend_init_c(buf, count, datatype, dest, tag, comm, request)
     @mpichk ccall((:MPI_Rsend_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request) v"4.0.0" fallback=MPI_Rsend_init
@@ -4980,7 +4980,7 @@ end
 """
     MPI_Send_c(buf, count, datatype, dest, tag, comm)
 
-$(_doc_external(:MPI_Send_c))
+$(_doc_external(:MPI_Send_c, v"4.0.0"))
 """
 function MPI_Send_c(buf, count, datatype, dest, tag, comm)
     @mpichk ccall((:MPI_Send_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm) v"4.0.0" fallback=MPI_Send
@@ -4989,7 +4989,7 @@ end
 """
     MPI_Send_init_c(buf, count, datatype, dest, tag, comm, request)
 
-$(_doc_external(:MPI_Send_init_c))
+$(_doc_external(:MPI_Send_init_c, v"4.0.0"))
 """
 function MPI_Send_init_c(buf, count, datatype, dest, tag, comm, request)
     @mpichk ccall((:MPI_Send_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request) v"4.0.0" fallback=MPI_Send_init
@@ -4998,7 +4998,7 @@ end
 """
     MPI_Sendrecv_c(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status)
 
-$(_doc_external(:MPI_Sendrecv_c))
+$(_doc_external(:MPI_Sendrecv_c, v"4.0.0"))
 """
 function MPI_Sendrecv_c(sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status)
     @mpichk ccall((:MPI_Sendrecv_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), sendbuf, sendcount, sendtype, dest, sendtag, recvbuf, recvcount, recvtype, source, recvtag, comm, status) v"4.0.0" fallback=MPI_Sendrecv
@@ -5007,7 +5007,7 @@ end
 """
     MPI_Sendrecv_replace_c(buf, count, datatype, dest, sendtag, source, recvtag, comm, status)
 
-$(_doc_external(:MPI_Sendrecv_replace_c))
+$(_doc_external(:MPI_Sendrecv_replace_c, v"4.0.0"))
 """
 function MPI_Sendrecv_replace_c(buf, count, datatype, dest, sendtag, source, recvtag, comm, status)
     @mpichk ccall((:MPI_Sendrecv_replace_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, Cint, Cint, MPI_Comm, Ptr{MPI_Status}), buf, count, datatype, dest, sendtag, source, recvtag, comm, status) v"4.0.0" fallback=MPI_Sendrecv_replace
@@ -5016,7 +5016,7 @@ end
 """
     MPI_Ssend_c(buf, count, datatype, dest, tag, comm)
 
-$(_doc_external(:MPI_Ssend_c))
+$(_doc_external(:MPI_Ssend_c, v"4.0.0"))
 """
 function MPI_Ssend_c(buf, count, datatype, dest, tag, comm)
     @mpichk ccall((:MPI_Ssend_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm), buf, count, datatype, dest, tag, comm) v"4.0.0" fallback=MPI_Ssend
@@ -5025,7 +5025,7 @@ end
 """
     MPI_Ssend_init_c(buf, count, datatype, dest, tag, comm, request)
 
-$(_doc_external(:MPI_Ssend_init_c))
+$(_doc_external(:MPI_Ssend_init_c, v"4.0.0"))
 """
 function MPI_Ssend_init_c(buf, count, datatype, dest, tag, comm, request)
     @mpichk ccall((:MPI_Ssend_init_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, Cint, MPI_Comm, Ptr{MPI_Request}), buf, count, datatype, dest, tag, comm, request) v"4.0.0" fallback=MPI_Ssend_init
@@ -5034,7 +5034,7 @@ end
 """
     MPI_Accumulate_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
 
-$(_doc_external(:MPI_Accumulate_c))
+$(_doc_external(:MPI_Accumulate_c, v"4.0.0"))
 """
 function MPI_Accumulate_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
     @mpichk ccall((:MPI_Accumulate_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win) v"4.0.0" fallback=MPI_Accumulate
@@ -5043,7 +5043,7 @@ end
 """
     MPI_Get_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
 
-$(_doc_external(:MPI_Get_c))
+$(_doc_external(:MPI_Get_c, v"4.0.0"))
 """
 function MPI_Get_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
     @mpichk ccall((:MPI_Get_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win) v"4.0.0" fallback=MPI_Get
@@ -5052,7 +5052,7 @@ end
 """
     MPI_Get_accumulate_c(origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
 
-$(_doc_external(:MPI_Get_accumulate_c))
+$(_doc_external(:MPI_Get_accumulate_c, v"4.0.0"))
 """
 function MPI_Get_accumulate_c(origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win)
     @mpichk ccall((:MPI_Get_accumulate_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win) v"4.0.0" fallback=MPI_Get_accumulate
@@ -5061,7 +5061,7 @@ end
 """
     MPI_Put_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
 
-$(_doc_external(:MPI_Put_c))
+$(_doc_external(:MPI_Put_c, v"4.0.0"))
 """
 function MPI_Put_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win)
     @mpichk ccall((:MPI_Put_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win) v"4.0.0" fallback=MPI_Put
@@ -5070,7 +5070,7 @@ end
 """
     MPI_Raccumulate_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
 
-$(_doc_external(:MPI_Raccumulate_c))
+$(_doc_external(:MPI_Raccumulate_c, v"4.0.0"))
 """
 function MPI_Raccumulate_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
     @mpichk ccall((:MPI_Raccumulate_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request) v"4.0.0" fallback=MPI_Raccumulate
@@ -5079,7 +5079,7 @@ end
 """
     MPI_Rget_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
 
-$(_doc_external(:MPI_Rget_c))
+$(_doc_external(:MPI_Rget_c, v"4.0.0"))
 """
 function MPI_Rget_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
     @mpichk ccall((:MPI_Rget_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request) v"4.0.0" fallback=MPI_Rget
@@ -5088,7 +5088,7 @@ end
 """
     MPI_Rget_accumulate_c(origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
 
-$(_doc_external(:MPI_Rget_accumulate_c))
+$(_doc_external(:MPI_Rget_accumulate_c, v"4.0.0"))
 """
 function MPI_Rget_accumulate_c(origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request)
     @mpichk ccall((:MPI_Rget_accumulate_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Op, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, result_addr, result_count, result_datatype, target_rank, target_disp, target_count, target_datatype, op, win, request) v"4.0.0" fallback=MPI_Rget_accumulate
@@ -5097,7 +5097,7 @@ end
 """
     MPI_Rput_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
 
-$(_doc_external(:MPI_Rput_c))
+$(_doc_external(:MPI_Rput_c, v"4.0.0"))
 """
 function MPI_Rput_c(origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request)
     @mpichk ccall((:MPI_Rput_c, libmpi), Cint, (MPIPtr, MPI_Count, MPI_Datatype, Cint, MPI_Aint, MPI_Count, MPI_Datatype, MPI_Win, Ptr{MPI_Request}), origin_addr, origin_count, origin_datatype, target_rank, target_disp, target_count, target_datatype, win, request) v"4.0.0" fallback=MPI_Rput
@@ -5106,7 +5106,7 @@ end
 """
     MPI_Win_allocate_c(size, disp_unit, info, comm, baseptr, win)
 
-$(_doc_external(:MPI_Win_allocate_c))
+$(_doc_external(:MPI_Win_allocate_c, v"4.0.0"))
 """
 function MPI_Win_allocate_c(size, disp_unit, info, comm, baseptr, win)
     @mpichk ccall((:MPI_Win_allocate_c, libmpi), Cint, (MPI_Aint, MPI_Aint, MPI_Info, MPI_Comm, MPIPtr, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win) v"4.0.0" fallback=MPI_Win_allocate
@@ -5115,7 +5115,7 @@ end
 """
     MPI_Win_allocate_shared_c(size, disp_unit, info, comm, baseptr, win)
 
-$(_doc_external(:MPI_Win_allocate_shared_c))
+$(_doc_external(:MPI_Win_allocate_shared_c, v"4.0.0"))
 """
 function MPI_Win_allocate_shared_c(size, disp_unit, info, comm, baseptr, win)
     @mpichk ccall((:MPI_Win_allocate_shared_c, libmpi), Cint, (MPI_Aint, MPI_Aint, MPI_Info, MPI_Comm, MPIPtr, Ptr{MPI_Win}), size, disp_unit, info, comm, baseptr, win) v"4.0.0" fallback=MPI_Win_allocate_shared
@@ -5124,7 +5124,7 @@ end
 """
     MPI_Win_create_c(base, size, disp_unit, info, comm, win)
 
-$(_doc_external(:MPI_Win_create_c))
+$(_doc_external(:MPI_Win_create_c, v"4.0.0"))
 """
 function MPI_Win_create_c(base, size, disp_unit, info, comm, win)
     @mpichk ccall((:MPI_Win_create_c, libmpi), Cint, (MPIPtr, MPI_Aint, MPI_Aint, MPI_Info, MPI_Comm, Ptr{MPI_Win}), base, size, disp_unit, info, comm, win) v"4.0.0" fallback=MPI_Win_create
@@ -5133,7 +5133,7 @@ end
 """
     MPI_Win_shared_query_c(win, rank, size, disp_unit, baseptr)
 
-$(_doc_external(:MPI_Win_shared_query_c))
+$(_doc_external(:MPI_Win_shared_query_c, v"4.0.0"))
 """
 function MPI_Win_shared_query_c(win, rank, size, disp_unit, baseptr)
     @mpichk ccall((:MPI_Win_shared_query_c, libmpi), Cint, (MPI_Win, Cint, Ptr{MPI_Aint}, Ptr{MPI_Aint}, MPIPtr), win, rank, size, disp_unit, baseptr) v"4.0.0" fallback=MPI_Win_shared_query
@@ -5142,7 +5142,7 @@ end
 """
     MPI_File_get_type_extent_c(fh, datatype, extent)
 
-$(_doc_external(:MPI_File_get_type_extent_c))
+$(_doc_external(:MPI_File_get_type_extent_c, v"4.0.0"))
 """
 function MPI_File_get_type_extent_c(fh, datatype, extent)
     @mpichk ccall((:MPI_File_get_type_extent_c, libmpi), Cint, (MPI_File, MPI_Datatype, Ptr{MPI_Count}), fh, datatype, extent) v"4.0.0" fallback=MPI_File_get_type_extent
@@ -5151,7 +5151,7 @@ end
 """
     MPI_File_iread_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iread_c))
+$(_doc_external(:MPI_File_iread_c, v"4.0.0"))
 """
 function MPI_File_iread_c(fh, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iread_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iread
@@ -5160,7 +5160,7 @@ end
 """
     MPI_File_iread_all_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iread_all_c))
+$(_doc_external(:MPI_File_iread_all_c, v"4.0.0"))
 """
 function MPI_File_iread_all_c(fh, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iread_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iread_all
@@ -5169,7 +5169,7 @@ end
 """
     MPI_File_iread_at_c(fh, offset, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iread_at_c))
+$(_doc_external(:MPI_File_iread_at_c, v"4.0.0"))
 """
 function MPI_File_iread_at_c(fh, offset, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iread_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iread_at
@@ -5178,7 +5178,7 @@ end
 """
     MPI_File_iread_at_all_c(fh, offset, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iread_at_all_c))
+$(_doc_external(:MPI_File_iread_at_all_c, v"4.0.0"))
 """
 function MPI_File_iread_at_all_c(fh, offset, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iread_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iread_at_all
@@ -5187,7 +5187,7 @@ end
 """
     MPI_File_iread_shared_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iread_shared_c))
+$(_doc_external(:MPI_File_iread_shared_c, v"4.0.0"))
 """
 function MPI_File_iread_shared_c(fh, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iread_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iread_shared
@@ -5196,7 +5196,7 @@ end
 """
     MPI_File_iwrite_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iwrite_c))
+$(_doc_external(:MPI_File_iwrite_c, v"4.0.0"))
 """
 function MPI_File_iwrite_c(fh, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iwrite_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iwrite
@@ -5205,7 +5205,7 @@ end
 """
     MPI_File_iwrite_all_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iwrite_all_c))
+$(_doc_external(:MPI_File_iwrite_all_c, v"4.0.0"))
 """
 function MPI_File_iwrite_all_c(fh, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iwrite_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iwrite_all
@@ -5214,7 +5214,7 @@ end
 """
     MPI_File_iwrite_at_c(fh, offset, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iwrite_at_c))
+$(_doc_external(:MPI_File_iwrite_at_c, v"4.0.0"))
 """
 function MPI_File_iwrite_at_c(fh, offset, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iwrite_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iwrite_at
@@ -5223,7 +5223,7 @@ end
 """
     MPI_File_iwrite_at_all_c(fh, offset, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iwrite_at_all_c))
+$(_doc_external(:MPI_File_iwrite_at_all_c, v"4.0.0"))
 """
 function MPI_File_iwrite_at_all_c(fh, offset, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iwrite_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, offset, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iwrite_at_all
@@ -5232,7 +5232,7 @@ end
 """
     MPI_File_iwrite_shared_c(fh, buf, count, datatype, request)
 
-$(_doc_external(:MPI_File_iwrite_shared_c))
+$(_doc_external(:MPI_File_iwrite_shared_c, v"4.0.0"))
 """
 function MPI_File_iwrite_shared_c(fh, buf, count, datatype, request)
     @mpichk ccall((:MPI_File_iwrite_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Request}), fh, buf, count, datatype, request) v"4.0.0" fallback=MPI_File_iwrite_shared
@@ -5241,7 +5241,7 @@ end
 """
     MPI_File_read_c(fh, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_read_c))
+$(_doc_external(:MPI_File_read_c, v"4.0.0"))
 """
 function MPI_File_read_c(fh, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_read_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_read
@@ -5250,7 +5250,7 @@ end
 """
     MPI_File_read_all_c(fh, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_read_all_c))
+$(_doc_external(:MPI_File_read_all_c, v"4.0.0"))
 """
 function MPI_File_read_all_c(fh, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_read_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_read_all
@@ -5259,7 +5259,7 @@ end
 """
     MPI_File_read_all_begin_c(fh, buf, count, datatype)
 
-$(_doc_external(:MPI_File_read_all_begin_c))
+$(_doc_external(:MPI_File_read_all_begin_c, v"4.0.0"))
 """
 function MPI_File_read_all_begin_c(fh, buf, count, datatype)
     @mpichk ccall((:MPI_File_read_all_begin_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype), fh, buf, count, datatype) v"4.0.0" fallback=MPI_File_read_all_begin
@@ -5268,7 +5268,7 @@ end
 """
     MPI_File_read_at_c(fh, offset, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_read_at_c))
+$(_doc_external(:MPI_File_read_at_c, v"4.0.0"))
 """
 function MPI_File_read_at_c(fh, offset, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_read_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_read_at
@@ -5277,7 +5277,7 @@ end
 """
     MPI_File_read_at_all_c(fh, offset, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_read_at_all_c))
+$(_doc_external(:MPI_File_read_at_all_c, v"4.0.0"))
 """
 function MPI_File_read_at_all_c(fh, offset, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_read_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_read_at_all
@@ -5286,7 +5286,7 @@ end
 """
     MPI_File_read_at_all_begin_c(fh, offset, buf, count, datatype)
 
-$(_doc_external(:MPI_File_read_at_all_begin_c))
+$(_doc_external(:MPI_File_read_at_all_begin_c, v"4.0.0"))
 """
 function MPI_File_read_at_all_begin_c(fh, offset, buf, count, datatype)
     @mpichk ccall((:MPI_File_read_at_all_begin_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype), fh, offset, buf, count, datatype) v"4.0.0" fallback=MPI_File_read_at_all_begin
@@ -5295,7 +5295,7 @@ end
 """
     MPI_File_read_ordered_c(fh, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_read_ordered_c))
+$(_doc_external(:MPI_File_read_ordered_c, v"4.0.0"))
 """
 function MPI_File_read_ordered_c(fh, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_read_ordered_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_read_ordered
@@ -5304,7 +5304,7 @@ end
 """
     MPI_File_read_ordered_begin_c(fh, buf, count, datatype)
 
-$(_doc_external(:MPI_File_read_ordered_begin_c))
+$(_doc_external(:MPI_File_read_ordered_begin_c, v"4.0.0"))
 """
 function MPI_File_read_ordered_begin_c(fh, buf, count, datatype)
     @mpichk ccall((:MPI_File_read_ordered_begin_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype), fh, buf, count, datatype) v"4.0.0" fallback=MPI_File_read_ordered_begin
@@ -5313,7 +5313,7 @@ end
 """
     MPI_File_read_shared_c(fh, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_read_shared_c))
+$(_doc_external(:MPI_File_read_shared_c, v"4.0.0"))
 """
 function MPI_File_read_shared_c(fh, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_read_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_read_shared
@@ -5322,7 +5322,7 @@ end
 """
     MPI_File_write_c(fh, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_write_c))
+$(_doc_external(:MPI_File_write_c, v"4.0.0"))
 """
 function MPI_File_write_c(fh, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_write_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_write
@@ -5331,7 +5331,7 @@ end
 """
     MPI_File_write_all_c(fh, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_write_all_c))
+$(_doc_external(:MPI_File_write_all_c, v"4.0.0"))
 """
 function MPI_File_write_all_c(fh, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_write_all_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_write_all
@@ -5340,7 +5340,7 @@ end
 """
     MPI_File_write_all_begin_c(fh, buf, count, datatype)
 
-$(_doc_external(:MPI_File_write_all_begin_c))
+$(_doc_external(:MPI_File_write_all_begin_c, v"4.0.0"))
 """
 function MPI_File_write_all_begin_c(fh, buf, count, datatype)
     @mpichk ccall((:MPI_File_write_all_begin_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype), fh, buf, count, datatype) v"4.0.0" fallback=MPI_File_write_all_begin
@@ -5349,7 +5349,7 @@ end
 """
     MPI_File_write_at_c(fh, offset, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_write_at_c))
+$(_doc_external(:MPI_File_write_at_c, v"4.0.0"))
 """
 function MPI_File_write_at_c(fh, offset, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_write_at_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_write_at
@@ -5358,7 +5358,7 @@ end
 """
     MPI_File_write_at_all_c(fh, offset, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_write_at_all_c))
+$(_doc_external(:MPI_File_write_at_all_c, v"4.0.0"))
 """
 function MPI_File_write_at_all_c(fh, offset, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_write_at_all_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, offset, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_write_at_all
@@ -5367,7 +5367,7 @@ end
 """
     MPI_File_write_at_all_begin_c(fh, offset, buf, count, datatype)
 
-$(_doc_external(:MPI_File_write_at_all_begin_c))
+$(_doc_external(:MPI_File_write_at_all_begin_c, v"4.0.0"))
 """
 function MPI_File_write_at_all_begin_c(fh, offset, buf, count, datatype)
     @mpichk ccall((:MPI_File_write_at_all_begin_c, libmpi), Cint, (MPI_File, MPI_Offset, MPIPtr, MPI_Count, MPI_Datatype), fh, offset, buf, count, datatype) v"4.0.0" fallback=MPI_File_write_at_all_begin
@@ -5376,7 +5376,7 @@ end
 """
     MPI_File_write_ordered_c(fh, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_write_ordered_c))
+$(_doc_external(:MPI_File_write_ordered_c, v"4.0.0"))
 """
 function MPI_File_write_ordered_c(fh, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_write_ordered_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_write_ordered
@@ -5385,7 +5385,7 @@ end
 """
     MPI_File_write_ordered_begin_c(fh, buf, count, datatype)
 
-$(_doc_external(:MPI_File_write_ordered_begin_c))
+$(_doc_external(:MPI_File_write_ordered_begin_c, v"4.0.0"))
 """
 function MPI_File_write_ordered_begin_c(fh, buf, count, datatype)
     @mpichk ccall((:MPI_File_write_ordered_begin_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype), fh, buf, count, datatype) v"4.0.0" fallback=MPI_File_write_ordered_begin
@@ -5394,7 +5394,7 @@ end
 """
     MPI_File_write_shared_c(fh, buf, count, datatype, status)
 
-$(_doc_external(:MPI_File_write_shared_c))
+$(_doc_external(:MPI_File_write_shared_c, v"4.0.0"))
 """
 function MPI_File_write_shared_c(fh, buf, count, datatype, status)
     @mpichk ccall((:MPI_File_write_shared_c, libmpi), Cint, (MPI_File, MPIPtr, MPI_Count, MPI_Datatype, Ptr{MPI_Status}), fh, buf, count, datatype, status) v"4.0.0" fallback=MPI_File_write_shared
@@ -5403,7 +5403,7 @@ end
 """
     MPI_Register_datarep_c(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
 
-$(_doc_external(:MPI_Register_datarep_c))
+$(_doc_external(:MPI_Register_datarep_c, v"4.0.0"))
 """
 function MPI_Register_datarep_c(datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state)
     @mpichk ccall((:MPI_Register_datarep_c, libmpi), Cint, (Ptr{Cchar}, Ptr{MPI_Datarep_conversion_function_c}, Ptr{MPI_Datarep_conversion_function_c}, Ptr{MPI_Datarep_extent_function}, MPIPtr), datarep, read_conversion_fn, write_conversion_fn, dtype_file_extent_fn, extra_state) v"4.0.0"

@@ -99,6 +99,13 @@ if isdefined(MPI.API, :MPI_Op_create_c) && !has_symbol(:MPI_Op_create_c)
         C_NULL, Cint(1), Ref(MPI.OP_NULL.val))
 end
 
+# `MPI_Pcontrol` is the one variadic procedure in the MPI C API, so it is hand-written
+# rather than generated. Calling it with only `level` needs no variadic argument passing.
+# `@mpichk` yields `true` once it has checked the error code, so these assert that the
+# call reached MPI and came back with MPI_SUCCESS.
+@test MPI.API.MPI_Pcontrol(0) == true   # profiling off
+@test MPI.API.MPI_Pcontrol(1) == true   # and on again
+
 MPI.Barrier(comm)
 GC.gc()
 MPI.Finalize()

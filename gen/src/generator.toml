@@ -16,11 +16,13 @@ output_ignorelist = [
     # which implement these as macros.
     # `MPI_Status_f2c` and `MPI_Status_c2f` do return error codes, so they are deliberately not ignored.
     "^MPI_(Comm|Datatype|Errhandler|File|Group|Info|Message|Op|Request|Type|Win)_(f2c|c2f|toint|fromint)$",
+    # Note: nothing needs to ignore `MPI_Pcontrol`. Clang.jl does not generate a wrapper
+    # for a variadic declaration at all, and it is the only one in the MPI C API; it is
+    # written by hand in src/api/api.jl instead.
+    #
     # Predefined callbacks, not callable entry points. `MPI_DUP_FN` in particular is
     # already a `@const_ref` in src/api/mpiabi.jl, so generating a function of that name
     # is an invalid redefinition of a constant.
     "^MPI_(DUP|NULL_COPY|NULL_DELETE)_FN$",
     "^MPI_CONVERSION_FN_NULL.*",
-    # Variadic; Clang's rendering is not callable from Julia.
-    "^MPI_Pcontrol$",
 ]

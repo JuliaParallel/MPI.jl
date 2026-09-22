@@ -46,7 +46,12 @@ module MPIgenerator
         mkpath(out)
 
         options = load_options(joinpath(@__DIR__, "generator.toml"))  # wrapper generator options
-        options["general"]["callback_documentation"] = node -> [string('$', "(_doc_external(:", node.id, "))")]
+        # Pass the introducing MPI version along: it decides whether Open MPI's released
+        # documentation covers the procedure, and so whether to link there at all.
+        options["general"]["callback_documentation"] = node -> begin
+            ver = get(INTRODUCED, Symbol(node.id), nothing)
+            [string('$', "(_doc_external(:", node.id, isnothing(ver) ? "" : ", $(repr(ver))", "))")]
+        end
 
         include_dir = normpath(artifact_dir, "include")
 

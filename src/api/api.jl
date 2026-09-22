@@ -254,6 +254,23 @@ displacements only from `int` to `MPI_Aint`, so neither [`MPI.API.Count`](@ref) 
 """
 const TypeDispl = HAS_LARGE_COUNT ? MPI_Count : MPI_Aint
 
+"""
+    MPI_Pcontrol(level::Integer)
+
+$(_doc_external(:MPI_Pcontrol))
+
+Written by hand rather than generated: `MPI_Pcontrol` is the MPI C API's only variadic
+procedure, and Clang.jl does not generate wrappers for those.
+
+The standard leaves the arguments after `level` implementation-defined, and they are not
+exposed here. Passing none of them means the call needs no variadic argument passing, so
+it goes through the same `@mpichk` path as everything else -- which keeps a profiler able
+to intercept it, this being exactly the procedure a profiling layer wants to see.
+"""
+function MPI_Pcontrol(level::Integer)
+    @mpichk ccall((:MPI_Pcontrol, libmpi), Cint, (Cint,), level)
+end
+
 for handle in [
     :MPI_Comm,
     :MPI_Datatype,
