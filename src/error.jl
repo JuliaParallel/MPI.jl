@@ -4,6 +4,5 @@ function error_string(err::MPIError)
     str_buf = Vector{UInt8}(undef, API.MPI_MAX_ERROR_STRING)
     # int MPI_Error_string(int errorcode, char *string, int *resultlen)
     API.MPI_Error_string(err.code, str_buf, len_ref)
-    resize!(str_buf, len_ref[])
-    return String(str_buf)
+    return _string_from_buffer(str_buf, len_ref[])
 end
