@@ -51,7 +51,7 @@
         setup:
           version:
             - "1.10"
-            - "1.12"
+            - "1.13"
       concurrency: 1
       concurrency_group: mpi_cuda
       plugins:
@@ -215,7 +215,7 @@
       plugins:
         # only used to resolve the Level Zero toolchain below
         - JuliaCI/julia#v1:
-            version: "1.12"
+            version: "1.13"
             persist_depot_dirs: packages,artifacts,compiled
       env:
         # MPICH 5 carries a year of Level Zero fixes over 4.3.x, which
@@ -277,7 +277,7 @@
         setup:
           version:
             - "1.10"
-            - "1.12"
+            - "1.13"
       concurrency: 1
       concurrency_group: mpi_oneapi
       plugins:

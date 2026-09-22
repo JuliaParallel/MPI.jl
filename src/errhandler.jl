@@ -23,8 +23,14 @@ add_load_time_hook!(LoadTimeHookSetVal(ERRORS_RETURN,    API.MPI_ERRORS_RETURN  
 
 Errhandler() = Errhandler(ERRHANDLER_NULL.val)
 
+# The predefined error handlers must never be freed, and we don't want to attach a
+# finalizer to them either: `get_errorhandler` is allowed to hand one back, in
+# which case the caller does not need to free.
+is_predefined(errh::Errhandler) =
+    errh == ERRHANDLER_NULL || errh == ERRORS_ARE_FATAL || errh == ERRORS_RETURN
+
 function free(errh::Errhandler)
-    if errh != ERRHANDLER_NULL && errh != ERRORS_ARE_FATAL && errh != ERRORS_RETURN && !Finalized()
+    if !is_predefined(errh) && !Finalized()
         # int MPI_Errhandler_free(MPI_Errhandler *errhandler)
         API.MPI_Errhandler_free(errh)
     end
@@ -59,16 +65,25 @@ Get the current [`Errhandler`](@ref) for the relevant MPI object.
 function get_errorhandler(comm::Comm)
     errh = Errhandler()
     API.MPI_Comm_get_errhandler(comm, errh)
+    # The MPI standard specifies that these behave as if a new error handler object were
+    # created, so the returned handler needs to be finalized
+    is_predefined(errh) || finalizer(free, errh)
     return errh
 end
 function get_errorhandler(win::Win)
     errh = Errhandler()
     API.MPI_Win_get_errhandler(win, errh)
+    # The MPI standard specifies that these behave as if a new error handler object were
+    # created, so the returned handler needs to be finalized
+    is_predefined(errh) || finalizer(free, errh)
     return errh
 end
 function get_errorhandler(file::File.FileHandle)
     errh = Errhandler()
     API.MPI_File_get_errhandler(file, errh)
+    # The MPI standard specifies that these behave as if a new error handler object were
+    # created, so the returned handler needs to be finalized
+    is_predefined(errh) || finalizer(free, errh)
     return errh
 end
 
