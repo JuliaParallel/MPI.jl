@@ -240,6 +240,11 @@ import Base: @deprecate
     (flag, stat) = Iprobe(src, tag, comm)
     flag || return (false, nothing, nothing)
     count = Get_count(stat, UInt8)
+    if isnothing(count)
+        # As in `recv`: counting in `UInt8` can only fail by overflowing the
+        # `Cint` that `MPI_Get_count` reports through.
+        error("`MPI.irecv`: the message is larger than $(typemax(Cint)) bytes, which `MPI_Get_count` cannot report")
+    end
     buf = Array{UInt8}(undef, count)
     stat = Recv!(buf, Get_source(stat), Get_tag(stat), comm)
     (true, MPI.deserialize(buf), stat)

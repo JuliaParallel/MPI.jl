@@ -169,6 +169,12 @@ recv(comm::Comm, status=nothing; source::Integer=API.MPI_ANY_SOURCE[], tag::Inte
 function recv(source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing})
     msg, stat = Mprobe(comm, Status; source=source, tag=tag)
     count = Get_count(stat, UInt8)
+    if isnothing(count)
+        # Counting in `UInt8` can only fail by overflowing the `Cint` that
+        # `MPI_Get_count` reports through; a byte count is necessarily a whole
+        # multiple of `sizeof(UInt8)`, so that cause cannot arise here.
+        error("`MPI.recv`: the message is larger than $(typemax(Cint)) bytes, which `MPI_Get_count` cannot report")
+    end
     buf = Array{UInt8}(undef, count)
     Mrecv!(buf, msg, status)
     return MPI.deserialize(buf)
