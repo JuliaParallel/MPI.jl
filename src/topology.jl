@@ -231,7 +231,7 @@ function Dist_graph_create_adjacent(comm::Comm, sources::Vector{Cint}, destinati
                                        length(sources), sources, source_weights,
                                        length(destinations), destinations, destination_weights,
                                        Info(infokws...), reorder, graph_comm)
-    graph_comm != COMM_NULL && finalizer(free, graph_comm)
+    finalizer(free, graph_comm)
     return graph_comm
 end
 
@@ -271,7 +271,7 @@ function Dist_graph_create(comm::Comm, sources::Vector{Cint}, degrees::Vector{Ci
     #                           MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
     API.MPI_Dist_graph_create(comm, length(sources), sources, degrees, destinations, weights,
                               Info(infokws...), reorder, graph_comm)
-    graph_comm != COMM_NULL && finalizer(free, graph_comm)
+    finalizer(free, graph_comm)
     return graph_comm
 end
 
