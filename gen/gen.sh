@@ -1,12 +1,39 @@
 #!/usr/bin/env bash
 #
-# Regenerate MPI.jl/src/api/generated_api.jl from an MPI implementation's headers.
+# Regenerate ../src/api/generated_api.jl by running Clang.jl over an MPI
+# implementation's headers. Run this by hand and commit the result; it is not wired
+# into CI.
 #
-#   ./gen.sh [MPICH_jll|OpenMPI_jll]
+#   cd gen
+#   JULIA="julia +1.10" ./gen.sh              # read MPICH's headers (the default)
+#   JULIA="julia +1.10" ./gen.sh OpenMPI_jll  # read Open MPI's instead
 #
-# Set JULIA to pick the interpreter, e.g. `JULIA="julia +1.10" ./gen.sh`. The pinned
-# Clang.jl needs an LLVM that only some Julia versions ship, so `gen/Project.toml`
-# constrains which ones work.
+# Julia 1.10, specifically: the pinned Clang.jl needs Clang_jll <= 15, which in turn
+# needs the LLVM 15 that only that Julia ships. `juliaup add 1.10` if you have not got
+# it. JULIA may carry arguments, so a juliaup channel works as above; leave it unset to
+# use whatever `julia` is on PATH. The first run downloads Clang_jll, which is over a
+# gigabyte, so expect it to take a while.
+#
+# Which MPI standard version the bindings cover is decided by the JLL versions that
+# gen/Project.toml pins -- MPICH 5.0 is MPI 5.0, Open MPI 5.0 is only MPI 3.1. To move
+# to a newer standard, raise the bound there and rerun. Bump the Clang bound on its own,
+# in its own commit: Clang.jl drives the formatting of the whole output file, so mixing
+# the two makes the diff unreviewable.
+#
+# Afterwards, read the diff rather than committing it blind. Worth looking for:
+#
+#   * signature changes to procedures that already existed -- const-correctness or an
+#     int -> MPI_Count change in a header silently changes a `ccall` argument type;
+#   * procedures whose C return value is not an error code. `@mpichk` would treat one as
+#     an errcode and throw on any nonzero result. Those are caught automatically from the
+#     `ccall` return type, so a new one shows up as `@mpicall`; a `Cint`-returning
+#     procedure that is not error-checked has to go in `mpicall` in src/MPIgenerator.jl;
+#   * names that collide with something hand-written in ../src/api/, which is what the
+#     ignorelist in src/generator.toml is for.
+#
+# A new MPI standard version also means refreshing src/versions.jl, which carries the
+# minimum version of each procedure and the set that has large-count `MPI_*_c` entry
+# points. That has its own script and its own instructions; see versions/README.md.
 #
 # The braces make the script immune to being edited while it runs.
 {
