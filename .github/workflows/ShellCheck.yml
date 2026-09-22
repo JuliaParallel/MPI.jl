@@ -6,11 +6,11 @@ on:
       - master
       - release-*
     tags: '*'
-    paths:
+    paths: &paths
       - 'bin/**'
+      - 'gen/gen.sh'
   pull_request:
-    paths:
-      - 'bin/**'
+    paths: *paths
 
 concurrency:
   # Skip intermediate builds: always.
@@ -26,4 +26,4 @@ jobs:
       - name: Install dependencies
         run: sudo apt install shellcheck
       - name: Check scripts
-        run: shellcheck bin/*
+        run: shellcheck bin/* gen/gen.sh

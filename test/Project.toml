@@ -1,4 +1,5 @@
 [deps]
+Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
 MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
