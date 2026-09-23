@@ -2,4 +2,29 @@
 library_name = "libmpi"
 output_common_file_path = "./out/common.jl"
 output_api_file_path = "./out/api.jl"
-output_ignorelist = ["^[PQ]MPI[XR]?_.*", "^MPI[XR]_.*", "^MPI_T_.*", "^MPI_Session_.*", "^MPI_Status_[\\w_]*f08.*", "^MPI_Group_from_session_pset.*"]
+output_ignorelist = [
+    # Deliberately outside MPI.jl's scope: the profiling and vendor-extension
+    # prefixes, the tool information interface, sessions, and the Fortran 2008
+    # status conversions.
+    "^[PQ]MPI[XR]?_.*",
+    "^MPI[XR]_.*",
+    "^MPI_T_.*",
+    "^MPI_Session_.*",
+    "^MPI_Status_[\\w_]*f08.*",
+    "^MPI_Group_from_session_pset.*",
+    # Handle <-> Fortran/integer conversions. These return a handle rather than an error
+    # code, so `@mpichk` would mistake the handle for an errcode; `MPI_Comm_f2c` and
+    # friends are instead written by hand in src/api/api.jl, which also handles ABIs
+    # which implement these as macros.
+    # `MPI_Status_f2c` and `MPI_Status_c2f` do return error codes, so they are deliberately not ignored.
+    "^MPI_(Comm|Datatype|Errhandler|File|Group|Info|Message|Op|Request|Type|Win)_(f2c|c2f|toint|fromint)$",
+    # Note: nothing needs to ignore `MPI_Pcontrol`. Clang.jl does not generate a wrapper
+    # for a variadic declaration at all, and it is the only one in the MPI C API; it is
+    # written by hand in src/api/api.jl instead.
+    #
+    # Predefined callbacks, not callable entry points. `MPI_DUP_FN` in particular is
+    # already a `@const_ref` in src/api/mpiabi.jl, so generating a function of that name
+    # is an invalid redefinition of a constant.
+    "^MPI_(DUP|NULL_COPY|NULL_DELETE)_FN$",
+    "^MPI_CONVERSION_FN_NULL.*",
+]

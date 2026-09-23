@@ -18,28 +18,26 @@ function deserialize(x)
 end
 
 
-function _doc_external(fname)
-    # Ideally we'd like to use the "latest" version of the docs, but MPICH v4.0
-    # at the moment seems to be the last version with all the docstrings.
-    mpich = "[MPICH](https://www.mpich.org/static/docs/v4.0/www3/$(fname).html)"
-    # All the *_c functions are undocumented in OpenMPI website
-    if !endswith(string(fname), "_c")
-        openmpi = "[OpenMPI](https://docs.open-mpi.org/en/main/man-openmpi/man3/$(fname).3.html)"
-        # Few docstrings aren't available for MPICH
-        if fname in (:MPI_Status_c2f, :MPI_Status_f2c) || startswith(string(fname), "MPI_Type_create_f90_")
-            return """
-            - `$fname` man page: $(openmpi)
-            """
-        else
-            return """
-            - `$fname` man page: $(openmpi), $(mpich)
-            """
-        end
-    else
+function _doc_external(fname, introduced=nothing)
+    # Pinned rather than "latest"/"main", which move under us and would silently rot these
+    # links. MPICH's tree is the version the bindings are generated from (see
+    # gen/Project.toml) and documents every procedure here.
+    mpich_manpages = "https://www.mpich.org/static/docs/v5.0.1/www3"
+    mpich = "[MPICH]($mpich_manpages/$(fname).html)"
+
+    # Open MPI's released series documents MPI 4.0 and earlier, but neither the
+    # large-count `_c` procedures nor anything added in MPI 4.1, so those get a MPICH
+    # link only.
+    if endswith(string(fname), "_c") || (!isnothing(introduced) && introduced > v"4.0")
         return """
         - `$fname` man page: $(mpich)
         """
     end
+    openmpi_manpages = "https://docs.open-mpi.org/en/v5.0.x/man-openmpi/man3"
+    openmpi = "[OpenMPI]($openmpi_manpages/$(fname).3.html)"
+    return """
+    - `$fname` man page: $(openmpi), $(mpich)
+    """
 end
 
 """
