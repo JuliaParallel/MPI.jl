@@ -260,15 +260,28 @@ const TypeDispl = HAS_LARGE_COUNT ? MPI_Count : MPI_Aint
 $(_doc_external(:MPI_Pcontrol))
 
 Written by hand rather than generated: `MPI_Pcontrol` is the MPI C API's only variadic
-procedure, and Clang.jl does not generate wrappers for those.
+procedure, and Clang.jl does not generate wrappers for those. The standard leaves the
+arguments after `level` implementation-defined, and they are not exposed here.
 
-The standard leaves the arguments after `level` implementation-defined, and they are not
-exposed here. Passing none of them means the call needs no variadic argument passing, so
-it goes through the same `@mpichk` path as everything else -- which keeps a profiler able
-to intercept it, this being exactly the procedure a profiling layer wants to see.
+The call has to be variadic even though it passes no variadic argument, which is why this
+uses `@ccall`'s `;` form rather than the `@mpichk` path everything else takes. Calling a
+variadic callee through a plain signature crashes: on x86-64 System V the callee reads
+`al` for the number of vector registers used, which a non-variadic call never sets, so
+`va_start` spills against garbage -- Intel MPI segfaults. On 32-bit Windows it is worse
+still, because a variadic function is `cdecl` even where the rest of MS-MPI is `stdcall`,
+so `@mpicall`'s `stdcall` fixup corrupts the stack.
+
+On Unix the symbol is named without a library so that an `LD_PRELOAD` profiler can
+intercept it, matching what `@mpicall` does -- this being exactly the procedure a
+profiling layer wants to see.
 """
 function MPI_Pcontrol(level::Integer)
-    @mpichk ccall((:MPI_Pcontrol, libmpi), Cint, (Cint,), level)
+    errcode = @static if Sys.isunix()
+        @ccall MPI_Pcontrol(level::Cint;)::Cint
+    else
+        @ccall libmpi.MPI_Pcontrol(level::Cint;)::Cint
+    end
+    errcode == 0 || throw(MPIError(errcode))
 end
 
 for handle in [

@@ -3,7 +3,9 @@ library_name = "libmpi"
 output_common_file_path = "./out/common.jl"
 output_api_file_path = "./out/api.jl"
 output_ignorelist = [
-    # Not part of the MPI standard, or not a C binding that MPI.jl can call.
+    # Deliberately outside MPI.jl's scope: the profiling and vendor-extension
+    # prefixes, the tool information interface, sessions, and the Fortran 2008
+    # status conversions.
     "^[PQ]MPI[XR]?_.*",
     "^MPI[XR]_.*",
     "^MPI_T_.*",
