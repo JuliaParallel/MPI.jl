@@ -31,9 +31,9 @@ function pool(S1::SummaryStat, S2::SummaryStat)
     SummaryStat(m,v,n)
 end
 
-# Register the custom reduction operator.  This is necessary only on platforms
-# where Julia doesn't support closures as cfunctions (e.g. ARM), but can be used
-# on all platforms for consistency.
+# Register the custom reduction operator.  This is optional -- any function can be
+# passed directly to the reduction -- but it builds the C callback ahead of time
+# instead of at run time, which is worth doing for an operator used repeatedly.
 MPI.@RegisterOp(pool, SummaryStat)
 
 X = randn(10,3) .* [1,3,7]'
