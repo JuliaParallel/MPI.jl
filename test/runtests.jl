@@ -91,9 +91,14 @@ testdir = @__DIR__
 istest(f) = endswith(f, ".jl") && startswith(f, "test_") && !in(f, excludefiles)
 testfiles = sort(filter(istest, readdir(testdir)))
 
+# Loaded into every test process so that a rank which dies from an uncaught
+# exception calls `MPI_Abort`, instead of leaving the job deadlocked.  See the
+# comments in that file.
+abort_on_error = joinpath(testdir, "abort_on_error.jl")
+
 @testset "$f" for f in testfiles
     cmd(n=nprocs) =
-        addenv(`$(mpiexec()) -n $n $(Base.julia_cmd()) --startup-file=no $(joinpath(testdir, f))`,
+        addenv(`$(mpiexec()) -n $n $(Base.julia_cmd()) --startup-file=no -L $(abort_on_error) $(joinpath(testdir, f))`,
                # `JULIA_MPI_TEST_NUM_PROCESSES` is used in `test_gather.jl` to
                # test number of processes.
                "JULIA_MPI_TEST_NUM_PROCESSES"=>string(n))
@@ -112,6 +117,9 @@ testfiles = sort(filter(istest, readdir(testdir)))
             end
         end
     elseif f == "test_error.jl"
+        # This test fails on purpose.  The nonzero exit status comes from the
+        # `MPI_Abort` in `abort_on_error.jl`, so an "application called
+        # MPI_Abort(MPI_COMM_WORLD, 1)" line in the log below is expected.
         r = run(ignorestatus(cmd()))
         @test !success(r)
     elseif f == "test_errorhandler.jl" && MPI.MPI_LIBRARY in ("unknown", "FujitsuMPI")

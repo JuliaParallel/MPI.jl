@@ -22,7 +22,13 @@ println("Hello world, I am $(MPI.Comm_rank(comm)) of $(MPI.Comm_size(comm))")
 MPI.Barrier(comm)
 ```
 
-Calling [`MPI.Finalize()`](@ref) at the end of the program is optional, as it will be called automatically when Julia exits.
+Calling [`MPI.Finalize()`](@ref) at the end of the program is optional, as it will be
+called automatically when Julia exits *normally*, i.e. with exit code `0`. If Julia
+exits with a nonzero exit code, for example because of an uncaught exception, then
+`MPI.Finalize()` is deliberately not called: it is collective, and the other ranks are
+not finalizing. Those ranks will instead remain blocked in their next collective call.
+If you want a rank that fails to bring the whole job down promptly, call
+[`MPI.Abort`](@ref) yourself.
 
 The program can then be launched via an MPI launch command (typically `mpiexec`, `mpirun` or `srun`), e.g.
 ```

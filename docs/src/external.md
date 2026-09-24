@@ -23,7 +23,7 @@ ccall((:cfunc2, lib), Cint, (Ptr{MPI.MPI_Comm},), comm)
 
 ## Object finalizers and `MPI.Finalize`
 
-External libraries may allocate their own MPI handles (e.g., create or duplicate MPI communicators), which need to be cleaned up before MPI is finalized. If these are attached to [object finalizers](https://docs.julialang.org/en/v1/base/base/#Base.finalizer), they may not be guaranteed to be called before `MPI.Finalize`, which can result in an error upon program exit. (By default, MPI.jl will install an [`atexit`](https://docs.julialang.org/en/v1/base/base/#Base.atexit) hook that calls `MPI.Finalize` if it hasn't already been invoked.)
+External libraries may allocate their own MPI handles (e.g., create or duplicate MPI communicators), which need to be cleaned up before MPI is finalized. If these are attached to [object finalizers](https://docs.julialang.org/en/v1/base/base/#Base.finalizer), they may not be guaranteed to be called before `MPI.Finalize`, which can result in an error upon program exit. (By default, MPI.jl will install an [`atexit`](https://docs.julialang.org/en/v1/base/base/#Base.atexit) hook that calls `MPI.Finalize` if it hasn't already been invoked. Note that this hook does nothing if Julia is exiting with a nonzero exit code, since `MPI.Finalize` is collective: in that case MPI is still initialized when the finalizers run, so a finalizer that makes a collective call such as `MPI_Comm_free` can block indefinitely against ranks that are elsewhere.)
 
 There are two typical solutions to this problem:
 
