@@ -14,6 +14,7 @@ MPI.Barrier(comm)
 # written as a contiguous block to a single file. Note that `data` is a
 # discontiguous view of the global array.
 data = ArrayType(rand(Float64, 3, 2, 5))
+synchronize()
 offset = (3rank, 2rank, 0)
 etype = MPI.Datatype(eltype(data))
 filetype = MPI.Types.create_subarray((3sz, 2sz, 5), size(data), offset, etype)
@@ -47,6 +48,9 @@ MPI.File.read!(fh, data_read)
 # Collective read
 disp = sizeof(data) * sz
 fill!(data_read, 0)
+# `fill!` runs asynchronously on GPUs; MPI must not write into `data_read`
+# before it has finished.
+synchronize()
 MPI.File.set_view!(fh, disp, etype, filetype)
 MPI.File.read_all!(fh, data_read)
 @test data_read == data
