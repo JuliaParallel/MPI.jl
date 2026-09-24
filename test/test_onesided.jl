@@ -154,5 +154,33 @@ let win = MPI.Win_create_dynamic(comm)
     MPI.free(win)
 end
 
+MPI.Barrier(comm)
+
+# Try a window over memory allocated by MPI
+let (win, allocated) = MPI.Win_allocate(Array{Int}, N, comm)
+    fill!(allocated, rank)
+    received = fill(-1, N)
+    MPI.Win_fence(win)
+    MPI.Get!(received, win; rank=(rank+1)%N)
+    MPI.Win_fence(win)
+    @test received == fill((rank+1)%N, N)
+
+    # disp_unit is sizeof(Int), so disp counts elements
+    got = Ref(-1)
+    MPI.Win_lock(win; rank=0, type=:shared)
+    MPI.Get!(got, win; rank=0, disp=N-1)
+    MPI.Win_unlock(win; rank=0)
+    @test got[] == 0
+
+    MPI.Barrier(comm)
+    MPI.free(win)
+end
+
+# A zero-size window is legal, and keeps the requested shape
+let (win, allocated) = MPI.Win_allocate(Array{Float64}, (0, 3), comm)
+    @test size(allocated) == (0, 3)
+    MPI.free(win)
+end
+
 MPI.Finalize()
 @test MPI.Finalized()

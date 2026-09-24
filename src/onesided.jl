@@ -70,6 +70,51 @@ function Win_create(base::SubArray{T}, comm::Comm; infokws...) where T
 end
 
 """
+    win, array = MPI.Win_allocate(Array{T}, dims, comm::Comm; infokws...)
+
+Create and allocate a memory window for objects of type `T` of dimension `dims`
+(either an integer or tuple of integers), returning a `Win` and the `Array{T}`
+attached to the local process.
+
+This is a collective call over `comm`, but `dims` can differ for each call (and
+can be zero).
+
+Unlike [`MPI.Win_create`](@ref), the window memory is allocated by MPI rather than
+by the caller, which allows the implementation to choose a backing store suited to
+one-sided access. The memory belongs to MPI, so `array` must not be accessed after
+[`MPI.free`](@ref) has been called on `win`.
+
+`disp_unit` is `sizeof(T)`, so the `disp` argument of [`MPI.Get!`](@ref) and
+[`MPI.Put!`](@ref) counts elements.
+
+`infokws` are info keys providing optimization hints.
+
+[`MPI.free`](@ref) should be called on the `Win` object once operations have
+been completed.
+
+# External links
+$(_doc_external("MPI_Win_allocate"))
+"""
+function Win_allocate(::Type{Ptr{T}}, len::Integer, comm::Comm; infokws...) where T
+    win = Win()
+    out_baseptr = Ref{Ptr{T}}()
+    # int MPI_Win_allocate(MPI_Aint size, int disp_unit, MPI_Info info,
+    #                      MPI_Comm comm, void *baseptr, MPI_Win *win)
+    API.MPI_Win_allocate(len*sizeof(T), sizeof(T), Info(infokws...), comm, out_baseptr, win)
+    finalizer(free, win)
+    return win, out_baseptr[]
+end
+function Win_allocate(::Type{Array{T}}, dims, comm::Comm; infokws...) where T
+    len = prod(dims)
+    win, ptr = Win_allocate(Ptr{T}, len, comm; infokws...)
+    # the ptr may be invalid for a zero-size window, which will cause an error as
+    # unsafe_wrap checks the alignment of ptr, even for length 0
+    array = len > 0 ? unsafe_wrap(Array, ptr, dims) : Array{T}(undef, dims)
+    win.object = array
+    return win, array
+end
+
+"""
     win, array = MPI.Win_allocate_shared(Array{T}, dims, comm::Comm; infokws...)
 
 Create and allocate a shared memory window for objects of type `T` of dimension
