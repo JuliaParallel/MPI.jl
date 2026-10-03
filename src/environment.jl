@@ -40,17 +40,6 @@ Free the MPI object handle `obj`. This is typically used as the finalizer, and s
 function free
 end
 
-
-const mpi_init_hooks = Any[]
-
-"""
-    MPI.add_init_hook!(f)
-
-Register a function `f` that will be called as `f()` when `MPI.Init` is
-called. These are invoked in a first-in, first-out (FIFO) order.
-"""
-add_init_hook!(f) = push!(mpi_init_hooks, f)
-
 """
     MPI.run_init_hooks()
 
@@ -61,27 +50,12 @@ manually if MPI has been initialized externally by a direct call to `MPI_Init()`
 to call this function multiple times (subsequent runs will be a no-op).
 """
 function run_init_hooks()
-    while !isempty(mpi_init_hooks)
-        f = popfirst!(mpi_init_hooks) # FIFO
-        f()
-    end
+    _set_init_datatypes()
     return nothing
 end
 
-const mpi_finalize_hooks = Any[]
-
-"""
-    MPI.add_finalize_hook!(f)
-
-Register a function `f` that will be called as `f()` when `MPI.Finalizer` is
-called. These are invoked in a last-in, first-out (LIFO) order.
-"""
-add_finalize_hook!(f) = push!(mpi_finalize_hooks, f)
 function run_finalize_hooks()
-    while !isempty(mpi_finalize_hooks)
-        f = pop!(mpi_finalize_hooks) # LIFO
-        f()
-    end
+    _finalize_datatypes()
     return nothing
 end
 
@@ -176,10 +150,10 @@ const THREAD_SINGLE     = ThreadLevel(API.MPI_THREAD_SINGLE[])
 const THREAD_FUNNELED   = ThreadLevel(API.MPI_THREAD_FUNNELED[])
 const THREAD_SERIALIZED = ThreadLevel(API.MPI_THREAD_SERIALIZED[])
 const THREAD_MULTIPLE   = ThreadLevel(API.MPI_THREAD_MULTIPLE[])
-add_load_time_hook!(LoadTimeHookSetVal(THREAD_SINGLE,     API.MPI_THREAD_SINGLE    ))
-add_load_time_hook!(LoadTimeHookSetVal(THREAD_FUNNELED,   API.MPI_THREAD_FUNNELED  ))
-add_load_time_hook!(LoadTimeHookSetVal(THREAD_SERIALIZED, API.MPI_THREAD_SERIALIZED))
-add_load_time_hook!(LoadTimeHookSetVal(THREAD_MULTIPLE,   API.MPI_THREAD_MULTIPLE  ))
+# add_load_time_hook!(LoadTimeHookSetVal(THREAD_SINGLE,     API.MPI_THREAD_SINGLE    ))
+# add_load_time_hook!(LoadTimeHookSetVal(THREAD_FUNNELED,   API.MPI_THREAD_FUNNELED  ))
+# add_load_time_hook!(LoadTimeHookSetVal(THREAD_SERIALIZED, API.MPI_THREAD_SERIALIZED))
+# add_load_time_hook!(LoadTimeHookSetVal(THREAD_MULTIPLE,   API.MPI_THREAD_MULTIPLE  ))
 ThreadLevel(threadlevel::Symbol) =
     threadlevel == :single ? THREAD_SINGLE :
     threadlevel == :funneled ? THREAD_FUNNELED :
@@ -395,3 +369,11 @@ See also [`MPI.has_cuda`](@ref), [`MPI.has_rocm`](@ref) and [`MPI.has_oneapi`](@
 more fine-grained checks.
 """
 has_gpu() = has_cuda() || has_rocm() || has_oneapi()
+
+function _set_load_time_environment()
+    LoadTimeHookSetVal(THREAD_SINGLE,     API.MPI_THREAD_SINGLE    )()
+    LoadTimeHookSetVal(THREAD_FUNNELED,   API.MPI_THREAD_FUNNELED  )()
+    LoadTimeHookSetVal(THREAD_SERIALIZED, API.MPI_THREAD_SERIALIZED)()
+    LoadTimeHookSetVal(THREAD_MULTIPLE,   API.MPI_THREAD_MULTIPLE  )()
+    return nothing
+end

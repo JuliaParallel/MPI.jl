@@ -34,7 +34,6 @@ Base.unsafe_convert(::Type{MPI_Info}, info::Info) = info.val
 Base.unsafe_convert(::Type{Ptr{MPI_Info}}, info::Info) = convert(Ptr{MPI_Info}, pointer_from_objref(info))
 
 const INFO_NULL = Info(API.MPI_INFO_NULL[])
-add_load_time_hook!(LoadTimeHookSetVal(INFO_NULL, API.MPI_INFO_NULL))
 
 function Info(;init=false)
     info = Info(INFO_NULL.val)
@@ -150,4 +149,9 @@ function Base.iterate(info::Info, i=0)
     else
         return nothing
     end
+end
+
+function _set_load_time_info()
+    LoadTimeHookSetVal(INFO_NULL, API.MPI_INFO_NULL)()
+    return nothing
 end
