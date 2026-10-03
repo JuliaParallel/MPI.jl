@@ -13,7 +13,6 @@ Base.unsafe_convert(::Type{Ptr{MPI_Comm}}, comm::Comm) = convert(Ptr{MPI_Comm}, 
 
 
 const COMM_NULL = Comm(API.MPI_COMM_NULL[])
-add_load_time_hook!(LoadTimeHookSetVal(COMM_NULL, API.MPI_COMM_NULL))
 
 """
     MPI.COMM_WORLD
@@ -22,7 +21,6 @@ A communicator containing all processes with which the local rank can communicat
 initialization. In a typical "static-process" model, this will be all processes.
 """
 const COMM_WORLD = Comm(API.MPI_COMM_WORLD[])
-add_load_time_hook!(LoadTimeHookSetVal(COMM_WORLD, API.MPI_COMM_WORLD))
 
 """
     MPI.COMM_SELF
@@ -30,7 +28,6 @@ add_load_time_hook!(LoadTimeHookSetVal(COMM_WORLD, API.MPI_COMM_WORLD))
 A communicator containing only the local process.
 """
 const COMM_SELF = Comm(API.MPI_COMM_SELF[])
-add_load_time_hook!(LoadTimeHookSetVal(COMM_SELF, API.MPI_COMM_SELF))
 
 Comm() = Comm(COMM_NULL.val)
 
@@ -185,7 +182,6 @@ mutable struct SplitType
     val::Cint
 end
 const COMM_TYPE_SHARED = SplitType(-1)
-add_load_time_hook!(LoadTimeHookSetVal(COMM_TYPE_SHARED, API.MPI_COMM_TYPE_SHARED))
 
 
 """
@@ -304,4 +300,12 @@ function Comm_compare(comm1::Comm, comm2::Comm)
     result = Ref{Cint}()
     API.MPI_Comm_compare(comm1, comm2, result)
     return Comparison(result[])
+end
+
+function _set_load_time_comm()
+    LoadTimeHookSetVal(COMM_NULL, API.MPI_COMM_NULL)()
+    LoadTimeHookSetVal(COMM_WORLD, API.MPI_COMM_WORLD)()
+    LoadTimeHookSetVal(COMM_SELF, API.MPI_COMM_SELF)()
+    LoadTimeHookSetVal(COMM_TYPE_SHARED, API.MPI_COMM_TYPE_SHARED)()
+    return nothing
 end

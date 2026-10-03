@@ -22,7 +22,6 @@ Base.unsafe_convert(::Type{MPI_Datatype}, datatype::Datatype) = datatype.val
 Base.unsafe_convert(::Type{Ptr{MPI_Datatype}}, datatype::Datatype) = convert(Ptr{MPI_Datatype}, pointer_from_objref(datatype))
 
 const DATATYPE_NULL = Datatype(API.MPI_DATATYPE_NULL[])
-add_load_time_hook!(LoadTimeHookSetVal(DATATYPE_NULL, API.MPI_DATATYPE_NULL))
 
 Datatype() = Datatype(DATATYPE_NULL.val)
 
@@ -66,9 +65,6 @@ end
 
 # datatype attribute to store Julia type
 const JULIA_TYPE_PTR_ATTR = Ref(Cint(0))
-add_init_hook!() do
-    JULIA_TYPE_PTR_ATTR[] = create_keyval(Datatype)
-end
 
 """
     to_type(datatype::Datatype)
@@ -133,20 +129,34 @@ const _predefined_datatypes = [
 ]
 
 for (mpiname, T) in _predefined_datatypes
-    @eval begin
-        const $mpiname = Datatype(API.$(Symbol(:MPI_,mpiname))[])
-        add_load_time_hook!(LoadTimeHookSetVal($mpiname, API.$(Symbol(:MPI_,mpiname))))
-    end
+    @eval const $mpiname = Datatype(API.$(Symbol(:MPI_, mpiname))[])
 end
 
 for (mpiname, T) in unique(last, _predefined_datatypes)
-    @eval begin
-        Datatype(::Type{$T}) = $mpiname
-        add_init_hook!(function()
-            @assert Types.size($mpiname) == sizeof($T)
-            set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T))
-            end)
-    end
+    @eval Datatype(::Type{$T}) = $mpiname
+end
+
+@eval function _set_load_time_datatypes()
+    LoadTimeHookSetVal(DATATYPE_NULL, API.MPI_DATATYPE_NULL)()
+    $(Expr(:block, [:($mpiname.val = API.$(Symbol(:MPI_, mpiname))[])
+                    for (mpiname, _) in _predefined_datatypes]...))
+    return nothing
+end
+
+_init_datatype_keyval!() = (JULIA_TYPE_PTR_ATTR[] = create_keyval(Datatype))
+
+@eval function _init_predefined_datatype_attrs!()
+    $(Expr(:block, [quote
+        @assert Types.size($mpiname) == sizeof($T)
+        set_attr!($mpiname, JULIA_TYPE_PTR_ATTR[], pointer_from_objref($T))
+    end for (mpiname, T) in unique(last, _predefined_datatypes)]...))
+    return nothing
+end
+
+function _set_init_datatypes()
+    _init_datatype_keyval!()
+    _init_predefined_datatype_attrs!()
+    return nothing
 end
 
 # Cache the created datatypes. The datatype constructor is often
@@ -159,12 +169,14 @@ const created_datatypes = IdDict{Type, Datatype}()
 # lock. It must be reentrant: `Types.create!` recursively calls `Datatype` on
 # the field types of a struct.
 const created_datatypes_lock = ReentrantLock()
-add_finalize_hook!() do
+
+function _finalize_datatypes()
     @lock created_datatypes_lock begin
         for datatype in values(created_datatypes)
             free(datatype)
         end
     end
+    return nothing
 end
 
 function Datatype(::Type{T}) where {T}

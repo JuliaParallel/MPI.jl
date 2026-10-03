@@ -7,7 +7,6 @@ Base.unsafe_convert(::Type{MPI_File}, file::FileHandle) = file.val
 Base.unsafe_convert(::Type{Ptr{MPI_File}}, file::FileHandle) = convert(Ptr{MPI_File}, pointer_from_objref(file))
 
 const FILE_NULL = FileHandle(API.MPI_FILE_NULL[])
-add_load_time_hook!(LoadTimeHookSetVal(FILE_NULL, API.MPI_FILE_NULL))
 
 FileHandle() = FileHandle(FILE_NULL.val)
 
@@ -424,9 +423,6 @@ end
 const SEEK_SET = Seek(MPI.API.MPI_SEEK_SET[])
 const SEEK_CUR = Seek(MPI.API.MPI_SEEK_CUR[])
 const SEEK_END = Seek(MPI.API.MPI_SEEK_END[])
-MPI.add_load_time_hook!(MPI.LoadTimeHookSetVal(SEEK_SET, MPI.API.MPI_SEEK_SET))
-MPI.add_load_time_hook!(MPI.LoadTimeHookSetVal(SEEK_CUR, MPI.API.MPI_SEEK_CUR))
-MPI.add_load_time_hook!(MPI.LoadTimeHookSetVal(SEEK_END, MPI.API.MPI_SEEK_END))
 
 """
     MPI.File.seek_shared(file::FileHandle, offset::Integer, whence::Seek=SEEK_SET)
@@ -494,3 +490,11 @@ function set_atomicity(file::FileHandle, flag::Bool)
 end
 
 end # module
+
+function _set_load_time_io()
+    LoadTimeHookSetVal(FILE_NULL, API.MPI_FILE_NULL)()
+    LoadTimeHookSetVal(File.SEEK_SET, MPI.API.MPI_SEEK_SET)()
+    LoadTimeHookSetVal(File.SEEK_CUR, MPI.API.MPI_SEEK_CUR)()
+    LoadTimeHookSetVal(File.SEEK_END, MPI.API.MPI_SEEK_END)()
+    return nothing
+end
