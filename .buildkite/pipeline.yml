@@ -205,167 +205,170 @@
            Pkg.test("MPI"; test_args=["--backend=AMDGPU"])
            '
 
- - group: "oneAPI"
-   key: "oneapi"
-   steps:
-    - label: "Build MPICH"
-      key: "oneapi-build-mpich"
-      agents:
-        queue: "oneapi"
-      plugins:
-        # only used to resolve the Level Zero toolchain below
-        - JuliaCI/julia#v1:
-            version: "1.13"
-            persist_depot_dirs: packages,artifacts,compiled
-      env:
-        # MPICH 5 carries a year of Level Zero fixes over 4.3.x, which
-        # intermittently corrupts small device-buffer messages on this device
-        MPICH_VER_FULL: "5.0.1"
-        # yaksa compiles its Level Zero kernels to (device independent) SPIR-V with
-        # `ocloc -device skl`, but Skylake was dropped from recent releases of the
-        # Intel compute runtime, so retarget the kernels at a device it still knows.
-        OCLOC_SPV_DEVICE: "mtl"
-        CCACHE_DIR: "/root/ccache"
-      commands: |
-        echo "--- Install packages"
-        # libdrm-dev provides libdrm/i915_drm.h, without which MPICH silently
-        # configures away drmfd support and its ZE IPC then fails at MPI_Init
-        apt-get install --yes --no-install-recommends build-essential curl ccache libdrm-dev
-        export PATH="/usr/lib/ccache:$$PATH"
-
-        echo "--- Level Zero toolchain"
-        # Build against the same Level Zero loader and compute runtime that oneAPI.jl
-        # uses, so that MPICH and oneAPI.jl share a single loader in the test process.
-        julia --color=yes -e '
-            using Pkg
-            Pkg.activate(; temp=true)
-            Pkg.add(["NEO_jll", "libigc_jll", "oneAPI_Level_Zero_Loader_jll"])
-            using NEO_jll, libigc_jll, oneAPI_Level_Zero_Loader_jll
-            write("neo-dir", NEO_jll.artifact_dir)
-            write("igc-dir", libigc_jll.artifact_dir)
-            write("ze-dir", oneAPI_Level_Zero_Loader_jll.artifact_dir)
-            '
-        export PATH="$$(cat neo-dir)/bin:$$PATH"
-        export LD_LIBRARY_PATH="$$(cat igc-dir)/lib:$$(cat neo-dir)/lib:$$LD_LIBRARY_PATH"
-
-        echo "--- Build MPICH"
-        curl -L https://www.mpich.org/static/downloads/$${MPICH_VER_FULL}/mpich-$${MPICH_VER_FULL}.tar.gz --output mpich.tar.gz
-        tar -zxf mpich.tar.gz
-        pushd mpich-$${MPICH_VER_FULL}
-        # fails the step once yaksa stops targeting skl, so the workaround can be dropped
-        grep -q -- "-device skl -spv_only" src/mpi/datatype/typerep/yaksa/Makefile.in
-        sed -i "s/-device skl -spv_only/-device $${OCLOC_SPV_DEVICE} -spv_only/" src/mpi/datatype/typerep/yaksa/Makefile.in
-        ./configure --with-ze=$$(cat ../ze-dir) --disable-fortran --enable-fast=O2 --prefix=$$(realpath ../mpi-prefix)
-        make -j $(nproc)
-        make install
-        popd
-
-        echo "--- Package prefix"
-        tar -zcf mpi-prefix.tar.gz mpi-prefix/
-
-        echo "--- ccache stats"
-        ccache -s
-      artifact_paths:
-        - "mpi-prefix.tar.gz"
-
-    - wait
-
-    # the label has to differ from the CUDA and ROCm ones, as the GitHub checks
-    # are named after it
-    - label: "oneAPI tests -- Julia {{matrix.version}}"
-      matrix:
-        setup:
-          version:
-            - "1.10"
-            - "1.13"
-      concurrency: 1
-      concurrency_group: mpi_oneapi
-      plugins:
-        - JuliaCI/julia#v1:
-            version: "{{matrix.version}}"
-            persist_depot_dirs: packages,artifacts,compiled
-      agents:
-        queue: "oneapi"
-      if: build.message !~ /\[skip tests\]/
-      timeout_in_minutes: 90
-      # MPICH's ZE backend intermittently corrupts small device-buffer
-      # messages on this device (see the run-tests comment below), which can
-      # strike any test in the suite; don't let the known-broken upstream
-      # stack block PRs
-      soft_fail: true
-      env:
-        JULIA_MPI_TEST_NPROCS: 2
-        JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/mpich"
-        JULIA_MPI_HAS_ONEAPI: "true"
-        # yaksa builds pack/unpack kernels for all datatypes, so the JIT has to
-        # emulate Float64 on devices without native support for it.
-        OverrideDefaultFP64Settings: 1
-        IGC_EnableDPEmulation: 1
-        # the test container maps the render nodes but not /dev/dri/by-path,
-        # which MPICH's drmfd-based ZE IPC scans at MPI_Init, so exchange
-        # dma-buf handles via pidfd_getfd instead
-        MPIR_CVAR_CH4_IPC_ZE_SHAREABLE_HANDLE: "pidfd"
-        # without AVX enabled (MPICH builds with plain -O2), MPL_gpu_fast_memcpy
-        # copies through mmapped write-combined device memory with no store
-        # fence, intermittently losing small writes; force the ZE command-list
-        # copy path instead
-        MPIR_CVAR_GPU_FAST_COPY_MAX_SIZE: 0
-        MPIR_CVAR_GPU_FAST_COPY_MAX_SIZE_H2D: 0
-        MPIR_CVAR_GPU_FAST_COPY_MAX_SIZE_D2H: 0
-        # MPICH defaults to legacy command queues for its ZE copies, a path
-        # recent compute runtimes barely exercise (SYCL and oneAPI.jl submit
-        # via immediate command lists); the legacy path intermittently corrupts
-        # small host<->device copies on this device
-        MPIR_CVAR_GPU_USE_IMMEDIATE_COMMAND_LIST: 1
-      commands: |
-        echo "--- Install packages"
-        # libdrm-dev pulls libpciaccess into the build container, where MPICH's
-        # embedded hwloc picks it up as a dependency of libmpi
-        apt-get install --yes --no-install-recommends libpciaccess0
-
-        echo "--- Inspect GPU devices"
-        ls -la /dev/dri/ || true
-
-        echo "--- Configure MPI"
-        buildkite-agent artifact download --step "oneapi-build-mpich" mpi-prefix.tar.gz .
-        mkdir -p $${JULIA_MPI_PATH}
-        tar -zxf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
-        export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
-        export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
-
-        echo "--- Setup Julia packages"
-        julia --color=yes --project=. -e '
-            import Pkg
-            Pkg.develop(; path = joinpath(pwd(), "lib", "MPIPreferences"))
-            '
-        julia --color=yes --project=test -e '
-            using Pkg
-            Pkg.develop(path="lib/MPIPreferences")
-            # oneAPI_Level_Zero_Loader_jll is resolved alongside oneAPI, so that
-            # libmpi picks up the very loader oneAPI.jl uses
-            Pkg.add(["oneAPI", "oneAPI_Level_Zero_Loader_jll"])
-            using oneAPI_Level_Zero_Loader_jll
-            write("ze-dir", oneAPI_Level_Zero_Loader_jll.artifact_dir)
-            '
-        # libmpi links against libze_loader, so the loader has to be resolvable
-        # already when MPIPreferences dlopens libmpi below
-        export LD_LIBRARY_PATH=$$(cat ze-dir)/lib:$${LD_LIBRARY_PATH}
-        ldd $${JULIA_MPI_PATH}/lib/libmpi.so
-        julia --color=yes --project=test -e '
-            using MPIPreferences
-            MPIPreferences.use_system_binary(export_prefs=true)
-            rm("test/Manifest.toml")
-            '
-
-        echo "+++ Run tests"
-        # MPICH (4.3.2 and 5.0.1 alike) intermittently corrupts small
-        # device-buffer messages on this iGPU: the tail of a message received
-        # into device memory is stale or scrambled while its head is intact.
-        # The alltoall tests trip over this near-deterministically, so exclude
-        # them; the rest of the suite mostly passes but can be struck by the
-        # same bug, hence soft_fail on this step.
-        export JULIA_MPI_TEST_EXCLUDE="test_alltoall.jl,test_alltoallv.jl"
-        julia --color=yes --project=. -e '
-           import Pkg
-           Pkg.test("MPI"; test_args=["--backend=oneAPI"])
-           '
+ # Disabled: the oneAPI tests have failed on every build since at least 2026-09-18 (e.g.
+ # test_allgather.jl errors under MPICH on the Intel iGPU). Re-enable once they pass.
+ #
+ # - group: "oneAPI"
+ #   key: "oneapi"
+ #   steps:
+ #    - label: "Build MPICH"
+ #      key: "oneapi-build-mpich"
+ #      agents:
+ #        queue: "oneapi"
+ #      plugins:
+ #        # only used to resolve the Level Zero toolchain below
+ #        - JuliaCI/julia#v1:
+ #            version: "1.13"
+ #            persist_depot_dirs: packages,artifacts,compiled
+ #      env:
+ #        # MPICH 5 carries a year of Level Zero fixes over 4.3.x, which
+ #        # intermittently corrupts small device-buffer messages on this device
+ #        MPICH_VER_FULL: "5.0.1"
+ #        # yaksa compiles its Level Zero kernels to (device independent) SPIR-V with
+ #        # `ocloc -device skl`, but Skylake was dropped from recent releases of the
+ #        # Intel compute runtime, so retarget the kernels at a device it still knows.
+ #        OCLOC_SPV_DEVICE: "mtl"
+ #        CCACHE_DIR: "/root/ccache"
+ #      commands: |
+ #        echo "--- Install packages"
+ #        # libdrm-dev provides libdrm/i915_drm.h, without which MPICH silently
+ #        # configures away drmfd support and its ZE IPC then fails at MPI_Init
+ #        apt-get install --yes --no-install-recommends build-essential curl ccache libdrm-dev
+ #        export PATH="/usr/lib/ccache:$$PATH"
+ #
+ #        echo "--- Level Zero toolchain"
+ #        # Build against the same Level Zero loader and compute runtime that oneAPI.jl
+ #        # uses, so that MPICH and oneAPI.jl share a single loader in the test process.
+ #        julia --color=yes -e '
+ #            using Pkg
+ #            Pkg.activate(; temp=true)
+ #            Pkg.add(["NEO_jll", "libigc_jll", "oneAPI_Level_Zero_Loader_jll"])
+ #            using NEO_jll, libigc_jll, oneAPI_Level_Zero_Loader_jll
+ #            write("neo-dir", NEO_jll.artifact_dir)
+ #            write("igc-dir", libigc_jll.artifact_dir)
+ #            write("ze-dir", oneAPI_Level_Zero_Loader_jll.artifact_dir)
+ #            '
+ #        export PATH="$$(cat neo-dir)/bin:$$PATH"
+ #        export LD_LIBRARY_PATH="$$(cat igc-dir)/lib:$$(cat neo-dir)/lib:$$LD_LIBRARY_PATH"
+ #
+ #        echo "--- Build MPICH"
+ #        curl -L https://www.mpich.org/static/downloads/$${MPICH_VER_FULL}/mpich-$${MPICH_VER_FULL}.tar.gz --output mpich.tar.gz
+ #        tar -zxf mpich.tar.gz
+ #        pushd mpich-$${MPICH_VER_FULL}
+ #        # fails the step once yaksa stops targeting skl, so the workaround can be dropped
+ #        grep -q -- "-device skl -spv_only" src/mpi/datatype/typerep/yaksa/Makefile.in
+ #        sed -i "s/-device skl -spv_only/-device $${OCLOC_SPV_DEVICE} -spv_only/" src/mpi/datatype/typerep/yaksa/Makefile.in
+ #        ./configure --with-ze=$$(cat ../ze-dir) --disable-fortran --enable-fast=O2 --prefix=$$(realpath ../mpi-prefix)
+ #        make -j $(nproc)
+ #        make install
+ #        popd
+ #
+ #        echo "--- Package prefix"
+ #        tar -zcf mpi-prefix.tar.gz mpi-prefix/
+ #
+ #        echo "--- ccache stats"
+ #        ccache -s
+ #      artifact_paths:
+ #        - "mpi-prefix.tar.gz"
+ #
+ #    - wait
+ #
+ #    # the label has to differ from the CUDA and ROCm ones, as the GitHub checks
+ #    # are named after it
+ #    - label: "oneAPI tests -- Julia {{matrix.version}}"
+ #      matrix:
+ #        setup:
+ #          version:
+ #            - "1.10"
+ #            - "1.13"
+ #      concurrency: 1
+ #      concurrency_group: mpi_oneapi
+ #      plugins:
+ #        - JuliaCI/julia#v1:
+ #            version: "{{matrix.version}}"
+ #            persist_depot_dirs: packages,artifacts,compiled
+ #      agents:
+ #        queue: "oneapi"
+ #      if: build.message !~ /\[skip tests\]/
+ #      timeout_in_minutes: 90
+ #      # MPICH's ZE backend intermittently corrupts small device-buffer
+ #      # messages on this device (see the run-tests comment below), which can
+ #      # strike any test in the suite; don't let the known-broken upstream
+ #      # stack block PRs
+ #      soft_fail: true
+ #      env:
+ #        JULIA_MPI_TEST_NPROCS: 2
+ #        JULIA_MPI_PATH: "${BUILDKITE_BUILD_CHECKOUT_PATH}/mpich"
+ #        JULIA_MPI_HAS_ONEAPI: "true"
+ #        # yaksa builds pack/unpack kernels for all datatypes, so the JIT has to
+ #        # emulate Float64 on devices without native support for it.
+ #        OverrideDefaultFP64Settings: 1
+ #        IGC_EnableDPEmulation: 1
+ #        # the test container maps the render nodes but not /dev/dri/by-path,
+ #        # which MPICH's drmfd-based ZE IPC scans at MPI_Init, so exchange
+ #        # dma-buf handles via pidfd_getfd instead
+ #        MPIR_CVAR_CH4_IPC_ZE_SHAREABLE_HANDLE: "pidfd"
+ #        # without AVX enabled (MPICH builds with plain -O2), MPL_gpu_fast_memcpy
+ #        # copies through mmapped write-combined device memory with no store
+ #        # fence, intermittently losing small writes; force the ZE command-list
+ #        # copy path instead
+ #        MPIR_CVAR_GPU_FAST_COPY_MAX_SIZE: 0
+ #        MPIR_CVAR_GPU_FAST_COPY_MAX_SIZE_H2D: 0
+ #        MPIR_CVAR_GPU_FAST_COPY_MAX_SIZE_D2H: 0
+ #        # MPICH defaults to legacy command queues for its ZE copies, a path
+ #        # recent compute runtimes barely exercise (SYCL and oneAPI.jl submit
+ #        # via immediate command lists); the legacy path intermittently corrupts
+ #        # small host<->device copies on this device
+ #        MPIR_CVAR_GPU_USE_IMMEDIATE_COMMAND_LIST: 1
+ #      commands: |
+ #        echo "--- Install packages"
+ #        # libdrm-dev pulls libpciaccess into the build container, where MPICH's
+ #        # embedded hwloc picks it up as a dependency of libmpi
+ #        apt-get install --yes --no-install-recommends libpciaccess0
+ #
+ #        echo "--- Inspect GPU devices"
+ #        ls -la /dev/dri/ || true
+ #
+ #        echo "--- Configure MPI"
+ #        buildkite-agent artifact download --step "oneapi-build-mpich" mpi-prefix.tar.gz .
+ #        mkdir -p $${JULIA_MPI_PATH}
+ #        tar -zxf mpi-prefix.tar.gz --strip-components 1 -C $${JULIA_MPI_PATH}
+ #        export PATH=$${JULIA_MPI_PATH}/bin:$${PATH}
+ #        export LD_LIBRARY_PATH=$${JULIA_MPI_PATH}/lib:$${LD_LIBRARY_PATH}
+ #
+ #        echo "--- Setup Julia packages"
+ #        julia --color=yes --project=. -e '
+ #            import Pkg
+ #            Pkg.develop(; path = joinpath(pwd(), "lib", "MPIPreferences"))
+ #            '
+ #        julia --color=yes --project=test -e '
+ #            using Pkg
+ #            Pkg.develop(path="lib/MPIPreferences")
+ #            # oneAPI_Level_Zero_Loader_jll is resolved alongside oneAPI, so that
+ #            # libmpi picks up the very loader oneAPI.jl uses
+ #            Pkg.add(["oneAPI", "oneAPI_Level_Zero_Loader_jll"])
+ #            using oneAPI_Level_Zero_Loader_jll
+ #            write("ze-dir", oneAPI_Level_Zero_Loader_jll.artifact_dir)
+ #            '
+ #        # libmpi links against libze_loader, so the loader has to be resolvable
+ #        # already when MPIPreferences dlopens libmpi below
+ #        export LD_LIBRARY_PATH=$$(cat ze-dir)/lib:$${LD_LIBRARY_PATH}
+ #        ldd $${JULIA_MPI_PATH}/lib/libmpi.so
+ #        julia --color=yes --project=test -e '
+ #            using MPIPreferences
+ #            MPIPreferences.use_system_binary(export_prefs=true)
+ #            rm("test/Manifest.toml")
+ #            '
+ #
+ #        echo "+++ Run tests"
+ #        # MPICH (4.3.2 and 5.0.1 alike) intermittently corrupts small
+ #        # device-buffer messages on this iGPU: the tail of a message received
+ #        # into device memory is stale or scrambled while its head is intact.
+ #        # The alltoall tests trip over this near-deterministically, so exclude
+ #        # them; the rest of the suite mostly passes but can be struck by the
+ #        # same bug, hence soft_fail on this step.
+ #        export JULIA_MPI_TEST_EXCLUDE="test_alltoall.jl,test_alltoallv.jl"
+ #        julia --color=yes --project=. -e '
+ #           import Pkg
+ #           Pkg.test("MPI"; test_args=["--backend=oneAPI"])
+ #           '
