@@ -53,5 +53,32 @@ let
     @test srcw2 == srcw3 == Cint[prev_rank + comm_size]
 end
 
+# Both `Dist_graph_create*` must attach a finalizer, like every other
+# communicator constructor, so that the communicator is not leaked.
+let
+    graph_comm = ring_graph(; weighted=false)
+    @test graph_comm != MPI.COMM_NULL
+    finalize(graph_comm)
+    @test graph_comm == MPI.COMM_NULL
+end
+
+let
+    sources = Cint[prev_rank]
+    destinations = Cint[next_rank]
+    graph_comm = MPI.Dist_graph_create_adjacent(comm, sources, destinations)
+    @test graph_comm != MPI.COMM_NULL
+    finalize(graph_comm)
+    @test graph_comm == MPI.COMM_NULL
+end
+
+# An explicit `free` must compose with the finalizer rather than double-free.
+let
+    graph_comm = ring_graph(; weighted=false)
+    MPI.free(graph_comm)
+    @test graph_comm == MPI.COMM_NULL
+    finalize(graph_comm)
+    @test graph_comm == MPI.COMM_NULL
+end
+
 MPI.Finalize()
 @test MPI.Finalized()
