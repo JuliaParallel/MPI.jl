@@ -1,14 +1,5 @@
 include("common.jl")
 
-# Closures might not be supported by cfunction
-const can_do_closures =
-    ArrayType === Array &&
-    !(MPI.MPI_LIBRARY == "MicrosoftMPI" && Sys.WORD_SIZE == 32) &&
-    Sys.ARCH !== :powerpc64le &&
-    Sys.ARCH !== :ppc64le &&
-    Sys.ARCH !== :aarch64 &&
-    !startswith(string(Sys.ARCH), "arm")
-
 # a non-builtin isbits type to test generic MPI.reduce
 struct TestSum
     hi::Float64
