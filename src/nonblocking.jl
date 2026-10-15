@@ -7,12 +7,6 @@ PROC_NULL::Cint = typemin(Cint)
 ANY_SOURCE::Cint = typemin(Cint)
 ANY_TAG::Cint = typemin(Cint)
 
-add_load_time_hook!() do
-    global PROC_NULL = API.MPI_PROC_NULL[]
-    global ANY_SOURCE = API.MPI_ANY_SOURCE[]
-    global ANY_TAG = API.MPI_ANY_TAG[]
-end
-
 """
     MPI.PROC_NULL
 
@@ -190,7 +184,6 @@ Base.unsafe_convert(::Type{Ptr{MPI_Request}}, request::Request) = convert(Ptr{MP
 
 
 const REQUEST_NULL = Request(API.MPI_REQUEST_NULL[], nothing)
-add_load_time_hook!(LoadTimeHookSetVal(REQUEST_NULL, API.MPI_REQUEST_NULL))
 
 """
     MPI.UnsafeRequest()
@@ -786,4 +779,12 @@ function Base.wait(req::MPI.Request)
     while !MPI.Test(req)
         yield()
     end
+end
+
+function _set_load_time_nonblocking()
+    global PROC_NULL = API.MPI_PROC_NULL[]
+    global ANY_SOURCE = API.MPI_ANY_SOURCE[]
+    global ANY_TAG = API.MPI_ANY_TAG[]
+    LoadTimeHookSetVal(REQUEST_NULL, API.MPI_REQUEST_NULL)()
+    return nothing
 end
