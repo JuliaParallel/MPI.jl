@@ -164,7 +164,7 @@ function read!(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read(MPI_File fh, void *buf,
     #                   int count, MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_read(file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_c(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read!(file::FileHandle, data) = read!(file, Buffer(data))
@@ -187,7 +187,7 @@ function read_all!(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read_all(MPI_File fh, void *buf,
     #                       int count, MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_read_all(file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_all_c(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_all!(file::FileHandle, data) = read_all!(file, Buffer(data))
@@ -209,7 +209,7 @@ function write(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write(MPI_File fh, const void *buf,
     #                    int count, MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_write(file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_c(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write(file::FileHandle, data) = write(file, Buffer_send(data))
@@ -232,7 +232,7 @@ function write_all(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_all(MPI_File fh, const void *buf,
     #                    int count, MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_write_all(file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_all_c(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_all(file::FileHandle, data) = write_all(file, Buffer_send(data))
@@ -255,7 +255,7 @@ function read_at!(file::FileHandle, offset::Integer, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read_at(MPI_File fh, MPI_Offset offset, void *buf, int count,
     #                      MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_read_at(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_at_c(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_at!(file::FileHandle, offset::Integer, data) = read_at!(file, offset, Buffer(data))
@@ -278,7 +278,7 @@ function read_at_all!(file::FileHandle, offset::Integer, buf::Buffer)
 
     # int MPI_File_read_at_all(MPI_File fh, MPI_Offset offset, void *buf,
     #                          int count, MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_read_at_all(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_at_all_c(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_at_all!(file::FileHandle, offset::Integer, data) = read_at_all!(file, offset, Buffer(data))
@@ -299,7 +299,7 @@ function write_at(file::FileHandle, offset::Integer, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_at(MPI_File fh, MPI_Offset offset, const void *buf,
     #                       int count, MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_write_at(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_at_c(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_at(file::FileHandle, offset::Integer, data) = write_at(file, offset, Buffer_send(data))
@@ -321,7 +321,7 @@ function write_at_all(file::FileHandle, offset::Integer, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_at_all(MPI_File fh, MPI_Offset offset, const void *buf,
     #                           int count, MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_write_at_all(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_at_all_c(file, offset, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_at_all(file::FileHandle, offset::Integer, data) = write_at_all(file, offset, Buffer_send(data))
@@ -344,7 +344,7 @@ function read_shared!(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read_shared(MPI_File fh, void *buf, int count,
     #              MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_read_shared(file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_shared_c(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_shared!(file::FileHandle, data) = read_shared!(file, Buffer(data))
@@ -365,7 +365,7 @@ function write_shared(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_shared(MPI_File fh, const void *buf, int count,
     #          MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_write_shared(file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_shared_c(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_shared(file::FileHandle, buf) = write_shared(file, Buffer_send(buf))
@@ -389,7 +389,7 @@ function read_ordered!(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_read_ordered(MPI_File fh, void *buf, int count,
     #              MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_read_ordered(file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_read_ordered_c(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 read_ordered!(file::FileHandle, data) = read_ordered!(file, Buffer(data))
@@ -412,7 +412,7 @@ function write_ordered(file::FileHandle, buf::Buffer)
     stat_ref = Ref(MPI.STATUS_ZERO)
     # int MPI_File_write_ordered(MPI_File fh, const void *buf, int count,
     #              MPI_Datatype datatype, MPI_Status *status)
-    API.MPI_File_write_ordered(file, buf.data, buf.count, buf.datatype, stat_ref)
+    API.MPI_File_write_ordered_c(file, buf.data, buf.count, buf.datatype, stat_ref)
     return stat_ref[]
 end
 write_ordered(file::FileHandle, buf) = write_ordered(file, Buffer_send(buf))
