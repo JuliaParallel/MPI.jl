@@ -157,7 +157,8 @@ Construct a `Buffer` backed by `data`, automatically determining the appropriate
 and `datatype`. Methods are provided for
 
  - `Ref`
- - `Array`
+ - `DenseArray`s such as `Array` and `Memory` (except `BitArray`), provided that they can
+   be converted to an [`MPIPtr`](@ref)
  - `CUDA.CuArray` if CUDA.jl is loaded.
  - `AMDGPU.ROCArray` if AMDGPU.jl is loaded.
  - `oneAPI.oneArray` if oneAPI.jl is loaded.
@@ -184,9 +185,16 @@ end
 Buffer(buf::Buffer) = buf
 Buffer(data, count::Integer, datatype::Datatype) = Buffer(data, Cint(count), datatype)
 
-function Buffer(arr::Array)
+# Any `DenseArray` stores its elements contiguously in column-major order, so it can be
+# communicated as `length(arr)` elements of `eltype(arr)`. This covers `Array`, `Memory`
+# and dense array types from other packages (e.g. `FixedSizeArray`), provided that they
+# can be converted to an `MPIPtr` (see `mpi_ptr_type`).
+function Buffer(arr::DenseArray)
     Buffer(arr, Cint(length(arr)), Datatype(eltype(arr)))
 end
+# `BitArray` is a `DenseArray{Bool}`, but stores its elements as packed bits.
+Buffer(::BitArray) =
+    throw(ArgumentError("`BitArray`s cannot be used as MPI buffers, convert them to `Array{Bool}` first"))
 function Buffer(ref::Ref)
     Buffer(ref, Cint(1), Datatype(eltype(ref)))
 end
