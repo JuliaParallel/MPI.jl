@@ -8,7 +8,6 @@ Base.unsafe_convert(::Type{MPI_Win}, win::Win) = win.val
 Base.unsafe_convert(::Type{Ptr{MPI_Win}}, win::Win) = convert(Ptr{MPI_Win}, pointer_from_objref(win))
 
 const WIN_NULL = Win(API.MPI_WIN_NULL[], nothing)
-add_load_time_hook!(LoadTimeHookSetVal(WIN_NULL, API.MPI_WIN_NULL))
 
 Win() = Win(WIN_NULL.val, nothing)
 
@@ -31,8 +30,6 @@ Base.unsafe_convert(::Type{Ptr{Cint}}, lock_type::LockType) = convert(Ptr{Cint},
 
 const LOCK_EXCLUSIVE = LockType(API.MPI_LOCK_EXCLUSIVE[])
 const LOCK_SHARED    = LockType(API.MPI_LOCK_SHARED[]   )
-add_load_time_hook!(LoadTimeHookSetVal(LOCK_EXCLUSIVE, API.MPI_LOCK_EXCLUSIVE))
-add_load_time_hook!(LoadTimeHookSetVal(LOCK_SHARED,    API.MPI_LOCK_SHARED   ))
 LockType(sym::Symbol) =
     sym ≡ :exclusive ? LOCK_EXCLUSIVE :
     sym ≡ :shared ? LOCK_SHARED :
@@ -357,3 +354,10 @@ function Get_accumulate!(origin_buf::Buffer, result_buf::Buffer, target_rank::In
 end
 Get_accumulate!(origin, result, target_rank::Integer, target_disp::Integer, op::Op, win::Win) =
     Get_accumulate!(Buffer_send(origin), Buffer(result), target_rank, target_disp, op, win)
+
+function _set_load_time_onesided()
+    LoadTimeHookSetVal(WIN_NULL, API.MPI_WIN_NULL)()
+    LoadTimeHookSetVal(LOCK_EXCLUSIVE, API.MPI_LOCK_EXCLUSIVE)()
+    LoadTimeHookSetVal(LOCK_SHARED,    API.MPI_LOCK_SHARED   )()
+    return nothing
+end

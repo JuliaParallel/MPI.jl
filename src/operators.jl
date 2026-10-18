@@ -41,19 +41,6 @@ const PROD    = Op(API.MPI_PROD[], nothing)
 const REPLACE = Op(API.MPI_REPLACE[], nothing)
 const SUM     = Op(API.MPI_SUM[], nothing)
 const NO_OP   = Op(API.MPI_NO_OP[], nothing)
-add_load_time_hook!(LoadTimeHookSetVal(OP_NULL, API.MPI_OP_NULL))
-add_load_time_hook!(LoadTimeHookSetVal(BAND,    API.MPI_BAND   ))
-add_load_time_hook!(LoadTimeHookSetVal(BOR,     API.MPI_BOR    ))
-add_load_time_hook!(LoadTimeHookSetVal(BXOR,    API.MPI_BXOR   ))
-add_load_time_hook!(LoadTimeHookSetVal(LAND,    API.MPI_LAND   ))
-add_load_time_hook!(LoadTimeHookSetVal(LOR,     API.MPI_LOR    ))
-add_load_time_hook!(LoadTimeHookSetVal(LXOR,    API.MPI_LXOR   ))
-add_load_time_hook!(LoadTimeHookSetVal(MAX,     API.MPI_MAX    ))
-add_load_time_hook!(LoadTimeHookSetVal(MIN,     API.MPI_MIN    ))
-add_load_time_hook!(LoadTimeHookSetVal(PROD,    API.MPI_PROD   ))
-add_load_time_hook!(LoadTimeHookSetVal(REPLACE, API.MPI_REPLACE))
-add_load_time_hook!(LoadTimeHookSetVal(SUM,     API.MPI_SUM    ))
-add_load_time_hook!(LoadTimeHookSetVal(NO_OP,   API.MPI_NO_OP  ))
 
 Op(::typeof(min), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MIN
 Op(::typeof(max), ::Type{T}; iscommutative=true) where {T<:Union{MPIInteger,MPIFloatingPoint}} = MAX
@@ -82,18 +69,48 @@ end
 
 function (w::OpWrapper{F,T})(_a::Ptr{Cvoid}, _b::Ptr{Cvoid}, _len::Ptr{Cint}, t::Ptr{MPI_Datatype}) where {F,T}
     len = unsafe_load(_len)
-    # use `to_type_raw` rather than `to_type(Datatype(unsafe_load(t)))` to avoid allocating
-    concrete_T = isconcretetype(T) ? T : to_type_raw(unsafe_load(t))
-    function copy(::Type{T}) where T
-        @assert isconcretetype(T)
-        a = Ptr{T}(_a)
-        b = Ptr{T}(_b)
-        for i = 1:len
-            unsafe_store!(b, w.f(unsafe_load(a,i), unsafe_load(b,i)), i)
-        end
+    @static if _TRIM_SAFE
+        return _op_eval_trim_safe(w, T, _a, _b, len, t)
+    else
+        return _op_eval_not_trim_safe(w, T, _a, _b, len, t)
     end
-    copy(concrete_T)
     return nothing
+end
+
+@inline function _opwrap_loop(f::F, ::Type{T}, _a, _b, len) where {F,T}
+    a = Ptr{T}(_a); b = Ptr{T}(_b)
+    for i = 1:len
+        unsafe_store!(b, f(unsafe_load(a, i), unsafe_load(b, i)), i)
+    end
+    return true
+end
+
+function _op_eval_not_trim_safe(w, T, _a, _b, len, t)
+    concrete_T = isconcretetype(T) ? T : to_type_raw(unsafe_load(t))
+    _opwrap_loop(w.f, concrete_T, _a, _b, len)
+    return nothing
+end
+
+function _op_eval_trim_safe(w, T, _a, _b, len, t)
+    f = w.f
+    if isconcretetype(T)
+        return _opwrap_loop(f, T, _a, _b, len)
+    end
+    ct = to_type_raw(unsafe_load(t))
+    ct === Int8       && return _opwrap_loop(f, Int8,       _a, _b, len)
+    ct === UInt8      && return _opwrap_loop(f, UInt8,      _a, _b, len)
+    ct === Int16      && return _opwrap_loop(f, Int16,      _a, _b, len)
+    ct === UInt16     && return _opwrap_loop(f, UInt16,     _a, _b, len)
+    ct === Int32      && return _opwrap_loop(f, Int32,      _a, _b, len)
+    ct === UInt32     && return _opwrap_loop(f, UInt32,     _a, _b, len)
+    ct === Int64      && return _opwrap_loop(f, Int64,      _a, _b, len)
+    ct === UInt64     && return _opwrap_loop(f, UInt64,     _a, _b, len)
+    ct === Float32    && return _opwrap_loop(f, Float32,    _a, _b, len)
+    ct === Float64    && return _opwrap_loop(f, Float64,    _a, _b, len)
+    ct === ComplexF32 && return _opwrap_loop(f, ComplexF32, _a, _b, len)
+    ct === ComplexF64 && return _opwrap_loop(f, ComplexF64, _a, _b, len)
+    ct === Bool       && return _opwrap_loop(f, Bool,       _a, _b, len)
+    error("unsupported datatype in reduction")
 end
 
 function Op(f, T=Any; iscommutative=false)
@@ -180,10 +197,29 @@ macro RegisterOp(f, T)
     esc(expr)
 end
 
-@RegisterOp(min, Any)
-@RegisterOp(max, Any)
-@RegisterOp(+, Any)
-@RegisterOp(*, Any)
-@RegisterOp(&, Any)
-@RegisterOp(|, Any)
-@RegisterOp(⊻, Any)
+@static if !_TRIM_SAFE
+    @RegisterOp(min, Any)
+    @RegisterOp(max, Any)
+    @RegisterOp(+, Any)
+    @RegisterOp(*, Any)
+    @RegisterOp(&, Any)
+    @RegisterOp(|, Any)
+    @RegisterOp(⊻, Any)
+end
+
+function _set_load_time_operators()
+    LoadTimeHookSetVal(OP_NULL, API.MPI_OP_NULL)()
+    LoadTimeHookSetVal(BAND,    API.MPI_BAND   )()
+    LoadTimeHookSetVal(BOR,     API.MPI_BOR    )()
+    LoadTimeHookSetVal(BXOR,    API.MPI_BXOR   )()
+    LoadTimeHookSetVal(LAND,    API.MPI_LAND   )()
+    LoadTimeHookSetVal(LOR,     API.MPI_LOR    )()
+    LoadTimeHookSetVal(LXOR,    API.MPI_LXOR   )()
+    LoadTimeHookSetVal(MAX,     API.MPI_MAX    )()
+    LoadTimeHookSetVal(MIN,     API.MPI_MIN    )()
+    LoadTimeHookSetVal(PROD,    API.MPI_PROD   )()
+    LoadTimeHookSetVal(REPLACE, API.MPI_REPLACE)()
+    LoadTimeHookSetVal(SUM,     API.MPI_SUM    )()
+    LoadTimeHookSetVal(NO_OP,   API.MPI_NO_OP  )()
+    return nothing
+end

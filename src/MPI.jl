@@ -6,6 +6,8 @@ import MPIPreferences
 
 export mpiexec, UBuffer, VBuffer
 
+const _TRIM_SAFE = Base.get_bool_env("JULIA_MPI_TRIM_SAFE", false)
+
 function serialize(x)
     s = IOBuffer()
     Serialization.serialize(s, x)
@@ -60,17 +62,28 @@ using .API
 const Consts = API
 
 # These functions are run after reading the values of the constants above)
-const _mpi_load_time_hooks = Any[]
 const _finished_loading = Ref(false)
-function add_load_time_hook!(f)
-    @assert !_finished_loading[]
-    push!(_mpi_load_time_hooks, f)
+
+# making seperate function here so we don't need to call everything
+# in precompile below
+function _set_load_time()
+    _set_load_time_info()
+    _set_load_time_group()
+    _set_load_time_comm()
+    _set_load_time_environment()
+    _set_load_time_datatypes()
+    _set_load_time_operators()
+    _set_load_time_nonblocking()
+    _set_load_time_onesided()
+    _set_load_time_io()
+    _set_load_time_errhandler()
+    return nothing
 end
+
 function run_load_time_hooks()
     @assert !_finished_loading[]
     _finished_loading[] = true
-    foreach(call, _mpi_load_time_hooks)
-    empty!(_mpi_load_time_hooks)
+    _set_load_time()
     nothing
 end
 # Set dst.val = src[] when called
@@ -188,7 +201,7 @@ using PrecompileTools: @compile_workload
 @compile_workload begin
     # Running the load time hooks here shaves off a significant amount of loading time,
     # see also https://github.com/JuliaParallel/MPI.jl/pull/728
-    foreach(call, _mpi_load_time_hooks)
+    _set_load_time()
 end
 # We insert some explicit precompile statements here. The corresponding methods
 # are likely to be called from anyone using MPI in Julia. Thus, it is reasonable

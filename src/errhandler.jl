@@ -17,9 +17,6 @@ Base.unsafe_convert(::Type{Ptr{MPI_Errhandler}}, errhandler::Errhandler) = conve
 const ERRHANDLER_NULL  = Errhandler(API.MPI_ERRHANDLER_NULL[])
 const ERRORS_ARE_FATAL = Errhandler(API.MPI_ERRORS_ARE_FATAL[])
 const ERRORS_RETURN    = Errhandler(API.MPI_ERRORS_RETURN[]   )
-add_load_time_hook!(LoadTimeHookSetVal(ERRHANDLER_NULL,  API.MPI_ERRHANDLER_NULL ))
-add_load_time_hook!(LoadTimeHookSetVal(ERRORS_ARE_FATAL, API.MPI_ERRORS_ARE_FATAL))
-add_load_time_hook!(LoadTimeHookSetVal(ERRORS_RETURN,    API.MPI_ERRORS_RETURN   ))
 
 Errhandler() = Errhandler(ERRHANDLER_NULL.val)
 
@@ -110,4 +107,9 @@ function set_errorhandler!(file::File.FileHandle, errh::Errhandler)
     return nothing
 end
 
-
+function _set_load_time_errhandler()
+    LoadTimeHookSetVal(ERRHANDLER_NULL,  API.MPI_ERRHANDLER_NULL )()
+    LoadTimeHookSetVal(ERRORS_ARE_FATAL, API.MPI_ERRORS_ARE_FATAL)()
+    LoadTimeHookSetVal(ERRORS_RETURN,    API.MPI_ERRORS_RETURN   )()
+    return nothing
+end
