@@ -3,6 +3,7 @@
 ```@docs
 MPI.Win_create
 MPI.Win_create_dynamic
+MPI.Win_allocate
 MPI.Win_allocate_shared
 MPI.Win_shared_query
 MPI.Win_flush
