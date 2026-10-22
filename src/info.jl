@@ -40,7 +40,7 @@ function Info(;init=false)
     info = Info(INFO_NULL.val)
     if init
         API.MPI_Info_create(info)
-        finalizer(free, info)
+        finalizer(deferred_free, info)
     end
     return info
 end
@@ -51,6 +51,13 @@ function free(info::Info)
         API.MPI_Info_free(info)
     end
     return nothing
+end
+
+function deferred_free_fn(info::Info)
+    info == INFO_NULL && return nothing
+    val = info.val
+    # int MPI_Info_free(MPI_Info *info)
+    return () -> API.MPI_Info_free(Ref(val))
 end
 
 function Base.setindex!(info::Info, value::AbstractString, key::Symbol)

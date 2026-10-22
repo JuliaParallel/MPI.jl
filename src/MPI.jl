@@ -101,6 +101,7 @@ end
 
 include("implementations.jl")
 include("error.jl")
+include("deferred_free.jl")
 include("info.jl")
 include("group.jl")
 include("comm.jl")
