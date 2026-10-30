@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Active RMA · MPI.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.svg" alt="MPI.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">MPI.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">MPI.jl</a></li><li><a class="tocitem" href="../../configuration/">Configuration</a></li><li><a class="tocitem" href="../../usage/">Usage</a></li><li><a class="tocitem" href="../../knownissues/">Known issues</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../01-hello/">Hello world</a></li><li><a class="tocitem" href="../02-broadcast/">Broadcast</a></li><li><a class="tocitem" href="../03-reduce/">Reduce</a></li><li><a class="tocitem" href="../04-sendrecv/">Send/receive</a></li><li><a class="tocitem" href="../05-job_schedule/">Job Scheduling</a></li><li><a class="tocitem" href="../06-scatterv/">Scatterv and Gatherv</a></li><li class="is-active"><a class="tocitem" href>Active RMA</a></li><li><a class="tocitem" href="../08-rma_passive/">Passive RMA</a></li><li><a class="tocitem" href="../09-graph_communication/">Graph Communication</a></li></ul></li><li><span class="tocitem">Reference</span><ul><li><a class="tocitem" href="../../reference/mpipreferences/">MPIPreferences.jl</a></li><li><a class="tocitem" href="../../reference/library/">Library information</a></li><li><a class="tocitem" href="../../reference/environment/">Environment</a></li><li><a class="tocitem" href="../../reference/misc/">Miscellanea</a></li><li><a class="tocitem" href="../../reference/comm/">Communicators</a></li><li><a class="tocitem" href="../../reference/buffers/">Buffers</a></li><li><a class="tocitem" href="../../reference/pointtopoint/">Point-to-point communication</a></li><li><a class="tocitem" href="../../reference/collective/">Collective communication</a></li><li><a class="tocitem" href="../../reference/onesided/">One-sided communication</a></li><li><a class="tocitem" href="../../reference/topology/">Topology</a></li><li><a class="tocitem" href="../../reference/io/">I/O</a></li><li><a class="tocitem" href="../../reference/advanced/">Advanced</a></li><li><a class="tocitem" href="../../reference/api/">Low-level API</a></li></ul></li><li><a class="tocitem" href="../../refindex/">Index</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Examples</a></li><li class="is-active"><a href>Active RMA</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Active RMA</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaParallel/MPI.jl/blob/master/docs/examples/07-rma_active.jl" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Active-RMA"><a class="docs-heading-anchor" href="#Active-RMA">Active RMA</a><a id="Active-RMA-1"></a><a class="docs-heading-anchor-permalink" href="#Active-RMA" title="Permalink"></a></h1><pre><code class="language-julia hljs"># examples/07-rma_active.jl
+# This example demonstrates one-sided communication,
+# specifically activate Remote Memory Access (RMA)
+
+using MPI
+
+MPI.Init()
+const world_sz = MPI.Comm_size(MPI.COMM_WORLD)
+const rank = MPI.Comm_rank(MPI.COMM_WORLD)
+
+# allocate memory
+all_ranks = fill(-1, world_sz)
+# create RMA window on all ranks
+win = MPI.Win_create(all_ranks, MPI.COMM_WORLD)
+
+#### first, let&#39;s MPI.Put on all ranks
+
+# start the communication epoch
+MPI.Win_fence(0, win)
+# each rank writes to exposed windows of rank 0
+# Signature: obj, target_rank, target_displacement, window
+MPI.Put(rank, 0, rank, win)
+# finish the communication epoch
+MPI.Win_fence(0, win)
+# print window content on all ranks
+for j in 0:world_sz-1
+    if rank == j
+        println(&quot;After Put, Rank $rank:&quot;)
+        @show all_ranks
+    end
+    MPI.Barrier(MPI.COMM_WORLD)
+end
+rank == 0 &amp;&amp; println()
+
+#### now, let&#39;s MPI.Get on all ranks
+
+# start the communication epoch
+MPI.Win_fence(0, win)
+# each rank reads from exposed windows of rank 0
+MPI.Get(all_ranks, 0, win)
+# finish the communication epoch
+MPI.Win_fence(0, win)
+# print window content on all ranks
+for j in 0:world_sz-1
+    if rank == j
+        println(&quot;After Get, Rank $rank:&quot;)
+        @show all_ranks
+    end
+    MPI.Barrier(MPI.COMM_WORLD)
+end
+
+# free window
+MPI.free(win)</code></pre><pre><code class="nohighlight hljs">&gt; mpiexecjl -n 4 julia examples/07-rma_active.jl
+After Put, Rank 0:
+all_ranks = [0, 1, 2, 3]
+After Put, Rank 1:
+all_ranks = [-1, -1, -1, -1]
+After Put, Rank 2:
+all_ranks = [-1, -1, -1, -1]
+After Put, Rank 3:
+all_ranks = [-1, -1, -1, -1]
+
+After Get, Rank 0:
+all_ranks = [0, 1, 2, 3]
+After Get, Rank 1:
+all_ranks = [0, 1, 2, 3]
+After Get, Rank 2:
+all_ranks = [0, 1, 2, 3]
+After Get, Rank 3:
+all_ranks = [0, 1, 2, 3]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../06-scatterv/">« Scatterv and Gatherv</a><a class="docs-footer-nextpage" href="../08-rma_passive/">Passive RMA »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.23 on <span class="colophon-date" title="Saturday 24 December 2022 22:56">Saturday 24 December 2022</span>. Using Julia version 1.8.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
