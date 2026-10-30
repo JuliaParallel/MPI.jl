@@ -53,10 +53,13 @@ This is the recommended way to use MPI.jl. By default, MPI.jl will use
 You can select from four different jll MPI binaries:
 - [`MPICH_jll`](https://www.mpich.org/),  the default
 - [`OpenMPI_jll`](https://www.open-mpi.org/), an alternative to MPICH
-- [`MPItrampoline_jll`](https://github.com/eschnett/MPItrampoline), a
-  forwarding MPI implementation that uses another MPI implementation
 - [`MicrosoftMPI_jll`](https://learn.microsoft.com/en-us/message-passing-interface/microsoft-mpi)
   for Windows
+- [`MPIABI_jll`](https://github.com/mpi-forum/mpi-abi-stubs), a
+  vendor-independent ABI defined by the MPI standard which allows easy
+  switching between MPI implementations
+- [`MPItrampoline_jll`](https://github.com/eschnett/MPItrampoline), a
+  forwarding MPI implementation that uses another MPI implementation
 
 For example, to switch to OpenMPI, you would first use MPIPreferenes.jl to switch:
 
@@ -86,9 +89,76 @@ forget to restart Julia and re-instantiate your packages again.
 
 
 
+## [Using MPIABI](@id using_mpiabi)
+
+The MPI ABI is a vendor-independent ABI defined by the MPI standard
+](MPI ABI)](https://github.com/mpi-forum/mpi-abi-stubs). The idea is
+that MPI libraries become replaceable at run time. You can build your
+application against `mpiA`, and then switch to using `mpiB` e.g. by
+changing `LD_LIBRARY_PATH` (on Unix). This assumes that both `mpiA`
+and `mpiB` implement the MPI ABI, which may today (2026) no always be
+the case. One way to identify whether an MPI library implements the
+MPI ABI is that there is a shared library called `libmpi_abi.so` or
+`libmpi_abi.dylib`.
+
+(Once this MPI ABI is widely available, this section of the
+documentation will become irrelevant.)
+
+To use the MPI ABI from Julia you say
+```sh
+julia> using MPIPreferences
+
+julia> MPIPreferences.use_jll_binary("MPIABI_jll")
+┌ Info: MPIPreferences changed
+└   binary = "MPIABI_jll"
+```
+By default, this chooses a modern MPICH MPI, same as Julia's default.
+
+### Switching to a different MPI implementation
+
+Let's assume you are running on an HPC system which provides its own
+system-specific MPI library `mpiA`, located in `/usr/local/mpiA`. To
+start using it you say
+```sh
+julia> using MPIPreferences
+
+julia> MPIPreferences.use_system_binary()
+```
+
+### Two wrinkles
+
+**Wrinkle 1:**
+
+Today (2026), almost no HPC system provides the MPI ABI yet. Until
+this changes, you can install a wrapper that translates the MPI ABI to
+the MPI library's native ABI:
+[`mpi_abi_wrapper`](https://github.com/eschnett/mpi_abi_wrapper). This
+library is straightforward to install. You would e.g. configure it
+via
+```
+cmake -DMPI_HOME=/usr/local/mpiA -DCMAKE_INSTALL_PREFIX=/usr/local/mpiA-mpiabi
+```
+and then use `/usr/local/mpiA-mpiabi` as your MPI library, e.g. when
+callling `MPIPreferences.use_system_binary()`.
+
+**Wrinkle 2:**
+
+The official MPI ABI defines only C bindings and no Fortran bindings.
+If you are calling MPI functions from Fortran, then you can use the
+[`mpif`](https://github.com/eschnett/mpi_abi_wrapper) library, which
+provides MPI Fortran bindings on top of any MPI C bindings. When
+installing `mpif`, you would point it to the wrapped
+`/usr/local/mpiA-mpiabi`.
+
+
+
 ## [Using MPItrampoline](@id using_mpitrampoline)
 
-MPItrampoline is an easier and safer way to use external MPI
+MPItrampoline provides and older and slightly less convenient way to
+do the same as the MPI ABI (@ref using_mpiabi). Consider using MPIABI
+instead of MPItrampoline.
+
+MPItrampoline is an easy and safer way to use external MPI
 implementations. MPItrampoline defines an ABI for MPI calls (similar
 to the way
 [`libblastrampoline`](https://github.com/JuliaLinearAlgebra/libblastrampoline)
