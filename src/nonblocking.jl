@@ -423,8 +423,8 @@ parameter, or the number of bytes received is not a whole multiple of the size o
 $(_doc_external("MPI_Get_count"))
 """
 function Get_count(stat::Status, datatype::Datatype)
-    count = Ref{Cint}()
-    API.MPI_Get_count(Ref(stat), datatype, count)
+    count = Ref{API.Count}()
+    API.MPI_Get_count_c(Ref(stat), datatype, count)
     # `MPI_UNDEFINED` is not a count; return `nothing` rather than let the
     # sentinel escape as an ordinary integer (as `Waitany` and friends do).
     count[] == API.MPI_UNDEFINED[] && return nothing

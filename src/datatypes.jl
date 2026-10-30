@@ -213,8 +213,8 @@ import MPI
 import MPI: API, _doc_external, Datatype, MPI_Datatype, MPI_Aint, free
 
 function size(dt::Datatype)
-    dtsize = Ref{Cint}()
-    API.MPI_Type_size(dt, dtsize)
+    dtsize = Ref{API.Count}()
+    API.MPI_Type_size_c(dt, dtsize)
     return Int(dtsize[])
 end
 
@@ -227,12 +227,14 @@ Gets the lowerbound `lb` and the extent `extent` in bytes.
 $(_doc_external("MPI_Type_get_extent"))
 """
 function extent(dt::Datatype)
-    lb = Ref{MPI_Aint}()
-    extent = Ref{MPI_Aint}()
-    # int MPI_Type_get_extent(MPI_Datatype datatype, MPI_Aint *lb,
-    #          MPI_Aint *extent)
-    API.MPI_Type_get_extent(dt, lb, extent)
-    return lb[], extent[]
+    lb = Ref{API.TypeDispl}()
+    extent = Ref{API.TypeDispl}()
+    # int MPI_Type_get_extent_c(MPI_Datatype datatype, MPI_Count *lb,
+    #          MPI_Count *extent)
+    API.MPI_Type_get_extent_c(dt, lb, extent)
+    # `Int` rather than the raw type, so that the return type does not depend on which
+    # entry point was used
+    return Int(lb[]), Int(extent[])
 end
 
 """
@@ -251,7 +253,7 @@ function create_contiguous(count::Integer, oldtype::Datatype)
 end
 
 function create_contiguous!(newtype::Datatype, count::Integer, oldtype::Datatype)
-    API.MPI_Type_contiguous(count, oldtype, newtype)
+    API.MPI_Type_contiguous_c(count, oldtype, newtype)
     return newtype
 end
 
@@ -295,7 +297,7 @@ end
 function create_vector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
     # int MPI_Type_vector(int count, int blocklength, int stride,
     #                     MPI_Datatype oldtype, MPI_Datatype *newtype)
-    API.MPI_Type_vector(count, blocklength, stride, oldtype, newtype)
+    API.MPI_Type_vector_c(count, blocklength, stride, oldtype, newtype)
     return newtype
 end
 
@@ -322,9 +324,12 @@ function create_hvector(count::Integer, blocklength::Integer, stride::Integer, o
     finalizer(free, create_hvector!(Datatype(), count, blocklength, stride, oldtype))
 end
 function create_hvector!(newtype::Datatype, count::Integer, blocklength::Integer, stride::Integer, oldtype::Datatype)
-    # int MPI_Type_create_hvector(int count, int blocklength, MPI_Aint stride,
-    #                             MPI_Datatype oldtype, MPI_Datatype *newtype)
-    API.MPI_Type_create_hvector(count, blocklength, MPI_Aint(stride), oldtype, newtype)
+    # int MPI_Type_create_hvector_c(MPI_Count count, MPI_Count blocklength,
+    #                               MPI_Count stride, MPI_Datatype oldtype,
+    #                               MPI_Datatype *newtype)
+    # `stride` is left unconverted so that `ccall` widens it to whichever of `MPI_Count`
+    # and `MPI_Aint` the entry point in use expects.
+    API.MPI_Type_create_hvector_c(count, blocklength, stride, oldtype, newtype)
     return newtype
 end
 
@@ -352,9 +357,9 @@ end
 function create_subarray!(newtype::Datatype, sizes, subsizes, offset, oldtype::Datatype;
                           rowmajor=false)
     @assert (N = length(sizes)) == length(subsizes) == length(offset)
-    sizes = sizes isa Vector{Cint} ? sizes : Cint[s for s in sizes]
-    subsizes = subsizes isa Vector{Cint} ? subsizes : Cint[s for s in subsizes]
-    offset = offset isa Vector{Cint} ? offset : Cint[s for s in offset]
+    sizes = sizes isa Vector{API.Count} ? sizes : API.Count[s for s in sizes]
+    subsizes = subsizes isa Vector{API.Count} ? subsizes : API.Count[s for s in subsizes]
+    offset = offset isa Vector{API.Count} ? offset : API.Count[s for s in offset]
     # int MPI_Type_create_subarray(int ndims,
     #                              const int array_of_sizes[],
     #                              const int array_of_subsizes[],
@@ -362,9 +367,9 @@ function create_subarray!(newtype::Datatype, sizes, subsizes, offset, oldtype::D
     #                              int order,
     #                              MPI_Datatype oldtype,
     #                              MPI_Datatype *newtype)
-    API.MPI_Type_create_subarray(N, sizes, subsizes, offset,
-                                 rowmajor ? MPI.API.MPI_ORDER_C[] : MPI.API.MPI_ORDER_FORTRAN[],
-                                 oldtype, newtype)
+    API.MPI_Type_create_subarray_c(N, sizes, subsizes, offset,
+                                   rowmajor ? MPI.API.MPI_ORDER_C[] : MPI.API.MPI_ORDER_FORTRAN[],
+                                   oldtype, newtype)
     return newtype
 end
 
@@ -384,8 +389,10 @@ function create_struct(blocklengths, displacements, types)
 end
 function create_struct!(newtype::Datatype, blocklengths, displacements, types)
     @assert (N = length(blocklengths)) == length(displacements) == length(types)
-    blocklengths = blocklengths isa Vector{Cint} ? blocklengths : Cint[s for s in blocklengths]
-    displacements = displacements isa Vector{MPI_Aint} ? displacements : MPI_Aint[s for s in displacements]
+    blocklengths = blocklengths isa Vector{API.Count} ? blocklengths : API.Count[s for s in blocklengths]
+    # note the type: MPI_Type_create_struct_c widens byte displacements to MPI_Count,
+    # unlike the "v" collectives which widen theirs only to MPI_Aint
+    displacements = displacements isa Vector{API.TypeDispl} ? displacements : API.TypeDispl[s for s in displacements]
     # int MPI_Type_create_struct(int count,
     #                            const int array_of_blocklengths[],
     #                            const MPI_Aint array_of_displacements[],
@@ -393,7 +400,7 @@ function create_struct!(newtype::Datatype, blocklengths, displacements, types)
     #                            MPI_Datatype *newtype)
     GC.@preserve types begin
         mpi_types = [t.val for t in types]
-        API.MPI_Type_create_struct(N, blocklengths, displacements, mpi_types, newtype)
+        API.MPI_Type_create_struct_c(N, blocklengths, displacements, mpi_types, newtype)
     end
     return newtype
 end
@@ -422,7 +429,7 @@ end
 function create_resized!(newtype::Datatype, oldtype::Datatype, lb::Integer, extent::Integer)
     # int MPI_Type_create_resized(MPI_Datatype oldtype, MPI_Aint lb,
     #              MPI_Aint extent, MPI_Datatype *newtype)
-    API.MPI_Type_create_resized(oldtype, lb, extent, newtype)
+    API.MPI_Type_create_resized_c(oldtype, lb, extent, newtype)
     return newtype
 end
 
@@ -458,8 +465,8 @@ end
 
 function create!(newtype::Datatype, ::Type{T}) where {T}
     isbitstype(T) || throw(ArgumentError("Type must be isbitstype"))
-    blocklengths = Cint[]
-    displacements = MPI_Aint[]
+    blocklengths = API.Count[]
+    displacements = API.TypeDispl[]
     types = Datatype[]
 
     if isprimitivetype(T)

@@ -20,7 +20,7 @@ Send(data, comm::Comm; dest::Integer, tag::Integer=Cint(0)) =
 function Send(buf::Buffer, dest::Integer, tag::Integer, comm::Comm)
     # int MPI_Send(const void* buf, int count, MPI_Datatype datatype, int dest,
     #              int tag, MPI_Comm comm)
-    API.MPI_Send(buf.data, buf.count, buf.datatype, dest, tag, comm)
+    API.MPI_Send_c(buf.data, buf.count, buf.datatype, dest, tag, comm)
     return nothing
 end
 Send(arr::Union{Ref,AbstractArray}, dest::Integer, tag::Integer, comm::Comm) =
@@ -63,7 +63,7 @@ function Isend(buf::Buffer, dest::Integer, tag::Integer, comm::Comm, req::Abstra
     @assert isnull(req)
     # int MPI_Isend(const void* buf, int count, MPI_Datatype datatype, int dest,
     #               int tag, MPI_Comm comm, MPI_Request *request)
-    API.MPI_Isend(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
+    API.MPI_Isend_c(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
     setbuffer!(req, buf)
     return req
 end
@@ -111,7 +111,7 @@ Recv!(recvbuf, comm::Comm, status=nothing; source=API.MPI_ANY_SOURCE[], tag=API.
 function Recv!(recvbuf::Buffer, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing})
     # int MPI_Recv(void* buf, int count, MPI_Datatype datatype, int source,
     #              int tag, MPI_Comm comm, MPI_Status *status)
-    API.MPI_Recv(recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, API.MPI_STATUS_IGNORE[]))
+    API.MPI_Recv_c(recvbuf.data, recvbuf.count, recvbuf.datatype, source, tag, comm, something(status, API.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Recv!(recvbuf, source::Integer, tag::Integer, comm::Comm, status::Union{Ref{Status},Nothing}) =
@@ -207,7 +207,7 @@ function Irecv!(buf::Buffer, source::Integer, tag::Integer, comm::Comm, req::Abs
     @assert isnull(req)
     # int MPI_Irecv(void* buf, int count, MPI_Datatype datatype, int source,
     #               int tag, MPI_Comm comm, MPI_Request *request)
-    API.MPI_Irecv(buf.data, buf.count, buf.datatype, source, tag, comm, req)
+    API.MPI_Irecv_c(buf.data, buf.count, buf.datatype, source, tag, comm, req)
     setbuffer!(req, buf)
     return req
 end
@@ -237,9 +237,9 @@ function Sendrecv!(sendbuf::Buffer, dest::Integer, sendtag::Integer,
     # int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest,   int sendtag,
     #                        void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag,
     #                    MPI_Comm comm, MPI_Status *status)
-    API.MPI_Sendrecv(sendbuf.data, sendbuf.count, sendbuf.datatype, dest, sendtag,
-                     recvbuf.data, recvbuf.count, recvbuf.datatype, source, recvtag,
-                     comm, something(status, API.MPI_STATUS_IGNORE[]))
+    API.MPI_Sendrecv_c(sendbuf.data, sendbuf.count, sendbuf.datatype, dest, sendtag,
+                       recvbuf.data, recvbuf.count, recvbuf.datatype, source, recvtag,
+                       comm, something(status, API.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Sendrecv!(sendbuf, dest::Integer, sendtag::Integer, recvbuf, source::Integer, recvtag::Integer, comm::Comm, status::Union{Ref{Status}, Nothing}) =
@@ -267,7 +267,7 @@ Send_init(buf, comm::Comm, req::AbstractRequest=Request(); dest::Integer, tag::I
     Send_init(buf, dest, tag, comm, req)
 function Send_init(buf::Buffer, dest::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
     @assert isnull(req)
-    API.MPI_Send_init(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
+    API.MPI_Send_init_c(buf.data, buf.count, buf.datatype, dest, tag, comm, req)
     setbuffer!(req, buf)
     return req
 end
@@ -289,7 +289,7 @@ Recv_init(buf, comm::Comm, req::AbstractRequest=Request(); source=API.MPI_ANY_SO
     Recv_init(buf, source, tag, comm, req)
 function Recv_init(buf::Buffer, source::Integer, tag::Integer, comm::Comm, req::AbstractRequest=Request())
     @assert isnull(req)
-    API.MPI_Recv_init(buf.data, buf.count, buf.datatype, source, tag, comm, req)
+    API.MPI_Recv_init_c(buf.data, buf.count, buf.datatype, source, tag, comm, req)
     setbuffer!(req, buf)
     return req
 end
@@ -424,7 +424,7 @@ Optionally returns the [`Status`](@ref) object of the receive.
 $(_doc_external("MPI_Mrecv"))
 """
 function Mrecv!(recvbuf::Buffer, msg::Message, status::Union{Ref{Status},Nothing}=nothing)
-    API.MPI_Mrecv(recvbuf.data, recvbuf.count, recvbuf.datatype, msg, something(status, API.MPI_STATUS_IGNORE[]))
+    API.MPI_Mrecv_c(recvbuf.data, recvbuf.count, recvbuf.datatype, msg, something(status, API.MPI_STATUS_IGNORE[]))
     return recvbuf.data
 end
 Mrecv!(recvbuf, msg::Message, status::Union{Ref{Status},Nothing}=nothing) =
@@ -450,7 +450,7 @@ $(_doc_external("MPI_Imrecv"))
 """
 function Imrecv!(buf::Buffer, msg::Message, req::AbstractRequest=Request())
     @assert isnull(req)
-    API.MPI_Imrecv(buf.data, buf.count, buf.datatype, msg, req)
+    API.MPI_Imrecv_c(buf.data, buf.count, buf.datatype, msg, req)
     setbuffer!(req, buf)
     return req
 end

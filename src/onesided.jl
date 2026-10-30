@@ -56,7 +56,7 @@ function Win_create(base, size::Integer, disp_unit::Integer, comm::Comm; infokws
     win = Win()
     # int MPI_Win_create(void *base, MPI_Aint size, int disp_unit, MPI_Info info,
     #                    MPI_Comm comm, MPI_Win *win)
-    API.MPI_Win_create(base, size, disp_unit, Info(infokws...), comm, win)
+    API.MPI_Win_create_c(base, size, disp_unit, Info(infokws...), comm, win)
     win.object = base
     finalizer(free, win)
     return win
@@ -92,7 +92,7 @@ function Win_allocate_shared(::Type{Ptr{T}}, len::Integer, comm::Comm; kwargs...
     out_baseptr = Ref{Ptr{T}}()
     # int MPI_Win_allocate_shared(MPI_Aint size, int disp_unit, MPI_Info info,
     #                             MPI_Comm comm, void *baseptr, MPI_Win *win)
-    API.MPI_Win_allocate_shared(len*sizeof(T), sizeof(T), Info(kwargs...), comm, out_baseptr, win)
+    API.MPI_Win_allocate_shared_c(len*sizeof(T), sizeof(T), Info(kwargs...), comm, out_baseptr, win)
     finalizer(free, win)
     return win, out_baseptr[]
 end
@@ -118,13 +118,17 @@ Win_shared_query(::Type{Array{T}}, dims, win::Win; rank) where {T} =
     Win_shared_query(Array{T}, dims, win, rank)
 
 function Win_shared_query(::Type{Ptr{T}}, win::Win, owner_rank::Integer) where T
-    out_len = Ref{Cptrdiff_t}()
-    out_sizeT = Ref{Cint}()
+    out_len = Ref{MPI_Aint}()
+    # `disp_unit` is an `int` in MPI_Win_shared_query but an `MPI_Aint` in the large-count
+    # MPI_Win_shared_query_c -- the same widening as the "v" collectives' displacements,
+    # hence `API.Displ`. It has to match the entry point actually in use: a `Ref` of the
+    # wrong width would have MPI fill only part of it.
+    out_sizeT = Ref{API.Displ}()
     out_baseptr = Ref{Ptr{T}}()
-    # int MPI_Win_shared_query(MPI_Win win, int rank, MPI_Aint *size,
-    #                          int *disp_unit, void *baseptr)
-    API.MPI_Win_shared_query(win, owner_rank, out_len, out_sizeT, out_baseptr)
-    out_len[], out_sizeT[], out_baseptr[]
+    # int MPI_Win_shared_query_c(MPI_Win win, int rank, MPI_Aint *size,
+    #                            MPI_Aint *disp_unit, void *baseptr)
+    API.MPI_Win_shared_query_c(win, owner_rank, out_len, out_sizeT, out_baseptr)
+    Int(out_len[]), Int(out_sizeT[]), out_baseptr[]
 end
 function Win_shared_query(::Type{Array{T}}, win::Win, owner_rank::Integer) where T
     len, sizeT, ptr = Win_shared_query(Ptr{T}, win, owner_rank)
@@ -259,8 +263,8 @@ function Get!(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, wi
     #             MPI_Datatype origin_datatype, int target_rank,
     #             MPI_Aint target_disp, int target_count,
     #             MPI_Datatype target_datatype, MPI_Win win)
-    API.MPI_Get(origin_buf.data, origin_buf.count, origin_buf.datatype,
-                target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
+    API.MPI_Get_c(origin_buf.data, origin_buf.count, origin_buf.datatype,
+                  target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
 end
 Get!(origin, target_rank::Integer, target_disp::Integer, win::Win) =
     Get!(Buffer(origin), target_rank, target_disp, win)
@@ -285,8 +289,8 @@ function Put!(origin_buf::Buffer, target_rank::Integer, target_disp::Integer, wi
     #             MPI_Datatype origin_datatype, int target_rank,
     #             MPI_Aint target_disp, int target_count,
     #             MPI_Datatype target_datatype, MPI_Win win)
-    API.MPI_Put(origin_buf.data, origin_buf.count, origin_buf.datatype,
-                target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
+    API.MPI_Put_c(origin_buf.data, origin_buf.count, origin_buf.datatype,
+                  target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, win)
 end
 Put!(origin, target_rank::Integer, target_disp::Integer, win::Win) =
     Put!(Buffer_send(origin), target_rank, target_disp, win)
@@ -323,8 +327,8 @@ function Accumulate!(origin_buf::Buffer, target_rank::Integer, target_disp::Inte
     #                    MPI_Datatype origin_datatype, int target_rank,
     #                    MPI_Aint target_disp, int target_count,
     #                    MPI_Datatype target_datatype, MPI_Op op, MPI_Win win)
-    API.MPI_Accumulate(origin_buf.data, origin_buf.count, origin_buf.datatype,
-                       target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
+    API.MPI_Accumulate_c(origin_buf.data, origin_buf.count, origin_buf.datatype,
+                         target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
 end
 Accumulate!(origin, target_rank::Integer, target_disp::Integer, op::Op, win::Win) =
     Accumulate!(Buffer_send(origin), target_rank, target_disp, op, win)
@@ -351,9 +355,9 @@ function Get_accumulate!(origin_buf::Buffer, result_buf::Buffer, target_rank::In
     #                        int result_count, MPI_Datatype result_datatype,
     #                        int target_rank, MPI_Aint target_disp, int target_count,
     #                        MPI_Datatype target_datatype, MPI_Op op, MPI_Win win)
-    API.MPI_Get_accumulate(origin_buf.data, origin_buf.count, origin_buf.datatype,
-                           result_buf.data, result_buf.count, result_buf.datatype,
-                           target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
+    API.MPI_Get_accumulate_c(origin_buf.data, origin_buf.count, origin_buf.datatype,
+                             result_buf.data, result_buf.count, result_buf.datatype,
+                             target_rank, Cptrdiff_t(target_disp), origin_buf.count, origin_buf.datatype, op, win)
 end
 Get_accumulate!(origin, result, target_rank::Integer, target_disp::Integer, op::Op, win::Win) =
     Get_accumulate!(Buffer_send(origin), Buffer(result), target_rank, target_disp, op, win)
