@@ -109,7 +109,7 @@ For further information see
 
 ## UCX
 
-[UCX](https://openucx.org/) is a communication framework used by several MPI implementations.
+[UCX](https://github.com/openucx/ucx) is a communication framework used by several MPI implementations.
 
 ### Memory cache
 
